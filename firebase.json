@@ -1,7 +1,7 @@
 {
   "firestore": {
     "database": "(default)",
-    "location": "us-east1",
+    "location": "us-east4",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
@@ -24,10 +24,6 @@
   ],
   "hosting": {
     "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }
 }
