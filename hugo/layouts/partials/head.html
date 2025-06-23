@@ -1,0 +1,42 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,minimum-scale=1" />
+<title>{{ .Title }}</title>
+
+<!-- Load Critical CSS Inline -->
+{{ $applicationCSS := "scss/styles.scss" }}
+{{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+{{ $appInlineCSS := resources.Get $applicationCSS | css.Sass $options }}
+<style>{{ $appInlineCSS.Content | safeCSS }}</style>
+
+<!-- Load Non-Critical Styles Asynchronously -->
+{{ $options := (dict "transpiler" "dartsass" "targetPath" "non-critical.css" "outputStyle" "compressed") }}
+{{ $nonCriticalCSS := resources.Get "scss/non-critical.scss" | css.Sass $options | resources.Fingerprint }}
+<link
+  rel="preload"
+  href="{{ $nonCriticalCSS.RelPermalink }}"
+  as="style"
+  onload="this.onload=null;this.rel='stylesheet'" />
+<noscript>
+  <link rel="stylesheet" href="{{ $nonCriticalCSS.RelPermalink }}" />
+</noscript>
+
+<link
+  rel="preload"
+  href="/assets/fonts/Alice-Regular.woff2"
+  as="font"
+  crossorigin />
+<link
+  rel="preload"
+  href="/assets/fonts/Gantari-VariableFont_wght.woff2"
+  as="font"
+  crossorigin />
+
+{{ if hugo.IsProduction }}
+  {{/* <script
+    defer
+    src="https://api.pirsch.io/pa.js"
+    id="pianjs"
+    data-code="Knt697vyf6mctHZEsHchqzVx1eLvT2QW"
+    ></script>
+  */}}
+{{ end }}
