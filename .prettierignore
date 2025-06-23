@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+*.min.js
+*.min.css
