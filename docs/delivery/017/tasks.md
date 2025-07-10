@@ -8,7 +8,7 @@ This document lists all tasks associated with PBI 017.
 
 | Task ID | Name                                                             | Status   | Description                                                                                |
 | :------ | :--------------------------------------------------------------- | :------- | :----------------------------------------------------------------------------------------- |
-| 017-01  | [Analyze Current Hugo Structure and Best Practices](./017-01.md) | Proposed | Review the current Hugo project and research best practices for structure and conventions. |
+| 017-01  | [Analyze Current Hugo Structure and Best Practices](./017-01.md) | Done     | Review the current Hugo project and research best practices for structure and conventions. |
 | 017-02  | [Document Recommended Directory and File Structure](./017-02.md) | Proposed | Create documentation outlining the recommended Hugo directory and file structure.          |
 | 017-03  | [Create Boilerplate/Empty Files for Key Sections](./017-03.md)   | Proposed | Add boilerplate or empty files for content, layouts, assets, and partials.                 |
 | 017-04  | [Document Naming Conventions and Best Practices](./017-04.md)    | Proposed | Write up naming conventions and best practices for Hugo in this project.                   |
