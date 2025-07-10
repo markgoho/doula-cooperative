@@ -326,3 +326,16 @@ title = 'Doula Cooperative'
 
 _Last updated: January 28, 2025_
 _Maintained as part of PBI 017: Hugo Site Architecture & Boilerplate_
+
+## Boilerplate/Empty Files for Key Hugo Sections
+
+The following files and directories should exist as boilerplate or empty files to establish the Hugo project structure:
+
+- `content/` — Main directory for site content (should exist, even if empty)
+- `layouts/` — Main directory for templates
+  - `layouts/_default/` — Default templates (e.g., `baseof.html`, `list.html`, `single.html`)
+  - `layouts/partials/` — Partial templates (e.g., `head.html`, `header.html`, `footer.html`, `meta.html`)
+- `assets/` — Directory for asset files (e.g., SCSS, JS)
+  - `assets/scss/` — SCSS source files (e.g., `styles.scss`, `non-critical.scss`)
+
+> Each of these should be present in the repo, even if empty, to ensure Hugo recognizes the structure and to provide a starting point for future development.
