@@ -19,6 +19,7 @@ Without a well-defined site architecture and folder structure, contributors may 
 - Define naming conventions and best practices for Hugo in this project
 - Provide a living architecture diagram or markdown doc
 - Ensure documentation is easy to find and update
+- **Directory structure documentation:** [hugo/DIRECTORY_STRUCTURE.md](../../../hugo/DIRECTORY_STRUCTURE.md)
 
 ## UX/UI Considerations
 
@@ -30,6 +31,7 @@ Without a well-defined site architecture and folder structure, contributors may 
 - Boilerplate/empty files for key sections are created
 - Naming conventions and best practices are documented
 - Architecture doc is linked from the backlog
+- **Architecture doc is located at:** [hugo/DIRECTORY_STRUCTURE.md](../../../hugo/DIRECTORY_STRUCTURE.md)
 
 ## Dependencies
 
