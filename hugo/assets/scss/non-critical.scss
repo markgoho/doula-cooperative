@@ -1,12 +1,12 @@
 // Non-critical styles - loaded asynchronously
 .header {
-  background: #f8f9fa;
+  background: var(--color-light-bg);
   padding: 1rem 0;
 }
 
 .footer {
-  background: #343a40;
-  color: white;
+  background: var(--color-accent-bg);
+  color: var(--color-lightest-bg);
   padding: 2rem 0;
   margin-top: 4rem;
 }
@@ -15,12 +15,13 @@
 .btn {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: #007bff;
-  color: white;
+  background: var(--color-accent-bg);
+  color: var(--color-lightest-bg);
   text-decoration: none;
   border-radius: 0.25rem;
 
   &:hover {
-    background: #0056b3;
+    background: var(--color-highlight-bg);
+    color: var(--color-text-main);
   }
 }
