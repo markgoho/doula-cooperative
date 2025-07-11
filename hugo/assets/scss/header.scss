@@ -1,0 +1,96 @@
+/* Header/Navbar Styles for PBI 002 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--spacing-header-height);
+  background: var(--color-highlight-bg);
+  padding: 0 var(--spacing-xl);
+  container-type: inline-size;
+}
+
+.navbar__brand {
+  flex: 0 0 auto;
+}
+
+.navbar__logo {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-main);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.navbar__nav {
+  display: flex;
+  gap: var(--spacing-nav-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.navbar__link {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: var(--color-accent-bg);
+  }
+}
+
+.navbar__cta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__button {
+  display: inline-block;
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--font-size-md);
+  color: var(--color-lightest-bg);
+  background: var(--color-accent-bg);
+  border-radius: var(--spacing-btn-radius);
+  padding: var(--spacing-btn-padding-x) calc(var(--spacing-btn-padding-x) * 1.2);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  &:hover,
+  &:focus {
+    background: var(--color-text-main);
+    color: var(--color-highlight-bg);
+  }
+}
+
+/* Container Query for Responsive Layout (rem units) */
+@container (max-width: 43.75rem) {
+  /* 700px = 43.75rem */
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+  .navbar__nav {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: center;
+  }
+}
