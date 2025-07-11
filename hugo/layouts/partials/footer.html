@@ -42,21 +42,18 @@
           <li><a href="#">Contact us</a></li>
         </ul>
         <div class="footer__social">
-          <a href="#" aria-label="Facebook"
-            ><img
-              class="footer-icon"
-              src="/assets/icons/facebook.svg"
-              alt="Facebook"
-          /></a>
-          <a href="#" aria-label="X"
-            ><img class="footer-icon" src="/assets/icons/x.svg" alt="X"
-          /></a>
-          <a href="#" aria-label="Instagram"
-            ><img
-              class="footer-icon"
-              src="/assets/icons/instagram.svg"
-              alt="Instagram"
-          /></a>
+          <a
+            href="#"
+            aria-label="Facebook"
+            class="footer__social-link footer__social-link--circled">
+            {{ partial "icons/facebook.html" . }}
+          </a>
+          <a href="#" aria-label="X" class="footer__social-link">
+            {{ partial "icons/x.html" . }}
+          </a>
+          <a href="#" aria-label="Instagram" class="footer__social-link">
+            {{ partial "icons/instagram.html" . }}
+          </a>
         </div>
       </div>
     </nav>
