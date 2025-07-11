@@ -1,8 +1,72 @@
 # Hugo Directory and File Structure Guide
 
+> **About this Document**
+>
+> This is the authoritative, living architecture documentation for the Hugo site, maintained as part of [PBI 017: Hugo Site Architecture & Boilerplate](../docs/delivery/017/prd.md). It is updated as the site evolves and should be referenced for all questions about structure, conventions, and best practices.
+
 This document outlines the recommended directory and file structure for the Hugo static site in this project, based on Hugo best practices and the specific needs of the Doula Cooperative website.
 
 ## Overview
+
+Below is a visual diagram of the Hugo directory structure for quick reference:
+
+```mermaid
+flowchart TD
+  A["hugo/"]
+  A1["archetypes/"]
+  A2["assets/"]
+  A3["content/"]
+  A4["data/"]
+  A5["layouts/"]
+  A6["static/"]
+  A7["hugo.toml"]
+  A8["README.md"]
+  A9[".hugo_build.lock"]
+  A10["DIRECTORY_STRUCTURE.md"]
+
+  A --> A1
+  A1 --> A1a["default.md"]
+  A --> A2
+  A2 --> A2a["scss/"]
+  A2a --> A2a1["styles.scss"]
+  A2a --> A2a2["non-critical.scss"]
+  A --> A3
+  A3 --> A3a["_index.md"]
+  A3 --> A3b["about/"]
+  A3b --> A3b1["_index.md"]
+  A3 --> A3c["about-doulas/"]
+  A3c --> A3c1["_index.md"]
+  A3 --> A3d["doulas/"]
+  A3d --> A3d1["_index.md"]
+  A3d --> A3d2["jane-doe.md"]
+  A3 --> A3e["join/"]
+  A3e --> A3e1["_index.md"]
+  A3 --> A3f["contact/"]
+  A3f --> A3f1["_index.md"]
+  A --> A4
+  A4 --> A4a["doulas.yaml"]
+  A4 --> A4b["board.yaml"]
+  A4 --> A4c["navigation.yaml"]
+  A --> A5
+  A5 --> A5a["_default/"]
+  A5a --> A5a1["baseof.html"]
+  A5a --> A5a2["single.html"]
+  A5a --> A5a3["list.html"]
+  A5 --> A5b["partials/"]
+  A5b --> A5b1["header.html"]
+  A5b --> A5b2["footer.html"]
+  A5b --> A5b3["meta.html"]
+  A5b --> A5b4["..."]
+  A --> A6
+  A6 --> A6a["images/"]
+  A6a --> A6a1["..."]
+  A6 --> A6b["favicon.ico"]
+  A6 --> A6c["robots.txt"]
+  A --> A7
+  A --> A8
+  A --> A9
+  A --> A10
+```
 
 This Hugo site follows the standard Hugo directory structure with some project-specific conventions. The structure is designed to be maintainable, scalable, and follow modern Hugo best practices.
 
