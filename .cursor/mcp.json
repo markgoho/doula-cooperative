@@ -2,6 +2,9 @@
   "mcpServers": {
     "playwright": {
       "command": "./.cursor/playwright-mcp-server.sh"
+    },
+    "playwright-with-vision": {
+      "command": "./.cursor/playwright-mcp-server-vision.sh"
     }
   }
 }
