@@ -14,5 +14,5 @@ This document lists all tasks associated with PBI 004.
 | 004-04  | [Create Base Styles and Resets](./004-04.md)              | Done     | Implement a modern CSS reset and base styles for HTML elements.                 |
 | 004-05  | [Implement Global Typography Styles](./004-05.md)         | Done     | Apply font families, sizes, and responsive scaling as per Figma.                |
 | 004-06  | [Implement Global Color Palette](./004-06.md)             | Done     | Apply color variables to backgrounds, text, and UI elements.                    |
-| 004-07  | [Implement Global Spacing and Sizing System](./004-07.md) | Proposed | Define and apply spacing scale using variables.                                 |
+| 004-07  | [Implement Global Spacing and Sizing System](./004-07.md) | Done     | Define and apply spacing scale using variables.                                 |
 | 004-08  | [Document Theme Usage and Update Process](./004-08.md)    | Proposed | Document how to use and update the global theme/styles.                         |
