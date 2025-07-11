@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+When making changes to website files in the `hugo` directory, as part of verification of changes, use the Playwright MCP server to browse the specific urls and ensure that expected changes appear correctly
