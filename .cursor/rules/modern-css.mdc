@@ -1,0 +1,10 @@
+---
+globs: *.scss
+alwaysApply: false
+---
+
+Use modern, accessible, intrinsic css in all possible situations including:
+
+- css custom properties
+- container queries
+- responsive units (rem instead of px)
