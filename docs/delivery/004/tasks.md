@@ -9,7 +9,7 @@ This document lists all tasks associated with PBI 004.
 | Task ID | Name                                                      | Status   | Description                                                                     |
 | :------ | :-------------------------------------------------------- | :------- | :------------------------------------------------------------------------------ |
 | 004-01  | [Analyze Figma and Extract Design Tokens](./004-01.md)    | Done     | Extract color palette, typography, spacing, and other design tokens from Figma. |
-| 004-02  | [Set Up SCSS Architecture for Global Styles](./004-02.md) | Proposed | Establish a scalable SCSS structure and integrate with Hugo.                    |
+| 004-02  | [Set Up SCSS Architecture for Global Styles](./004-02.md) | Done     | Establish a scalable SCSS structure and integrate with Hugo.                    |
 | 004-03  | [Implement CSS Variables and Design Tokens](./004-03.md)  | Proposed | Define CSS custom properties for colors, typography, spacing, etc.              |
 | 004-04  | [Create Base Styles and Resets](./004-04.md)              | Proposed | Implement a modern CSS reset and base styles for HTML elements.                 |
 | 004-05  | [Implement Global Typography Styles](./004-05.md)         | Proposed | Apply font families, sizes, and responsive scaling as per Figma.                |
