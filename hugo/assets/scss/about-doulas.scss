@@ -11,3 +11,26 @@ section {
     padding-inline: 2rem;
   }
 }
+
+.faq {
+  details {
+    border-bottom: 1px solid var(--color-border-accent);
+    padding-block: 1rem;
+    height: 3rem; /* Set a fixed height for the collapsed state */
+    transition: height 400ms ease-in-out;
+    overflow: hidden;
+
+    &[open] {
+      height: auto;
+    }
+
+    p {
+      padding-top: 1rem;
+    }
+  }
+
+  summary {
+    cursor: pointer;
+    list-style: revert;
+  }
+}
