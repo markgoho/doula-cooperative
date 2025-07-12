@@ -83,19 +83,29 @@
 
       <button type="submit" class="contact-us-page__submit-btn">Submit</button>
     </form>
+
+    <div id="confirmation-message" class="contact-us-page__confirmation" hidden>
+      <h2>Thank you!</h2>
+      <p>Your message has been sent. We'll get back to you shortly.</p>
+    </div>
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const form = document.querySelector(".contact-us-page__form");
+      const confirmationMessage = document.getElementById(
+        "confirmation-message",
+      );
 
       form.addEventListener("submit", function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
 
-          // Add was-validated class to show errors on all fields after first submit attempt
+        if (!form.checkValidity()) {
           form.classList.add("was-validated");
+        } else {
+          form.hidden = true;
+          confirmationMessage.hidden = false;
         }
       });
     });

@@ -116,3 +116,19 @@
   + .contact-us-page__error-message {
   display: block;
 }
+
+.contact-us-page__confirmation {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  max-width: 1124px;
+  margin-inline: auto;
+}
+
+.contact-us-page__confirmation h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.contact-us-page__confirmation p {
+  font-size: var(--font-size-body-lg);
+}
