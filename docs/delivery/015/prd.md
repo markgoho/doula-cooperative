@@ -49,12 +49,12 @@ Visitors and prospective members need a clear, accessible way to contact the Dou
 - Design system/styles used elsewhere on the site
 - Backend integration for form submission (to be implemented in a future PBI)
 
-## Open Questions
+## Implementation Notes
 
-- What is the exact flow after submitting the form? (e.g., email notification, database entry, both?)
-- Where should the Doula Support special request form link to?
-- Should there be any spam prevention (e.g., CAPTCHA)?
-- Are there any required fields or validation rules beyond those shown?
+- **Form Submission Flow**: Currently, the form submission is handled client-side. Upon successful validation, the form is hidden, and a "Thank you" message is displayed. No backend integration (e.g., email notification, database entry) is implemented as part of this PBI; this will be handled in a future story.
+- **Doula Support Link**: The link in the special callout currently points to a placeholder (`#`). The final URL for the special request form needs to be provided and updated.
+- **Spam Prevention**: No spam prevention (e.g., CAPTCHA) has been implemented. This can be added in a future PBI if required.
+- **Validation Rules**: The form implements client-side validation using HTML5 `required` attributes for the name, email, and message fields. Error messages are displayed for invalid fields after the user attempts to submit the form.
 
 ## Related Tasks
 
