@@ -1,0 +1,54 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/join-cooperative.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <main id="main-content">
+    <div class="join-cooperative-page">
+      <section class="intro">
+        <h1>{{ .Title }}</h1>
+        <h2>It Takes a Village</h2>
+        <p>
+          Doula work can be some of the most fulfilling areas of work you may
+          ever find yourself in, but it can also be some of the most isolating
+          and draining. We can't sustain this work without the support of other
+          professionals who understand and can hold space for us as we navigate
+          the ins and outs of this great support work.
+        </p>
+      </section>
+      <section class="benefits">
+        <h2>Benefits of Membership</h2>
+        <ul>
+          <li>
+            Informal mentorship and networking opportunities with other doulas
+            and birth professionals.
+          </li>
+          <li>
+            Supportive community (in person and online) to process experiences
+            with and learn from
+          </li>
+          <li>
+            Educational opportunities to increase knowledge and enhance
+            professional skills
+          </li>
+          <li>
+            Option to have profile and contact information featured on Doula
+            Cooperative website
+          </li>
+        </ul>
+      </section>
+      <section class="membership-join">
+        <h3>Doula Membership, 1 Year</h3>
+        <p class="price">
+          <span class="currency-symbol">$</span>
+          <span class="amount">50</span>
+        </p>
+        <a href="#" class="button">Join the Cooperative</a>
+      </section>
+      {{ .Content }}
+    </div>
+  </main>
+{{ end }}
