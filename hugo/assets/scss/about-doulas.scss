@@ -1,0 +1,13 @@
+.content-wrapper {
+  container-type: inline-size;
+}
+
+section {
+  padding-block: 2rem;
+}
+
+@container (min-width: 45rem) {
+  section {
+    padding-inline: 2rem;
+  }
+}

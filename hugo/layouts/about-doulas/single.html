@@ -1,0 +1,18 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/about-doulas.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <div class="content-wrapper">
+    <h1>{{ .Title }}</h1>
+    {{ partial "about-doulas/birth.html" . }}
+    {{ partial "about-doulas/postpartum.html" . }}
+    {{ partial "about-doulas/other.html" . }}
+    {{ partial "about-doulas/hiring.html" . }}
+    {{ partial "about-doulas/fees.html" . }}
+    {{ partial "about-doulas/faq.html" . }}
+  </div>
+{{ end }}
