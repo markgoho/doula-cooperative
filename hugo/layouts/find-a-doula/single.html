@@ -1,0 +1,183 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/find-a-doula.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <div class="find-a-doula">
+    <section class="top-section">
+      <h1>{{ .Title }}</h1>
+    </section>
+    <section class="search-section">
+      <div class="search-header">
+        <img src="/assets/icons/magnifying-glass.svg" alt="" />
+        <h2>Search</h2>
+      </div>
+      <p>
+        Search across all Doula profiles, bios, specializations, and locations
+      </p>
+      <div class="search-form">
+        <input type="search" placeholder="Search for what's important" />
+        <button class="button">Search</button>
+      </div>
+    </section>
+    <section class="browse-section">
+      <div class="browse-header">
+        <img src="/assets/icons/list-icon.svg" alt="" />
+        <h2>Browse by Doula Type</h2>
+      </div>
+      <div class="browse-buttons">
+        <a href="#" class="button">Fertility Doulas</a>
+        <a href="#" class="button">Birth Doulas</a>
+        <a href="#" class="button">Lactation Consultants</a>
+        <a href="#" class="button">Postpartum Doulas</a>
+        <a href="#" class="button">Childbirth Educators</a>
+      </div>
+    </section>
+    <section class="contact-section">
+      <div class="contact-header">
+        <img src="/assets/icons/note-pencil-icon.svg" alt="" />
+        <h2>Let us help</h2>
+      </div>
+      <p>
+        Provide us with some information about you, what you're looking for, and
+        we’ll be in touch!
+      </p>
+      <form class="contact-form">
+        <div class="form-group">
+          <label for="name">Name (first and last)</label>
+          <input type="text" id="name" name="name" />
+        </div>
+
+        <div class="form-group form-group-half">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" />
+        </div>
+
+        <div class="form-group form-group-half">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" />
+        </div>
+
+        <div class="form-group">
+          <fieldset>
+            <legend>Baby’s estimated date of arrival or birthdate</legend>
+            <div class="date-fields">
+              <input type="text" placeholder="Month" />
+              <input type="text" placeholder="Day" />
+              <input type="text" placeholder="Year" />
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-group">
+          <fieldset>
+            <legend>I am a parent looking for...</legend>
+            <div class="checkbox-group">
+              <div>
+                <input type="checkbox" id="birth-doula" /><label
+                  for="birth-doula"
+                  >birth doula support</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="postpartum-doula" /><label
+                  for="postpartum-doula"
+                  >postpartum doula support</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="lactation" /><label for="lactation"
+                  >lactation support</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="classes" /><label for="classes"
+                  >childbirth classes</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="other-info-looking-for" /><label
+                  for="other-info-looking-for"
+                  >other information</label
+                >
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-group">
+          <fieldset>
+            <legend>My birth is planned at...</legend>
+            <div class="checkbox-group">
+              <div>
+                <input type="checkbox" id="home-birth" /><label for="home-birth"
+                  >home</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="highland" /><label for="highland"
+                  >Highland Hospital</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="rochester-general" /><label
+                  for="rochester-general"
+                  >Rochester General Hospital</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="strong" /><label for="strong"
+                  >Strong Hospital</label
+                >
+              </div>
+              <div>
+                <input type="checkbox" id="other-hospital" /><label
+                  for="other-hospital"
+                  >Other Hospital</label
+                >
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-group">
+          <label for="other-info"
+            >Is there any other information you'd like to share with us?</label
+          >
+          <textarea id="other-info" name="other-info" rows="5"></textarea>
+        </div>
+
+        <button type="submit" class="button">Submit Information</button>
+      </form>
+    </section>
+    <section class="post-submission-section">
+      <div class="info-header">
+        <img src="/assets/icons/info-icon.svg" alt="" />
+        <h3>What happens after I submit the form?</h3>
+      </div>
+      <div class="info-content">
+        <p>
+          If you're looking for doula support, your information will be shared
+          with cooperative members.
+        </p>
+        <p>
+          Doulas who are available around your estimated arrival date will email
+          you to set up a complimentary consultation. You may receive 2 or 20
+          emails depending on who is available.
+        </p>
+        <p>
+          It is common for pregnant people to meet with a few doulas to
+          determine who they'd feel most comfortable working with.
+        </p>
+        <p>
+          When you're ready to hire one of the doulas you've met with, you can
+          contact them directly to sign their client agreement and pay their
+          fee.
+        </p>
+      </div>
+    </section>
+  </div>
+{{ end }}
