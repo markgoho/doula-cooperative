@@ -74,3 +74,37 @@
   min-height: 200px;
   resize: vertical;
 }
+
+.contact-us-page__submit-btn {
+  background-color: var(--color-accent-bg);
+  color: var(--color-primary-bg);
+  border: none;
+  border-radius: var(--spacing-btn-radius);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  justify-self: start;
+}
+
+.contact-us-page__submit-btn:hover,
+.contact-us-page__submit-btn:focus {
+  background-color: var(--color-text-main);
+}
+
+.contact-us-page__error-message {
+  color: var(--color-error, #d93025);
+  font-size: var(--font-size-body-sm);
+  display: none;
+}
+
+.was-validated .contact-us-page__input:invalid {
+  border-color: var(--color-error, #d93025);
+}
+
+.was-validated
+  .contact-us-page__input:invalid
+  + .contact-us-page__error-message {
+  display: block;
+}

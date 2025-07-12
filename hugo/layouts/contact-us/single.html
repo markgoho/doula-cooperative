@@ -29,12 +29,15 @@
       </p>
     </div>
 
-    <form class="contact-us-page__form">
+    <form class="contact-us-page__form" novalidate>
       <div class="contact-us-page__form-group">
         <label for="name" class="contact-us-page__label"
           >Name (first and last)</label
         >
-        <input type="text" id="name" class="contact-us-page__input" />
+        <input type="text" id="name" class="contact-us-page__input" required />
+        <span class="contact-us-page__error-message" aria-live="polite"
+          >Please enter your name.</span
+        >
       </div>
 
       <div class="contact-us-page__form-group">
@@ -46,6 +49,9 @@
           id="email"
           class="contact-us-page__input"
           required />
+        <span class="contact-us-page__error-message" aria-live="polite"
+          >Please enter a valid email address.</span
+        >
       </div>
 
       <div class="contact-us-page__form-group">
@@ -54,8 +60,30 @@
         >
         <textarea
           id="message"
-          class="contact-us-page__input contact-us-page__input--textarea"></textarea>
+          class="contact-us-page__input contact-us-page__input--textarea"
+          required></textarea>
+        <span class="contact-us-page__error-message" aria-live="polite"
+          >Please enter a message.</span
+        >
       </div>
+
+      <button type="submit" class="contact-us-page__submit-btn">Submit</button>
     </form>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.querySelector(".contact-us-page__form");
+
+      form.addEventListener("submit", function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Add was-validated class to show errors on all fields after first submit attempt
+          form.classList.add("was-validated");
+        }
+      });
+    });
+  </script>
 {{ end }}
