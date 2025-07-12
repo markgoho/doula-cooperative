@@ -29,6 +29,14 @@
   margin-inline: auto;
 }
 
+.contact-us-page__callout-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  text-decoration: none;
+  color: inherit;
+}
+
 .contact-us-page__callout-icon {
   flex-shrink: 0;
 }

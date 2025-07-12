@@ -1,4 +1,4 @@
 ---
 title: "Contact Us"
-layout: "contact-us"
+type: "contact-us"
 ---
