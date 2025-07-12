@@ -8,3 +8,6 @@ Use modern, accessible, intrinsic css in all possible situations including:
 - css custom properties
 - container queries
 - responsive units (rem instead of px)
+
+- use native css as much as possible, do not use any scss-specific functionality unless absolutely necessary
+- do not hard-code values (colors, length units, font weights, etc.), instead use tokens that should already be defined

@@ -1,0 +1,15 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/landing-page.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "hero" }}
+  {{ partial "hero.html" . }}
+{{ end }}
+
+{{ define "main" }}
+  {{ partial "welcome.html" . }}
+  {{ partial "cta-cards.html" . }}
+{{ end }}

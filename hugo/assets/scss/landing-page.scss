@@ -1,0 +1,104 @@
+.hero {
+  position: relative;
+  padding-block: var(--spacing-xxxxl) var(--spacing-xxxxxl);
+  color: var(--color-highlight-bg);
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/assets/images/hero-background.png");
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 1) 30%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  z-index: -1;
+}
+.hero__content {
+  max-width: 50%;
+}
+.hero h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-boldest);
+  line-height: var(--line-height-tight);
+}
+.welcome {
+  padding-block: var(--spacing-xxxl);
+  background-color: var(--color-lightest-bg);
+  color: var(--color-text-main);
+}
+.welcome__content {
+  max-width: 55rem;
+  margin-inline: auto;
+  text-align: center;
+}
+.welcome h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-boldest);
+  margin-bottom: var(--spacing-lg);
+}
+.welcome p {
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-relaxed);
+}
+.cta-cards {
+  padding-block: var(--spacing-xxxl);
+  background-color: var(--color-lightest-bg);
+}
+.cta-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+}
+.cta-card {
+  border: var(--border-width-md) solid var(--color-border-accent);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--color-text-main);
+}
+.cta-card h3 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-sm);
+}
+
+/* Container Queries for Responsiveness */
+@container (max-width: 50rem) {
+  /* 800px */
+  .hero {
+    padding-block: var(--spacing-xxl); /* Adjust padding for mobile */
+  }
+
+  .hero__content {
+    max-width: 100%;
+  }
+
+  .hero h1 {
+    font-size: var(--font-size-lg);
+  }
+
+  .welcome h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  .cta-cards__grid {
+    grid-template-columns: 1fr; /* Stack cards on smaller screens */
+  }
+}

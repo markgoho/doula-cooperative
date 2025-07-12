@@ -11,6 +11,9 @@
   </head>
 
   <body>
+    {{ block "hero" . }}{{ end }}
+
+
     <header class="header">
       {{ block "header" . }}
         {{ partial "header.html" . }}
