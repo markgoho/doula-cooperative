@@ -1,0 +1,76 @@
+.contact-us-page {
+  background: linear-gradient(
+    180deg,
+    var(--color-lightest-bg) 0%,
+    var(--color-light-bg) 100%
+  );
+  padding: var(--spacing-xxl);
+}
+
+.contact-us-page__title {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-main);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.contact-us-page__callout {
+  border: var(--border-width-md) solid var(--color-border-accent);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  max-width: 1124px;
+  margin-inline: auto;
+}
+
+.contact-us-page__callout-icon {
+  flex-shrink: 0;
+}
+
+.contact-us-page__callout-text {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-regular);
+  font-size: 1.625rem; /* 26px - custom value from figma */
+  line-height: var(--line-height-tight);
+  color: var(--color-text-main);
+}
+
+.contact-us-page__form {
+  display: grid;
+  gap: var(--spacing-lg);
+  max-width: 1124px;
+  margin-inline: auto;
+}
+
+.contact-us-page__form-group {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.contact-us-page__label {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-light);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-main);
+}
+
+.contact-us-page__input {
+  background-color: var(--color-lightest-bg);
+  border: 1px solid var(--color-text-main);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+}
+
+.contact-us-page__input--textarea {
+  min-height: 200px;
+  resize: vertical;
+}
