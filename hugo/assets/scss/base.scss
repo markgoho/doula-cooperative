@@ -3,6 +3,10 @@
   https://andy-bell.co.uk/a-more-modern-css-reset/
 */
 
+:root {
+  interpolate-size: allow-keywords;
+}
+
 /* Box sizing rules */
 *,
 *::before,
@@ -41,8 +45,8 @@ ol[role="list"] {
 body {
   min-height: 100vh;
   line-height: 1.5;
-  margin: 0;
-  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Geologica", sans-serif;
 }
 
 /* Set shorter line heights on headings and interactive elements */
