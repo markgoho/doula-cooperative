@@ -1,0 +1,15 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/about-cooperative.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <div class="content-wrapper">
+    <h1>{{ .Title }}</h1>
+    {{ partial "about-cooperative/mission.html" . }}
+    {{ partial "about-cooperative/who-we-are.html" . }}
+    {{ partial "about-cooperative/board.html" . }}
+  </div>
+{{ end }}
