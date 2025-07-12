@@ -1,3 +1,18 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://doulacooperative.com/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Rochester Doula Cooperative'
+
+
+[build]
+  writeStats = true
+
+[module]
+  [module.hugoVersion]
+    extended = true
+    min = "0.129.0"
+
+[taxonomies]
+  type = "types"
+
+[permalinks]
+  types = "/doulas/:slug/"

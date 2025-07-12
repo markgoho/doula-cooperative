@@ -1,0 +1,63 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/doula-profile.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <article class="doula-profile">
+    <header>
+      <h1>{{ .Title }}</h1>
+      {{ with .Params.credentials }}
+        <p class="credentials">{{ . }}</p>
+      {{ end }}
+    </header>
+
+    <div class="profile-body">
+      <div class="main-content">
+        {{ with .Resources.GetMatch .Params.headshot }}
+          <img
+            src="{{ .RelPermalink }}"
+            alt="Headshot of {{ $.Title }}"
+            class="headshot" />
+        {{ end }}
+        {{ with .Params.tags }}
+          <div class="tags">
+            <h3>Services</h3>
+            <ul>
+              {{ range . }}
+                <li>{{ . }}</li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+      </div>
+
+      <aside class="sidebar">
+        <div class="bio">
+          {{ .Content }}
+        </div>
+        {{ with .Params.contact }}
+          <div class="contact-info">
+            <h3>Contact Information</h3>
+            {{ with .business_name }}<p><strong>{{ . }}</strong></p>{{ end }}
+            {{ with .website }}
+              <p>
+                <a href="{{ . }}" target="_blank" rel="noopener noreferrer"
+                  >Website</a
+                >
+              </p>
+            {{ end }}
+            {{ with .phone }}<p>Phone: {{ . }}</p>{{ end }}
+            {{ with .email }}
+              <p>Email: <a href="mailto:{{ . }}">{{ . }}</a></p>
+            {{ end }}
+          </div>
+        {{ end }}
+      </aside>
+    </div>
+  </article>
+
+  {{ partial "json-ld.html" . }}
+{{ end }}

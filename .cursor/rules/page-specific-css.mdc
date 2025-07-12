@@ -1,0 +1,18 @@
+---
+globs: *.html
+alwaysApply: false
+---
+
+If this go template needs page-specific css, here's how to do it:
+
+```html
+{{ define "head-styles" }} {{ $pageCSS := "scss/doula-profile.scss" }} {{
+$options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }} {{
+$inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+<style>
+  {{ $inlineCSS.Content | safeCSS }}
+</style>
+{{ end }}
+```
+
+The $pageCSS should point to the page-specific scss file, everything else should remain exactly as is

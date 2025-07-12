@@ -1,0 +1,33 @@
+{{ define "main" }}
+  <div class="doula-list">
+    <header>
+      <h1>{{ .Title }}</h1>
+      {{ with .Content }}
+        <div class="list-description">
+          {{ . }}
+        </div>
+      {{ end }}
+    </header>
+
+    <div class="doula-grid">
+      {{ range .Pages }}
+        <a href="{{ .RelPermalink }}" class="doula-card">
+          {{ with .Resources.GetMatch .Params.headshot }}
+            <img
+              src="{{ .RelPermalink }}"
+              alt="Headshot of {{ $.Title }}"
+              class="headshot" />
+          {{ else }}
+            <div class="placeholder-image"></div>
+          {{ end }}
+          <div class="card-body">
+            <h2 class="doula-name">{{ .Title }}</h2>
+            {{ with .Params.credentials }}
+              <p class="credentials">{{ . }}</p>
+            {{ end }}
+          </div>
+        </a>
+      {{ end }}
+    </div>
+  </div>
+{{ end }}
