@@ -10,15 +10,15 @@
     "hugo:dev": "cd hugo && hugo server"
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.29",
+    "@playwright/mcp": "^0.0.31",
     "@types/bun": "^1.2.18",
-    "eslint": "^9.30.1",
+    "eslint": "^9.31.0",
     "eslint-plugin-unicorn": "^59.0.1",
-    "firebase-tools": "^14.9.0",
+    "firebase-tools": "^14.11.0",
     "prettier": "^3.6.2",
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "typescript-eslint": "^8.36.0"
+    "typescript-eslint": "^8.37.0"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
