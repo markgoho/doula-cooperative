@@ -1,20 +1,2 @@
-// Non-critical styles - loaded asynchronously
-.header {
-  background: var(--color-light-bg);
-  padding: 1rem 0;
-}
 
-// Add your non-critical CSS here
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: var(--color-accent-bg);
-  color: var(--color-lightest-bg);
-  text-decoration: none;
-  border-radius: 0.25rem;
 
-  &:hover {
-    background: var(--color-highlight-bg);
-    color: var(--color-text-main);
-  }
-}

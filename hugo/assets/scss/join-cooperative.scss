@@ -1,92 +1,43 @@
-.join-cooperative-page {
-  container-type: inline-size;
-  padding: var(--spacing-xxl) var(--spacing-sm);
-  max-width: 1200px;
+.intro,
+.benefits,
+.membership-join {
+  text-align: center;
+  margin-bottom: var(--spacing-xxl);
+}
+
+.benefits {
+  ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--spacing-md);
+    text-align: left;
+
+    @container (width > 600px) {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xl);
+    }
+
+    li {
+      background-color: var(--brown-100);
+      padding: var(--spacing-md);
+      border-radius: 8px;
+      border: 1px solid var(--brown-400);
+    }
+  }
+}
+
+.membership-join {
+  border: 2px solid var(--brown-400);
+  border-radius: 12px;
+  padding: var(--spacing-xl);
+  max-width: max-content;
   margin-inline: auto;
 
-  .intro,
-  .benefits,
-  .membership-join {
-    text-align: center;
-    margin-bottom: var(--spacing-xxl);
-  }
-
-  h1 {
+  .price {
     font-size: var(--font-size-xl);
+    color: var(--color-text-main);
+    margin-block: var(--spacing-sm);
     font-weight: var(--font-weight-boldest);
-    color: var(--color-text-main);
-    margin-bottom: var(--spacing-xs);
-  }
-
-  h2 {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-boldest);
-    color: var(--color-text-main);
-    margin-bottom: var(--spacing-lg);
-  }
-
-  h3 {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-main);
-    margin-bottom: var(--spacing-sm);
-  }
-
-  p {
-    font-size: var(--font-size-body-md);
-    max-width: 60ch;
-    margin-inline: auto;
-  }
-
-  .benefits {
-    ul {
-      list-style: none;
-      padding: 0;
-      display: grid;
-      gap: var(--spacing-md);
-      text-align: left;
-
-      @container (width > 600px) {
-        grid-template-columns: 1fr 1fr;
-        gap: var(--spacing-xl);
-      }
-
-      li {
-        background-color: var(--color-lightest-bg);
-        padding: var(--spacing-md);
-        border-radius: 8px;
-        border: 1px solid var(--color-border-accent);
-      }
-    }
-  }
-
-  .membership-join {
-    border: 2px solid var(--color-border-accent);
-    border-radius: 12px;
-    padding: var(--spacing-xl);
-    max-width: 400px;
-    margin-inline: auto;
-
-    .price {
-      font-size: var(--font-size-xl);
-      color: var(--color-text-main);
-      margin-block: var(--spacing-sm);
-      font-weight: var(--font-weight-boldest);
-    }
-
-    .button {
-      display: inline-block;
-      padding: var(--spacing-sm) var(--spacing-xl);
-      background-color: var(--color-accent-bg);
-      color: var(--color-lightest-bg);
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: var(--font-weight-bold);
-      font-size: var(--font-size-md);
-
-      &:hover {
-        background-color: #2a6f80; /* A slightly lighter shade for hover */
-      }
-    }
   }
 }

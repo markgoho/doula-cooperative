@@ -6,58 +6,56 @@
 {{ end }}
 
 {{ define "main" }}
-  <article class="doula-profile">
-    <header>
-      <h1>{{ .Title }}</h1>
-      {{ with .Params.credentials }}
-        <p class="credentials">{{ . }}</p>
+  <section class="profile-header">
+    <h1>{{ .Title }}</h1>
+    {{ with .Params.credentials }}
+      <p class="credentials">{{ . }}</p>
+    {{ end }}
+  </section>
+
+  <section class="profile-body">
+    <div class="main-content">
+      {{ with .Resources.GetMatch .Params.headshot }}
+        <img
+          src="{{ .RelPermalink }}"
+          alt="Headshot of {{ $.Title }}"
+          class="headshot" />
       {{ end }}
-    </header>
-
-    <div class="profile-body">
-      <div class="main-content">
-        {{ with .Resources.GetMatch .Params.headshot }}
-          <img
-            src="{{ .RelPermalink }}"
-            alt="Headshot of {{ $.Title }}"
-            class="headshot" />
-        {{ end }}
-        {{ with .Params.tags }}
-          <div class="tags">
-            <h3>Services</h3>
-            <ul>
-              {{ range . }}
-                <li>{{ . }}</li>
-              {{ end }}
-            </ul>
-          </div>
-        {{ end }}
-      </div>
-
-      <aside class="sidebar">
-        <div class="bio">
-          {{ .Content }}
+      {{ with .Params.tags }}
+        <div class="tags">
+          <h3>Services</h3>
+          <ul>
+            {{ range . }}
+              <li>{{ . }}</li>
+            {{ end }}
+          </ul>
         </div>
-        {{ with .Params.contact }}
-          <div class="contact-info">
-            <h3>Contact Information</h3>
-            {{ with .business_name }}<p><strong>{{ . }}</strong></p>{{ end }}
-            {{ with .website }}
-              <p>
-                <a href="{{ . }}" target="_blank" rel="noopener noreferrer"
-                  >Website</a
-                >
-              </p>
-            {{ end }}
-            {{ with .phone }}<p>Phone: {{ . }}</p>{{ end }}
-            {{ with .email }}
-              <p>Email: <a href="mailto:{{ . }}">{{ . }}</a></p>
-            {{ end }}
-          </div>
-        {{ end }}
-      </aside>
+      {{ end }}
     </div>
-  </article>
+
+    <aside class="sidebar">
+      <div class="bio">
+        {{ .Content }}
+      </div>
+      {{ with .Params.contact }}
+        <div class="contact-info">
+          <h3>Contact Information</h3>
+          {{ with .business_name }}<p><strong>{{ . }}</strong></p>{{ end }}
+          {{ with .website }}
+            <p>
+              <a href="{{ . }}" target="_blank" rel="noopener noreferrer"
+                >{{ . }}</a
+              >
+            </p>
+          {{ end }}
+          {{ with .phone }}<p>Phone: {{ . }}</p>{{ end }}
+          {{ with .email }}
+            <p>Email: <a href="mailto:{{ . }}">{{ . }}</a></p>
+          {{ end }}
+        </div>
+      {{ end }}
+    </aside>
+  </section>
 
   {{ partial "json-ld.html" . }}
 {{ end }}

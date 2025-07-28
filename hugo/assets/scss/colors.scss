@@ -1,10 +1,17 @@
 :root {
-  /* Colors */
-  --color-primary-bg: #ffffff;
-  --color-accent-bg: #1b5665;
-  --color-highlight-bg: #f9dcb5;
-  --color-light-bg: #f5e4cd;
-  --color-lightest-bg: #fcefde;
-  --color-text-main: #442c0c;
-  --color-border-accent: #dfb781;
+  --brown-000: hsl(35, 69%, 94%);
+  --brown-100: hsl(34, 83%, 93%);
+  --brown-200: hsl(35, 67%, 88%);
+  --brown-300: hsl(34, 85%, 84%);
+  --brown-400: hsl(34, 59%, 69%);
+  --brown-500: hsl(34, 70%, 16%);
+  --brown-600: hsl(33, 35%, 12%);
+  --brown-700: hsl(35, 74%, 5%);
+
+  --teal-300: hsl(192, 49%, 53%);
+  --teal-400: hsl(192, 51%, 33%);
+  --teal-500: hsl(192, 58%, 25%);
+
+  --light-bg: linear-gradient(180deg, var(--brown-100) 0%, var(--brown-200) 100%);
+  --dark-bg: linear-gradient(180deg, var(--brown-600) 0%, var(--brown-700) 100%);
 }

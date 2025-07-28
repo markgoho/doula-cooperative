@@ -1,0 +1,28 @@
+:root {
+  --spacing-btn-padding-x: 1.25rem; /* 20px */
+  --spacing-btn-radius: 0.625rem; /* 10px */
+}
+
+.button {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--font-size-md);
+  color: var(--brown-100);
+  background: var(--teal-500);
+  border-radius: var(--spacing-btn-radius);
+  padding: var(--spacing-btn-padding-x) calc(var(--spacing-btn-padding-x) * 1.2);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  justify-self: start;
+
+  &:hover,
+  &:focus {
+    background: var(--color-text-main);
+    color: var(--brown-300);
+  }
+}

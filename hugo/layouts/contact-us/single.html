@@ -6,92 +6,83 @@
 {{ end }}
 
 {{ define "main" }}
-  <div class="contact-us-page">
-    <h1 class="contact-us-page__title">Contact Us</h1>
+  <h1 class="contact-us-page__title">Contact Us</h1>
 
-    <div class="contact-us-page__callout">
-      <a href="#" class="contact-us-page__callout-link">
-        <div class="contact-us-page__callout-icon">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <g clip-path="url(#clip0_114_573)">
-              <path
-                d="M52 32C52 43.0457 43.0457 52 32 52C20.9543 52 12 43.0457 12 32C12 20.9543 20.9543 12 32 12C43.0457 12 52 20.9543 52 32Z"
-                fill="#1B5665" />
-              <path
-                d="M32 18V32M32 46V32M32 32H18M32 32H46"
-                stroke="white"
-                stroke-width="4" />
-            </g>
-            <defs>
-              <clipPath id="clip0_114_573">
-                <rect
-                  width="52"
-                  height="52"
-                  fill="white"
-                  transform="translate(6 6)" />
-              </clipPath>
-            </defs>
-          </svg>
-        </div>
-        <p class="contact-us-page__callout-text">
-          Looking for information about Doula Support? Use our special request
-          form.
-        </p>
-      </a>
+  <div class="contact-us-page__callout">
+    <div class="contact-us-page__callout-icon">
+      <svg
+        width="64"
+        height="64"
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_114_573)">
+          <path
+            d="M52 32C52 43.0457 43.0457 52 32 52C20.9543 52 12 43.0457 12 32C12 20.9543 20.9543 12 32 12C43.0457 12 52 20.9543 52 32Z"
+            fill="#1B5665" />
+          <path
+            d="M32 18V32M32 46V32M32 32H18M32 32H46"
+            stroke="white"
+            stroke-width="4" />
+        </g>
+        <defs>
+          <clipPath id="clip0_114_573">
+            <rect
+              width="52"
+              height="52"
+              fill="white"
+              transform="translate(6 6)" />
+          </clipPath>
+        </defs>
+      </svg>
     </div>
-
-    <form class="contact-us-page__form" novalidate>
-      <div class="contact-us-page__form-group">
-        <label for="name" class="contact-us-page__label"
-          >Name (first and last)</label
-        >
-        <input type="text" id="name" class="contact-us-page__input" required />
-        <span class="contact-us-page__error-message" aria-live="polite"
-          >Please enter your name.</span
-        >
-      </div>
-
-      <div class="contact-us-page__form-group">
-        <label for="email" class="contact-us-page__label"
-          >Email (required)</label
-        >
-        <input
-          type="email"
-          id="email"
-          class="contact-us-page__input"
-          required />
-        <span class="contact-us-page__error-message" aria-live="polite"
-          >Please enter a valid email address.</span
-        >
-      </div>
-
-      <div class="contact-us-page__form-group">
-        <label for="message" class="contact-us-page__label"
-          >What can we help you with?</label
-        >
-        <textarea
-          id="message"
-          class="contact-us-page__input contact-us-page__input--textarea"
-          required></textarea>
-        <span class="contact-us-page__error-message" aria-live="polite"
-          >Please enter a message.</span
-        >
-      </div>
-
-      <button type="submit" class="contact-us-page__submit-btn">Submit</button>
-    </form>
-
-    <div id="confirmation-message" class="contact-us-page__confirmation" hidden>
-      <h2>Thank you!</h2>
-      <p>Your message has been sent. We'll get back to you shortly.</p>
-    </div>
+    <p class="contact-us-page__callout-text">
+      Looking for information about Doula Support? Use our special request form.
+    </p>
   </div>
 
+  <form class="contact-us-page__form" novalidate>
+    <div class="contact-us-page__form-group">
+      <label for="name" class="contact-us-page__label"
+        >Name (first and last)</label
+      >
+      <input type="text" id="name" class="contact-us-page__input" required />
+      <span class="contact-us-page__error-message" aria-live="polite"
+        >Please enter your name.</span
+      >
+    </div>
+
+    <div class="contact-us-page__form-group">
+      <label for="email" class="contact-us-page__label">Email (required)</label>
+      <input type="email" id="email" class="contact-us-page__input" required />
+      <span class="contact-us-page__error-message" aria-live="polite"
+        >Please enter a valid email address.</span
+      >
+    </div>
+
+    <div class="contact-us-page__form-group">
+      <label for="message" class="contact-us-page__label"
+        >What can we help you with?</label
+      >
+      <textarea
+        id="message"
+        class="contact-us-page__input contact-us-page__input--textarea"
+        required></textarea>
+      <span class="contact-us-page__error-message" aria-live="polite"
+        >Please enter a message.</span
+      >
+    </div>
+
+    <button type="submit" class="button">Submit</button>
+  </form>
+
+  <div id="confirmation-message" class="contact-us-page__confirmation" hidden>
+    <h2>Thank you!</h2>
+    <p>Your message has been sent. We'll get back to you shortly.</p>
+  </div>
+{{ end }}
+
+{{ define "footer-scripts" }}
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const form = document.querySelector(".contact-us-page__form");

@@ -1,269 +1,179 @@
-.find-a-doula {
-  container-type: inline-size;
+.top-section {
+  padding-block: var(--spacing-xxxl);
+  text-align: center;
+}
 
-  .top-section {
-    padding-block: var(--spacing-xxxl);
-    text-align: center;
+.search-section {
+  padding: var(--spacing-xxxl) var(--container-padding-inline);
+  max-width: var(--container-max-width);
+  margin-inline: auto;
 
-    h1 {
-      color: var(--color-text-main);
-      font-family: var(--font-family-main);
-      font-size: var(--font-size-xl);
-      font-weight: var(--font-weight-boldest);
-      line-height: var(--line-height-tight);
+  .search-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+
+    img {
+      width: 3rem; // 48px, approximate from figma
+      height: 3rem;
     }
   }
 
-  .search-section {
-    padding: var(--spacing-xxxl) var(--container-padding-inline);
-    max-width: var(--container-max-width);
-    margin-inline: auto;
+  .search-form {
+    display: flex;
+    gap: var(--spacing-md);
 
-    .search-header {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-md);
+    input[type="search"] {
+      flex-grow: 1;
+      padding: var(--spacing-md);
+      font-size: var(--font-size-body-lg);
+      border: 1px solid var(--color-text-main);
+      border-radius: var(--spacing-btn-radius);
+      background-color: var(--brown-000); // From figma
+    }
+  }
+}
 
-      img {
-        width: 3rem; // 48px, approximate from figma
-        height: 3rem;
-      }
+.browse-section {
+  padding: var(--spacing-xxxl) var(--container-padding-inline);
+  max-width: var(--container-max-width);
+  margin-inline: auto;
 
-      h2 {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-bold);
-      }
+  .browse-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+
+    img {
+      width: 3rem; // 48px, approximate from figma
+      height: 3rem;
+    }
+  }
+
+  .browse-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+}
+
+.contact-section {
+  padding: var(--spacing-xxxl) var(--container-padding-inline);
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+
+  .contact-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+
+    img {
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+
+  .contact-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+
+    .form-group {
+      width: 100%;
     }
 
-    p {
+    .form-group-half {
+      width: calc(50% - (var(--spacing-lg) / 2));
+    }
+
+    label,
+    legend {
+      display: block;
       font-size: var(--font-size-md);
       font-weight: var(--font-weight-light);
-      margin-bottom: var(--spacing-lg);
-      max-width: 60ch;
+      margin-bottom: var(--spacing-sm);
     }
 
-    .search-form {
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: var(--spacing-md);
+      font-size: var(--font-size-body-lg);
+      border: 1px solid var(--color-text-main);
+      border-radius: var(--spacing-btn-radius);
+      background-color: var(--brown-000);
+    }
+
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .date-fields {
       display: flex;
       gap: var(--spacing-md);
-
-      input[type="search"] {
-        flex-grow: 1;
-        padding: var(--spacing-md);
-        font-size: var(--font-size-body-lg);
-        border: 1px solid var(--color-text-main);
-        border-radius: var(--spacing-btn-radius);
-        background-color: #faf1e4; // From figma
-      }
-
-      .button {
-        background-color: var(--color-accent-bg);
-        color: var(--color-lightest-bg);
-        font-weight: var(--font-weight-boldest);
-        font-size: var(--font-size-md);
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-radius: var(--spacing-btn-radius);
-        border: none;
-        cursor: pointer;
-      }
-    }
-  }
-
-  .browse-section {
-    padding: var(--spacing-xxxl) var(--container-padding-inline);
-    max-width: var(--container-max-width);
-    margin-inline: auto;
-
-    .browse-header {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-md);
-
-      img {
-        width: 3rem; // 48px, approximate from figma
-        height: 3rem;
-      }
-
-      h2 {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-bold);
-      }
     }
 
-    .browse-buttons {
-      display: flex;
-      flex-wrap: wrap;
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: var(--spacing-md);
 
-      .button {
-        background-color: var(--color-accent-bg);
-        color: var(--color-lightest-bg);
-        font-weight: var(--font-weight-boldest);
-        font-size: var(--font-size-md);
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-radius: var(--spacing-btn-radius);
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        text-align: center;
-      }
-    }
-  }
-
-  .contact-section {
-    padding: var(--spacing-xxxl) var(--container-padding-inline);
-    max-width: var(--container-max-width);
-    margin-inline: auto;
-
-    .contact-header {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-md);
-
-      img {
-        width: 3rem;
-        height: 3rem;
-      }
-
-      h2 {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-bold);
-      }
-    }
-
-    > p {
-      font-size: var(--font-size-md);
-      font-weight: var(--font-weight-light);
-      margin-bottom: var(--spacing-lg);
-      max-width: 70ch;
-    }
-
-    .contact-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--spacing-lg);
-
-      .form-group {
-        width: 100%;
-      }
-
-      .form-group-half {
-        width: calc(50% - (var(--spacing-lg) / 2));
-      }
-
-      label,
-      legend {
-        display: block;
-        font-size: var(--font-size-md);
-        font-weight: var(--font-weight-light);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      input[type="text"],
-      input[type="tel"],
-      input[type="email"],
-      textarea {
-        width: 100%;
-        padding: var(--spacing-md);
-        font-size: var(--font-size-body-lg);
-        border: 1px solid var(--color-text-main);
-        border-radius: var(--spacing-btn-radius);
-        background-color: #faf1e4;
-      }
-
-      fieldset {
-        border: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .date-fields {
+      div {
         display: flex;
-        gap: var(--spacing-md);
+        align-items: center;
+        gap: var(--spacing-sm);
       }
 
-      .checkbox-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--spacing-md);
-
-        div {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-sm);
-        }
-
-        input[type="checkbox"] {
-          width: 1.5rem;
-          height: 1.5rem;
-          accent-color: var(--color-accent-bg);
-        }
-
-        label {
-          font-size: var(--font-size-sm);
-          margin-bottom: 0;
-        }
+      input[type="checkbox"] {
+        width: 1.5rem;
+        height: 1.5rem;
+        accent-color: var(--teal-500);
       }
 
-      .button {
-        background-color: var(--color-accent-bg);
-        color: var(--color-lightest-bg);
-        font-weight: var(--font-weight-boldest);
-        font-size: var(--font-size-md);
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-radius: var(--spacing-btn-radius);
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        text-align: center;
-        width: 100%;
-        margin-top: var(--spacing-lg);
-      }
-    }
-  }
-
-  .post-submission-section {
-    padding: var(--spacing-xxxl) var(--container-padding-inline);
-    max-width: var(--container-max-width);
-    margin-inline: auto;
-    text-align: center;
-
-    .info-header {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-lg);
-      padding: var(--spacing-sm) var(--spacing-md);
-      border: 5px solid var(--color-border-accent);
-      border-radius: var(--border-radius-md);
-
-      img {
-        width: 2.5rem;
-        height: 2.5rem;
-      }
-
-      h3 {
-        font-size: 1.625rem; // 26px
-        font-weight: var(--font-weight-regular);
+      label {
+        font-size: var(--font-size-sm);
         margin-bottom: 0;
       }
     }
+  }
+}
 
-    .info-content {
-      max-width: 80ch;
-      margin-inline: auto;
-      text-align: left;
+.post-submission-section {
+  padding: var(--spacing-xxxl) var(--container-padding-inline);
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  text-align: center;
 
-      p {
-        font-size: var(--font-size-body-lg);
-        line-height: var(--line-height-relaxed);
-        margin-bottom: var(--spacing-md);
+  .info-header {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 5px solid var(--brown-400);
+    border-radius: var(--border-radius-md);
 
-        &:last-child {
-          margin-bottom: 0;
-        }
+    img {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+
+  .info-content {
+    max-width: 80ch;
+    margin-inline: auto;
+    text-align: left;
+
+    p {
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }
@@ -271,10 +181,6 @@
 
 @container (max-width: 50rem) {
   .find-a-doula {
-    .top-section h1 {
-      font-size: 4rem;
-    }
-
     .search-section .search-form,
     .contact-section .contact-form .date-fields {
       flex-direction: column;
@@ -282,20 +188,6 @@
 
     .contact-section .contact-form .form-group-half {
       width: 100%;
-    }
-  }
-}
-
-@container (max-width: 30rem) {
-  .find-a-doula {
-    .top-section h1 {
-      font-size: 3rem;
-    }
-
-    .search-section h2,
-    .browse-section h2,
-    .contact-section h2 {
-      font-size: 2.5rem;
     }
   }
 }

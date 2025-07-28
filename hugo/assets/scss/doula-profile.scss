@@ -1,77 +1,52 @@
-.doula-profile {
-  container-type: inline-size;
-  container-name: doula-profile;
+.profile-body {
+  display: grid;
+  gap: var(--space-size-7);
+  grid-template-columns: 1fr;
 
-  .profile-body {
-    display: grid;
-    gap: var(--space-size-7);
-    grid-template-columns: 1fr;
-
-    @container (width > 45rem) {
-      grid-template-columns: 1fr 2fr;
-    }
+  @container (width > 45rem) {
+    grid-template-columns: 1fr 2fr;
   }
+}
 
-  header {
+.profile-header {
+  margin-block-end: var(--space-size-5);
+
+  .credentials {
+    font-size: var(--ts-m);
+    color: var(--primary-700);
+    font-weight: 300;
+  }
+}
+
+.headshot {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 7px;
+  border: 1px solid var(--primary-700);
+  padding: var(--space-size-2);
+}
+
+.sidebar {
+  .contact-info,
+  .tags {
     margin-block-end: var(--space-size-5);
-    h1 {
-      font-size: var(--ts-xl);
+  }
+
+  .tags ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-size-2);
+
+    li {
+      background-color: var(--secondary-200);
+      padding: var(--space-size-1) var(--space-size-3);
+      border-radius: 50px;
+      font-size: var(--ts-s);
       font-weight: 900;
-    }
-    .credentials {
-      font-size: var(--ts-m);
-      color: var(--primary-700);
-      font-weight: 300;
-    }
-  }
-
-  .main-content {
-    .headshot {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      border-radius: 7px;
-      border: 1px solid var(--primary-700);
-      padding: var(--space-size-2);
-    }
-  }
-
-  .sidebar {
-    .contact-info,
-    .tags {
-      margin-block-end: var(--space-size-5);
-    }
-
-    h3 {
-      font-size: var(--ts-l);
-      font-weight: 700;
-      margin-block-end: var(--space-size-3);
-    }
-
-    .tags ul {
-      list-style: none;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-size-2);
-
-      li {
-        background-color: var(--secondary-200);
-        padding: var(--space-size-1) var(--space-size-3);
-        border-radius: 50px;
-        font-size: var(--ts-s);
-        font-weight: 900;
-      }
-    }
-
-    .contact-info {
-      p {
-        display: flex;
-        align-items: center;
-        gap: var(--space-size-2);
-        margin-block-end: var(--space-size-2);
-      }
     }
   }
 }
