@@ -1,25 +1,17 @@
-/* Header/Navbar Styles for PBI 002 */
+.header {
+  container-type: inline-size;
+}
+
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--spacing-header-height);
   background: var(--brown-300);
-  padding: 0 var(--spacing-xl);
-  container-type: inline-size;
-}
-
-.navbar__brand {
-  flex: 0 0 auto;
+  padding: var(--space-s) var(--space-l);
 }
 
 .navbar__logo {
-  font-family: var(--font-family-main);
-  font-weight: var(--font-weight-boldest);
-  font-size: var(--font-size-lg);
-  color: var(--color-text-main);
-  text-decoration: none;
-  letter-spacing: 0.01em;
+  margin: 0;
 }
 
 .navbar__nav {
@@ -32,42 +24,17 @@
   justify-content: center;
 }
 
-.navbar__link {
-  font-family: var(--font-family-main);
-  font-weight: var(--font-weight-boldest);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-main);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-  transition: color 0.2s;
-  background: none;
-  border: none;
-  cursor: pointer;
-
-  &:hover,
-  &:focus {
-    color: var(--teal-500);
-  }
-}
-
-.navbar__cta {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-}
-
-/* Container Query for Responsive Layout (rem units) */
 @container (max-width: 43.75rem) {
-  /* 700px = 43.75rem */
   .navbar {
     flex-direction: column;
     height: auto;
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
+    padding: var(--space-s);
+    gap: var(--space-s);
   }
+
   .navbar__nav {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--space-s);
     align-items: center;
   }
 }

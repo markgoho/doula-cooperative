@@ -1,18 +1,16 @@
 :root {
-  /* Spacing Scale */
-  --spacing-xxs: 0.25rem; /* 4px */
-  --spacing-xs: 0.5rem; /* 8px */
-  --spacing-sm: 1rem; /* 16px */
-  --spacing-md: 1.5rem; /* 24px */
-  --spacing-lg: 2rem; /* 32px */
-  --spacing-xl: 3rem; /* 48px */
-  --spacing-xxl: 4rem; /* 64px */
-  --spacing-xxxl: 6rem; /* 96px */
-  --spacing-xxxxl: 10rem; /* 160px */
-  --spacing-xxxxxl: 15rem; /* 240px */
-  --spacing-header-height: 9.53125rem; /* 152.5px */
   --spacing-nav-gap: 4.3125rem; /* 69px */
 
   --border-width-md: 5px;
   --border-radius-md: 5px;
+
+  --space-3xs: clamp(0.3125rem, 0.3rem + 0.0625cqi, 0.375rem);
+  --space-2xs: clamp(0.5625rem, 0.525rem + 0.1875cqi, 0.75rem);
+  --space-xs: clamp(0.875rem, 0.825rem + 0.25cqi, 1.125rem);
+  --space-s: clamp(1.125rem, 1.05rem + 0.375cqi, 1.5rem);
+  --space-m: clamp(1.6875rem, 1.575rem + 0.5625cqi, 2.25rem);
+  --space-l: clamp(2.25rem, 2.1rem + 0.75cqi, 3rem);
+  --space-xl: clamp(3.375rem, 3.15rem + 1.125cqi, 4.5rem);
+  --space-2xl: clamp(4.5rem, 4.2rem + 1.5cqi, 6rem);
+  --space-3xl: clamp(6.75rem, 6.3rem + 2.25cqi, 9rem);
 }

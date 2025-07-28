@@ -1,6 +1,6 @@
 .hero {
   position: relative;
-  padding-block: var(--spacing-xxxxl) var(--spacing-xxxxxl);
+  padding-block: var(--space-3xl) var(--space-3xl);
   color: var(--brown-300);
 }
 .hero::before {
@@ -33,33 +33,29 @@
   max-width: 50%;
 }
 
-.welcome {
-  padding-block: var(--spacing-xxxl);
-  color: var(--color-text-main);
-  max-width: 55rem;
-  margin-inline: auto;
-  text-align: center;
-}
-
 .cta-cards {
-  padding-block: var(--spacing-xxxl);
+  padding-block: var(--space-2xl);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
+  gap: var(--space-m);
 }
 .cta-card {
   border: var(--border-width-md) solid var(--brown-400);
   border-radius: var(--border-radius-md);
-  padding: var(--spacing-xl);
+  padding: var(--space-l);
   text-align: center;
   color: var(--color-text-main);
+}
+
+.highlight {
+  font-weight: 700;
 }
 
 /* Container Queries for Responsiveness */
 @container (max-width: 50rem) {
   /* 800px */
   .hero {
-    padding-block: var(--spacing-xxl); /* Adjust padding for mobile */
+    padding-block: var(--space-xl); /* Adjust padding for mobile */
   }
 
   .hero__content {

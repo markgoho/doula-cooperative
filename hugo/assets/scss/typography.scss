@@ -15,25 +15,27 @@
   --font-weight-semibold: 600;
   --font-weight-regular: 400;
   --font-weight-light: 300;
-  --font-size-xl: 6rem; /* 96px */
-  --font-size-lg: 3rem; /* 48px */
-  --font-size-md: 2.25rem; /* 36px */
-  --font-size-sm: 1.5rem; /* 24px */
-  --font-size-xs: 1.25rem; /* 20px */
-  --font-size-body-lg: 1.5rem; /* 24px */
-  --font-size-body-md: 1.125rem; /* 18px */
-  --font-size-body-sm: 1rem; /* 16px */
+
   --line-height-tight: 1.25em;
   --line-height-relaxed: 1.5em;
   --color-text-main: var(--brown-500);
 
+  --step--2: clamp(0.8889rem, 0.8747rem + 0.0711vw, 0.96rem);
+  --step--1: clamp(1rem, 0.96rem + 0.2vw, 1.2rem);
+  --step-0: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);
+  --step-1: clamp(1.2656rem, 1.1438rem + 0.6094vw, 1.875rem);
+  --step-2: clamp(1.4238rem, 1.2398rem + 0.9199vw, 2.3438rem);
+  --step-3: clamp(1.6018rem, 1.3362rem + 1.3279vw, 2.9297rem);
+  --step-4: clamp(1.802rem, 1.43rem + 1.8601vw, 3.6621rem);
+  --step-5: clamp(2.0273rem, 1.5172rem + 2.5504vw, 4.5776rem);
+  --step-6: clamp(2.2807rem, 1.5924rem + 3.4413vw, 5.722rem);
 }
 
 // Global Typography Styles
 body {
   font-family: var(--font-family-main);
-  font-size: var(--font-size-body-md);
-  font-weight: var(--font-weight-regular);
+  font-size: var(--step-0);
+  font-weight: var(--font-weight-light);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-main);
   background: var(--light-bg);
@@ -50,30 +52,31 @@ h6 {
   line-height: var(--line-height-tight);
   color: var(--color-text-main, #222);
   margin-block-end: 0.5em;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: var(--font-size-xl);
+  font-size: var(--step-6);
 }
 h2 {
-  font-size: var(--font-size-lg);
+  font-size: var(--step-3);
 }
 h3 {
-  font-size: var(--font-size-md);
+  font-size: var(--step-2);
 }
 h4 {
-  font-size: var(--font-size-sm);
+  font-size: var(--step-1);
 }
 h5,
 h6 {
-  font-size: var(--font-size-body-md);
+  font-size: var(--step-0);
 }
 
 p,
 li,
 blockquote,
 dd {
-  font-size: var(--font-size-body-md);
+  font-size: var(--step-0);
   line-height: var(--line-height-relaxed);
 }
 
@@ -86,4 +89,9 @@ a {
 a:hover,
 a:focus {
   color: var(--brown-300);
+}
+
+main h1 {
+  text-align: center;
+  margin-block-start: var(--space-xl);
 }

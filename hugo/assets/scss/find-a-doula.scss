@@ -1,18 +1,11 @@
-.top-section {
-  padding-block: var(--spacing-xxxl);
-  text-align: center;
-}
-
 .search-section {
-  padding: var(--spacing-xxxl) var(--container-padding-inline);
   max-width: var(--container-max-width);
-  margin-inline: auto;
 
   .search-header {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    gap: var(--space-xs);
+    margin-bottom: var(--space-s);
 
     img {
       width: 3rem; // 48px, approximate from figma
@@ -22,12 +15,11 @@
 
   .search-form {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--space-s);
 
     input[type="search"] {
       flex-grow: 1;
-      padding: var(--spacing-md);
-      font-size: var(--font-size-body-lg);
+      padding: var(--space-s);
       border: 1px solid var(--color-text-main);
       border-radius: var(--spacing-btn-radius);
       background-color: var(--brown-000); // From figma
@@ -36,15 +28,13 @@
 }
 
 .browse-section {
-  padding: var(--spacing-xxxl) var(--container-padding-inline);
   max-width: var(--container-max-width);
-  margin-inline: auto;
 
   .browse-header {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    gap: var(--space-xs);
+    margin-bottom: var(--space-s);
 
     img {
       width: 3rem; // 48px, approximate from figma
@@ -55,20 +45,18 @@
   .browse-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-md);
+    gap: var(--space-s);
   }
 }
 
 .contact-section {
-  padding: var(--spacing-xxxl) var(--container-padding-inline);
   max-width: var(--container-max-width);
-  margin-inline: auto;
 
   .contact-header {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    gap: var(--space-xs);
+    margin-bottom: var(--space-s);
 
     img {
       width: 3rem;
@@ -79,22 +67,22 @@
   .contact-form {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-lg);
+    gap: var(--space-m);
 
     .form-group {
       width: 100%;
     }
 
     .form-group-half {
-      width: calc(50% - (var(--spacing-lg) / 2));
+      width: calc(50% - (var(--space-m) / 2));
     }
 
     label,
     legend {
       display: block;
-      font-size: var(--font-size-md);
+      font-size: var(--step-2);
       font-weight: var(--font-weight-light);
-      margin-bottom: var(--spacing-sm);
+      margin-bottom: var(--space-xs);
     }
 
     input[type="text"],
@@ -102,8 +90,7 @@
     input[type="email"],
     textarea {
       width: 100%;
-      padding: var(--spacing-md);
-      font-size: var(--font-size-body-lg);
+      padding: var(--space-s);
       border: 1px solid var(--color-text-main);
       border-radius: var(--spacing-btn-radius);
       background-color: var(--brown-000);
@@ -117,18 +104,18 @@
 
     .date-fields {
       display: flex;
-      gap: var(--spacing-md);
+      gap: var(--space-s);
     }
 
     .checkbox-group {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: var(--spacing-md);
+      gap: var(--space-s);
 
       div {
         display: flex;
         align-items: center;
-        gap: var(--spacing-sm);
+        gap: var(--space-xs);
       }
 
       input[type="checkbox"] {
@@ -138,7 +125,7 @@
       }
 
       label {
-        font-size: var(--font-size-sm);
+        font-size: var(--step-0);
         margin-bottom: 0;
       }
     }
@@ -146,17 +133,14 @@
 }
 
 .post-submission-section {
-  padding: var(--spacing-xxxl) var(--container-padding-inline);
   max-width: var(--container-max-width);
-  margin-inline: auto;
-  text-align: center;
 
   .info-header {
     display: inline-flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--space-xs);
+    margin-bottom: var(--space-m);
+    padding: var(--space-xs) var(--space-s);
     border: 5px solid var(--brown-400);
     border-radius: var(--border-radius-md);
 
@@ -168,8 +152,6 @@
 
   .info-content {
     max-width: 80ch;
-    margin-inline: auto;
-    text-align: left;
 
     p {
       &:last-child {

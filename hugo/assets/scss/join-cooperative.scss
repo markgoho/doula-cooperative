@@ -1,8 +1,6 @@
-.intro,
 .benefits,
 .membership-join {
-  text-align: center;
-  margin-bottom: var(--spacing-xxl);
+  margin-bottom: var(--space-xl);
 }
 
 .benefits {
@@ -10,17 +8,16 @@
     list-style: none;
     padding: 0;
     display: grid;
-    gap: var(--spacing-md);
-    text-align: left;
+    gap: var(--space-s);
 
     @container (width > 600px) {
       grid-template-columns: 1fr 1fr;
-      gap: var(--spacing-xl);
+      gap: var(--space-l);
     }
 
     li {
       background-color: var(--brown-100);
-      padding: var(--spacing-md);
+      padding: var(--space-s);
       border-radius: 8px;
       border: 1px solid var(--brown-400);
     }
@@ -30,14 +27,14 @@
 .membership-join {
   border: 2px solid var(--brown-400);
   border-radius: 12px;
-  padding: var(--spacing-xl);
+  padding: var(--space-l);
   max-width: max-content;
   margin-inline: auto;
 
   .price {
-    font-size: var(--font-size-xl);
+    font-size: var(--step-6);
     color: var(--color-text-main);
-    margin-block: var(--spacing-sm);
+    margin-block: var(--space-xs);
     font-weight: var(--font-weight-boldest);
   }
 }
