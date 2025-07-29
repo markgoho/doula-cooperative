@@ -1,3 +1,5 @@
+@use "components/callout";
+
 .search-section {
   max-width: var(--container-max-width);
 
@@ -135,21 +137,6 @@
 .post-submission-section {
   max-width: var(--container-max-width);
 
-  .info-header {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-m);
-    padding: var(--space-xs) var(--space-s);
-    border: 5px solid var(--brown-400);
-    border-radius: var(--border-radius-md);
-
-    img {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-  }
-
   .info-content {
     max-width: 80ch;
 
@@ -162,14 +149,12 @@
 }
 
 @container (max-width: 50rem) {
-  .find-a-doula {
-    .search-section .search-form,
-    .contact-section .contact-form .date-fields {
-      flex-direction: column;
-    }
+  .search-section .search-form,
+  .contact-section .contact-form .date-fields {
+    flex-direction: column;
+  }
 
-    .contact-section .contact-form .form-group-half {
-      width: 100%;
-    }
+  .contact-section .contact-form .form-group-half {
+    width: 100%;
   }
 }

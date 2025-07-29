@@ -1,0 +1,23 @@
+.callout {
+  // Outer container
+  border: var(--border-width-md) solid var(--brown-400);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-s) var(--space-m);
+  margin-block: var(--space-l);
+  max-width: max-content;
+  margin-inline: auto;
+
+  // Inner content
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.callout__icon {
+  height: var(--space-xl);
+  width: var(--space-xl);
+}
+
+.callout__text {
+  margin: 0;
+}

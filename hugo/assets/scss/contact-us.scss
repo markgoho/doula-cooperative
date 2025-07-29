@@ -1,30 +1,4 @@
-.contact-us-page__callout {
-  border: var(--border-width-md) solid var(--brown-400);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-s) var(--space-m);
-  margin-bottom: var(--space-l);
-  display: flex;
-  align-items: center;
-  gap: var(--space-s);
-  max-width: 1124px;
-  margin-inline: auto;
-}
-
-.contact-us-page__callout-link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-s);
-  text-decoration: none;
-  color: inherit;
-}
-
-.contact-us-page__callout-icon {
-  flex-shrink: 0;
-}
-
-.contact-us-page__callout-text {
-  margin: 0;
-}
+@use "components/callout";
 
 .contact-us-page__form {
   display: grid;

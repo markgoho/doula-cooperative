@@ -6,178 +6,187 @@
 {{ end }}
 
 {{ define "main" }}
-  <div class="find-a-doula">
-    <section class="top-section">
-      <h1>{{ .Title }}</h1>
-    </section>
-    <section class="search-section">
-      <div class="search-header">
-        <img src="/assets/icons/magnifying-glass.svg" alt="" />
-        <h2>Search</h2>
+  <section class="top-section">
+    <h1>{{ .Title }}</h1>
+  </section>
+  <section class="search-section">
+    <div class="search-header">
+      <img src="/assets/icons/magnifying-glass.svg" alt="" />
+      <h2>Search</h2>
+    </div>
+    <p>
+      Search across all Doula profiles, bios, specializations, and locations
+    </p>
+    <div class="search-form">
+      <input type="search" placeholder="Search for what's important" />
+      <button class="button">Search</button>
+    </div>
+  </section>
+  <section class="browse-section">
+    <div class="browse-header">
+      <img src="/assets/icons/list-icon.svg" alt="" />
+      <h2>Browse by Doula Type</h2>
+    </div>
+    <div class="browse-buttons">
+      <a href="/doulas/fertility/" class="button">Fertility Doulas</a>
+      <a href="/doulas/birth/" class="button">Birth Doulas</a>
+      <a href="/doulas/lactation/" class="button">Lactation Consultants</a>
+      <a href="/doulas/postpartum/" class="button">Postpartum Doulas</a>
+      <a href="/doulas/childbirth-education/" class="button"
+        >Childbirth Educators</a
+      >
+    </div>
+  </section>
+  <section class="contact-section">
+    <div class="contact-header">
+      <img src="/assets/icons/note-pencil-icon.svg" alt="" />
+      <h2>Let us help</h2>
+    </div>
+    <p>
+      Provide us with some information about you, what you're looking for, and
+      we'll be in touch!
+    </p>
+    <form class="contact-form">
+      <div class="form-group">
+        <label for="name">Name (first and last)</label>
+        <input type="text" id="name" name="name" />
       </div>
-      <p>
-        Search across all Doula profiles, bios, specializations, and locations
-      </p>
-      <div class="search-form">
-        <input type="search" placeholder="Search for what's important" />
-        <button class="button">Search</button>
-      </div>
-    </section>
-    <section class="browse-section">
-      <div class="browse-header">
-        <img src="/assets/icons/list-icon.svg" alt="" />
-        <h2>Browse by Doula Type</h2>
-      </div>
-      <div class="browse-buttons">
-        <a href="#" class="button">Fertility Doulas</a>
-        <a href="#" class="button">Birth Doulas</a>
-        <a href="#" class="button">Lactation Consultants</a>
-        <a href="#" class="button">Postpartum Doulas</a>
-        <a href="#" class="button">Childbirth Educators</a>
-      </div>
-    </section>
-    <section class="contact-section">
-      <div class="contact-header">
-        <img src="/assets/icons/note-pencil-icon.svg" alt="" />
-        <h2>Let us help</h2>
-      </div>
-      <p>
-        Provide us with some information about you, what you're looking for, and
-        we’ll be in touch!
-      </p>
-      <form class="contact-form">
-        <div class="form-group">
-          <label for="name">Name (first and last)</label>
-          <input type="text" id="name" name="name" />
-        </div>
 
-        <div class="form-group form-group-half">
-          <label for="phone">Phone</label>
-          <input type="tel" id="phone" name="phone" />
-        </div>
+      <div class="form-group form-group-half">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" />
+      </div>
 
-        <div class="form-group form-group-half">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" />
-        </div>
+      <div class="form-group form-group-half">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" />
+      </div>
 
-        <div class="form-group">
-          <fieldset>
-            <legend>Baby’s estimated date of arrival or birthdate</legend>
-            <div class="date-fields">
-              <input type="text" placeholder="Month" />
-              <input type="text" placeholder="Day" />
-              <input type="text" placeholder="Year" />
+      <div class="form-group">
+        <fieldset>
+          <legend>Baby’s estimated date of arrival or birthdate</legend>
+          <div class="date-fields">
+            <input type="text" placeholder="Month" />
+            <input type="text" placeholder="Day" />
+            <input type="text" placeholder="Year" />
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="form-group">
+        <fieldset>
+          <legend>I am a parent looking for...</legend>
+          <div class="checkbox-group">
+            <div>
+              <input type="checkbox" id="birth-doula" /><label for="birth-doula"
+                >birth doula support</label
+              >
             </div>
-          </fieldset>
-        </div>
-
-        <div class="form-group">
-          <fieldset>
-            <legend>I am a parent looking for...</legend>
-            <div class="checkbox-group">
-              <div>
-                <input type="checkbox" id="birth-doula" /><label
-                  for="birth-doula"
-                  >birth doula support</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="postpartum-doula" /><label
-                  for="postpartum-doula"
-                  >postpartum doula support</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="lactation" /><label for="lactation"
-                  >lactation support</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="classes" /><label for="classes"
-                  >childbirth classes</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="other-info-looking-for" /><label
-                  for="other-info-looking-for"
-                  >other information</label
-                >
-              </div>
+            <div>
+              <input type="checkbox" id="postpartum-doula" /><label
+                for="postpartum-doula"
+                >postpartum doula support</label
+              >
             </div>
-          </fieldset>
-        </div>
-
-        <div class="form-group">
-          <fieldset>
-            <legend>My birth is planned at...</legend>
-            <div class="checkbox-group">
-              <div>
-                <input type="checkbox" id="home-birth" /><label for="home-birth"
-                  >home</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="highland" /><label for="highland"
-                  >Highland Hospital</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="rochester-general" /><label
-                  for="rochester-general"
-                  >Rochester General Hospital</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="strong" /><label for="strong"
-                  >Strong Hospital</label
-                >
-              </div>
-              <div>
-                <input type="checkbox" id="other-hospital" /><label
-                  for="other-hospital"
-                  >Other Hospital</label
-                >
-              </div>
+            <div>
+              <input type="checkbox" id="lactation" /><label for="lactation"
+                >lactation support</label
+              >
             </div>
-          </fieldset>
-        </div>
-
-        <div class="form-group">
-          <label for="other-info"
-            >Is there any other information you'd like to share with us?</label
-          >
-          <textarea id="other-info" name="other-info" rows="5"></textarea>
-        </div>
-
-        <button type="submit" class="button">Submit Information</button>
-      </form>
-    </section>
-    <section class="post-submission-section">
-      <div class="info-header">
-        <img src="/assets/icons/info-icon.svg" alt="" />
-        <h3>What happens after I submit the form?</h3>
+            <div>
+              <input type="checkbox" id="classes" /><label for="classes"
+                >childbirth classes</label
+              >
+            </div>
+            <div>
+              <input type="checkbox" id="other-info-looking-for" /><label
+                for="other-info-looking-for"
+                >other information</label
+              >
+            </div>
+          </div>
+        </fieldset>
       </div>
-      <div class="info-content">
-        <p>
-          If you're looking for doula support, your information will be shared
-          with cooperative members.
-        </p>
-        <p>
-          Doulas who are available around your estimated arrival date will email
-          you to set up a complimentary consultation. You may receive 2 or 20
-          emails depending on who is available.
-        </p>
-        <p>
-          It is common for pregnant people to meet with a few doulas to
-          determine who they'd feel most comfortable working with.
-        </p>
-        <p>
-          When you're ready to hire one of the doulas you've met with, you can
-          contact them directly to sign their client agreement and pay their
-          fee.
-        </p>
+
+      <div class="form-group">
+        <fieldset>
+          <legend>My birth is planned at...</legend>
+          <div class="checkbox-group">
+            <div>
+              <input type="checkbox" id="home-birth" /><label for="home-birth"
+                >home</label
+              >
+            </div>
+            <div>
+              <input type="checkbox" id="highland" /><label for="highland"
+                >Highland Hospital</label
+              >
+            </div>
+            <div>
+              <input type="checkbox" id="rochester-general" /><label
+                for="rochester-general"
+                >Rochester General Hospital</label
+              >
+            </div>
+            <div>
+              <input type="checkbox" id="strong" /><label for="strong"
+                >Strong Hospital</label
+              >
+            </div>
+            <div>
+              <input type="checkbox" id="other-hospital" /><label
+                for="other-hospital"
+                >Other Hospital</label
+              >
+            </div>
+          </div>
+        </fieldset>
       </div>
-    </section>
+
+      <div class="form-group">
+        <label for="other-info"
+          >Is there any other information you'd like to share with us?</label
+        >
+        <textarea id="other-info" name="other-info" rows="5"></textarea>
+      </div>
+
+      <button type="submit" class="button">Submit Information</button>
+    </form>
+  </section>
+
+  <div class="callout">
+    <svg
+      class="callout__icon"
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M35 45C35 45.5933 34.8241 46.1734 34.4944 46.6667C34.1648 47.1601 33.6962 47.5446 33.1481 47.7716C32.5999 47.9987 31.9967 48.0581 31.4147 47.9424C30.8328 47.8266 30.2982 47.5409 29.8787 47.1213C29.4591 46.7018 29.1734 46.1672 29.0577 45.5853C28.9419 45.0033 29.0013 44.4001 29.2284 43.852C29.4554 43.3038 29.84 42.8352 30.3333 42.5056C30.8266 42.1759 31.4067 42 32 42C32.7957 42 33.5587 42.3161 34.1213 42.8787C34.6839 43.4413 35 44.2043 35 45ZM32 18C26.485 18 22 22.0375 22 27V28C22 28.5304 22.2107 29.0391 22.5858 29.4142C22.9609 29.7893 23.4696 30 24 30C24.5304 30 25.0392 29.7893 25.4142 29.4142C25.7893 29.0391 26 28.5304 26 28V27C26 24.25 28.6925 22 32 22C35.3075 22 38 24.25 38 27C38 29.75 35.3075 32 32 32C31.4696 32 30.9609 32.2107 30.5858 32.5858C30.2107 32.9609 30 33.4696 30 34V36C30 36.5304 30.2107 37.0391 30.5858 37.4142C30.9609 37.7893 31.4696 38 32 38C32.5304 38 33.0392 37.7893 33.4142 37.4142C33.7893 37.0391 34 36.5304 34 36V35.82C38.56 34.9825 42 31.345 42 27C42 22.0375 37.515 18 32 18ZM58 32C58 37.1423 56.4751 42.1691 53.6182 46.4448C50.7613 50.7205 46.7007 54.053 41.9498 56.0209C37.1989 57.9887 31.9712 58.5036 26.9277 57.5004C21.8842 56.4972 17.2514 54.0209 13.6152 50.3848C9.97907 46.7486 7.50281 42.1159 6.49959 37.0723C5.49638 32.0288 6.01127 26.8011 7.97914 22.0502C9.94702 17.2994 13.2795 13.2387 17.5552 10.3818C21.8309 7.52487 26.8577 6 32 6C38.8934 6.00728 45.5024 8.74889 50.3767 13.6233C55.2511 18.4976 57.9927 25.1066 58 32ZM54 32C54 27.6488 52.7097 23.3953 50.2923 19.7775C47.875 16.1596 44.439 13.3398 40.419 11.6747C36.3991 10.0095 31.9756 9.57385 27.708 10.4227C23.4404 11.2716 19.5204 13.3669 16.4437 16.4437C13.3669 19.5204 11.2716 23.4404 10.4227 27.708C9.57386 31.9756 10.0095 36.3991 11.6747 40.419C13.3398 44.439 16.1596 47.8749 19.7775 50.2923C23.3953 52.7097 27.6488 54 32 54C37.8327 53.9934 43.4247 51.6734 47.5491 47.549C51.6734 43.4247 53.9934 37.8327 54 32Z"
+        fill="#1B5665" />
+    </svg>
+
+    <p class="callout__text">What happens after I submit the form?</p>
   </div>
+
+  <section class="text-content post-submission-section">
+    <div class="info-content">
+      <p>
+        If you're looking for doula support, your information will be shared
+        with cooperative members.
+      </p>
+      <p>
+        Doulas who are available around your estimated arrival date will email
+        you to set up a complimentary consultation. You may receive 2 or 20
+        emails depending on who is available.
+      </p>
+      <p>
+        It is common for pregnant people to meet with a few doulas to determine
+        who they'd feel most comfortable working with.
+      </p>
+      <p>
+        When you're ready to hire one of the doulas you've met with, you can
+        contact them directly to sign their client agreement and pay their fee.
+      </p>
+    </div>
+  </section>
 {{ end }}
