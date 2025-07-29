@@ -11,7 +11,7 @@
     {{ range .Pages }}
       <a href="{{ .RelPermalink }}" class="doula-card">
         {{ $slug := path.Base .File.Dir }}
-        {{ $profileImage := printf "%s-profile-600.avif" $slug }}
+        {{ $profileImage := printf "%s-profile-300.avif" $slug }}
         {{ with .Resources.GetMatch $profileImage }}
           <img
             src="{{ .RelPermalink }}"
