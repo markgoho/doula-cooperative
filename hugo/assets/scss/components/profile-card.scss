@@ -7,7 +7,7 @@
     "headshot credentials"
     "headshot tags";
   column-gap: var(--space-m);
-  padding: var(--space-m);
+  padding: var(--space-s);
   border-radius: var(--border-radius-md);
   border: 5px solid var(--brown-300);
   align-items: center;
@@ -15,7 +15,8 @@
 
 .headshot {
   grid-area: headshot;
-  // justify-self: end;
+  border: 5px solid var(--teal-500);
+  border-radius: var(--border-radius-md);
 }
 
 .name {
@@ -30,13 +31,30 @@
 .credentials {
   grid-area: credentials;
   margin: 0;
-  align-self: end;
+  align-self: start;
 }
 
 .tags {
   grid-area: tags;
 }
 
-.profile-card + .profile-card {
+.profile-card-container + .profile-card-container {
   margin-block-start: var(--space-m);
+  container-type: inline-size;
+}
+
+@container (width < 40rem ) {
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-s);
+  }
+
+  .name {
+    text-align: center;
+  }
+
+  .headshot {
+    border-width: 4px;
+  }
 }
