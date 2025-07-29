@@ -1,51 +1,90 @@
-.profile-body {
-  display: grid;
-  gap: var(--space-size-7);
-  grid-template-columns: 1fr;
+@use "components/tag";
 
-  @container (width > 45rem) {
-    grid-template-columns: 1fr 2fr;
+:root {
+  --container-max-width: 87.5rem;
+}
+
+.profile-container {
+  display: grid;
+  column-gap: var(--space-m);
+  row-gap: var(--space-s);
+  grid-template-columns: 600px 1fr;
+  grid-template-rows: min-content min-content 1fr;
+  grid-template-areas:
+    "headshot title"
+    "headshot bio"
+    "headshot contact-info";
+  align-content: start;
+  margin-block-start: var(--space-xl);
+  padding-block-end: var(--space-xl);
+}
+
+.title {
+  grid-area: title;
+
+  h1 {
+    text-align: left;
+    font-size: var(--step-4);
+    margin: 0;
   }
 }
 
-.profile-header {
-  margin-block-end: var(--space-size-5);
-
-  .credentials {
-    font-size: var(--ts-m);
-    color: var(--primary-700);
-    font-weight: 300;
-  }
+.credentials {
+  font-size: var(--ts-m);
+  color: var(--primary-700);
+  font-weight: 300;
 }
 
 .headshot {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 7px;
-  border: 8px solid var(--teal-500);
-  padding: var(--space-size-2);
+  grid-area: headshot;
 }
 
-.sidebar {
-  .contact-info,
-  .tags {
-    margin-block-end: var(--space-size-5);
+.headshot__image {
+  margin-bottom: var(--space-l);
+  min-width: max-content;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  border-radius: 7px;
+  border: 8px solid var(--teal-500);
+}
+
+.contact-info {
+  grid-area: contact-info;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.contact-info svg {
+  height: 33px;
+  width: 33px;
+}
+
+.contact-info ul {
+  list-style: none;
+  margin-block-start: var(--space-s);
+  margin-block-end: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+
+  li {
+    display: flex;
+    gap: var(--space-2xs);
   }
 
-  .tags ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-size-2);
+  span {
+    align-self: baseline;
+  }
+}
 
-    li {
-      background-color: var(--secondary-200);
-      padding: var(--space-size-1) var(--space-size-3);
-      border-radius: 50px;
-      font-size: var(--ts-s);
-      font-weight: 900;
-    }
+.bio {
+  grid-area: bio;
+  max-width: 60ch;
+  > p {
+    margin: 0;
   }
 }

@@ -4,6 +4,9 @@
     {{ $profileImage := printf "%s-profile-300.avif" $slug }}
     {{ with .Resources.GetMatch $profileImage }}
       <img
+        loading="lazy"
+        height="600"
+        width="600"
         src="{{ .RelPermalink }}"
         alt="Headshot of {{ $.Title }}"
         class="headshot" />
