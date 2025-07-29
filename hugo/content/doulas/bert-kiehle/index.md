@@ -6,7 +6,6 @@ updatedOn: 2025-01-17T19:35:03Z
 type: "doulas"
 types: ["birth", "postpartum"]
 credentials: "Certified Body Ready Method® Pro, Certified Lactation Counselor, CLC, Certified VBAC Doula, CVD (TVL)"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"

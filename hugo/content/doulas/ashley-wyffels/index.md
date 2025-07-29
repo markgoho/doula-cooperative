@@ -5,7 +5,6 @@ createdOn: 2021-06-16T13:44:54Z
 updatedOn: 2022-12-13T21:00:01Z
 type: "doulas"
 types: ["birth", "postpartum"]
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"

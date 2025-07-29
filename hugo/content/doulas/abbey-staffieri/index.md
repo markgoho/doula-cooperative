@@ -1,10 +1,9 @@
 ---
-title: "Jane Doe"
+title: "Abbey Staffieri"
 date: 2024-07-10
 type: "doulas"
 types: ["birth"]
 credentials: "CD(DONA), CLC"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
 contact:

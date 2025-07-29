@@ -5,7 +5,6 @@ createdOn: 2023-12-30T20:11:43Z
 updatedOn: 2023-12-30T20:11:43Z
 type: "doulas"
 types: ["birth"]
-headshot: "headshot.jpg"
 tags:
   - "Birth and Postpartum Doula Services"
 contact:

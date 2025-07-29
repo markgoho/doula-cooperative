@@ -6,7 +6,6 @@ updatedOn: 2025-07-07T14:46:56Z
 type: "doulas"
 types: ["postpartum", "lactation-support"]
 credentials: "IBCLC, PCD(DONA)"
-headshot: "headshot.jpg"
 tags:
   - "Lactation Consultations"
   - "Prenatal Breastfeeding Class"

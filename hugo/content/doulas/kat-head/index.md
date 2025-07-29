@@ -5,7 +5,6 @@ createdOn: 2020-02-07T01:50:50Z
 updatedOn: 2023-02-11T15:50:57Z
 type: "doulas"
 types: ["postpartum"]
-headshot: "headshot.jpg"
 tags:
   - "Postpartum Doula"
 contact:

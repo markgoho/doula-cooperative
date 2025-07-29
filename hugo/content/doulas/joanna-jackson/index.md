@@ -6,7 +6,6 @@ updatedOn: 2022-12-13T15:56:02Z
 type: "doulas"
 types: ["birth", "postpartum"]
 credentials: "BAI, CAPPA"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula (BAI)"
   - "Postpartum Doula (CAPPA)"

@@ -6,7 +6,6 @@ updatedOn: 2023-10-08T22:56:56Z
 type: "doulas"
 types: ["birth", "childbirth-education"]
 credentials: "IBCE"
-headshot: "headshot.jpg"
 tags:
   - "Birth doula"
   - "Postpartum doula"

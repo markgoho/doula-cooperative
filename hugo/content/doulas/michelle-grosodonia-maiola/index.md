@@ -6,7 +6,6 @@ updatedOn: 2020-03-09T13:10:53Z
 type: "doulas"
 types: ["birth", "postpartum", "fertility"]
 credentials: "CD (DTI), ERYT-200, Reiki Master"
-headshot: "headshot.jpg"
 tags:
   - "Birth and Postpartum"
   - "Pre-Postnatal Yoga"

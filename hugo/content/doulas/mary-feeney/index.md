@@ -6,7 +6,6 @@ updatedOn: 2024-04-22T21:33:07Z
 type: "doulas"
 types: ["birth"]
 credentials: "MS, RN-BC"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
 contact:

@@ -6,7 +6,6 @@ updatedOn: 2020-02-04T02:51:05Z
 type: "doulas"
 types: ["birth"]
 credentials: "CD(DONA), LCCE"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Childbirth Educator"

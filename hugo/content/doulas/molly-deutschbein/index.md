@@ -6,7 +6,6 @@ updatedOn: 2023-06-16T01:33:36Z
 type: "doulas"
 types: ["birth", "fertility"]
 credentials: "LMT, CST, CD, RYT"
-headshot: "headshot.jpg"
 tags:
   - "Full Spectrum Doula"
   - "Birth Doula"

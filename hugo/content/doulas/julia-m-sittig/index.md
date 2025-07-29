@@ -6,7 +6,6 @@ updatedOn: 2022-12-13T20:03:56Z
 type: "doulas"
 types: ["birth"]
 credentials: "MSW, AdvCD/BDT(DONA), LCCE"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Childbirth Education"

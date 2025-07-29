@@ -6,7 +6,6 @@ updatedOn: 2021-08-12T10:18:52Z
 type: "doulas"
 types: ["postpartum"]
 credentials: "Advanced Holistic Doula"
-headshot: "headshot.jpg"
 tags:
   - "Postpartum Doula"
 contact:

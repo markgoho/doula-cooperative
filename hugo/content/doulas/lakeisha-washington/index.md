@@ -6,7 +6,6 @@ updatedOn: 2020-08-26T19:40:25Z
 type: "doulas"
 types: ["birth"]
 credentials: "MPA, CD(DONA)"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Birth Photography"

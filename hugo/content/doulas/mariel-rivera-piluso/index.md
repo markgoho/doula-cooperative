@@ -6,7 +6,6 @@ updatedOn: 2024-10-01T14:52:25Z
 type: "doulas"
 types: ["birth"]
 credentials: "ABD, MA"
-headshot: "headshot.jpg"
 tags:
   - "Abortion Doula"
   - "Perinatal Loss Doula"

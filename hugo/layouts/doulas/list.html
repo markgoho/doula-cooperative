@@ -10,7 +10,9 @@
   <div class="doula-grid">
     {{ range .Pages }}
       <a href="{{ .RelPermalink }}" class="doula-card">
-        {{ with .Resources.GetMatch .Params.headshot }}
+        {{ $slug := path.Base .File.Dir }}
+        {{ $profileImage := printf "%s-profile-600.avif" $slug }}
+        {{ with .Resources.GetMatch $profileImage }}
           <img
             src="{{ .RelPermalink }}"
             alt="Headshot of {{ $.Title }}"

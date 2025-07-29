@@ -5,7 +5,6 @@ createdOn: 2025-02-27T04:37:28Z
 updatedOn: 2025-02-27T04:37:28Z
 type: "doulas"
 types: ["birth"]
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Birth Planning"

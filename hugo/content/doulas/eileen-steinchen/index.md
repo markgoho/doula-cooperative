@@ -6,7 +6,6 @@ updatedOn: 2022-12-13T20:03:56Z
 type: "doulas"
 types: ["birth"]
 credentials: "LMHC"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
 contact:

@@ -6,7 +6,6 @@ updatedOn: 2020-03-09T13:11:47Z
 type: "doulas"
 types: ["birth", "postpartum"]
 credentials: "CD(DONA), CLC"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"

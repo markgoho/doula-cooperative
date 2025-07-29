@@ -5,7 +5,6 @@ createdOn: 2024-06-22T17:00:36Z
 updatedOn: 2024-06-22T17:00:36Z
 type: "doulas"
 types: ["birth"]
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
 contact:

@@ -6,7 +6,6 @@ updatedOn: 2023-08-29T17:29:51Z
 type: "doulas"
 types: ["postpartum", "lactation-support"]
 credentials: "CLC"
-headshot: "headshot.jpg"
 tags:
   - "Postpartum Doula"
   - "Lactation Counseling"

@@ -4,7 +4,9 @@
   "@type": "Person",
   "name": "{{ .Title }}",
   "url": "{{ .Permalink }}",
-  {{ with .Params.headshot }}{{- with $.Resources.GetMatch . -}}"image": "{{ .Permalink }}",{{- end -}}{{ end }}
+  {{ $slug := path.Base .File.Dir }}
+  {{ $profileImage := printf "%s-profile-600.avif" $slug }}
+  {{ with .Resources.GetMatch $profileImage }}"image": "{{ .Permalink }}",{{ end }}
   "description": "{{ .Summary | plainify | safeJS }}",
   "jobTitle": "Doula",
   {{ with .Params.contact -}}

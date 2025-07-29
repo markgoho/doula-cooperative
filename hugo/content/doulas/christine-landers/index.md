@@ -6,7 +6,6 @@ updatedOn: 2025-01-12T02:57:25Z
 type: "doulas"
 types: ["birth"]
 credentials: "BD, HCHD, PES"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula"
   - "Hypno-Doula"

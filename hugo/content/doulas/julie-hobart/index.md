@@ -5,7 +5,6 @@ createdOn: 2021-07-24T14:30:08Z
 updatedOn: 2021-07-24T14:30:08Z
 type: "doulas"
 types: ["birth", "postpartum"]
-headshot: "headshot.jpg"
 tags:
   - "Birth and Postpartum Doula"
   - "Massage Therapist"

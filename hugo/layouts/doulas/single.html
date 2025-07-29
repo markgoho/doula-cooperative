@@ -15,7 +15,9 @@
 
   <section class="profile-body">
     <div class="main-content">
-      {{ with .Resources.GetMatch .Params.headshot }}
+      {{ $slug := path.Base .File.Dir }}
+      {{ $profileImage := printf "%s-profile-600.avif" $slug }}
+      {{ with .Resources.GetMatch $profileImage }}
         <img
           src="{{ .RelPermalink }}"
           alt="Headshot of {{ $.Title }}"

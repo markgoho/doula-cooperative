@@ -18,6 +18,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.2.0",
+    "sharp": "^0.34.3",
     "typescript-eslint": "^8.38.0"
   },
   "peerDependencies": {

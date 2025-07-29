@@ -6,7 +6,6 @@ updatedOn: 2025-04-23T18:31:04Z
 type: "doulas"
 types: ["birth", "childbirth-education"]
 credentials: "LAC, Doula, CBE, Placenta Specialist"
-headshot: "headshot.jpg"
 tags:
   - "Labor Acupuncture"
   - "Pregnancy Acupuncture"

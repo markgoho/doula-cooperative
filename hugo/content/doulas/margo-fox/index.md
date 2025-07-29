@@ -6,7 +6,6 @@ updatedOn: 2023-05-25T16:01:49Z
 type: "doulas"
 types: ["birth"]
 credentials: "MSW, DONA Trained Birth Doula"
-headshot: "headshot.jpg"
 tags:
   - "Birth Doula Services"
 contact:
