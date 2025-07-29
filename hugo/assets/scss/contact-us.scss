@@ -23,17 +23,13 @@
 }
 
 .contact-us-page__callout-text {
-  font-family: var(--font-family-main);
-  font-weight: var(--font-weight-regular);
-  font-size: var(--step-0);
-  line-height: var(--line-height-tight);
-  color: var(--color-text-main);
+  margin: 0;
 }
 
 .contact-us-page__form {
   display: grid;
   gap: var(--space-m);
-  max-width: 1124px;
+  max-width: 60ch;
   margin-inline: auto;
 }
 

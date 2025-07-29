@@ -18,3 +18,8 @@
   padding-inline: var(--container-padding-inline);
   container-type: inline-size;
 }
+
+section.text-content {
+  max-width: 60ch;
+  margin-inline: auto;
+}

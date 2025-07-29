@@ -7,7 +7,7 @@
 
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
-  <section id="mission">
+  <section class="text-content" id="mission">
     <h2>Our Mission</h2>
     <p>
       We seek to provide a welcoming community for all doulas and to support one
@@ -21,7 +21,7 @@
       clients.
     </p>
   </section>
-  <section id="who-we-are">
+  <section class="text-content" id="who-we-are">
     <h2>Who We Are</h2>
     <p>
       Our membership consists of birth and postpartum doulas from all around
@@ -39,7 +39,7 @@
     </p>
   </section>
 
-  <section id="board">
+  <section class="text-content" id="board">
     <h2>Our Board</h2>
     <p>
       Our Cooperative is governed by a volunteer group of members. The Board
@@ -50,10 +50,11 @@
       social or legislative issues that impact birthing people and their
       families.
     </p>
-    <div class="board-members">
-      {{ range .Params.board_members }}
-        {{ partial "about-cooperative/board-member-card.html" . }}
-      {{ end }}
-    </div>
+  </section>
+
+  <section class="board-members">
+    {{ range .Params.board_members }}
+      {{ partial "about-cooperative/board-member-card.html" . }}
+    {{ end }}
   </section>
 {{ end }}

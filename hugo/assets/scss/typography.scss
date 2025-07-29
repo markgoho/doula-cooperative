@@ -80,6 +80,10 @@ dd {
   line-height: var(--line-height-relaxed);
 }
 
+p {
+  margin-block-start: 0.75em;
+}
+
 a {
   color: var(--teal-500);
   text-decoration: underline;

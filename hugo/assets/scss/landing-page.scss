@@ -33,6 +33,11 @@
   max-width: 50%;
 }
 
+.welcome {
+  max-width: 60ch;
+  margin-inline: auto;
+}
+
 .cta-cards {
   padding-block: var(--space-2xl);
   display: grid;

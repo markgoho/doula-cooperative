@@ -115,6 +115,7 @@
       "list-container",
       "main",
       "main-content",
+      "membership-cta",
       "membership-join",
       "navbar",
       "navbar__button",
@@ -132,12 +133,15 @@
       "search-section",
       "sidebar",
       "tags",
+      "text-content",
+      "text-contentfaq",
       "top-section",
       "welcome"
     ],
     "ids": [
       "birth-doula",
       "board",
+      "board-members",
       "classes",
       "clip0_114_573",
       "confirmation-message",

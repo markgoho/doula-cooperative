@@ -6,8 +6,8 @@
 {{ end }}
 
 {{ define "main" }}
-  <section class="intro">
-    <h1>{{ .Title }}</h1>
+  <h1>{{ .Title }}</h1>
+  <section class="text-content intro">
     <h2>It Takes a Village</h2>
     <p>
       Doula work can be some of the most fulfilling areas of work you may ever
@@ -17,7 +17,8 @@
       ins and outs of this great support work.
     </p>
   </section>
-  <section class="benefits">
+
+  <section class="text-content benefits">
     <h2>Benefits of Membership</h2>
     <ul>
       <li>
@@ -38,13 +39,14 @@
       </li>
     </ul>
   </section>
+
   <section class="membership-join">
     <h3>Doula Membership, 1 Year</h3>
     <p class="price">
       <span class="currency-symbol">$</span>
       <span class="amount">50</span>
     </p>
-    <a href="#" class="button">Join the Cooperative</a>
+    <a href="#" class="membership-cta button">Join the Cooperative</a>
   </section>
   {{ .Content }}
 {{ end }}
