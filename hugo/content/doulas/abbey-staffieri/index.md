@@ -1,0 +1,17 @@
+---
+title: "Jane Doe"
+date: 2024-07-10
+type: "doulas"
+types: ["birth"]
+credentials: "CD(DONA), CLC"
+headshot: "headshot.jpg"
+tags:
+  - "Birth Doula"
+contact:
+  website: https://threeheartsdoularochester.my.canva.site/three-hearts-doula
+  phone: 5853550553
+  email: askivington1@gmail.com
+draft: false
+---
+
+As a mom of two I have a passion for supporting women through their unique birth journeys. Having completed my doula training and currently working towards certification, my goal is to empower women to embrace their strength and make informed choices during childbirth. I am committed to providing compassionate, non-judgmental support that helps women feel confident and in control, whether they're planning a natural birth, using medical interventions, or somewhere in between. Every birth is a personal experience, and I’m here to guide and support each woman in a way that honors her individual needs and desires.
