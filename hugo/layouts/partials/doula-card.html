@@ -1,0 +1,18 @@
+<a href="{{ .RelPermalink }}" class="doula-card">
+  {{ $slug := path.Base .File.Dir }}
+  {{ $profileImage := printf "%s-profile-300.avif" $slug }}
+  {{ with .Resources.GetMatch $profileImage }}
+    <img
+      src="{{ .RelPermalink }}"
+      alt="Headshot of {{ $.Title }}"
+      class="headshot" />
+  {{ else }}
+    <div class="placeholder-image"></div>
+  {{ end }}
+  <div class="card-body">
+    <h2 class="doula-name">{{ .Title }}</h2>
+    {{ with .Params.credentials }}
+      <p class="credentials">{{ . }}</p>
+    {{ end }}
+  </div>
+</a> 
