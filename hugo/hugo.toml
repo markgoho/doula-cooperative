@@ -1,6 +1,7 @@
 baseURL = 'https://doulacooperative.com/'
 languageCode = 'en-us'
 title = 'Rochester Doula Cooperative'
+enableRobotsTXT = true
 
 
 [build]
@@ -16,5 +17,3 @@ title = 'Rochester Doula Cooperative'
 
 [permalinks]
   types = "/doulas/:slug/"
-
-enableRobotsTXT = true
