@@ -16,3 +16,5 @@ title = 'Rochester Doula Cooperative'
 
 [permalinks]
   types = "/doulas/:slug/"
+
+enableRobotsTXT = true
