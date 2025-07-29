@@ -4,6 +4,7 @@
     format("woff2");
   font-weight: 100 900;
   font-display: swap;
+  font-variation-settings: "slnt" 0;
 }
 
 // Typography Design Tokens (already present)
@@ -89,10 +90,6 @@ a {
   text-decoration: underline;
   text-underline-offset: 0.15em;
   transition: color 0.2s;
-}
-a:hover,
-a:focus {
-  // color: var(--brown-300);
 }
 
 main h1 {

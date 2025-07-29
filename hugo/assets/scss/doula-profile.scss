@@ -6,9 +6,9 @@
 
 .profile-container {
   display: grid;
-  column-gap: var(--space-m);
+  column-gap: var(--space-l);
   row-gap: var(--space-s);
-  grid-template-columns: 600px 1fr;
+  grid-template-columns: 37.5rem 1fr;
   grid-template-rows: min-content min-content 1fr;
   grid-template-areas:
     "headshot title"
@@ -30,9 +30,10 @@
 }
 
 .credentials {
-  font-size: var(--ts-m);
+  font-size: var(--step--1);
   color: var(--primary-700);
   font-weight: 300;
+  font-variation-settings: "slnt" -12;
 }
 
 .headshot {
@@ -41,7 +42,7 @@
 
 .headshot__image {
   margin-bottom: var(--space-l);
-  min-width: max-content;
+  max-width: 100%;
   height: auto;
   object-fit: cover;
   aspect-ratio: 1 / 1;
@@ -53,7 +54,7 @@
   grid-area: contact-info;
 
   h3 {
-    margin: 0;
+    margin-block-start: var(--space-s);
   }
 }
 
@@ -74,6 +75,7 @@
   li {
     display: flex;
     gap: var(--space-2xs);
+    align-items: self-end;
   }
 
   span {

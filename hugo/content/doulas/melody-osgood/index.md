@@ -4,7 +4,7 @@ date: 2025-04-23
 createdOn: 2025-04-23T18:31:04Z
 updatedOn: 2025-04-23T18:31:04Z
 type: "doulas"
-types: ["birth", "childbirth-education"]
+types: ["birth", "childbirth education"]
 credentials: "LAC, Doula, CBE, Placenta Specialist"
 tags:
   - "Labor Acupuncture"
