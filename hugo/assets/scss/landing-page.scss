@@ -1,3 +1,5 @@
+@use "components/nav-card";
+
 .hero {
   position: relative;
   padding-block: var(--space-3xl) var(--space-3xl);
@@ -40,16 +42,8 @@
 
 .cta-cards {
   padding-block: var(--space-2xl);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: var(--space-m);
-}
-.cta-card {
-  border: var(--border-width-md) solid var(--brown-400);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-l);
-  text-align: center;
-  color: var(--color-text-main);
 }
 
 .highlight {
@@ -69,5 +63,11 @@
 
   .cta-cards__grid {
     grid-template-columns: 1fr; /* Stack cards on smaller screens */
+  }
+}
+
+@container (max-width: 30rem) {
+  .cta-cards {
+    grid-template-columns: 1fr;
   }
 }

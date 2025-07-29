@@ -1,18 +1,25 @@
 @use "components/callout";
+@use "components/nav-card";
 
-.search-section {
-  max-width: var(--container-max-width);
+.find-a-doula-nav {
+  display: flex;
+  gap: var(--space-l);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-l) 0;
+}
 
-  .search-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-s);
+.find-a-doula-nav.small {
+  margin-block: var(--space-xl);
+  justify-content: center;
+}
 
-    img {
-      width: 3rem; // 48px, approximate from figma
-      height: 3rem;
-    }
+.search-section,
+.browse-section,
+.contact-section {
+  p {
+    text-align: center;
+    margin-block-end: var(--space-m);
   }
 
   .search-form {
@@ -30,7 +37,7 @@
 }
 
 .browse-section {
-  max-width: var(--container-max-width);
+  margin-block: var(--space-m);
 
   .browse-header {
     display: flex;
@@ -52,7 +59,7 @@
 }
 
 .contact-section {
-  max-width: var(--container-max-width);
+  margin-block: var(--space-m);
 
   .contact-header {
     display: flex;
@@ -156,5 +163,12 @@
 
   .contact-section .contact-form .form-group-half {
     width: 100%;
+  }
+}
+
+@container (max-width: 30rem) {
+  .find-a-doula-nav.small {
+    flex-direction: column;
+    align-items: center;
   }
 }
