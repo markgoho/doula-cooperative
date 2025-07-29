@@ -1,0 +1,25 @@
+<a href="{{ .RelPermalink }}" class="profile-card">
+  {{ $slug := path.Base .File.Dir }}
+  {{ $profileImage := printf "%s-profile-300.avif" $slug }}
+  {{ with .Resources.GetMatch $profileImage }}
+    <img
+      src="{{ .RelPermalink }}"
+      alt="Headshot of {{ $.Title }}"
+      class="headshot" />
+  {{ else }}
+    <div class="placeholder-image"></div>
+  {{ end }}
+  <h2 class="name">{{ .Title }}</h2>
+  {{ with .Params.credentials }}
+    <p class="credentials">{{ . }}</p>
+  {{ else }}
+    <div class="no-credentials"></div>
+  {{ end }}
+
+
+  <ul class="tags">
+    {{ range .Params.tags }}
+      <li>{{ . }}</li>
+    {{ end }}
+  </ul>
+</a>

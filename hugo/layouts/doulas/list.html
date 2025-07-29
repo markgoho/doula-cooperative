@@ -1,3 +1,10 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/doula-list.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
   {{ with .Content }}
@@ -7,9 +14,9 @@
   {{ end }}
 
 
-  <div class="doula-grid">
+  <section class="doula-grid">
     {{ range .Pages }}
-      {{ partial "doula-card.html" . }}
+      {{ partial "profile-card.html" . }}
     {{ end }}
-  </div>
+  </section>
 {{ end }}

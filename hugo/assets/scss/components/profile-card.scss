@@ -1,0 +1,42 @@
+.profile-card {
+  display: grid;
+  grid-template-columns: 18.75rem 1fr;
+  grid-template-rows: max-content 1fr max-content;
+  grid-template-areas:
+    "headshot name"
+    "headshot credentials"
+    "headshot tags";
+  column-gap: var(--space-m);
+  padding: var(--space-m);
+  border-radius: var(--border-radius-md);
+  border: 5px solid var(--brown-300);
+  align-items: center;
+}
+
+.headshot {
+  grid-area: headshot;
+  // justify-self: end;
+}
+
+.name {
+  grid-area: name;
+  margin: 0;
+}
+
+.no-credentials {
+  grid-area: credentials;
+}
+
+.credentials {
+  grid-area: credentials;
+  margin: 0;
+  align-self: end;
+}
+
+.tags {
+  grid-area: tags;
+}
+
+.profile-card + .profile-card {
+  margin-block-start: var(--space-m);
+}
