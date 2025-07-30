@@ -3,11 +3,12 @@
 }
 
 .navbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
   align-items: center;
-  justify-content: space-between;
   background: var(--brown-300);
   padding: var(--space-s) var(--space-l);
+  column-gap: var(--space-l);
 }
 
 .navbar__logo {
@@ -17,11 +18,22 @@
 .navbar__nav {
   display: flex;
   gap: var(--spacing-nav-gap);
+  justify-self: end;
   list-style: none;
   margin: 0;
   padding: 0;
   flex: 1 1 auto;
   justify-content: center;
+}
+
+.navbar__link {
+  color: var(--color-text-main);
+  text-decoration: none;
+  font-weight: var(--font-weight-boldest);
+}
+
+.navbar__nav > .active {
+  border-bottom: 5px solid var(--teal-500);
 }
 
 @container (max-width: 43.75rem) {

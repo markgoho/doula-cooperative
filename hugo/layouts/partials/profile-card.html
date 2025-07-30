@@ -9,21 +9,25 @@
         width="600"
         src="{{ .RelPermalink }}"
         alt="Headshot of {{ $.Title }}"
-        class="headshot" />
+        class="headshot"
+        style="view-transition-name: headshot-{{ $.Title | md5 }};" />
     {{ else }}
       <div class="placeholder-image"></div>
     {{ end }}
-    <h2 class="name">{{ .Title }}</h2>
-    {{ with .Params.credentials }}
-      <p class="credentials">{{ . }}</p>
-    {{ else }}
-      <div class="no-credentials"></div>
-    {{ end }}
+    <h2 class="name" style="view-transition-name: name-{{ .Title | md5 }};">
+      {{ .Title }}
+    </h2>
+    <p
+      class="credentials"
+      style="view-transition-name: credentials-{{ .Title | md5 }};">
+      {{ with .Params.credentials }}
+        {{ . }}
+      {{ end }}
+    </p>
 
-
-    <ul class="tags">
+    <ul class="tag-group">
       {{ range .Params.tags }}
-        <li>{{ . }}</li>
+        <li class="tag">{{ . }}</li>
       {{ end }}
     </ul>
   </a>

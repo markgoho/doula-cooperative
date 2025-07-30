@@ -8,11 +8,18 @@
 {{ define "main" }}
   <div class="profile-container">
     <section class="title">
-      <h1>{{ .Title }}</h1>
+      <h1 style="view-transition-name: name-{{ .Title | md5 }};">
+        {{ .Title }}
+      </h1>
 
-      {{ with .Params.credentials }}
-        <p class="credentials">{{ . }}</p>
-      {{ end }}
+
+      <p
+        class="credentials"
+        style="view-transition-name: credentials-{{ .Title | md5 }};">
+        {{ with .Params.credentials }}
+          {{ . }}
+        {{ end }}
+      </p>
     </section>
 
     <section class="headshot">
@@ -25,7 +32,8 @@
           width="600"
           src="{{ .RelPermalink }}"
           alt="Headshot of {{ $.Title }}"
-          class="headshot__image" />
+          class="headshot__image"
+          style="view-transition-name: headshot-{{ .Title | md5 }};" />
       {{ end }}
 
 

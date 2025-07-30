@@ -3,13 +3,11 @@
     <a href="/">Doula Cooperative</a>
   </h2>
   <ul class="navbar__nav">
-    <li>
-      <a href="/about-the-doula-cooperative/" class="navbar__link">About</a>
-    </li>
-    <li>
-      <a href="/join-the-doula-cooperative/" class="navbar__link">Join</a>
-    </li>
-    <li><a href="/contact-us/" class="navbar__link">Contact</a></li>
+    {{ range .Site.Menus.main }}
+      <li class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">
+        <a href="{{ .URL }}" class="navbar__link">{{ .Name }}</a>
+      </li>
+    {{ end }}
   </ul>
   <a href="/find-a-doula/" class="navbar__cta button navbar__button"
     >Find a Doula</a

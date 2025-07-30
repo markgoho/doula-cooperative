@@ -17,3 +17,16 @@ enableRobotsTXT = true
 
 [permalinks]
   types = "/doulas/:slug/"
+
+[[menu.main]]
+  name = "About"
+  pageRef = "/about-the-doula-cooperative"
+  weight = 10
+[[menu.main]]
+  name = "Join"
+  pageRef = "/join-the-doula-cooperative"
+  weight = 20
+[[menu.main]]
+  name = "Contact"
+  pageRef = "/contact-us"
+  weight = 30

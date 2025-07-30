@@ -2,6 +2,9 @@
   Andy Bell’s More Modern CSS Reset (2024)
   https://andy-bell.co.uk/a-more-modern-css-reset/
 */
+@view-transition {
+  navigation: auto;
+}
 
 :root {
   interpolate-size: allow-keywords;
@@ -73,6 +76,7 @@ h4 {
 a:not([class]) {
   text-decoration-skip-ink: auto;
   color: currentColor;
+  text-decoration: none;
 }
 
 /* Make images easier to work with */

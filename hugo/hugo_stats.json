@@ -38,6 +38,7 @@
       "ul"
     ],
     "classes": [
+      "active",
       "amount",
       "benefits",
       "bio",
@@ -71,9 +72,7 @@
       "cta-cards",
       "currency-symbol",
       "date-fields",
-      "doula-grid",
       "doula-list",
-      "doula-list__list",
       "faq",
       "find-a-doula-nav",
       "footer",

@@ -11,9 +11,8 @@ tags:
   - "Pre-Postnatal Yoga"
   - "Reiki Healing"
 contact:
-  website: "http://"
-  phone: "(585) 944-3474"
   email: "viamirabella585@gmail.com"
+  phone: "(585) 944-3474"
 draft: false
 ---
 

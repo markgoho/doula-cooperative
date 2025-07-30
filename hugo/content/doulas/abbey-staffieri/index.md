@@ -1,5 +1,5 @@
 ---
-title: "Abbey Staffieri"
+title: "Abbey"
 date: 2024-07-10
 type: "doulas"
 types: ["birth"]
