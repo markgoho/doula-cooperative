@@ -1,4 +1,4 @@
 ---
-title: Get Matched with a Doula
+title: Match with a Doula
 layout: list
 ---

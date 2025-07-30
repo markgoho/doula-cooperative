@@ -5,6 +5,10 @@
   row-gap: var(--space-l);
 }
 
+.search-form {
+  grid-template-columns: 1fr max-content;
+}
+
 .date-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

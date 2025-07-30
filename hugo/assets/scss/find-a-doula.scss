@@ -1,6 +1,14 @@
 @use "components/callout";
 @use "components/nav-card";
 @use "components/forms";
+@use "partials/search";
+@use "partials/browse";
+@use "partials/match";
+
+section > p:first-child {
+  text-align: center;
+  margin-block: var(--space-m);
+}
 
 .find-a-doula-nav {
   display: flex;
@@ -13,80 +21,6 @@
 .find-a-doula-nav.small {
   margin-block: var(--space-xl);
   justify-content: center;
-}
-
-.search-section,
-.browse-section,
-.contact-section {
-  p {
-    text-align: center;
-    margin-block-end: var(--space-m);
-  }
-
-  .search-form {
-    display: flex;
-    gap: var(--space-s);
-
-    input[type="search"] {
-      flex-grow: 1;
-      padding: var(--space-s);
-      border: 1px solid var(--color-text-main);
-      border-radius: var(--spacing-btn-radius);
-      background-color: var(--brown-000); // From figma
-    }
-  }
-}
-
-.browse-section {
-  margin-block: var(--space-m);
-
-  .browse-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-s);
-
-    img {
-      width: 3rem; // 48px, approximate from figma
-      height: 3rem;
-    }
-  }
-
-  .browse-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-s);
-  }
-}
-
-.contact-section {
-  margin-block: var(--space-m);
-
-  .contact-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-s);
-
-    img {
-      width: 3rem;
-      height: 3rem;
-    }
-  }
-}
-
-.post-submission-section {
-  max-width: var(--container-max-width);
-
-  .info-content {
-    max-width: 80ch;
-
-    p {
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
 }
 
 @container (max-width: 50rem) {

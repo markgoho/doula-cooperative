@@ -1,0 +1,12 @@
+.search-form {
+  display: flex;
+  gap: var(--space-s);
+
+  input[type="search"] {
+    flex-grow: 1;
+    padding: var(--space-s);
+    border: 1px solid var(--color-text-main);
+    border-radius: var(--spacing-btn-radius);
+    background-color: var(--brown-000); // From figma
+  }
+}

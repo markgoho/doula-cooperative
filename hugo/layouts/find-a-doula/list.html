@@ -11,13 +11,15 @@
     {{ .Title }}
   </h1>
 
-  {{ if in .Permalink "/search/" }}
-    {{ partial "find-a-doula/search.html" . }}
-  {{ else if in .Permalink "/browse/" }}
-    {{ partial "find-a-doula/browse.html" . }}
-  {{ else if in .Permalink "/match/" }}
-    {{ partial "find-a-doula/match.html" . }}
-  {{ end }}
+  <section class="text-content">
+    {{ if in .Permalink "/search/" }}
+      {{ partial "find-a-doula/search.html" . }}
+    {{ else if in .Permalink "/browse/" }}
+      {{ partial "find-a-doula/browse.html" . }}
+    {{ else if in .Permalink "/match/" }}
+      {{ partial "find-a-doula/match.html" . }}
+    {{ end }}
+  </section>
 
   {{ partial "find-a-doula-nav.html" . }}
 {{ end }}
