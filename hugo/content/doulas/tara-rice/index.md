@@ -13,7 +13,7 @@ tags:
   - "Belly casting"
 contact:
   business_name: "Joyful Birth"
-  website: "http://www.joyfulbirth.us"
+  website: "joyfulbirth.us"
   email: "tararice.joyfulbirth@gmail.com"
 draft: false
 ---

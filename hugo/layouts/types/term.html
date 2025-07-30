@@ -10,7 +10,7 @@
     <h1>{{ replace .Title "-" " " | title }}</h1>
     <p>{{ .Content }}</p>
 
-    {{ range .Pages }}
+    {{ range .Pages.ByTitle }}
       {{ partial "profile-card.html" . }}
     {{ end }}
   </div>

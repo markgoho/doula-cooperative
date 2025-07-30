@@ -15,7 +15,7 @@
 
 
   <section>
-    {{ range .Pages }}
+    {{ range .Pages.ByTitle }}
       {{ partial "profile-card.html" . }}
     {{ end }}
   </section>

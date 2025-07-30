@@ -13,7 +13,7 @@ tags:
   - "Postpartum Doula"
 contact:
   business_name: "Nourishing Pathways Lactation"
-  website: "https://nourishingpathwayslactation.com"
+  website: "nourishingpathwayslactation.com"
   email: "ellen@nourishingpathwayslactation.com"
 draft: false
 ---

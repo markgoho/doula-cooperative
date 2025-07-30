@@ -12,7 +12,7 @@ tags:
   - "Hospital-Grade Breast Pump Rentals"
 contact:
   business_name: "Wildflower Birth Support"
-  website: "http://www.wildflowerbirth.co"
+  website: "wildflowerbirth.co"
   phone: "(585) 880-5387"
   email: "bridgetthedoula@gmail.com"
 draft: false

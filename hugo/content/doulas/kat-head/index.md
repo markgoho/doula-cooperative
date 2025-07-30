@@ -9,7 +9,7 @@ tags:
   - "Postpartum Doula"
 contact:
   business_name: "Kat the Doula"
-  website: "https://www.katthedoula.com/"
+  website: "katthedoula.com/"
   email: "katheaddoula@gmail.com"
 draft: false
 ---

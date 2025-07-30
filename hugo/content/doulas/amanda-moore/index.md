@@ -12,7 +12,7 @@ tags:
   - "Placenta Encapsulation Services"
 contact:
   business_name: "Joy Begins Doula Support"
-  website: "https://www.joy-begins.com"
+  website: "joy-begins.com"
   phone: "585-354-7854"
   email: "joybegins@yahoo.com"
 draft: false

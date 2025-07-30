@@ -11,7 +11,7 @@ tags:
   - "Childbirth preparation classes"
 contact:
   business_name: "Childbirth: A Joyful Experience"
-  website: "http://tamara-albert.com"
+  website: "tamara-albert.com"
   phone: "585-503-7984"
   email: "tamaralynn2@outlook.com"
 draft: false

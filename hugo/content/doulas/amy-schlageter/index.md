@@ -9,7 +9,7 @@ tags:
   - "Birth Doula"
 contact:
   business_name: "Womb to World Doula Care"
-  website: "https://schlageteramy.wixsite.com/mysite"
+  website: "schlageteramy.wixsite.com/mysite"
   phone: "(585) 259-8929"
 draft: false
 ---

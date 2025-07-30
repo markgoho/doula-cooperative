@@ -15,7 +15,7 @@ tags:
   - "Childbirth Classes"
 contact:
   business_name: "Royalty Birth Services,LLC"
-  website: "https://www.royaltybirthservices.com"
+  website: "royaltybirthservices.com"
   phone: "585-969-6133"
   email: "royaltybirthservices@gmail.com"
 draft: false

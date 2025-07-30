@@ -12,7 +12,7 @@ tags:
   - "Nesting Party Coordinator"
 contact:
   business_name: "Life Room Doula"
-  website: "https://liferoomdoulaservices.godaddysites.com"
+  website: "liferoomdoulaservices.godaddysites.com"
   phone: "585-340-7440"
   email: "liferoomdoula@gmail.com"
 draft: false

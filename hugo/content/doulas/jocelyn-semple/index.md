@@ -12,7 +12,7 @@ tags:
   - "Breastfeeding Educator"
 contact:
   business_name: "The Roc Doula"
-  website: "http://therocdoula.com"
+  website: "therocdoula.com"
   phone: "585-794-0387"
   email: "therocdoula@gmail.com"
 draft: false

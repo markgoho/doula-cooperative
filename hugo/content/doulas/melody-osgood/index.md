@@ -13,7 +13,7 @@ tags:
   - "Placenta Encapsulation"
 contact:
   business_name: "Osgood Family Acupuncture"
-  website: "http://www.osgoodfamacu.com"
+  website: "osgoodfamacu.com"
   phone: "(585) 210-0258"
   email: "melody@osgoodfamacu.com"
 draft: false

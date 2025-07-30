@@ -9,7 +9,7 @@ tags:
   - "Birth Doula"
   - "Birth Planning"
 contact:
-  website: "https://www.rachelstacybirth.com/"
+  website: "rachelstacybirth.com/"
   phone: "585-490-0665"
   email: "rachelstacybirth@gmail.com"
 draft: false

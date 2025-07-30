@@ -1,5 +1,5 @@
 ---
-title: "Abbey"
+title: "Abbey Staffieri"
 date: 2024-07-10
 type: "doulas"
 types: ["birth"]
@@ -7,7 +7,7 @@ credentials: "CD(DONA), CLC"
 tags:
   - "Birth Doula"
 contact:
-  website: https://threeheartsdoularochester.my.canva.site/three-hearts-doula
+  website: threeheartsdoularochester.my.canva.site/three-hearts-doula
   phone: 5853550553
   email: askivington1@gmail.com
 draft: false

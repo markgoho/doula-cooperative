@@ -9,7 +9,7 @@ credentials: "Advanced Holistic Doula"
 tags:
   - "Postpartum Doula"
 contact:
-  website: "http://www.erinhegeman.com"
+  website: "erinhegeman.com"
   phone: "315-573-1900"
   email: "erin.hegeman.doula@gmail.com"
 draft: false

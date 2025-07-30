@@ -13,7 +13,7 @@ tags:
   - "Breastmilk jewelry"
 contact:
   business_name: "True North Birth"
-  website: "https://www.truenorthbirth.org/"
+  website: "truenorthbirth.org/"
   phone: "5856906095"
   email: "truenorthbirth.doula@outlook.com"
 draft: false

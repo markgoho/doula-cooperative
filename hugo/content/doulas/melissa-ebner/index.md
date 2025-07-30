@@ -13,7 +13,7 @@ tags:
   - "Lactation Counselor"
 contact:
   business_name: "Melissa Doula"
-  website: "https://www.melissadoulacare.com/"
+  website: "melissadoulacare.com/"
   phone: "607-272-9838"
   email: "melissa.doulacare@gmail.com"
 draft: false

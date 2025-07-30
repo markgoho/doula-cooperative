@@ -13,7 +13,7 @@ tags:
   - "Spinning Babies Aware Practitioner"
 contact:
   business_name: "Spirit Organic"
-  website: "http://www.spiritorganic.net/index.html"
+  website: "spiritorganic.net/index.html"
   phone: "(585) 746-4682"
   email: "wellness@spiritorganic.net"
 draft: false

@@ -8,7 +8,7 @@ tags:
   - "Birth Doula"
 contact:
   business_name: Birthful
-  website: https://birthful.com
+  website: birthful.com
   phone: 585-454-9898
   email: adriana@birthful.com
 draft: false

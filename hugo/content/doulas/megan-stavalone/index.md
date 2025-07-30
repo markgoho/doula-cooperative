@@ -12,7 +12,7 @@ tags:
   - "Chiropractor"
 contact:
   business_name: "Sun & Spine Birth"
-  website: "https://sunspinebirth.com/"
+  website: "sunspinebirth.com/"
   phone: "(585) 484-8486"
   email: "drstavalone@gmail.com"
 draft: false

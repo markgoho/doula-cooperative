@@ -11,7 +11,7 @@ tags:
   - "Babywearing Educator & Consultant"
 contact:
   business_name: "Nurture"
-  website: "https://www.nurturebynature.me/"
+  website: "nurturebynature.me/"
   instagram: "https://www.instagram.com/thefatblackeducator/"
   email: "chelseinman@yahoo.com"
 draft: false

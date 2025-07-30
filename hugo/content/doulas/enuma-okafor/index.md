@@ -9,7 +9,7 @@ tags:
   - "Birth and Postpartum Doula Services"
 contact:
   business_name: "When On High"
-  website: "http://www.whenonhigh.com"
+  website: "whenonhigh.com"
   phone: "585-747-4390"
   email: "eokafor@u.rochester.edu"
 draft: false

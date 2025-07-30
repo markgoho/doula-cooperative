@@ -9,7 +9,7 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula Support"
 contact:
-  website: "https://justaskthedoula.com/"
+  website: "justaskthedoula.com/"
   phone: "518-538-0228"
   email: "natalie@justaskthedoula.com"
 draft: false

@@ -13,7 +13,7 @@ tags:
   - "Certified Lactation Counselor"
   - "Certified VBAC Doula"
 contact:
-  website: "https://www.robertakiehle.com"
+  website: "robertakiehle.com"
   phone: "585-749-2718"
   email: "rbkiehle@gmail.com"
 draft: false

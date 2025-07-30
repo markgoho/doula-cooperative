@@ -12,7 +12,7 @@ tags:
   - "Placenta Specialist"
 contact:
   business_name: "Majestic Doula Care"
-  website: "https://majesticdoulacare.com/"
+  website: "majesticdoulacare.com/"
   phone: "(585) 431-6115"
   email: "MajesticDoulaCare@Gmail.com"
 draft: false

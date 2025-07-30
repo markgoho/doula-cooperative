@@ -13,7 +13,7 @@ contact:
   business_name: "Mabel Primus Doula"
   phone: "585-764-1651"
   email: "mabelprimusdoula@gmail.com"
-  website: "https://mabelprimusdoula.com"
+  website: "mabelprimusdoula.com"
 draft: false
 ---
 

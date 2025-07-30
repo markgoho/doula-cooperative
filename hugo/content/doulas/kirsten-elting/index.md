@@ -14,7 +14,7 @@ tags:
   - "Lactation Educator and Counselor"
 contact:
   business_name: "Believe Doulas"
-  website: "http://www.Believedoulas.com"
+  website: "Believedoulas.com"
   phone: "585-750-4549"
   email: "Kirstenelting@believedoulas.com"
 draft: false
