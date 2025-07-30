@@ -1,4 +1,4 @@
 ---
-title: "Join the Doula cooperative"
+title: "Join the Doula Cooperative"
 type: "join-cooperative"
 ---

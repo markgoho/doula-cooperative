@@ -1,57 +1,5 @@
 @use "components/callout";
+@use "components/forms";
 
-.contact-us-page__form {
-  display: grid;
-  gap: var(--space-m);
-  max-width: 60ch;
-  margin-inline: auto;
-}
 
-.contact-us-page__form-group {
-  display: grid;
-  gap: var(--space-2xs);
-}
 
-.contact-us-page__label {
-  font-family: var(--font-family-main);
-  font-weight: var(--font-weight-light);
-  font-size: var(--step-2);
-  line-height: var(--line-height-tight);
-  color: var(--color-text-main);
-}
-
-.contact-us-page__input {
-  background-color: var(--brown-100);
-  border: 1px solid var(--color-text-main);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-s);
-  font-family: inherit;
-  font-size: var(--step-2);
-}
-
-.contact-us-page__input--textarea {
-  min-height: 200px;
-  resize: vertical;
-}
-
-.contact-us-page__error-message {
-  color: var(--color-error, #d93025);
-  display: none;
-}
-
-.was-validated .contact-us-page__input:invalid {
-  border-color: var(--color-error, #d93025);
-}
-
-.was-validated
-  .contact-us-page__input:invalid
-  + .contact-us-page__error-message {
-  display: block;
-}
-
-.contact-us-page__confirmation {
-  text-align: center;
-  padding: var(--space-xl);
-  max-width: 1124px;
-  margin-inline: auto;
-}

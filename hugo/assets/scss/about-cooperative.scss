@@ -1,22 +1,26 @@
+:root {
+  --board-member-card-width: 18.75rem;
+}
+
 .board-members {
   margin-block-start: var(--space-xl);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15.625rem, 1fr));
   gap: var(--space-l);
 }
 
 .board-member-card {
-  border-radius: 10px;
+  border-radius: var(--border-radius-md);
   text-align: center;
 }
 
 .board-member-card__image {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-s);
 
   img {
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    width: 300px;
+    width: var(--board-member-card-width);
     height: auto;
     border: 5px solid var(--teal-500);
     border-radius: var(--border-radius-md);

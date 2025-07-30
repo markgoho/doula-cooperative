@@ -92,8 +92,18 @@
       "footer__social",
       "footer__social-link",
       "footer__social-link--circled",
+      "form",
       "form-group",
       "form-group-half",
+      "form__confirmation",
+      "form__date-fields",
+      "form__error-message",
+      "form__group",
+      "form__group--checkbox",
+      "form__group--radio",
+      "form__input",
+      "form__input--textarea",
+      "form__label",
       "header",
       "headshot",
       "headshot__image",
@@ -135,12 +145,14 @@
       "board",
       "classes",
       "confirmation-message",
+      "day",
       "email",
       "highland",
       "home-birth",
       "lactation",
       "message",
       "mission",
+      "month",
       "name",
       "other-hospital",
       "other-info",
@@ -149,7 +161,8 @@
       "postpartum-doula",
       "rochester-general",
       "strong",
-      "who-we-are"
+      "who-we-are",
+      "year"
     ]
   }
 }

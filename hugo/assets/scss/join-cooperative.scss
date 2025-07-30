@@ -18,8 +18,8 @@
     li {
       background-color: var(--brown-100);
       padding: var(--space-s);
-      border-radius: 8px;
-      border: 1px solid var(--brown-400);
+      border-radius: var(--border-radius-md);
+      border: 3px solid var(--brown-400);
     }
   }
 }
@@ -28,8 +28,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2px solid var(--brown-400);
-  border-radius: 12px;
+  border: 3px solid var(--brown-400);
+  border-radius: var(--border-radius-md);
   padding: var(--space-l);
   max-width: max-content;
   margin-inline: auto;

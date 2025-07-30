@@ -1,0 +1,79 @@
+.form {
+  display: grid;
+  gap: var(--space-m);
+  max-width: 60ch;
+  margin-inline: auto;
+}
+
+.form__group {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.form__group--checkbox,
+.form__group--radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.form__label {
+  font-size: var(--step-2);
+}
+
+fieldset {
+  border: 3px solid var(--brown-400);
+  border-radius: var(--border-radius-md);
+}
+
+.form__input {
+  background-color: var(--brown-000);
+  border: 1px solid var(--brown-500);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-s);
+  font-size: var(--step-2);
+}
+
+.form__input[type="checkbox"],
+.form__input[type="radio"] {
+  width: var(--space-l);
+  height: var(--space-l);
+  accent-color: var(--brown-400); // Modern browsers, for color
+  margin-inline-end: var(--space-2xs);
+  background-color: var(--brown-000);
+}
+
+.form__date-fields {
+  display: flex;
+  gap: var(--space-s);
+
+  /* Override grid display for date field children */
+  > .form__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs); /* Match the gap from parent .form__group */
+    max-width: 10ch; /* Reasonable max width for date inputs */
+  }
+}
+
+.form__input--textarea {
+  resize: vertical;
+}
+
+.form__error-message {
+  color: var(--color-error, #d93025);
+  display: none;
+}
+
+.was-validated .form__input:invalid {
+  border-color: var(--color-error, #d93025);
+}
+
+.was-validated .form__input:invalid + .form__error-message {
+  display: block;
+}
+
+.form__confirmation {
+  text-align: center;
+  padding: var(--space-xl);
+}
