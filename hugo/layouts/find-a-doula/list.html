@@ -6,7 +6,10 @@
 {{ end }}
 
 {{ define "main" }}
-  <h1>{{ .Title }}</h1>
+  {{ $searchType := .File.BaseFileName }}
+  <h1 style="view-transition-name: title-{{ $searchType }}">
+    {{ .Title }}
+  </h1>
 
   {{ if in .Permalink "/search/" }}
     <section class="text-content search-section">

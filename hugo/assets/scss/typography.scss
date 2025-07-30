@@ -87,9 +87,8 @@ p {
 
 a {
   transition: color 0.2s;
+  color: var(--color-text-main);
 }
-
-
 
 main h1 {
   text-align: center;

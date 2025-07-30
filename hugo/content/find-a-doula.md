@@ -1,3 +1,3 @@
 ---
-title: Find a Doula
+title: Find the right Doula for you
 ---

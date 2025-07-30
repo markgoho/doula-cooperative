@@ -32,8 +32,12 @@
   font-weight: var(--font-weight-boldest);
 }
 
+.navbar__nav > li {
+  border-bottom: 5px solid transparent;
+}
+
 .navbar__nav > .active {
-  border-bottom: 5px solid var(--teal-500);
+  border-bottom-color: var(--teal-500);
 }
 
 @container (max-width: 43.75rem) {
