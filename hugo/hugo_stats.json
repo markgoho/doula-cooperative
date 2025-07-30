@@ -35,8 +35,7 @@
       "svg",
       "textarea",
       "title",
-      "ul",
-      "wrap"
+      "ul"
     ],
     "classes": [
       "active",
@@ -95,7 +94,6 @@
       "headshot",
       "headshot__image",
       "hero",
-      "hero__content",
       "highlight",
       "info-content",
       "input-grid",

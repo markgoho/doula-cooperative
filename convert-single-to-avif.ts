@@ -5,15 +5,17 @@ import sharp from "sharp";
 // Parse command line arguments
 const forceFlag = process.argv.includes("--force");
 const filePath = process.argv.find(
-  arg =>
-    !arg.startsWith("--") && arg !== process.argv[0] && arg !== process.argv[1],
+  argument =>
+    !argument.startsWith("--") &&
+    argument !== process.argv[0] &&
+    argument !== process.argv[1],
 );
 
 if (!filePath) {
   console.error("Usage: bun convert-single-to-avif.ts <file-path> [--force]");
   console.error("Example: bun convert-single-to-avif.ts image.jpg");
   console.error("Example: bun convert-single-to-avif.ts image.jpg --force");
-  process.exit(1);
+  throw new Error("No file path provided");
 }
 
 async function convertToAvif(inputPath: string) {
@@ -22,7 +24,7 @@ async function convertToAvif(inputPath: string) {
     await access(inputPath);
   } catch {
     console.error(`Error: File '${inputPath}' does not exist.`);
-    process.exit(1);
+    throw new Error(`File '${inputPath}' does not exist.`);
   }
 
   const extension = path.extname(inputPath).toLowerCase();
@@ -40,7 +42,9 @@ async function convertToAvif(inputPath: string) {
     console.error(
       `Error: Unsupported file format '${extension}'. Supported formats: ${supportedExtensions.join(", ")}`,
     );
-    process.exit(1);
+    throw new Error(
+      `Unsupported file format '${extension}'. Supported formats: ${supportedExtensions.join(", ")}`,
+    );
   }
 
   const baseName = inputPath.replace(extension, "");
@@ -66,7 +70,7 @@ async function convertToAvif(inputPath: string) {
     console.log(`Converted: ${inputPath} → ${avifPath}`);
   } catch (error) {
     console.error(`Failed to convert ${inputPath}:`, error);
-    process.exit(1);
+    throw new Error(`Failed to convert ${inputPath}: ${error}`);
   }
 }
 
