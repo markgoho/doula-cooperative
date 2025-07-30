@@ -1,10 +1,46 @@
 @use "components/nav-card";
+@use "button";
 
 .hero {
   position: relative;
-  padding-block: var(--space-3xl) var(--space-3xl);
+  padding: var(--space-m);
   color: var(--brown-300);
+  height: 100vh;
+
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: max-content 1fr max-content;
+
+  .button {
+    align-self: start;
+  }
 }
+
+.tagline {
+  font-size: var(--step-6);
+  font-weight: var(--font-weight-boldest);
+  line-height: 1.2;
+  margin: 0;
+  color: var(--brown-200);
+  max-width: 18ch;
+  text-wrap: pretty;
+  margin-block-end: var(--space-2xl);
+}
+
+.org-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--brown-200);
+}
+
+.org-name {
+  font-weight: var(--font-weight-boldest);
+}
+
+.org-location {
+  font-size: var(--step--2);
+}
+
 .hero::before {
   content: "";
   position: absolute;
@@ -12,9 +48,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("/assets/images/hero-background.png");
+  background-image: url("/assets/images/hero-section.avif");
   background-size: cover;
-  background-position: center;
+  background-position: calc(50% + 23rem) center;
   z-index: -2;
 }
 .hero::after {
@@ -30,9 +66,6 @@
     rgba(0, 0, 0, 0) 70%
   );
   z-index: -1;
-}
-.hero__content {
-  max-width: 50%;
 }
 
 .welcome {
@@ -59,6 +92,10 @@
 
   .hero__content {
     max-width: 100%;
+  }
+
+  .hero__content h1 {
+    font-size: var(--step-3);
   }
 
   .cta-cards__grid {
