@@ -1,26 +1,25 @@
 .board-members {
+  margin-block-start: var(--space-xl);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: var(--space-l);
 }
 
 .board-member-card {
-  border: 1px solid var(--brown-400);
   border-radius: 10px;
-  padding: 1.5rem;
   text-align: center;
-  background-color: var(--brown-100);
 }
 
 .board-member-card__image {
   margin-bottom: 1rem;
 
   img {
-    width: 100%;
-    max-width: 200px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    width: 300px;
     height: auto;
-    border-radius: 50%;
     border: 5px solid var(--teal-500);
+    border-radius: var(--border-radius-md);
   }
 }
 
@@ -31,6 +30,16 @@
 }
 
 .board-member-card__role {
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-light);
   margin: 0;
+  font-variation-settings: "slnt" -12;
+}
+
+@container (max-width: 40rem) {
+  .board-members,
+  .board-member-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }

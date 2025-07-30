@@ -1,7 +1,11 @@
 <div class="board-member-card">
   <div class="board-member-card__image">
-    {{ $image_path := printf "assets/images/about-cooperative/%s.png" (.name | urlize) }}
-    <img src="{{ $image_path | relURL }}" alt="Headshot of {{ .name }}" />
+    <img
+      height="300"
+      width="300"
+      loading="lazy"
+      src="{{ .path }}"
+      alt="Headshot of {{ .name }}" />
   </div>
   <div class="board-member-card__info">
     <p class="board-member-card__name">{{ .name }}</p>
