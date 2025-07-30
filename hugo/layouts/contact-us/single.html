@@ -24,38 +24,40 @@
     </p>
   </div>
 
-  <form class="form" novalidate>
-    <div class="form__group">
-      <label for="name" class="form__label">Name (first and last)</label>
-      <input type="text" id="name" class="form__input" required />
-      <span class="form__error-message" aria-live="polite"
-        >Please enter your name.</span
-      >
-    </div>
+  <section class="text-content">
+    <form class="form" novalidate>
+      <div class="form-group full-width">
+        <label for="name" class="form__label">Name (first and last)</label>
+        <input type="text" id="name" class="form__input" required />
+        <span class="form__error-message" aria-live="polite"
+          >Please enter your name.</span
+        >
+      </div>
 
-    <div class="form__group">
-      <label for="email" class="form__label">Email (required)</label>
-      <input type="email" id="email" class="form__input" required />
-      <span class="form__error-message" aria-live="polite"
-        >Please enter a valid email address.</span
-      >
-    </div>
+      <div class="form-group full-width">
+        <label for="email" class="form__label">Email (required)</label>
+        <input type="email" id="email" class="form__input" required />
+        <span class="form__error-message" aria-live="polite"
+          >Please enter a valid email address.</span
+        >
+      </div>
 
-    <div class="form__group">
-      <label for="message" class="form__label"
-        >What can we help you with?</label
-      >
-      <textarea
-        id="message"
-        class="form__input form__input--textarea"
-        required></textarea>
-      <span class="form__error-message" aria-live="polite"
-        >Please enter a message.</span
-      >
-    </div>
+      <div class="form-group full-width">
+        <label for="message" class="form__label"
+          >What can we help you with?</label
+        >
+        <textarea
+          id="message"
+          class="form__input form__input--textarea"
+          required></textarea>
+        <span class="form__error-message" aria-live="polite"
+          >Please enter a message.</span
+        >
+      </div>
 
-    <button type="submit" class="button">Submit</button>
-  </form>
+      <button type="submit" class="button">Submit</button>
+    </form>
+  </section>
 
   <div id="confirmation-message" class="form__confirmation" hidden>
     <h2>Thank you!</h2>

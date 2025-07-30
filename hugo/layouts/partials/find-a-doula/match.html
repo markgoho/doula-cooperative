@@ -1,49 +1,52 @@
 <section class="contact-section text-content">
   <p>Answer a few questions to find a doula who matches your needs.</p>
   <form class="form">
-    <div class="form__group">
-      <label class="form__label" for="name">Name (first and last)</label>
-      <input class="form__input" type="text" id="name" name="name" />
+    <div class="form-group single-column">
+      <label class="form__label " for="name">Name (first and last)</label>
+      <input class="form__input " type="text" id="name" name="name" />
     </div>
 
-    <div class="form__group">
-      <label class="form__label" for="phone">Phone</label>
+    <div class="form__group single-column">
+      <label class="form__label" for="phone">Phone (required)</label>
       <input class="form__input" type="tel" id="phone" name="phone" />
     </div>
 
-    <div class="form__group">
-      <label class="form__label" for="email">Email</label>
+    <div class="form__group single-column">
+      <label class="form__label" for="email">Email (required)</label>
       <input class="form__input" type="email" id="email" name="email" />
     </div>
 
-    <fieldset class="form__group">
+    <div class="form__group single-column">
+      <label class="form__label" for="zipcode">ZIP Code (required)</label>
+      <input class="form__input" type="text" id="zipcode" name="zipcode" />
+    </div>
+
+    <fieldset class="full-width">
       <legend>Baby's estimated date of arrival or birthdate</legend>
-      <div class="form__date-fields">
-        <div class="form__group">
+      <div class="date-grid">
+        <div class="form-group single-column">
           <label class="form__label" for="month">Month</label>
           <input class="form__input" type="text" id="month" name="month" />
         </div>
-        <div class="form__group">
+        <div class="form-group single-column">
           <label class="form__label" for="day">Day</label>
           <input class="form__input" type="text" id="day" name="day" />
         </div>
-        <div class="form__group">
+        <div class="form-group single-column">
           <label class="form__label" for="year">Year</label>
           <input class="form__input" type="text" id="year" name="year" />
         </div>
       </div>
     </fieldset>
 
-    <fieldset class="form__group">
+    <fieldset>
       <legend>I am a parent looking for...</legend>
-      <div class="form__group--checkbox">
+      <div class="input-grid">
         <input class="form__input" type="checkbox" id="birth-doula" /><label
           class="form__label"
           for="birth-doula"
           >birth doula support</label
         >
-      </div>
-      <div class="form__group--checkbox">
         <input
           class="form__input"
           type="checkbox"
@@ -52,22 +55,16 @@
           for="postpartum-doula"
           >postpartum doula support</label
         >
-      </div>
-      <div class="form__group--checkbox">
         <input class="form__input" type="checkbox" id="lactation" /><label
           class="form__label"
           for="lactation"
           >lactation support</label
         >
-      </div>
-      <div class="form__group--checkbox">
         <input class="form__input" type="checkbox" id="classes" /><label
           class="form__label"
           for="classes"
           >childbirth classes</label
         >
-      </div>
-      <div class="form__group--checkbox">
         <input
           class="form__input"
           type="checkbox"
@@ -79,9 +76,9 @@
       </div>
     </fieldset>
 
-    <fieldset class="form__group">
+    <fieldset>
       <legend>My birth is planned at...</legend>
-      <div class="form__group--radio">
+      <div class="input-grid">
         <input
           class="form__input"
           type="radio"
@@ -89,8 +86,6 @@
           name="birth-location" /><label class="form__label" for="home-birth"
           >home</label
         >
-      </div>
-      <div class="form__group--radio">
         <input
           class="form__input"
           type="radio"
@@ -98,8 +93,6 @@
           name="birth-location" /><label class="form__label" for="highland"
           >Highland Hospital</label
         >
-      </div>
-      <div class="form__group--radio">
         <input
           class="form__input"
           type="radio"
@@ -109,8 +102,6 @@
           for="rochester-general"
           >Rochester General Hospital</label
         >
-      </div>
-      <div class="form__group--radio">
         <input
           class="form__input"
           type="radio"
@@ -118,8 +109,6 @@
           name="birth-location" /><label class="form__label" for="strong"
           >Strong Hospital</label
         >
-      </div>
-      <div class="form__group--radio">
         <input
           class="form__input"
           type="radio"
@@ -131,13 +120,12 @@
         >
       </div>
     </fieldset>
-
-    <div class="form__group">
-      <label class="form__label" for="other-info"
+    <div class="form-group full-width">
+      <label class="form__label " for="other-info"
         >Is there any other information you'd like to share with us?</label
       >
       <textarea
-        class="form__input form__input--textarea"
+        class="form__input form__input--textarea "
         id="other-info"
         name="other-info"
         rows="5"></textarea>
