@@ -12,7 +12,6 @@
         {{ .Title }}
       </h1>
 
-
       <p
         class="credentials"
         style="view-transition-name: credentials-{{ .Title | md5 }};">
@@ -33,7 +32,7 @@
           src="{{ .RelPermalink }}"
           alt="Headshot of {{ $.Title }}"
           class="headshot__image"
-          style="view-transition-name: headshot-{{ .Title | md5 }};" />
+          style="view-transition-name: headshot-{{ $.Title | md5 }};" />
       {{ end }}
 
 

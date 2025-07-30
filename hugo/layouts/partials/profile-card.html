@@ -1,4 +1,6 @@
-<div class="profile-card-container">
+<div
+  class="profile-card-container"
+  style="view-transition-name: profile-{{ .Title | md5 }};">
   <a href="{{ .RelPermalink }}" class="profile-card">
     {{ $slug := path.Base .File.Dir }}
     {{ $profileImage := printf "%s-profile-300.avif" $slug }}
