@@ -53,7 +53,7 @@
     color: var(--brown-200);
     max-width: 18ch;
     text-wrap: pretty;
-    margin-block-end: var(--space-2xl);
+    margin-block-end: var(--space-xs);
   }
 
   .org-container {
@@ -91,6 +91,12 @@
     .tagline {
       margin-block-end: 0;
     }
+  }
+}
+
+@media screen and (min-height: 28rem) {
+  .hero .tagline {
+    margin-block-end: var(--space-2xl);
   }
 }
 
