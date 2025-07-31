@@ -25,17 +25,26 @@
       {{ $slug := path.Base .File.Dir }}
       {{ $profileImage300 := printf "%s-profile-300.avif" $slug }}
       {{ $profileImage600 := printf "%s-profile-600.avif" $slug }}
+      {{ $profileImage1200 := printf "%s-profile-1200.avif" $slug }}
       {{ $image300 := .Resources.GetMatch $profileImage300 }}
       {{ $image600 := .Resources.GetMatch $profileImage600 }}
+      {{ $image1200 := .Resources.GetMatch $profileImage1200 }}
 
       {{ if and $image300 $image600 }}
         <picture>
           <source
             media="(min-width: 600px)"
-            srcset="{{ $image600.RelPermalink }}"
+            srcset="
+              {{ $image600.RelPermalink }} 1x,
+              {{ $image1200.RelPermalink }} 2x
+            "
             type="image/avif" />
           <img
             src="{{ $image300.RelPermalink }}"
+            srcset="
+              {{ $image300.RelPermalink }} 1x,
+              {{ $image600.RelPermalink }} 2x
+            "
             alt="Headshot of {{ $.Title }}"
             class="headshot__image"
             style="view-transition-name: headshot-{{ $.Title | md5 }};" />
