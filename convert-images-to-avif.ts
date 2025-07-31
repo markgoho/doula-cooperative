@@ -54,12 +54,14 @@ async function findProfileImages(
 
 async function convertToAvif(image: ImageFile) {
   const baseName = image.path.replace(image.extension, "");
+  const avifPath1200 = `${baseName}-1200.avif`;
   const avifPath600 = `${baseName}-600.avif`;
   const avifPath300 = `${baseName}-300.avif`;
 
-  // Check if AVIF files already exist
-  const filesToCheck = [avifPath600, avifPath300];
+  // Check which AVIF files already exist
+  const filesToCheck = [avifPath1200, avifPath600, avifPath300];
   const existingFiles = [];
+  const missingFiles = [];
 
   for (const filePath of filesToCheck) {
     try {
@@ -67,30 +69,50 @@ async function convertToAvif(image: ImageFile) {
       existingFiles.push(filePath);
     } catch {
       // File doesn't exist, will be created
+      missingFiles.push(filePath);
     }
   }
 
   if (existingFiles.length > 0 && !forceFlag) {
     console.log(
-      `Skipped: ${existingFiles.join(", ")} (already exist, use --force to overwrite)`,
+      `Skipped existing files: ${existingFiles.join(", ")} (use --force to overwrite)`,
     );
+  }
+
+  if (missingFiles.length === 0 && !forceFlag) {
+    console.log(`All AVIF files already exist for ${image.path}`);
     return;
   }
 
   try {
-    // Create 600px version
-    await sharp(image.path)
-      .resize(600, 600, { fit: "inside" }) // Maintains aspect ratio, max 600px
-      .avif({ quality: 50 })
-      .toFile(avifPath600);
+    // Create 1200px version if it doesn't exist or force flag is used
+    if (missingFiles.includes(avifPath1200) || forceFlag) {
+      await sharp(image.path)
+        .resize(1200, 1200, { fit: "inside" }) // Maintains aspect ratio, max 1200px
+        .avif({ quality: 50 })
+        .toFile(avifPath1200);
+      console.log(`Created: ${avifPath1200}`);
+    }
 
-    // Create 300px version
-    await sharp(image.path)
-      .resize(300, 300, { fit: "inside" }) // Maintains aspect ratio, max 300px
-      .avif({ quality: 50 })
-      .toFile(avifPath300);
+    // Create 600px version if it doesn't exist or force flag is used
+    if (missingFiles.includes(avifPath600) || forceFlag) {
+      await sharp(image.path)
+        .resize(600, 600, { fit: "inside" }) // Maintains aspect ratio, max 600px
+        .avif({ quality: 50 })
+        .toFile(avifPath600);
+      console.log(`Created: ${avifPath600}`);
+    }
 
-    console.log(`Converted: ${image.path} → ${avifPath600}, ${avifPath300}`);
+    // Create 300px version if it doesn't exist or force flag is used
+    if (missingFiles.includes(avifPath300) || forceFlag) {
+      await sharp(image.path)
+        .resize(300, 300, { fit: "inside" }) // Maintains aspect ratio, max 300px
+        .avif({ quality: 50 })
+        .toFile(avifPath300);
+      console.log(`Created: ${avifPath300}`);
+    }
+
+    console.log(`Conversion complete for: ${image.path}`);
   } catch (error) {
     console.error(`Failed to convert ${image.path}:`, error);
   }
