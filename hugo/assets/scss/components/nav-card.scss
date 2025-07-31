@@ -5,25 +5,25 @@
 
 .nav-card-container {
   container: nav-card / inline-size;
-  flex-grow: 1;
-  padding: var(--space-s);
-  border: 5px solid var(--brown-400);
-  border-radius: var(--spacing-btn-radius);
-  background-color: var(--brown-000);
+  align-self: stretch;
+  display: contents;
 }
 
 .nav-cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-s);
 }
 
 .nav-card {
   display: grid;
   gap: var(--space-xs);
-  grid-template-columns: 1fr 3fr;
+  // grid-template-columns: subgrid;
   place-items: center;
   text-decoration: none;
+  padding: var(--space-s);
+  border: 5px solid var(--brown-400);
+  border-radius: var(--spacing-btn-radius);
+  background-color: var(--brown-000);
   // width: max-content;
 
   &:hover {
@@ -78,11 +78,6 @@
 
 @container nav-cards (min-width: 50rem) {
   .nav-cards {
-    flex-direction: row;
-  }
-
-  .nav-card {
-    grid-template-columns: auto;
-    grid-template-rows: min-content minmax(5ch, max-content) 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 }

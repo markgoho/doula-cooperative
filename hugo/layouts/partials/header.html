@@ -1,7 +1,7 @@
 <nav class="navbar">
-  <h2 class="navbar__logo">
-    <a href="/">Doula Cooperative</a>
-  </h2>
+  <a class="navbar__logo" href="/">
+    <h2>Doula Cooperative</h2>
+  </a>
   <ul class="navbar__nav">
     {{ range .Site.Menus.main }}
       <li class="{{ if $.IsMenuCurrent "main" . }}active{{ end }}">
