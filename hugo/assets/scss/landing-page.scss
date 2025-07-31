@@ -85,6 +85,7 @@
   }
 }
 .cta-cards {
+  container: nav-cards / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--space-m);

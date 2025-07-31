@@ -10,19 +10,6 @@ section > p:first-child {
   margin-block: var(--space-m);
 }
 
-.find-a-doula-nav {
-  display: flex;
-  gap: var(--space-l);
-  list-style: none;
-  padding: 0;
-  margin: var(--space-l) 0;
-}
-
-.find-a-doula-nav.small {
-  margin-block: var(--space-xl);
-  justify-content: center;
-}
-
 @container (max-width: 50rem) {
   .search-section .search-form,
   .contact-section .contact-form .date-fields {
@@ -31,12 +18,5 @@ section > p:first-child {
 
   .contact-section .contact-form .form-group-half {
     width: 100%;
-  }
-}
-
-@container (max-width: 30rem) {
-  .find-a-doula-nav.small {
-    flex-direction: column;
-    align-items: center;
   }
 }
