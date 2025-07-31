@@ -12,13 +12,13 @@
         {{ .Title }}
       </h1>
 
-      <p
-        class="credentials"
-        style="view-transition-name: credentials-{{ .Title | md5 }};">
-        {{ with .Params.credentials }}
+      {{ with .Params.credentials }}
+        <p
+          class="credentials"
+          style="view-transition-name: credentials-{{ $.Title | md5 }};">
           {{ . }}
-        {{ end }}
-      </p>
+        </p>
+      {{ end }}
     </section>
 
     <section class="headshot">

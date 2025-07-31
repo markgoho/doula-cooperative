@@ -56,8 +56,8 @@ picture {
 }
 
 .contact-info svg {
-  height: 33px;
-  width: 33px;
+  height: var(--space-m);
+  width: var(--space-m);
 }
 
 .contact-info ul {
@@ -88,16 +88,19 @@ picture {
   }
 }
 
+.credentials:empty {
+  display: none;
+}
+
 @container (min-width: 35em) {
   .profile-container {
     column-gap: var(--space-s);
-    row-gap: var(--space-s);
     grid-template-columns: minmax(300px, 1fr) 1fr;
-    grid-template-rows: min-content min-content 1fr;
+    grid-template-rows: max-content min-content 1fr;
     grid-template-areas:
       "headshot title"
       "headshot bio"
-      ". contact-info";
+      "headshot contact-info";
   }
 
   .headshot {
