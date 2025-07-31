@@ -23,13 +23,32 @@
 
     <section class="headshot">
       {{ $slug := path.Base .File.Dir }}
-      {{ $profileImage := printf "%s-profile-600.avif" $slug }}
-      {{ with .Resources.GetMatch $profileImage }}
+      {{ $profileImage300 := printf "%s-profile-300.avif" $slug }}
+      {{ $profileImage600 := printf "%s-profile-600.avif" $slug }}
+      {{ $image300 := .Resources.GetMatch $profileImage300 }}
+      {{ $image600 := .Resources.GetMatch $profileImage600 }}
+
+      {{ if and $image300 $image600 }}
+        <picture>
+          <source
+            media="(min-width: 600px)"
+            srcset="{{ $image600.RelPermalink }}"
+            type="image/avif" />
+          <img
+            src="{{ $image300.RelPermalink }}"
+            alt="Headshot of {{ $.Title }}"
+            class="headshot__image"
+            style="view-transition-name: headshot-{{ $.Title | md5 }};" />
+        </picture>
+      {{ else if $image600 }}
         <img
-          loading="lazy"
-          height="600"
-          width="600"
-          src="{{ .RelPermalink }}"
+          src="{{ $image600.RelPermalink }}"
+          alt="Headshot of {{ $.Title }}"
+          class="headshot__image"
+          style="view-transition-name: headshot-{{ $.Title | md5 }};" />
+      {{ else if $image300 }}
+        <img
+          src="{{ $image300.RelPermalink }}"
           alt="Headshot of {{ $.Title }}"
           class="headshot__image"
           style="view-transition-name: headshot-{{ $.Title | md5 }};" />
@@ -40,7 +59,11 @@
         {{ with .Params.tags }}
           <ul class="tag-group">
             {{ range . }}
-              <li class="tag">{{ . }}</li>
+              <li
+                class="tag"
+                style="view-transition-name: tag-{{ . | md5 }}-{{ $.Title | md5 }};">
+                {{ . }}
+              </li>
             {{ end }}
           </ul>
         {{ end }}

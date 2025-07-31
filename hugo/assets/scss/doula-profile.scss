@@ -4,24 +4,19 @@
   --container-max-width: 87.5rem;
 }
 
+picture {
+  display: contents;
+}
+
 .profile-container {
   display: grid;
-  column-gap: var(--space-l);
-  row-gap: var(--space-s);
-  grid-template-columns: 37.5rem 1fr;
-  grid-template-rows: min-content min-content 1fr;
-  grid-template-areas:
-    "headshot title"
-    "headshot bio"
-    "headshot contact-info";
+  grid-template-columns: 1fr;
   align-content: start;
   margin-block-start: var(--space-xl);
   padding-block-end: var(--space-xl);
 }
 
 .title {
-  grid-area: title;
-
   h1 {
     text-align: left;
     font-size: var(--step-4);
@@ -37,12 +32,12 @@
 }
 
 .headshot {
-  grid-area: headshot;
+  padding-block-end: var(--space-l);
 }
 
 .headshot__image {
-  margin-bottom: var(--space-l);
-  max-width: 100%;
+  margin-block-end: var(--space-s);
+  width: 100%;
   height: auto;
   object-fit: cover;
   aspect-ratio: 1 / 1;
@@ -51,7 +46,9 @@
 }
 
 .contact-info {
-  grid-area: contact-info;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   h3 {
     margin-block-start: var(--space-s);
@@ -71,6 +68,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
+  align-items: start;
 
   li {
     display: flex;
@@ -84,9 +82,46 @@
 }
 
 .bio {
-  grid-area: bio;
   max-width: 60ch;
   > p {
     margin: 0;
+  }
+}
+
+@container (min-width: 35em) {
+  .profile-container {
+    column-gap: var(--space-s);
+    row-gap: var(--space-s);
+    grid-template-columns: minmax(300px, 1fr) 1fr;
+    grid-template-rows: min-content min-content 1fr;
+    grid-template-areas:
+      "headshot title"
+      "headshot bio"
+      ". contact-info";
+  }
+
+  .headshot {
+    position: sticky;
+    top: var(--space-s);
+    grid-area: headshot;
+    padding-block-end: 0;
+  }
+
+  .contact-info {
+    grid-area: contact-info;
+  }
+
+  .title {
+    grid-area: title;
+  }
+
+  .bio {
+    grid-area: bio;
+  }
+}
+
+@container (min-width: 78rem) {
+  .profile-container {
+    grid-template-columns: 600px 1fr;
   }
 }

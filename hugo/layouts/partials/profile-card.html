@@ -29,7 +29,11 @@
 
     <ul class="tag-group">
       {{ range .Params.tags }}
-        <li class="tag">{{ . }}</li>
+        <li
+          class="tag"
+          style="view-transition-name: tag-{{ . | md5 }}-{{ $.Title | md5 }};">
+          {{ . }}
+        </li>
       {{ end }}
     </ul>
   </a>
