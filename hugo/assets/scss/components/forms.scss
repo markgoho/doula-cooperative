@@ -1,6 +1,10 @@
+.form-container {
+  container: form / inline-size;
+}
+
 .form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   column-gap: var(--space-s);
   row-gap: var(--space-l);
 }
@@ -85,4 +89,10 @@ fieldset {
 .form__confirmation {
   text-align: center;
   padding: var(--space-xl);
+}
+
+@container form (min-width: 40rem) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+  }
 }

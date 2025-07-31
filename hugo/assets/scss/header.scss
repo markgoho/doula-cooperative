@@ -53,7 +53,7 @@
   border-bottom-color: var(--teal-500);
 }
 
-@container header (min-width: 55rem) {
+@container header (min-width: 60rem) {
   .navbar {
     grid-template-columns: max-content 1fr max-content;
     grid-template-areas: "logo nav cta";
@@ -63,10 +63,6 @@
   }
 
   .navbar__nav {
-    gap: var(--space-l);
     justify-self: end;
   }
-}
-
-@container header (min-width: 30rem) {
 }

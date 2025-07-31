@@ -81,6 +81,7 @@
       "footer__social-link",
       "footer__social-link--circled",
       "form",
+      "form-container",
       "form-group",
       "form__confirmation",
       "form__error-message",
