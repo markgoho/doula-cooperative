@@ -1,0 +1,5 @@
+<!-- Load Critical CSS Inline -->
+{{ $applicationCSS := "scss/styles.scss" }}
+{{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+{{ $appInlineCSS := resources.Get $applicationCSS | css.Sass $options }}
+<style>{{ $appInlineCSS.Content | safeCSS }}</style>

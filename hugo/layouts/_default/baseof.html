@@ -1,13 +1,18 @@
 <!doctype html>
 <html lang="en">
   <head>
-    {{ partial "head.html" . }}
+    {{ partial "head/site.html" . }}
+    {{ partial "head/critical-css.html" . }}
+
+    {{- block "head-styles" . -}}
+    {{- end -}}
+
+    {{ partial "head/non-critical-css.html" . }}
+    {{ partial "head/analytics.html" . }}
 
     {{- block "head-scripts" . -}}
     {{- end -}}
 
-    {{- block "head-styles" . -}}
-    {{- end -}}
   </head>
 
   <body>

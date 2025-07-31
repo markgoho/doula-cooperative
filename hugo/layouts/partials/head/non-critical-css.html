@@ -1,0 +1,18 @@
+<!-- Load Non-Critical Styles Asynchronously -->
+{{ $options := (dict "transpiler" "dartsass" "targetPath" "non-critical.css" "outputStyle" "compressed") }}
+{{ $nonCriticalCSS := resources.Get "scss/non-critical.scss" | css.Sass $options | resources.Fingerprint }}
+<link
+  rel="preload"
+  href="{{ $nonCriticalCSS.RelPermalink }}"
+  as="style"
+  onload="this.onload=null;this.rel='stylesheet'" />
+
+<link
+  rel="preload"
+  href="/assets/fonts/Geologica-VariableFont_CRSV,SHRP,slnt,wght.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin />
+<noscript>
+  <link rel="stylesheet" href="{{ $nonCriticalCSS.RelPermalink }}" />
+</noscript>
