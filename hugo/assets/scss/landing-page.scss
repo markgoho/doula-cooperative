@@ -5,7 +5,7 @@
   position: relative;
   padding: var(--space-m);
   color: var(--brown-300);
-  height: 100vh;
+  height: 100svh;
 
   display: grid;
   grid-template-columns: auto;
@@ -18,7 +18,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("/assets/images/hero-section.avif");
+    background-image: url("/assets/images/hero-section-small.avif");
     background-size: cover;
     background-position: calc(50% + clamp(0rem, 32.8vw - 9.84rem, 23rem)) center;
     z-index: -2;
@@ -84,7 +84,7 @@
 
 @media screen and (max-width: 30rem) {
   .hero {
-    height: 50vh;
+    height: 50svh;
     padding: var(--space-xs);
     row-gap: var(--space-xs);
 
@@ -99,6 +99,10 @@
     padding-block: var(--space-2xl);
     flex-direction: row;
     gap: var(--space-m);
+  }
+
+  .hero::before {
+    background-image: url("/assets/images/hero-section.avif");
   }
 }
 
