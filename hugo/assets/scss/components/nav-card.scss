@@ -76,6 +76,12 @@
   }
 }
 
+@container nav-cards (min-width: 30rem) {
+  .small .nav-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @container nav-cards (min-width: 50rem) {
   .nav-cards {
     grid-template-columns: repeat(3, 1fr);
