@@ -20,7 +20,7 @@
     bottom: 0;
     background-image: url("/assets/images/hero-section.avif");
     background-size: cover;
-    background-position: calc(50% + 23rem) center;
+    background-position: calc(50% + clamp(0rem, 32.8vw - 9.84rem, 23rem)) center;
     z-index: -2;
   }
 
@@ -33,9 +33,10 @@
     bottom: 0;
     background: linear-gradient(
       to right,
-      rgba(0, 0, 0, 1) 30%,
-      rgba(0, 0, 0, 0) 70%
+      rgb(0, 0, 0, 85%) 15%,
+      rgba(0, 0, 0, 0%) 86%
     );
+
     z-index: -1;
   }
 
@@ -70,9 +71,20 @@
   }
 }
 
+.highlight {
+  font-weight: 700;
+}
+
+.cta-cards {
+  container: nav-cards / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
 @media screen and (max-width: 30rem) {
   .hero {
-    height: auto;
+    height: 50vh;
     padding: var(--space-xs);
     row-gap: var(--space-xs);
 
@@ -80,16 +92,6 @@
       margin-block-end: 0;
     }
   }
-
-  .hero::before {
-    background-position: center;
-  }
-}
-.cta-cards {
-  container: nav-cards / inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-m);
 }
 
 @media screen and (min-width: 30rem) {
@@ -100,6 +102,12 @@
   }
 }
 
-.highlight {
-  font-weight: 700;
+@media screen and (min-width: 60rem) {
+  .hero::after {
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 1) 35%,
+      rgba(0, 0, 0, 0) 75%
+    );
+  }
 }
