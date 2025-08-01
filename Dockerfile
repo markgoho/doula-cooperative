@@ -27,6 +27,8 @@ RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooper
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
   && apt-get install -y nodejs
 
+RUN npm i -g firebase-tools@latest
+
 # 2. Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
@@ -47,6 +49,7 @@ RUN wget "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSIO
 RUN echo "Bun version: $(bun --version)"
 RUN echo "Hugo version: $(hugo version)"
 RUN echo "Sass version: $(sass --version)"
+RUN echo "Node.js version: $(node --version)"
 
 # Set the working directory for when the container starts
 WORKDIR /workspace
