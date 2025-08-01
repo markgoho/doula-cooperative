@@ -18,9 +18,12 @@ if (getApps().length === 0) {
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
-export const contactUsForm = onRequest(async (request, response) => {
-  const { handleContactUsForm } = await import(
-    "./contact-us-form/contact-us-form.js"
-  );
-  await handleContactUsForm(request, response);
-});
+export const contactUsForm = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleContactUsForm } = await import(
+      "./contact-us-form/contact-us-form.js"
+    );
+    await handleContactUsForm(request, response);
+  },
+);
