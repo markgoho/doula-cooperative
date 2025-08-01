@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install dependencies
+        run: bun install
       - name: Build Hugo site
         run: bun run build
       - name: Deploy to Firebase
