@@ -11,11 +11,12 @@ ARG DART_SASS_VERSION=1.77.8
 
 # 1. Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    wget \
-    ca-certificates \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+  curl \
+  wget \
+  ca-certificates \
+  unzip \
+  git \
+  && rm -rf /var/lib/apt/lists/*
 
 # 2. Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
@@ -23,15 +24,15 @@ ENV PATH="/root/.bun/bin:$PATH"
 
 # 3. Install Hugo (Extended Version)
 RUN wget "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb" \
-    && apt-get install -y ./hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
-    && rm hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+  && apt-get install -y ./hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+  && rm hugo_extended_${HUGO_VERSION}_linux-amd64.deb
 
 # 4. Install Dart Sass
 RUN wget "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz" \
-    && tar -xzf "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz" \
-    && mv dart-sass /usr/local/share/ \
-    && ln -s /usr/local/share/dart-sass/sass /usr/local/bin/sass \
-    && rm "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+  && tar -xzf "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz" \
+  && mv dart-sass /usr/local/share/ \
+  && ln -s /usr/local/share/dart-sass/sass /usr/local/bin/sass \
+  && rm "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
 
 # 5. Verify installations
 RUN echo "Bun version: $(bun --version)"
