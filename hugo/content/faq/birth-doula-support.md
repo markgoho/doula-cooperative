@@ -1,6 +1,6 @@
 ---
 title: "What is included with birth doula support?"
-summary: "Learn about the comprehensive support provided by birth doulas, including physical, emotional, and informational assistance throughout your pregnancy, labor, and early postpartum period."
+summary: "Learn about the comprehensive support provided  by birth doulas, including physical, emotional, and informational assistance throughout your pregnancy, labor, and early postpartum period."
 ---
 
 Every doula offer their own unique aspects to support, however the majority include the following:
