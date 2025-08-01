@@ -44,9 +44,10 @@ fieldset {
   background-color: var(--brown-000);
   border: 1px solid var(--brown-500);
   border-radius: var(--border-radius-md);
-  padding: var(--space-s);
+  padding: var(--space-xs);
   font-size: var(--step-2);
   width: 100%;
+  line-height: 1.2;
 
   &:focus-visible {
     outline: 3px solid var(--brown-400);
