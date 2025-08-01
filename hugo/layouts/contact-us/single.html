@@ -55,35 +55,13 @@
         >
       </div>
 
-      <button type="submit" class="button">Submit</button>
+      <button type="submit" id="submit-button" class="button">Submit</button>
     </form>
   </section>
-
-  <div id="confirmation-message" class="form__confirmation" hidden>
-    <h2>Thank you!</h2>
-    <p>Your message has been sent. We'll get back to you shortly.</p>
-  </div>
 {{ end }}
 
 {{ define "footer-scripts" }}
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const form = document.querySelector(".contact-us-page__form");
-      const confirmationMessage = document.getElementById(
-        "confirmation-message",
-      );
-
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!form.checkValidity()) {
-          form.classList.add("was-validated");
-        } else {
-          form.hidden = true;
-          confirmationMessage.hidden = false;
-        }
-      });
-    });
-  </script>
+  {{ $opts := dict "targetPath" "contact-us-form.js" }}
+  {{ $built := resources.Get "ts/contact-us-form.ts" | js.Build $opts | resources.Minify | resources.Fingerprint }}
+  <script type="text/javascript" src="{{ $built.RelPermalink }}" defer></script>
 {{ end }}
