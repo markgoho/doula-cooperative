@@ -1,5 +1,6 @@
 import { Response } from "express";
 import * as admin from "firebase-admin";
+import { logger } from "firebase-functions";
 import { Request } from "firebase-functions/v2/https";
 
 interface ContactUsFormRequest extends Request {
@@ -31,6 +32,7 @@ export async function handleContactUsForm(
 
     response.status(200).send("Okay");
   } catch (error: unknown) {
-    response.status(500).send({ error: error });
+    logger.error(error);
+    response.status(500).send({ error });
   }
 }
