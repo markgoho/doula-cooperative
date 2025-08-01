@@ -6,7 +6,7 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set versions for our tools as arguments
-ARG HUGO_VERSION=0.128.2
+ARG HUGO_VERSION=0.147.8
 ARG DART_SASS_VERSION=1.77.8
 
 # 1. Install base dependencies
