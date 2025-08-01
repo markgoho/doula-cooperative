@@ -1,7 +1,7 @@
 ---
 title: "Will the doula take the place of my spouse, partner or family member?"
 draft: false
-summary: "Understand how a doula complements the role of a partner or family member, enhancing the support team rather than replacing anyone."
+summary: "Understand how a doula complements  the role of a partner or family member, enhancing the support team rather than replacing anyone."
 ---
 
 Not if we're doing it right!
