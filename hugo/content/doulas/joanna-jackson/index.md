@@ -4,11 +4,10 @@ date: 2022-12-13
 createdOn: 2022-12-13T15:56:02Z
 updatedOn: 2022-12-13T15:56:02Z
 type: "doulas"
-types: ["birth", "postpartum"]
 credentials: "BAI, CAPPA"
 tags:
-  - "Birth Doula (BAI)"
-  - "Postpartum Doula (CAPPA)"
+  - "Birth Doula"
+  - "Postpartum Doula"
   - "Nesting Party Coordinator"
 contact:
   business_name: "Life Room Doula"

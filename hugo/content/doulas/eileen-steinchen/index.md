@@ -4,7 +4,6 @@ date: 2021-05-24
 createdOn: 2021-05-24T16:23:07Z
 updatedOn: 2022-12-13T20:03:56Z
 type: "doulas"
-types: ["birth"]
 credentials: "LMHC"
 tags:
   - "Birth Doula"

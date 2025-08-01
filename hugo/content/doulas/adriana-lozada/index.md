@@ -2,10 +2,10 @@
 title: "Adriana Lozada"
 date: 2024-07-10
 type: "doulas"
-types: ["birth", "childbirth education"]
 credentials: "AdvCD(DONA), CSC, CEMC, CBP"
 tags:
   - "Birth Doula"
+  - "Childbirth Educator"
 contact:
   business_name: Birthful
   website: birthful.com

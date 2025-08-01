@@ -6,12 +6,14 @@
 {{ end }}
 
 {{ define "main" }}
-  <div class="doula-list">
-    <h1>{{ replace .Title "-" " " | title }}</h1>
+  <h1 style="view-transition-name: title-{{ .Title | md5 }}">
+    {{ .Title | title }}
+  </h1>
+  <section class="doula-list text-content">
     <p>{{ .Content }}</p>
 
     {{ range .Pages.ByTitle }}
       {{ partial "profile-card.html" . }}
     {{ end }}
-  </div>
+  </section>
 {{ end }}

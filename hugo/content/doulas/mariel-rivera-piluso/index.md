@@ -4,14 +4,13 @@ date: 2024-10-01
 createdOn: 2024-10-01T14:52:25Z
 updatedOn: 2024-10-01T14:52:25Z
 type: "doulas"
-types: ["birth"]
 credentials: "ABD, MA"
 tags:
+  - "Birth Doula"
   - "Abortion Doula"
   - "Perinatal Loss Doula"
-  - "Birth Doula"
   - "Postpartum Doula"
-  - "Childbirth Education"
+  - "Childbirth Educator"
 contact:
   phone: "585-729-2118"
   email: "marielrivera55@yahoo.com"

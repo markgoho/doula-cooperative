@@ -7,7 +7,7 @@ type: "doulas"
 types: ["birth"]
 credentials: "MSW, DONA Trained Birth Doula"
 tags:
-  - "Birth Doula Services"
+  - "Birth Doula"
 contact:
   business_name: "Margo Fox Doula"
   phone: "585-704-8621"

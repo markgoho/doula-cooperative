@@ -4,7 +4,6 @@ date: 2023-04-25
 createdOn: 2023-04-25T14:59:09Z
 updatedOn: 2023-04-25T14:59:09Z
 type: "doulas"
-types: ["postpartum"]
 tags:
   - "Postpartum Doula"
   - "Prenatal and Postnatal Yoga Instructor"

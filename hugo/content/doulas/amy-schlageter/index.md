@@ -4,7 +4,6 @@ date: 2024-04-03
 createdOn: 2024-04-03T01:05:50Z
 updatedOn: 2024-05-13T21:26:40Z
 type: "doulas"
-types: ["birth"]
 tags:
   - "Birth Doula"
 contact:

@@ -4,9 +4,9 @@ date: 2022-05-01
 createdOn: 2022-05-01T22:34:48Z
 updatedOn: 2022-05-01T22:34:48Z
 type: "doulas"
-types: ["birth", "postpartum"]
 tags:
-  - "Birth & Postpartum Doula"
+  - "Birth Doula"
+  - "Postpartum Doula"
 contact:
   phone: "484-716-8065"
   email: "sarah.e.ozimek@gmail.com"

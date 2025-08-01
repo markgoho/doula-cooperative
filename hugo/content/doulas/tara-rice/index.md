@@ -4,11 +4,11 @@ date: 2023-10-08
 createdOn: 2023-10-08T22:56:56Z
 updatedOn: 2023-10-08T22:56:56Z
 type: "doulas"
-types: ["birth", "childbirth education"]
 credentials: "IBCE"
 tags:
-  - "Birth doula"
-  - "Postpartum doula"
+  - "Birth Doula"
+  - "Postpartum Doula"
+  - "Childbirth Educator"
   - "Postpartum nutrition coach"
   - "Belly casting"
 contact:

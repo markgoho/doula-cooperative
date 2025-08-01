@@ -4,7 +4,6 @@ date: 2024-04-18
 createdOn: 2024-04-18T20:28:41Z
 updatedOn: 2024-11-19T19:43:10Z
 type: "doulas"
-types: ["birth"]
 credentials: "BEC, CD-L"
 headshot: "headshot.jpeg"
 tags:

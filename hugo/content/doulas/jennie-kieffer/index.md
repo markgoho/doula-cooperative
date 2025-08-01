@@ -4,13 +4,12 @@ date: 2021-10-27
 createdOn: 2021-10-27T00:51:02Z
 updatedOn: 2021-10-27T00:51:02Z
 type: "doulas"
-types: ["birth"]
 credentials: "CLC, CD(DONA), CVD(TVL)"
 headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
   - "Birth Photographer"
-  - "Lactation Counselor"
+  - "Lactation Support"
 contact:
   phone: "585-397-6805"
   email: "jmkdoula@gmail.com"

@@ -1,0 +1,19 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/doula-list.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <section class="text-content doula-list">
+    <h1>{{ .Title }}</h1>
+    <ul>
+      {{ range .Site.Taxonomies.tags.ByCount }}
+        <li>
+          <a href="{{ .Page.Permalink }}">{{ .Page.Title }}</a> ({{ .Count }})
+        </li>
+      {{ end }}
+    </ul>
+  </section>
+{{ end }}

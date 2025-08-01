@@ -17,10 +17,10 @@ enableGitInfo = true
     min = "0.129.0"
 
 [taxonomies]
-  type = "types"
+  tag = "tags"
 
 [permalinks]
-  types = "/doulas/:slug/"
+  tags = "/doulas/tag/:slug/"
 
 [[menu.main]]
   name = "About"

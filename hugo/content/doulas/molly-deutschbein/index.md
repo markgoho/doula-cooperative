@@ -4,11 +4,11 @@ date: 2023-06-16
 createdOn: 2023-06-16T01:33:36Z
 updatedOn: 2023-06-16T01:33:36Z
 type: "doulas"
-types: ["birth", "fertility"]
 credentials: "LMT, CST, CD, RYT"
 tags:
-  - "Full Spectrum Doula"
   - "Birth Doula"
+  - "Fertility Support"
+  - "Full Spectrum Doula"
   - "Pregnancy Bodywork"
   - "Spinning Babies Aware Practitioner"
 contact:

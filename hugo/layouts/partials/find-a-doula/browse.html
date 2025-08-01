@@ -1,10 +1,11 @@
 <p>Discover doulas across a variety of professional service categories</p>
 <div class="browse-buttons">
-  <a href="/doulas/fertility/" class="button">Fertility Doulas</a>
-  <a href="/doulas/birth/" class="button">Birth Doulas</a>
-  <a href="/doulas/lactation-support/" class="button">Lactation Support</a>
-  <a href="/doulas/postpartum/" class="button">Postpartum Doulas</a>
-  <a href="/doulas/childbirth-education/" class="button"
-    >Childbirth Educators</a
-  >
+  {{ range first 5 .Site.Taxonomies.tags.ByCount }}
+    <a href="{{ .Page.Permalink }}" class="button"
+      ><span style="view-transition-name: title-{{ .Page.Title | md5 }};"
+        >{{ .Page.Title | title }}</span
+      >
+      ({{ .Count }})</a
+    >
+  {{ end }}
 </div>

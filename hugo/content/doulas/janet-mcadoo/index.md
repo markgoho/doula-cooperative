@@ -4,9 +4,8 @@ date: 2023-04-25
 createdOn: 2023-04-25T00:44:03Z
 updatedOn: 2023-04-25T00:44:03Z
 type: "doulas"
-types: ["postpartum"]
 tags:
-  - "Post Partum Doula"
+  - "Postpartum Doula"
 contact:
   phone: "585-750-1705"
   email: "sunnydays624@hotmail.com"

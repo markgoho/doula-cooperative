@@ -4,7 +4,6 @@ date: 2025-02-27
 createdOn: 2025-02-27T04:37:28Z
 updatedOn: 2025-02-27T04:37:28Z
 type: "doulas"
-types: ["birth"]
 tags:
   - "Birth Doula"
   - "Birth Planning"

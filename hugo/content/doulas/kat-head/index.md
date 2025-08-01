@@ -4,7 +4,6 @@ date: 2020-02-07
 createdOn: 2020-02-07T01:50:50Z
 updatedOn: 2023-02-11T15:50:57Z
 type: "doulas"
-types: ["postpartum"]
 tags:
   - "Postpartum Doula"
 contact:

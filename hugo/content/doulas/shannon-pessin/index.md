@@ -4,7 +4,6 @@ date: 2022-07-08
 createdOn: 2022-07-08T19:01:40Z
 updatedOn: 2022-07-08T19:01:40Z
 type: "doulas"
-types: ["birth"]
 tags:
   - "Birth Doula"
   - "Childbirth Educator"

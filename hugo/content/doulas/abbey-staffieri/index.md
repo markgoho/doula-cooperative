@@ -2,7 +2,6 @@
 title: "Abbey Staffieri"
 date: 2024-07-10
 type: "doulas"
-types: ["birth"]
 credentials: "CD(DONA), CLC"
 tags:
   - "Birth Doula"

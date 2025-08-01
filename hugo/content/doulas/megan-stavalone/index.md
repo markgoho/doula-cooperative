@@ -4,7 +4,6 @@ date: 2022-10-31
 createdOn: 2022-10-31T16:37:49Z
 updatedOn: 2024-03-12T22:01:26Z
 type: "doulas"
-types: ["birth"]
 credentials: "DC"
 headshot: "headshot.webp"
 tags:

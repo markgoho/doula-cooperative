@@ -4,7 +4,6 @@ date: 2022-11-13
 createdOn: 2022-11-13T14:02:36Z
 updatedOn: 2022-11-13T14:02:36Z
 type: "doulas"
-types: ["birth"]
 credentials: "CD(DONA), CLC"
 headshot: "headshot.jpeg"
 tags:

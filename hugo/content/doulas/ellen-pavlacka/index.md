@@ -4,13 +4,12 @@ date: 2025-07-07
 createdOn: 2025-07-07T14:46:56Z
 updatedOn: 2025-07-07T14:46:56Z
 type: "doulas"
-types: ["postpartum", "lactation-support"]
 credentials: "IBCLC, PCD(DONA)"
 tags:
-  - "Lactation Consultations"
+  - "Postpartum Doula"
+  - "Lactation Support"
   - "Prenatal Breastfeeding Class"
   - "Returning to Work Support Group"
-  - "Postpartum Doula"
 contact:
   business_name: "Nourishing Pathways Lactation"
   website: "nourishingpathwayslactation.com"

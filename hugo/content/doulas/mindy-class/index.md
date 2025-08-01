@@ -4,7 +4,6 @@ date: 2020-02-04
 createdOn: 2020-02-04T17:36:15Z
 updatedOn: 2020-03-09T13:11:47Z
 type: "doulas"
-types: ["birth", "postpartum"]
 credentials: "CD(DONA), CLC"
 tags:
   - "Birth Doula"

@@ -4,10 +4,11 @@ date: 2020-02-14
 createdOn: 2020-02-14T20:38:29Z
 updatedOn: 2024-02-19T14:49:56Z
 type: "doulas"
-types: ["birth", "postpartum", "fertility"]
 credentials: "M.S., CCC-SLP/L TSSLD"
 tags:
-  - "Birth and Postpartum Doula care"
+  - "Birth Doula"
+  - "Postpartum Doula"
+  - "Fertility Support"
 contact:
   business_name: "The Moy You Know Doula Care & The Doula Duo"
   website: "thedouladuo.com/"

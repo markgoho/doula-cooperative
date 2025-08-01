@@ -6,7 +6,8 @@ updatedOn: 2021-07-24T14:30:08Z
 type: "doulas"
 types: ["birth", "postpartum"]
 tags:
-  - "Birth and Postpartum Doula"
+  - "Birth Doula"
+  - "Postpartum Doula"
   - "Massage Therapist"
 contact:
   business_name: "Healing Hands Wellness Studio"

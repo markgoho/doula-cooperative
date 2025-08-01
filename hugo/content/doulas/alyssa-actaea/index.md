@@ -4,12 +4,13 @@ date: 2025-05-22
 createdOn: 2025-05-22T19:30:57Z
 updatedOn: 2025-05-22T19:30:57Z
 type: "doulas"
-types: ["birth", "postpartum", "lactation-support"]
 credentials: "CLC (she/they)"
 headshot: "headshot.jpeg"
 tags:
+  - "Birth Doula"
+  - "Postpartum Doula"
   - "Full Spectrum Doula"
-  - "Lactation Counselor"
+  - "Lactation Support"
 contact:
   business_name: "Actaea Holistic"
   email: "alyssa.actaea@gmail.com"

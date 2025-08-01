@@ -4,13 +4,12 @@ date: 2021-06-10
 createdOn: 2021-06-10T02:57:15Z
 updatedOn: 2024-07-10T22:22:39Z
 type: "doulas"
-types: ["birth", "postpartum", "lactation-support"]
 credentials: "CD(DONA)"
 headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"
-  - "Lactation Counselor"
+  - "Lactation Support"
 contact:
   business_name: "Melissa Doula"
   website: "melissadoulacare.com/"

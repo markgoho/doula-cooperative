@@ -4,9 +4,9 @@ date: 2023-12-30
 createdOn: 2023-12-30T20:11:43Z
 updatedOn: 2023-12-30T20:11:43Z
 type: "doulas"
-types: ["birth"]
 tags:
-  - "Birth and Postpartum Doula Services"
+  - "Birth Doula"
+  - "Postpartum Doula"
 contact:
   business_name: "When On High"
   website: "whenonhigh.com"

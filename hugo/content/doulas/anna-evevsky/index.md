@@ -4,7 +4,6 @@ date: 2025-01-15
 createdOn: 2025-01-15T15:46:34Z
 updatedOn: 2025-03-01T13:31:40Z
 type: "doulas"
-types: ["birth"]
 headshot: "headshot.png"
 tags:
   - "Birth Doula"

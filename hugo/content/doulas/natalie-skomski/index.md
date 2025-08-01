@@ -4,10 +4,9 @@ date: 2023-11-14
 createdOn: 2023-11-14T03:48:07Z
 updatedOn: 2025-06-02T17:50:24Z
 type: "doulas"
-types: ["birth"]
 headshot: "headshot.jpeg"
 tags:
-  - "Birth Doula Support"
+  - "Birth Doula"
 contact:
   website: "justaskthedoula.com/"
   phone: "518-538-0228"

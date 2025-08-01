@@ -4,11 +4,10 @@ date: 2021-04-28
 createdOn: 2021-04-28T17:35:35Z
 updatedOn: 2022-12-13T20:03:56Z
 type: "doulas"
-types: ["birth"]
 credentials: "MSW, AdvCD/BDT(DONA), LCCE"
 tags:
   - "Birth Doula"
-  - "Childbirth Education"
+  - "Childbirth Educator"
   - "Doula Training"
 contact:
   business_name: "Beautiful Birth Choices"

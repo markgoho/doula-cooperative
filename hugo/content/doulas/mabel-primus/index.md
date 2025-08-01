@@ -4,11 +4,10 @@ date: 2023-08-29
 createdOn: 2023-08-29T17:29:51Z
 updatedOn: 2023-08-29T17:29:51Z
 type: "doulas"
-types: ["postpartum", "lactation-support"]
 credentials: "CLC"
 tags:
   - "Postpartum Doula"
-  - "Lactation Counseling"
+  - "Lactation Support"
 contact:
   business_name: "Mabel Primus Doula"
   phone: "585-764-1651"
