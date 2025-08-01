@@ -24,10 +24,12 @@
   ],
   "hosting": {
     "public": "hugo/public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "/api/contact-us-form",
+        "function": "contactUsForm"
+      }
     ]
   }
 }
