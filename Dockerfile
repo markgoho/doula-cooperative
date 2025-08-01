@@ -19,7 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Configure git to trust the workspace directory to avoid ownership errors in GitHub Actions
-RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooperative
+RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooperative && \
+  git config --system --add safe.directory /__w/doula-cooperative/doula-cooperative && \
+  git config --system --add core.quotepath false
 
 # 2. Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
