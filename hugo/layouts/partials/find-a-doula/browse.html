@@ -2,7 +2,7 @@
 <ul class="tag-group top-tags">
   {{ range first 5 .Site.Taxonomies.tags.ByCount }}
     <li class="tag">
-      <a href="{{ .Page.Permalink }}"
+      <a href="{{ .Page.RelPermalink }}"
         ><span style="view-transition-name: title-{{ .Page.Title | md5 }};"
           >{{ .Page.Title | title }}</span
         >
