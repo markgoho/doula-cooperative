@@ -6,7 +6,7 @@
 {{ end }}
 
 {{ define "main" }}
-  <div class="profile-container">
+  <div class="profile-container" data-pagefind-body>
     <section class="title">
       <h1 style="view-transition-name: name-{{ .Title | md5 }};">
         {{ .Title }}
@@ -83,7 +83,7 @@
       {{ .Content }}
     </section>
 
-    <section class="contact-info">
+    <section class="contact-info" data-pagefind-ignore>
       {{ with .Params.contact }}
         <h3>
           {{ with .business_name }}{{ . }}{{ else }}Contact Information{{ end }}

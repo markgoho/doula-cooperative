@@ -7,7 +7,10 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write .",
-    "hugo:dev": "cd hugo && hugo server"
+    "hugo:dev": "cd hugo && hugo server",
+    "build": "rm -rf hugo/public && cd hugo && hugo build && bun run index",
+    "index": "bunx pagefind --site hugo/public",
+    "build:search": "bun run build && bun run index"
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.32",

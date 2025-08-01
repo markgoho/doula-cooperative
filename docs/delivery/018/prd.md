@@ -49,9 +49,6 @@ Replace the placeholder search form in `hugo/layouts/partials/find-a-doula/searc
 Configure Pagefind to index:
 
 - All doula profile pages (names, bios, specializations, locations)
-- Service pages (About Doulas, Join Cooperative)
-- Informational content (About the Cooperative, Contact)
-- Exclude administrative content and navigation elements
 
 ### 5. Performance Optimization
 

@@ -5,6 +5,12 @@
   <style>{{ $inlineCSS.Content | safeCSS }}</style>
 {{ end }}
 
+{{ define "head-scripts" }}
+  {{ if in .Permalink "/search/" }}
+    <script src="/pagefind/pagefind-ui.js"></script>
+  {{ end }}
+{{ end }}
+
 {{ define "main" }}
   {{ $searchType := .File.BaseFileName }}
   <h1 style="view-transition-name: title-{{ $searchType }}">
@@ -22,4 +28,19 @@
   </section>
 
   {{ partial "find-a-doula-nav.html" . }}
+{{ end }}
+
+{{ define "footer-scripts" }}
+  {{ if in .Permalink "/search/" }}
+    <script>
+      window.addEventListener("DOMContentLoaded", event => {
+        new PagefindUI({
+          element: "#search",
+          showSubResults: true,
+          showImages: true,
+          resetStyles: false,
+        });
+      });
+    </script>
+  {{ end }}
 {{ end }}
