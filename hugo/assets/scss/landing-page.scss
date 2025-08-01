@@ -71,11 +71,8 @@
   }
 }
 
-.cta-cards {
-  container: nav-cards / inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-m);
+.nav-cards-container {
+  margin-block-start: var(--space-l);
 }
 
 @media screen and (max-width: 30rem) {
@@ -97,12 +94,6 @@
 }
 
 @media screen and (min-width: 30rem) {
-  .cta-cards {
-    padding-block: var(--space-2xl);
-    flex-direction: row;
-    gap: var(--space-m);
-  }
-
   .hero::before {
     background-image: url("/assets/images/hero-section.avif");
   }
