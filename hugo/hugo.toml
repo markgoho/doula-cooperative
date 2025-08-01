@@ -2,7 +2,10 @@ baseURL = 'https://doulacooperative.com/'
 languageCode = 'en-us'
 title = 'Rochester Doula Cooperative'
 enableRobotsTXT = true
+enableGitInfo = true
 
+[frontmatter]
+  lastmod = [':git', 'updatedOn', 'lastmod', ':fileModTime', 'date', 'publishDate']
 
 [build]
   writeStats = true
@@ -30,3 +33,4 @@ enableRobotsTXT = true
   name = "Contact"
   pageRef = "/contact-us"
   weight = 30
+
