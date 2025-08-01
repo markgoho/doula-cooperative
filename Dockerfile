@@ -27,8 +27,6 @@ RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooper
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
   && apt-get install -y nodejs
 
-RUN npm i -g firebase-tools@latest
-
 # 2. Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
