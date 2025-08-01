@@ -8,7 +8,8 @@ enableGitInfo = true
   lastmod = [':git', 'updatedOn', 'lastmod', ':fileModTime', 'date', 'publishDate']
 
 [build]
-  writeStats = true
+  [build.buildStats]
+    enable = false
 
 [module]
   [module.hugoVersion]
