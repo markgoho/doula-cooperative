@@ -1,3 +1,4 @@
+const contactForm: HTMLFormElement | null = document.querySelector(".form");
 const contactName: HTMLInputElement | null = document.querySelector("#name");
 const email: HTMLInputElement | null = document.querySelector("#email");
 const message: HTMLTextAreaElement | null = document.querySelector("#message");
@@ -14,7 +15,10 @@ async function sendContactForm({
   email: string;
   message: string;
 }): Promise<void> {
-  const url = "/api/contact-us-form";
+  const url = contactForm?.dataset["apiUrl"];
+  if (!url) {
+    throw new Error("API URL not found");
+  }
 
   const response = await fetch(url, {
     method: "POST",

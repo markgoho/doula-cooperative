@@ -25,7 +25,14 @@
   </div>
 
   <section class="text-content">
-    <form class="form" novalidate>
+    <form
+      class="form"
+      novalidate
+      data-api-url="{{ if hugo.IsProduction }}
+        /api/contact-us-form
+      {{ else }}
+        http://127.0.0.1:5001/doula-cooperative/us-central1/contactUsForm
+      {{ end }}">
       <div class="form-group full-width">
         <label for="name" class="form__label">Name (first and last)</label>
         <input type="text" id="name" class="form__input" required />
