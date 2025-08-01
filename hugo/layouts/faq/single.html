@@ -1,0 +1,17 @@
+{{ define "main" }}
+  <h1 style="view-transition-name: faq-title-{{ .Title | md5 }};">
+    {{ .Title }}
+  </h1>
+  <section
+    style="view-transition-name: faq-content-{{ .Title | md5 }};"
+    class="text-content">
+    {{ .Content }}
+  </section>
+  <section class="text-content">
+    <p>
+      <a class="highlight" href="/faq" class="faq-item__read-more"
+        >Return to FAQ List</a
+      >
+    </p>
+  </section>
+{{ end }}

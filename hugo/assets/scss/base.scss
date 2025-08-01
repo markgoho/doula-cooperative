@@ -69,14 +69,17 @@ h1,
 h2,
 h3,
 h4 {
-  text-wrap: balance;
+  text-wrap: pretty;
+}
+
+a > h2 {
+  text-decoration: none;
 }
 
 /* A elements that don't have a class get default styles */
 a:not([class]) {
   text-decoration-skip-ink: auto;
   color: currentColor;
-  text-decoration: none;
 }
 
 /* Make images easier to work with */

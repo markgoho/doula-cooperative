@@ -53,11 +53,11 @@ h6 {
   line-height: var(--line-height-tight);
   color: var(--color-text-main, #222);
   margin-block-end: 0.5em;
-  text-wrap: balance;
 }
 
 h1 {
   font-size: var(--step-6);
+  text-wrap: balance;
 }
 h2 {
   font-size: var(--step-3);
@@ -83,6 +83,10 @@ dd {
 
 p {
   margin-block-start: 0.75em;
+
+  > a {
+    text-decoration-line: underline;
+  }
 }
 
 a {
@@ -93,4 +97,8 @@ a {
 main h1 {
   text-align: center;
   margin-block-start: var(--space-xl);
+}
+
+.highlight {
+  font-weight: var(--font-weight-bold);
 }

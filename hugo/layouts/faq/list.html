@@ -1,0 +1,27 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/pages/faq-list.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <h1>{{ .Title }}</h1>
+  <section class="faq-list text-content">
+    {{ range .Pages }}
+      <div class="faq-item">
+        <a href="{{ .RelPermalink }}" class="faq-heading">
+          <h2 style="view-transition-name: faq-title-{{ .Title | md5 }};">
+            {{ .Title }}
+          </h2>
+        </a>
+        <p style="view-transition-name: faq-content-{{ .Title | md5 }};">
+          {{ .Content | plainify | truncate 200 }}
+          <a href="{{ .RelPermalink }}" class="faq-item__read-more"
+            >continue reading</a
+          >
+        </p>
+      </div>
+    {{ end }}
+  </section>
+{{ end }}
