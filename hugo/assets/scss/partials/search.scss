@@ -77,6 +77,7 @@
 }
 
 .pagefind-ui__result {
+  position: relative;
   padding: var(--space-s);
   border-radius: var(--border-radius-md);
   border: 5px solid var(--brown-300);
@@ -117,5 +118,11 @@
 
   &:hover {
     text-decoration: underline;
+  }
+
+  &::after {
+    position: absolute;
+    content: "";
+    inset: 0;
   }
 }

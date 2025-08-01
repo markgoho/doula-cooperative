@@ -63,6 +63,16 @@
     padding: var(--space-s);
   }
 
+  .credentials {
+    text-align: center;
+    width: 100%;
+  }
+
+  .profile-card .tag-group {
+    margin-block-start: var(--space-s);
+    justify-content: center;
+  }
+
   .name {
     text-align: center;
   }

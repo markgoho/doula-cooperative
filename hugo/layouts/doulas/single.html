@@ -71,7 +71,9 @@
               <li
                 class="tag"
                 style="view-transition-name: tag-{{ . | md5 }}-{{ $.Title | md5 }};">
-                {{ . }}
+                <a href="{{ printf "/doulas/tag/%s/" (. | urlize) | relURL }}"
+                  >{{ . }}</a
+                >
               </li>
             {{ end }}
           </ul>

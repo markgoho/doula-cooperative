@@ -35,6 +35,10 @@ picture {
   padding-block-end: var(--space-l);
 }
 
+.headshot .tag-group {
+  justify-content: center;
+}
+
 .headshot__image {
   margin-block-end: var(--space-s);
   width: 100%;

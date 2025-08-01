@@ -1,11 +1,13 @@
 <p>Discover doulas across a variety of professional service categories</p>
-<div class="browse-buttons">
+<ul class="tag-group top-tags">
   {{ range first 5 .Site.Taxonomies.tags.ByCount }}
-    <a href="{{ .Page.Permalink }}" class="button"
-      ><span style="view-transition-name: title-{{ .Page.Title | md5 }};"
-        >{{ .Page.Title | title }}</span
+    <li class="tag">
+      <a href="{{ .Page.Permalink }}"
+        ><span style="view-transition-name: title-{{ .Page.Title | md5 }};"
+          >{{ .Page.Title | title }}</span
+        >
+        ({{ .Count }})</a
       >
-      ({{ .Count }})</a
-    >
+    </li>
   {{ end }}
-</div>
+</ul>

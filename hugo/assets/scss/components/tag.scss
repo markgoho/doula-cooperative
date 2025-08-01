@@ -1,7 +1,7 @@
 .tag-group {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-m);
+  gap: var(--space-xs);
   list-style: none;
   padding: 0;
   margin: 0 auto;
@@ -9,8 +9,17 @@
   justify-content: center;
 }
 
+.top-tags {
+  width: 100%;
+  margin: 0;
+}
+
+.top-tags a {
+  font-size: var(--step-2);
+}
+
 .tag {
-  padding: 3px 12px;
+  padding: var(--space-2xs) var(--space-xs);
   border-radius: 20px;
   width: max-content;
   background-color: var(--brown-300);
@@ -19,7 +28,21 @@
   font-size: var(--step--1);
 }
 
-.profile-card .tag-group {
+.tag:has(a):hover {
+  outline: 2px solid var(--brown-500);
+}
+
+.top-tags .tag {
+  padding: var(--space-s) var(--space-m);
+  display: grid;
+  place-items: center;
+}
+
+.tag > a {
+  text-decoration: none;
+}
+
+.tag-group {
   margin: 0;
   width: 100%;
   justify-content: flex-start;

@@ -11,7 +11,7 @@ tags:
   - "Postpartum Doula"
   - "Placenta Specialist"
   - "Lactation Support"
-  - "Childbirth Classes"
+  - "Childbirth Educator"
 contact:
   business_name: "Royalty Birth Services,LLC"
   website: "royaltybirthservices.com"
