@@ -57,6 +57,14 @@ export default tseslint.config(
     },
   },
   {
+    files: ["functions/test/**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "functions/tsconfig.test.json",
+      },
+    },
+  },
+  {
     files: ["**/*.{js,jsx}"],
     rules: {
       // Disable TypeScript-specific rules for JS files

@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
     "esModuleInterop": true,
+    "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],
+    "module": "NodeNext",
     "moduleResolution": "nodenext",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
+    "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2022",
   },
   "compileOnSave": true,
-  "include": ["src"]
+  "include": ["src"],
 }

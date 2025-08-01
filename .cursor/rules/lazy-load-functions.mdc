@@ -1,0 +1,13 @@
+---
+globs: functions/src/index.ts
+alwaysApply: false
+---
+
+when creating new functions in this file, always lazy load the function according to this pattern:
+
+```typescript
+export const webhook = functions.https.onRequest(async (request, response) => {
+  const { handleWebhook } = await import("./webhook/webhook"); // asynchronously loaded when the https.onRequest trigger happens
+  await handleWebhook(request, response); // asynchronously called after code is loaded
+});
+```
