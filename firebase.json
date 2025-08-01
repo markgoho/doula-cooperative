@@ -29,6 +29,10 @@
       {
         "source": "/api/contact-us-form",
         "function": "contactUsForm"
+      },
+      {
+        "source": "/api/doula-match-form",
+        "function": "doulaMatchForm"
       }
     ]
   }
