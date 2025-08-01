@@ -13,7 +13,7 @@ async function sendContactForm({
   email: string;
   message: string;
 }): Promise<void> {
-  const url = "//api/contact-us-form";
+  const url = "/api/contact-us-form";
 
   await fetch(url, {
     method: "POST",
