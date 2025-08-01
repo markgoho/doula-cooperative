@@ -27,3 +27,13 @@ export const contactUsForm = onRequest(
     await handleContactUsForm(request, response);
   },
 );
+
+export const doulaMatchForm = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleDoulaMatchForm } = await import(
+      "./doula-match-form/doula-match-form.js"
+    );
+    await handleDoulaMatchForm(request, response);
+  },
+);

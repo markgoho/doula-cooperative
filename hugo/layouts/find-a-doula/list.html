@@ -43,4 +43,12 @@
       });
     </script>
   {{ end }}
+  {{ if in .Permalink "/match/" }}
+    {{ $opts := dict "targetPath" "doula-match-form.js" }}
+    {{ $built := resources.Get "ts/doula-match-form.ts" | js.Build $opts | resources.Minify | resources.Fingerprint }}
+    <script
+      type="text/javascript"
+      src="{{ $built.RelPermalink }}"
+      defer></script>
+  {{ end }}
 {{ end }}

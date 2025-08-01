@@ -1,0 +1,19 @@
+{{ define "head-styles" }}
+  {{ $pageCSS := "scss/pages/thank-you-match-request.scss" }}
+  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
+  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ end }}
+
+{{ define "main" }}
+  <h1 class="thank-you-page__title">{{ .Title }}</h1>
+  <section class="text-content">
+    <p>
+      Your request has been submitted to the Doula Cooperative. Here's what you
+      can expect next:
+    </p>
+  </section>
+  <section class="text-content">
+    {{ partial "find-a-doula/what-happens-next.html" . }}
+  </section>
+{{ end }}
