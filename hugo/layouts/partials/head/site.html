@@ -1,3 +1,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,minimum-scale=1" />
 <title>{{ .Title }}</title>
+{{ if .Params.noindex }}
+  <meta name="robots" content="noindex, follow" />
+{{ end }}
