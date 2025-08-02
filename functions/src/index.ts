@@ -8,6 +8,7 @@
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 
 // Initialize only if not already initialized
@@ -35,5 +36,16 @@ export const doulaMatchForm = onRequest(
       "./doula-match-form/doula-match-form.js"
     );
     await handleDoulaMatchForm(request, response);
+  },
+);
+
+export const emailContactForm = onDocumentCreated(
+  { document: "messages/{messageId}", secrets: ["MAILGUN_API_KEY"] },
+  async event => {
+    const apiKey = process.env.MAILGUN_API_KEY;
+    const { handleDocumentCreated } = await import(
+      "./contact-us-form/email-contact-form.js"
+    );
+    await handleDocumentCreated(event, apiKey);
   },
 );
