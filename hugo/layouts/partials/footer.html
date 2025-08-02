@@ -10,25 +10,8 @@
     </p>
   </div>
   <nav class="footer__nav" aria-label="Footer navigation">
-    {{/* <div class="footer__col">
-      <div class="footer__col-title">Resources</div>
-      <ul class="footer__links">
-      <li><a href="#">Newsroom</a></li>
-      <li><a href="#">Action kits</a></li>
-      <li><a href="#">Submit your event</a></li>
-      </ul>
-      </div>
-      <div class="footer__col">
-      <div class="footer__col-title">Get Involved</div>
-      <ul class="footer__links">
-      <li><a href="#">Support the mission</a></li>
-      <li><a href="#">Take action</a></li>
-      <li><a href="#">Donate</a></li>
-      </ul>
-      </div>
-      */}}
     <div class="footer__col">
-      <div class="footer__col-title">Find a Doula</div>
+      <h2 class="footer__col-title">Find a Doula</h2>
       <ul class="footer__links">
         <li><a href="/find-a-doula/search/">Search</a></li>
         <li><a href="/find-a-doula/browse/">Browse</a></li>
@@ -36,7 +19,7 @@
       </ul>
     </div>
     <div class="footer__col">
-      <div class="footer__col-title">Browse Members</div>
+      <h2 class="footer__col-title">Browse Members</h2>
       <ul class="footer__links">
         {{ range first 3 .Site.Taxonomies.tags.ByCount }}
           <li>
@@ -48,7 +31,7 @@
       </ul>
     </div>
     <div class="footer__col">
-      <div class="footer__col-title">Connect</div>
+      <h2 class="footer__col-title">Connect</h2>
       <ul class="footer__links">
         <li>
           <a href="/about-the-doula-cooperative/">Our mission</a>
