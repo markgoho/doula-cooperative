@@ -66,6 +66,10 @@
   .footer__social-link {
     display: grid;
     place-content: center;
+
+    &:hover .footer-icon {
+      color: var(--brown-400);
+    }
   }
   .twitter {
     display: none;
