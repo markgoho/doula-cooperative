@@ -10,47 +10,66 @@
     </p>
   </div>
   <nav class="footer__nav" aria-label="Footer navigation">
-    <div class="footer__col">
+    {{/* <div class="footer__col">
       <div class="footer__col-title">Resources</div>
       <ul class="footer__links">
-        <li><a href="#">Newsroom</a></li>
-        <li><a href="#">Action kits</a></li>
-        <li><a href="#">Submit your event</a></li>
+      <li><a href="#">Newsroom</a></li>
+      <li><a href="#">Action kits</a></li>
+      <li><a href="#">Submit your event</a></li>
       </ul>
-    </div>
-    <div class="footer__col">
+      </div>
+      <div class="footer__col">
       <div class="footer__col-title">Get Involved</div>
       <ul class="footer__links">
-        <li><a href="#">Support the mission</a></li>
-        <li><a href="#">Take action</a></li>
-        <li><a href="#">Donate</a></li>
+      <li><a href="#">Support the mission</a></li>
+      <li><a href="#">Take action</a></li>
+      <li><a href="#">Donate</a></li>
+      </ul>
+      </div>
+      */}}
+    <div class="footer__col">
+      <div class="footer__col-title">Find a Doula</div>
+      <ul class="footer__links">
+        <li><a href="/find-a-doula/search/">Search</a></li>
+        <li><a href="/find-a-doula/browse/">Browse</a></li>
+        <li><a href="/find-a-doula/match/">Match</a></li>
       </ul>
     </div>
     <div class="footer__col">
-      <div class="footer__col-title">Members</div>
+      <div class="footer__col-title">Browse Members</div>
       <ul class="footer__links">
-        <li><a href="#">Support</a></li>
-        <li><a href="#">Meeting details</a></li>
-        <li><a href="#">Referrals</a></li>
+        {{ range first 3 .Site.Taxonomies.tags.ByCount }}
+          <li>
+            <a href="{{ .Page.RelPermalink }}"
+              >{{ .Page.Title }} ({{ .Count }})</a
+            >
+          </li>
+        {{ end }}
       </ul>
     </div>
     <div class="footer__col">
       <div class="footer__col-title">Connect</div>
       <ul class="footer__links">
-        <li><a href="#">Our mission</a></li>
-        <li><a href="#">Contact us</a></li>
+        <li>
+          <a href="/about-the-doula-cooperative/">Our mission</a>
+        </li>
+        <li><a href="/contact-us/">Contact us</a></li>
       </ul>
       <div class="footer__social">
         <a
-          href="#"
+          href="https://www.facebook.com/DoulaCoop/"
+          target="_blank"
           aria-label="Facebook"
           class="footer__social-link footer__social-link--circled">
           {{ partial "icons/facebook.html" . }}
         </a>
-        <a href="#" aria-label="X" class="footer__social-link">
+        <a href="#" aria-label="X" class="footer__social-link twitter">
           {{ partial "icons/x.html" . }}
         </a>
-        <a href="#" aria-label="Instagram" class="footer__social-link">
+        <a
+          href="https://www.instagram.com/thedoulacooperative/"
+          aria-label="Instagram"
+          class="footer__social-link">
           {{ partial "icons/instagram.html" . }}
         </a>
       </div>

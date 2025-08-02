@@ -2,9 +2,10 @@
   --icon-color: var(--teal-500);
 
   padding: var(--space-m) var(--space-l);
-  background-color: var(--brown-200);
-  border-top: 5px solid var(--brown-400);
-  container-type: inline-size;
+  background-color: var(--brown-800);
+  border-top: 5px solid var(--brown-500);
+  container: footer / inline-size;
+  color: var(--brown-450);
 }
 
 .footer__main {
@@ -12,7 +13,7 @@
   grid-template-columns: 1fr;
   gap: var(--space-m);
   padding-block-end: var(--space-m);
-  border-bottom: 2px solid var(--brown-400);
+  border-bottom: 2px solid var(--brown-600);
 }
 
 .footer__nav {
@@ -32,9 +33,10 @@
 }
 
 .footer__col-title {
-  font-size: var(--step--1);
+  font-size: var(--step--2);
   font-weight: var(--font-weight-bold);
-  color: var(--teal-500);
+  text-transform: uppercase;
+  color: var(--brown-450);
 }
 
 .footer__links {
@@ -46,11 +48,13 @@
   gap: var(--space-s);
 
   a {
-    text-transform: uppercase;
     font-size: var(--step--1);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-main);
     text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--brown-400);
   }
 }
 
@@ -63,11 +67,14 @@
     display: grid;
     place-content: center;
   }
+  .twitter {
+    display: none;
+  }
 
   .footer-icon {
     width: 44px;
     height: 44px;
-    color: var(--icon-color);
+    color: var(--brown-500);
   }
 }
 
@@ -82,23 +89,24 @@
 }
 
 .footer__login {
+  display: none;
   text-transform: uppercase;
 }
 
-@container (width > 30rem) {
+@container footer (width > 30rem) {
   .footer__nav {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@container (width > 45rem) {
+@container footer (width > 45rem) {
   .footer__bottom {
     flex-direction: row;
     justify-content: space-between;
   }
 }
 
-@container (width > 70rem) {
+@container footer (width > 70rem) {
   .footer__main {
     grid-template-columns: 1fr 2fr;
   }
@@ -108,7 +116,7 @@
   }
 
   .footer__nav {
-    grid-template-columns: repeat(4, max-content);
+    grid-template-columns: repeat(3, max-content);
     gap: var(--space-2xl);
   }
 }
