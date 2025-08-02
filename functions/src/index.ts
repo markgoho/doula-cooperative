@@ -49,3 +49,14 @@ export const emailContactForm = onDocumentCreated(
     await handleDocumentCreated(event, apiKey);
   },
 );
+
+export const emailDoulaMatch = onDocumentCreated(
+  { document: "matchRequests/{requestId}", secrets: ["MAILGUN_API_KEY"] },
+  async event => {
+    const apiKey = process.env.MAILGUN_API_KEY;
+    const { handleDocumentCreated } = await import(
+      "./doula-match-form/email-doula-match.js"
+    );
+    await handleDocumentCreated(event, apiKey);
+  },
+);

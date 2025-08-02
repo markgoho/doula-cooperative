@@ -32,4 +32,6 @@ export async function handleDocumentCreated(
     <p>Submitted: ${String(submitted)}</p>
     `,
   });
+
+  await snapshot.ref.update({ sent: true });
 }
