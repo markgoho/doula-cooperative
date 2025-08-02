@@ -31,6 +31,7 @@ export async function handleDocumentCreated(
     <p>Message: ${String(message)}</p>
     <p>Submitted: ${String(submitted)}</p>
     `,
+    "h:Reply-To": String(email),
   });
 
   await snapshot.ref.update({ sent: true });
