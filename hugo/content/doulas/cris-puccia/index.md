@@ -7,8 +7,8 @@ type: "doulas"
 tags:
   - "Birth Doula"
 contact:
-  website: "doulanona.com/"
-  phone: "716-316-2713"
+  website: "doulanona.com"
+  phone: 716-316-2713
   email: "cris.doulanona@outlook.com"
 draft: false
 ---

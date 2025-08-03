@@ -8,7 +8,7 @@ credentials: "MS, RN-BC"
 tags:
   - "Birth Doula"
 contact:
-  phone: "746-628-9536"
+  phone: 746-628-9536
   email: "mfeeneydoula@gmail.com"
 draft: false
 ---

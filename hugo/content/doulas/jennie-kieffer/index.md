@@ -11,7 +11,7 @@ tags:
   - "Birth Photographer"
   - "Lactation Support"
 contact:
-  phone: "585-397-6805"
+  phone: 585-397-6805
   email: "jmkdoula@gmail.com"
 draft: false
 ---

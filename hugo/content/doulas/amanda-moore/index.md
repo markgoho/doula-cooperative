@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "Joy Begins Doula Support"
   website: "joy-begins.com"
-  phone: "585-354-7854"
+  phone: 585-354-7854
   email: "joybegins@yahoo.com"
 draft: false
 ---

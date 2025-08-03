@@ -12,8 +12,8 @@ tags:
   - "Breastmilk jewelry"
 contact:
   business_name: "The Doula Duo"
-  website: "thedouladuo.com/"
-  phone: "585-748-5557"
+  website: "thedouladuo.com"
+  phone: 585-748-5557
   email: "Thedouladuo2@gmail.com"
 draft: false
 ---

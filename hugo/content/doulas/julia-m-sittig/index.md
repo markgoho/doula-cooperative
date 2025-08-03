@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "Beautiful Birth Choices"
   website: "bbcroc.com"
-  phone: "585-613-1051"
+  phone: 585-613-1051
   email: "julia@bbcroc.com"
 draft: false
 ---

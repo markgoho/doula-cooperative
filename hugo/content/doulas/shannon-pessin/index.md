@@ -9,7 +9,7 @@ tags:
   - "Childbirth Educator"
 contact:
   business_name: "Motherstouch585"
-  phone: "585-217-7686"
+  phone: 585-217-7686
   email: "shannonlapoint@gmail.com"
 draft: false
 ---

@@ -14,7 +14,7 @@ tags:
 contact:
   business_name: "Osgood Family Acupuncture"
   website: "osgoodfamacu.com"
-  phone: "(585) 210-0258"
+  phone: 585-210-0258
   email: "melody@osgoodfamacu.com"
 draft: false
 ---

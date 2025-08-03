@@ -8,7 +8,7 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
 contact:
-  phone: "907-440-8965"
+  phone: 907-440-8965
   email: "Weilandwoodslearning@gmail.com"
 draft: false
 ---

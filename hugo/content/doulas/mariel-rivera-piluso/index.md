@@ -12,7 +12,7 @@ tags:
   - "Postpartum Doula"
   - "Childbirth Educator"
 contact:
-  phone: "585-729-2118"
+  phone: 585-729-2118
   email: "marielrivera55@yahoo.com"
 draft: false
 ---

@@ -8,7 +8,7 @@ credentials: "LMHC"
 tags:
   - "Birth Doula"
 contact:
-  phone: "315-200-9778"
+  phone: 315-200-9778
   email: "eeroach1@gmail.com"
 draft: false
 ---

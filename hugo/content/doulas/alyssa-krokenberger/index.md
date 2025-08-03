@@ -8,7 +8,7 @@ tags:
   - "Birth Doula"
 contact:
   business_name: "ROC Your Birth"
-  phone: "585-329-9278"
+  phone: 585-329-9278
   email: "Rocyourbirth@gmail.com"
 draft: false
 ---

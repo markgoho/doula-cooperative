@@ -14,7 +14,7 @@ tags:
 contact:
   business_name: "Believe Doulas"
   website: "Believedoulas.com"
-  phone: "585-750-4549"
+  phone: 585-750-4549
   email: "Kirstenelting@believedoulas.com"
 draft: false
 ---

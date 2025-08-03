@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "Flower City Doula Services, LLC"
   website: "flowercitydoula.com"
-  phone: "585-340-7574"
+  phone: 585-340-7574
   email: "theflowercity.doula@gmail.com"
 draft: false
 ---

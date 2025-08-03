@@ -11,8 +11,8 @@ tags:
   - "Fertility Support"
 contact:
   business_name: "The Moy You Know Doula Care & The Doula Duo"
-  website: "thedouladuo.com/"
-  phone: "585-314-8526"
+  website: "thedouladuo.com"
+  phone: 585-314-8526
   email: "themoyyouknow@gmail.com"
 draft: false
 ---

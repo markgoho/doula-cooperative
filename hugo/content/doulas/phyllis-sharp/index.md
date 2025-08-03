@@ -15,7 +15,7 @@ tags:
 contact:
   business_name: "Royalty Birth Services,LLC"
   website: "royaltybirthservices.com"
-  phone: "585-969-6133"
+  phone: 585-969-6133
   email: "royaltybirthservices@gmail.com"
 draft: false
 ---

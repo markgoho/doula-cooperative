@@ -7,7 +7,7 @@ type: "doulas"
 tags:
   - "Postpartum Doula"
 contact:
-  phone: "585-750-1705"
+  phone: 585-750-1705
   email: "sunnydays624@hotmail.com"
 draft: false
 ---

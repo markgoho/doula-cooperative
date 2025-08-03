@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "Life Room Doula"
   website: "liferoomdoulaservices.godaddysites.com"
-  phone: "585-340-7440"
+  phone: 585-340-7440
   email: "liferoomdoula@gmail.com"
 draft: false
 ---

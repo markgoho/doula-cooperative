@@ -10,7 +10,7 @@ tags:
   - "Postpartum Doula"
 contact:
   website: ""
-  phone: "(585) 576-9200"
+  phone: 585-576-9200
   email: "mindyclass@hotmail.com"
 draft: false
 ---

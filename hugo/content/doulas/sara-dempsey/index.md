@@ -13,7 +13,7 @@ tags:
 contact:
   business_name: "True North Birth"
   website: "truenorthbirth.org/"
-  phone: "5856906095"
+  phone: 5856906095"
   email: "truenorthbirth.doula@outlook.com"
 draft: false
 ---

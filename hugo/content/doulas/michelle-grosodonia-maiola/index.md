@@ -13,7 +13,7 @@ tags:
   - "Reiki Healing"
 contact:
   email: "viamirabella585@gmail.com"
-  phone: "(585) 944-3474"
+  phone: 585-944-3474
 draft: false
 ---
 

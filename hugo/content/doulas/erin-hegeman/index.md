@@ -9,7 +9,7 @@ tags:
   - "Postpartum Doula"
 contact:
   website: "erinhegeman.com"
-  phone: "315-573-1900"
+  phone: 315-573-1900
   email: "erin.hegeman.doula@gmail.com"
 draft: false
 ---

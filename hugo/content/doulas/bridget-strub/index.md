@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "Wildflower Birth Support"
   website: "wildflowerbirth.co"
-  phone: "(585) 880-5387"
+  phone: 585-880-5387
   email: "bridgetthedoula@gmail.com"
 draft: false
 ---

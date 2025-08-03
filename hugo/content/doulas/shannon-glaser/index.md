@@ -7,7 +7,7 @@ type: "doulas"
 tags:
   - "Birth Doula"
 contact:
-  phone: "585-784-0870"
+  phone: 585-784-0870
   email: "letsdoulait@gmail.com"
 draft: false
 ---

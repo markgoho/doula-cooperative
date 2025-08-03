@@ -9,7 +9,7 @@ tags:
   - "Birth Doula"
   - "ASL Interpreter"
 contact:
-  phone: "908-693-8456"
+  phone: 908-693-8456
   email: "laurendearman@comcast.net"
 draft: false
 ---

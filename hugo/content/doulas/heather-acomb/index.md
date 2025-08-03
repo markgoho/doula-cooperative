@@ -8,8 +8,8 @@ tags:
   - "Postpartum Doula"
   - "Prenatal and Postnatal Yoga Instructor"
 contact:
-  website: "heatheracomb.com/"
-  phone: "(585) 455-5231"
+  website: "heatheracomb.com"
+  phone: 585-455-5231
   email: "heatheracomb@gmail.com"
 draft: false
 ---

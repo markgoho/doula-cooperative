@@ -9,7 +9,7 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
 contact:
-  phone: "229-506-0872"
+  phone: 229-506-0872
   email: "doua.kathryn.franke@gmail.com"
 draft: false
 ---

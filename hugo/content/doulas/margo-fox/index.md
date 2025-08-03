@@ -10,7 +10,7 @@ tags:
   - "Birth Doula"
 contact:
   business_name: "Margo Fox Doula"
-  phone: "585-704-8621"
+  phone: 585-704-8621
   email: "Margoasfox@gmail.com"
 draft: false
 ---

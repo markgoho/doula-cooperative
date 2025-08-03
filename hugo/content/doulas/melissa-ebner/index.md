@@ -12,8 +12,8 @@ tags:
   - "Lactation Support"
 contact:
   business_name: "Melissa Doula"
-  website: "melissadoulacare.com/"
-  phone: "607-272-9838"
+  website: "melissadoulacare.com"
+  phone: 607-272-9838
   email: "melissa.doulacare@gmail.com"
 draft: false
 ---

@@ -11,8 +11,8 @@ tags:
   - "Massage Therapist"
 contact:
   business_name: "Healing Hands Wellness Studio"
-  website: "healinghandsvictor.com/"
-  phone: "585-975-9904"
+  website: "healinghandsvictor.com"
+  phone: 585-975-9904
   email: "hobartlmt@gmail.com"
 draft: false
 ---

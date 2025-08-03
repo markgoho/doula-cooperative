@@ -8,7 +8,7 @@ tags:
   - "Birth Doula"
   - "Postpartum Doula"
 contact:
-  phone: "484-716-8065"
+  phone: 484-716-8065
   email: "sarah.e.ozimek@gmail.com"
 draft: false
 ---

@@ -10,7 +10,7 @@ tags:
 contact:
   business_name: "When On High"
   website: "whenonhigh.com"
-  phone: "585-747-4390"
+  phone: 585-747-4390
   email: "eokafor@u.rochester.edu"
 draft: false
 ---

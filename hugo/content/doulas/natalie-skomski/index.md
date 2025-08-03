@@ -8,8 +8,8 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
 contact:
-  website: "justaskthedoula.com/"
-  phone: "518-538-0228"
+  website: "justaskthedoula.com"
+  phone: 518-538-0228
   email: "natalie@justaskthedoula.com"
 draft: false
 ---

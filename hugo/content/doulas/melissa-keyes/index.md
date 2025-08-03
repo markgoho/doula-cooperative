@@ -13,7 +13,7 @@ tags:
   - "Parent education"
 contact:
   business_name: "Baby Love"
-  phone: "315-359-0510"
+  phone: 315-359-0510
   email: "mlssutter@yahoo.com"
 draft: false
 ---

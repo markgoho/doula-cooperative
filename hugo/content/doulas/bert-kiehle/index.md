@@ -13,7 +13,7 @@ tags:
   - "Certified VBAC Doula"
 contact:
   website: "robertakiehle.com"
-  phone: "585-749-2718"
+  phone: 585-749-2718
   email: "rbkiehle@gmail.com"
 draft: false
 ---

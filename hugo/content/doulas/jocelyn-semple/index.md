@@ -12,7 +12,7 @@ tags:
 contact:
   business_name: "The Roc Doula"
   website: "therocdoula.com"
-  phone: "585-794-0387"
+  phone: 585-794-0387
   email: "therocdoula@gmail.com"
 draft: false
 ---
@@ -31,4 +31,4 @@ My birth doula package includes:
 - Use of a CUB chair during labor
 - Free labor TENS unit rentals
 
-I can't wait to experience your pregnancy and labor with you! If you have any questions please feel free to contact me at (585) 794-0387 or visit my website at therocdoula.com
+I can't wait to experience your pregnancy and labor with you! If you have any questions please feel free to contact me at (585-794-0387 or visit my website at therocdoula.com

@@ -14,7 +14,7 @@ tags:
 contact:
   business_name: "Spirit Organic"
   website: "spiritorganic.net/index.html"
-  phone: "(585) 746-4682"
+  phone: 585-746-4682
   email: "wellness@spiritorganic.net"
 draft: false
 ---
