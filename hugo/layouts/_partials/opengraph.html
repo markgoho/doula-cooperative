@@ -1,17 +1,30 @@
 {{/* This partial is used to generate the Open Graph meta tags for a page. */}}
 
-{{- if eq .Type "doulas" -}}
-  <meta property="og:title" content="{{ .Title }}" />
 
+<meta property="og:title" content="{{ .Title }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:description" content="{{ .Summary | plainify }}" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="{{ .Permalink }}" />
+<meta property="twitter:domain" content="{{ .Site.BaseURL }}" />
+<meta name="twitter:title" content="{{ .Title }}" />
+<meta name="twitter:description" content="{{ .Summary | plainify }}" />
+
+{{- if eq .Type "doulas" -}}
   <meta property="og:type" content="profile" />
+
   {{ with .Resources.GetMatch "*profile-600.avif" }}
     <meta property="og:image" content="{{ .Permalink }}" />
+    <meta name="twitter:image" content="{{ .Permalink }}" />
   {{ end }}
-  <meta property="og:url" content="{{ .Permalink }}" />
-  <meta property="og:description" content="{{ .Summary | plainify }}" />
+
 {{ else }}
-  <meta property="og:title" content="{{ .Title }}" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="{{ .Permalink }}" />
-  <meta property="og:description" content="{{ .Summary | plainify }}" />
+  <meta
+    property="og:image"
+    content="{{ .Site.BaseURL }}/assets/images/hero-section-small.avif" />
+  <meta
+    name="twitter:image"
+    content="{{ .Site.BaseURL }}/assets/images/hero-section-small.avif" />
 {{ end }}
