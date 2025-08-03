@@ -8,11 +8,7 @@
 {{ define "main" }}
   <h1 style="view-transition-name: title-find-doula">{{ .Title }}</h1>
   <section class="text-content">
-    <p>
-      Whether you're seeking a specific doula, looking to browse our community,
-      or need help finding the right match, we have you covered. Choose an
-      option below to get started.
-    </p>
+    {{ .Content }}
   </section>
 
   {{ partial "find-a-doula-nav.html" . }}

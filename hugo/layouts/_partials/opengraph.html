@@ -1,0 +1,17 @@
+{{/* This partial is used to generate the Open Graph meta tags for a page. */}}
+
+{{- if eq .Type "doulas" -}}
+  <meta property="og:title" content="{{ .Title }}" />
+
+  <meta property="og:type" content="profile" />
+  {{ with .Resources.GetMatch "*profile-600.avif" }}
+    <meta property="og:image" content="{{ .Permalink }}" />
+  {{ end }}
+  <meta property="og:url" content="{{ .Permalink }}" />
+  <meta property="og:description" content="{{ .Summary | plainify }}" />
+{{ else }}
+  <meta property="og:title" content="{{ .Title }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ .Permalink }}" />
+  <meta property="og:description" content="{{ .Summary | plainify }}" />
+{{ end }}

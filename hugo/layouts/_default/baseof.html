@@ -13,6 +13,10 @@
     {{- block "head-scripts" . -}}
     {{- end -}}
 
+    {{ block "head/opengraph" . }}
+      {{ partial "opengraph.html" . }}
+    {{ end }}
+
   </head>
 
   <body>
