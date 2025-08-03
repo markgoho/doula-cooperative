@@ -1,3 +1,5 @@
+@use "components/callout";
+
 .benefits,
 .membership-join {
   margin-bottom: var(--space-xl);
@@ -34,8 +36,9 @@
   max-width: max-content;
   margin-inline: auto;
 
-  h3 {
+  h2 {
     margin: 0;
+    text-align: center;
   }
 
   .price {
@@ -49,5 +52,12 @@
   .membership-cta {
     display: inline-block;
     margin-inline: auto;
+    background-color: var(--teal-600);
+    cursor: not-allowed;
   }
+}
+
+.callout {
+  margin-block-start: var(--space-l);
+  margin-block-end: 0;
 }
