@@ -2,40 +2,46 @@
 
 ## Overview
 
-This PBI covers the technical guidance needed to support consistent, customizable social/meta cards for doula profile pages (and a generic fallback for other pages) in the Hugo site. The goal is to ensure that when links are shared on Facebook, X, or LinkedIn, the correct information and visuals appear. Visual design is pending and will be addressed in a future PBI.
+This PBI covers the implementation of consistent, customizable social/meta cards for doula profile pages (and a generic fallback for other pages) in the Hugo site. The goal is to ensure that when links are shared on Facebook, X, LinkedIn, and Instagram, a visually appealing card with the correct information is displayed. This includes generating a custom image for each doula's social card.
 
 ## Problem Statement
 
-Currently, there is no standardized approach for defining social/meta card information for doula profile pages or other site pages. This can result in poor or inconsistent appearance when links are shared on social platforms.
+Currently, there is no standardized approach for defining social/meta card information for doula profile pages or other site pages. This results in poor or inconsistent appearance when links are shared on social platforms, potentially harming brand perception and user engagement.
 
 ## User Stories
 
-- As a developer, I want to provide a single, consistent template for social/meta cards on doula profile pages, so that sharing these links always shows the correct info.
-- As a developer, I want a generic fallback for all other pages, so that every page has at least basic social/meta info when shared.
+- As a developer, I want to automatically generate a unique social card image for each doula profile, so that sharing these links provides a rich, visually consistent experience.
+- As a developer, I want a generic fallback card for all other pages, so that every page has at least basic social/meta info when shared.
+- As a site visitor, when I share a link to a doula's profile, I want to see a preview that includes their photo, name, and credentials, clearly representing who they are.
 
 ## Technical Approach
 
-- Provide technical guidance for implementing Open Graph and Twitter Card meta tags in Hugo.
-- Doula profile pages should use a single, consistent template for social cards (title, description, image).
-- All other pages should use a generic fallback (e.g., page title and a standard blurb/image).
-- Guidance should cover Facebook, X, and LinkedIn.
-- No visual design is included (pending future Figma work).
+- Implement Open Graph and Twitter Card meta tags in Hugo to control social sharing appearance.
+- Create a dynamic image generation process that creates a social card for each doula. This image will be generated at build time.
+- The generated image will serve as the `og:image` and `twitter:image`.
+- Doula profile pages will use a specific template for their social cards, pulling in the doula's name, credentials, and profile photo.
+- All other pages will use a generic fallback social card (e.g., using the site logo and a standard description).
+- The implementation will ensure compatibility with Facebook, X, LinkedIn, and Instagram.
 
 ## UX/UI Considerations
 
-- Visual design for social cards is out of scope for this PBI and will be addressed in a future PBI once Figma designs are available.
+The visual design for the social card should be clean and professional. It must include:
+
+- The doula's profile photo.
+- The doula's full name and credentials (e.g., "Jane Doe, CD(DONA)").
+- The text "Doula Cooperative" at the bottom of the card to provide branding and context.
 
 ## Acceptance Criteria
 
-- Technical guidance for Hugo meta tags is documented.
-- Doula profile pages have a clear, consistent approach for social/meta cards.
-- All other pages have a generic fallback for social/meta cards.
-- Guidance covers Facebook, X, and LinkedIn.
-- No visual design is included.
+- Social cards are correctly generated and displayed when sharing links on Facebook, X, LinkedIn, and Instagram.
+- Each doula profile page has a unique social card image featuring their profile photo, name, and credentials.
+- The text "Doula Cooperative" is present at the bottom of each generated doula social card.
+- All other pages on the site have a generic, but functional, fallback social card.
+- The implementation does not significantly increase site build times.
 
 ## Dependencies
 
-- Pending Figma designs for visual appearance of social cards (future PBI).
+- Access to doula profile photos, full names, and credentials from the existing content files.
 
 ## Open Questions
 
