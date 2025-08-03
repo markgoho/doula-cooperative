@@ -34,6 +34,496 @@
         "source": "/api/doula-match-form",
         "function": "doulaMatchForm"
       }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(eot|otf|ttf|ttc|woff|woff2|font)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000, immutable"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|ico|webp|svg|avif)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
+        "source": "**/*.ico",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000, immutable"
+          },
+          {
+            "key": "Content-Type",
+            "value": "image/x-icon"
+          }
+        ]
+      },
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000, immutable"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Content-Type",
+            "value": "text/javascript; charset=utf-8"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000, immutable"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
+        "source": "**/manifest.webmanifest",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/manifest+json; charset=utf-8"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/birth-doulas/cris-puccia",
+        "destination": "/doulas/cris-puccia",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/sara-dempsey%2C-mrn%2C-rn%2C-dona",
+        "destination": "/doulas/sara-dempsey",
+        "type": 301
+      },
+      {
+        "source": "/lactation-support/ellen-pavlacka%2C-clc%2C-cbs%2C-pcd(dona)",
+        "destination": "/doulas/ellen-pavlacka",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/ellen-pavlacka%2C-pcd(dona)%2C-clc%2C-cbs",
+        "destination": "/doulas/ellen-pavlacka",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/rachel-stacy",
+        "destination": "/doulas/rachel-stacy",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/anna-evevsky",
+        "destination": "/doulas/anna-evevsky",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/abbey-staffieri",
+        "destination": "/doulas/abbey-staffieri",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/mariel-rivera-piluso%2C-abd%2C-ma",
+        "destination": "/doulas/mariel-rivera-piluso",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/alyssa-krokenberger",
+        "destination": "/doulas/alyssa-krokenberger",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/danielle-cisneros",
+        "destination": "/doulas/danielle-cisneros",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/jocelyn-semple%2C-bec%2C-cd-l",
+        "destination": "/doulas/jocelyn-semple",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/mary-feeney%2C-ms%2C-rn-bc",
+        "destination": "/doulas/mary-feeney",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/kathryn-franke%2C-ma%2C-cd(dona)",
+        "destination": "/doulas/kathryn-franke",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/enuma-okafor",
+        "destination": "/doulas/enuma-okafor",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/lauren-dearman",
+        "destination": "/doulas/lauren-dearman",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/amy-schlageter",
+        "destination": "/doulas/amy-schlageter",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/natalie-skomski",
+        "destination": "/doulas/natalie-skomski",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/mabel-primus%2C-clc",
+        "destination": "/doulas/mabel-primus",
+        "type": 301
+      },
+      {
+        "source": "/lactation-support/mabel-primus%2C-clc",
+        "destination": "/doulas/mabel-primus",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/melissa-keyes",
+        "destination": "/doulas/melissa-keyes",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/margo-fox%2C-msw%2C-dona-trained-birth-doula",
+        "destination": "/doulas/margo-fox",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/heather-acomb",
+        "destination": "/doulas/heather-acomb",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/melody-osgood%2C-lac%2C-doula%2C-cbe%2C-placenta-specialist",
+        "destination": "/doulas/melody-osgood",
+        "type": 301
+      },
+      {
+        "source": "/childbirth-educators/melody-osgood%2C-lac%2C-doula%2C-cbe%2C-placenta-specialist",
+        "destination": "/doulas/melody-osgood",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/melody-e-osgood%2C-lac%2C-trained-doula",
+        "destination": "/doulas/melody-osgood",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/joanna-jackson-(bai%2C-cappa)",
+        "destination": "/doulas/joanna-jackson",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/phyllis-sharp-cd(dona)%2C-clc",
+        "destination": "/doulas/phyllis-sharp",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/megan-stavalone%2C-dc",
+        "destination": "/doulas/megan-stavalone",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/bert-kiehle",
+        "destination": "/doulas/roberta-kiehle",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/bert-kiehle",
+        "destination": "/doulas/roberta-kiehle",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/jennie-kieffer%2C-clc%2C-cd(dona)%2C-cvd(tvl)",
+        "destination": "/doulas/jennie-kieffer",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/julie-hobart",
+        "destination": "/doulas/julie-hobart",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/julie-hobart",
+        "destination": "/doulas/julie-hobart",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/ashley-wyffels-",
+        "destination": "/doulas/ashley-wyffels",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/ashley-wyffels-",
+        "destination": "/doulas/ashley-wyffels",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/sarah-ozimek",
+        "destination": "/doulas/sarah-ozimek",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/sarah-ozimek",
+        "destination": "/doulas/sarah-ozimek",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/shannon-pessin",
+        "destination": "/doulas/shannon-pessin",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/allison-kelly",
+        "destination": "/doulas/allison-kelly",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/christine-landers%2C-bd%2C-hchd%2C-pes",
+        "destination": "/doulas/christine-landers",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/amanda-moore",
+        "destination": "/doulas/amanda-moore",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/amanda-moore",
+        "destination": "/doulas/amanda-moore",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/erin-hegeman%2C-advanced-holistic-doula-",
+        "destination": "/doulas/erin-hegeman",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/chels%C3%A9-inman",
+        "destination": "/doulas/chelse-inman",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/melissa-ebner-",
+        "destination": "/doulas/melissa-ebner",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/melissa-ebner-",
+        "destination": "/doulas/melissa-ebner",
+        "type": 301
+      },
+      {
+        "source": "/lactation-support/melissa-ebner-lc",
+        "destination": "/doulas/melissa-ebner",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/eileen-steinchen%2C-lmhc",
+        "destination": "/doulas/eileen-steinchen",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/bridget-strub%2C-cd(dona)%2C-lcce",
+        "destination": "/doulas/bridget-strub",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/kirsten-elting--ba%2C-cd(dona)%2C-lcce%2C-clec%2C-clc",
+        "destination": "/doulas/kirsten-elting",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/kirsten-elting--ba%2C-cd(dona)%2C-lcce%2C-clec%2C-clc%2C-sbd%2C-cvd(tvl)",
+        "destination": "/doulas/kirsten-elting",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/lakeisha-washington%2C-mpa%2C-cd(dona)",
+        "destination": "/doulas/lakeisha-washington",
+        "type": 301
+      },
+      {
+        "source": "/childbirth-educators/tara-rice%2C-ibce",
+        "destination": "/doulas/tara-rice",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/jenna-roberge-karns",
+        "destination": "/doulas/jenna-roberge-karns",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/tamara-l-albert%2C-cd(dona)%2C-lcce",
+        "destination": "/doulas/tamara-albert",
+        "type": 301
+      },
+      {
+        "source": "/childbirth-educators/tamara-l-albert-cd(dona)%2C-lcce",
+        "destination": "/doulas/tamara-albert",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/michelle-grosodonia-maiola",
+        "destination": "/doulas/michelle-grosodonia-maiola",
+        "type": 301
+      },
+      {
+        "source": "/fertility-doulas/michelle-grosodonia-maiola-full-spectrum-dti",
+        "destination": "/doulas/michelle-grosodonia-maiola",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/michelle-grosodonia-maiola-cd-(dti)%2C-eryt-200%2C-reiki-master",
+        "destination": "/doulas/michelle-grosodonia-maiola",
+        "type": 301
+      },
+      {
+        "source": "/fertility-doulas/morgan-moy-cd%2C-clc%2C-cbe",
+        "destination": "/doulas/morgan-moy",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/morgan-moy-m.s.%2C-ccc-slp%2Fl-tssld",
+        "destination": "/doulas/morgan-moy",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/morgan-moy-m.s.%2C-ccc-slp%2Fl-tssld",
+        "destination": "/doulas/morgan-moy",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/kat-head",
+        "destination": "/doulas/kat-head",
+        "type": 301
+      },
+      {
+        "source": "/childbirth-educators/adriana-lozada",
+        "destination": "/doulas/adriana-lozada",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/adriana-lozada%2C-advcd(dona)%2C-csc%2C-cemc%2C-cbp",
+        "destination": "/doulas/adriana-lozada",
+        "type": 301
+      },
+      {
+        "source": "/fertility-doulas/molly-deutschbein%2C-lmt%2C-cd%2C-ryt",
+        "destination": "/doulas/molly-deutschbein",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/molly-deutschbein%2C-lmt%2C-cst%2C-cd%2C-ryt",
+        "destination": "/doulas/molly-deutschbein",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/mindy-class%2C-cd(dona)%2C-clc",
+        "destination": "/doulas/mindy-class",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas/mindy-class%2C-cd(dona)%2C-clc",
+        "destination": "/doulas/mindy-class",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/julia-m.-sittig%2C-msw%2C-advcd%2Fbdt(dona)%2C-lcce",
+        "destination": "/doulas/julia-m-sittig/",
+        "type": 301
+      },
+      {
+        "source": "/fertilitydoula",
+        "destination": "/doulas/tag/fertility/",
+        "type": 301
+      },
+      {
+        "source": "/childbirtheducators",
+        "destination": "/doulas/tag/childbirth-educator/",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas1",
+        "destination": "/doulas/tag/birth-doula/",
+        "type": 301
+      },
+      {
+        "source": "/lactationsupport",
+        "destination": "/doulas/tag/lactation-support/",
+        "type": 301
+      },
+      {
+        "source": "/postpartum-doulas1",
+        "destination": "/doulas/tag/postpartum-doula/",
+        "type": 301
+      },
+      {
+        "source": "/meet-the-doulas",
+        "destination": "/learn-more-about-doulas/",
+        "type": 301
+      },
+      {
+        "source": "/about-doulas",
+        "destination": "/learn-more-about-doulas/",
+        "type": 301
+      },
+      {
+        "source": "/contact",
+        "destination": "/contact-us/",
+        "type": 301
+      },
+      {
+        "source": "/plans-pricing",
+        "destination": "/join-the-doula-cooperative/",
+        "type": 301
+      },
+      {
+        "source": "/about-us",
+        "destination": "/about-the-doula-cooperative/",
+        "type": 301
+      }
     ]
   }
 }
