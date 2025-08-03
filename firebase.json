@@ -255,12 +255,27 @@
         "type": 301
       },
       {
+        "source": "/birth-doulas/joanna-jackson-(bai%2C-cappa)",
+        "destination": "/doulas/joanna-jackson",
+        "type": 301
+      },
+      {
         "source": "/birth-doulas/phyllis-sharp-cd(dona),-clc",
         "destination": "/doulas/phyllis-sharp",
         "type": 301
       },
       {
+        "source": "/birth-doulas/phyllis-sharp-cd(dona),%2Cclc",
+        "destination": "/doulas/phyllis-sharp",
+        "type": 301
+      },
+      {
         "source": "/birth-doulas/megan-stavalone,-dc",
+        "destination": "/doulas/megan-stavalone",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/megan-stavalone,%2Cdc",
         "destination": "/doulas/megan-stavalone",
         "type": 301
       },
