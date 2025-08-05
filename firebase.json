@@ -455,22 +455,17 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/adriana-lozada,-advcd(dona),-csc,-cemc,-cbp",
+        "source": "/birth-doulas/adriana-lozada:rest",
         "destination": "/doulas/adriana-lozada",
         "type": 301
       },
       {
-        "source": "/birth-doulas/adriana-lozada%2C-advcd(dona)%2C-csc%2C-cemc%2C-cbp",
-        "destination": "/doulas/adriana-lozada",
-        "type": 301
-      },
-      {
-        "source": "/fertility-doulas/molly-deutschbein,-lmt,-cd,-ryt",
+        "source": "/fertility-doulas/molly-deutschbein:rest",
         "destination": "/doulas/molly-deutschbein",
         "type": 301
       },
       {
-        "source": "/birth-doulas/molly-deutschbein,-lmt,-cst,-cd,-ryt",
+        "source": "/birth-doulas/molly-deutschbein:rest",
         "destination": "/doulas/molly-deutschbein",
         "type": 301
       },
