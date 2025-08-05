@@ -23,7 +23,7 @@ export async function handleDocumentCreated(
 
   await mg.messages.create("mg.doulacooperative.com", {
     from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
-    to: ["markgoho@gmail.com"],
+    to: ["markgoho@gmail.com", "majesticdoulacare@gmail.com"],
     subject: "Hello",
     html: `
     <p>Name: ${String(contactName)}</p>
