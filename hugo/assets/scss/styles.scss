@@ -24,3 +24,7 @@ section.text-content {
   max-width: 60ch;
   margin-inline: auto;
 }
+
+.main {
+  min-height: calc(100svh - 26rem);
+}
