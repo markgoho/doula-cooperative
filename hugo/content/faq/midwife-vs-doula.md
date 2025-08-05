@@ -1,7 +1,7 @@
 ---
 title: "Is there a difference between a midwife and a doula?"
 draft: false
-summary: "Clarify the distinct roles of midwives and doulas, understanding their different responsibilities, training, and scopes of practice in supporting childbirth."
+summary: "Clarify the distinct roles of midwives  and doulas, understanding their different responsibilities, training, and scopes of practice in supporting childbirth."
 ---
 
 Yes! There's a big difference between doulas and midwives, but we typically get along really well!

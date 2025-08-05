@@ -130,17 +130,17 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/sara-dempsey,-mrn,-rn,-dona",
+        "source": "/birth-doulas/sara-dempsey:rest",
         "destination": "/doulas/sara-dempsey",
         "type": 301
       },
       {
-        "source": "/lactation-support/ellen-pavlacka,-clc,-cbs,-pcd(dona)",
+        "source": "/lactation-support/ellen-pavlacka:rest",
         "destination": "/doulas/ellen-pavlacka",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/ellen-pavlacka,-pcd(dona),-clc,-cbs",
+        "source": "/postpartum-doulas/ellen-pavlacka:rest",
         "destination": "/doulas/ellen-pavlacka",
         "type": 301
       },
@@ -160,7 +160,7 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/mariel-rivera-piluso,-abd,-ma",
+        "source": "/birth-doulas/mariel-rivera-piluso:rest",
         "destination": "/doulas/mariel-rivera-piluso",
         "type": 301
       },
@@ -175,17 +175,17 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/jocelyn-semple,-bec,-cd-l",
+        "source": "/birth-doulas/jocelyn-semple:rest",
         "destination": "/doulas/jocelyn-semple",
         "type": 301
       },
       {
-        "source": "/birth-doulas/mary-feeney,-ms,-rn-bc",
+        "source": "/birth-doulas/mary-feeney:rest",
         "destination": "/doulas/mary-feeney",
         "type": 301
       },
       {
-        "source": "/birth-doulas/kathryn-franke,-ma,-cd(dona)",
+        "source": "/birth-doulas/kathryn-franke:rest",
         "destination": "/doulas/kathryn-franke",
         "type": 301
       },
@@ -210,12 +210,12 @@
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/mabel-primus,-clc",
+        "source": "/postpartum-doulas/mabel-primus:rest",
         "destination": "/doulas/mabel-primus",
         "type": 301
       },
       {
-        "source": "/lactation-support/mabel-primus,-clc",
+        "source": "/lactation-support/mabel-primus:rest",
         "destination": "/doulas/mabel-primus",
         "type": 301
       },
@@ -225,7 +225,7 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/margo-fox,-msw,-dona-trained-birth-doula",
+        "source": "/birth-doulas/margo-fox:rest",
         "destination": "/doulas/margo-fox",
         "type": 301
       },
@@ -235,42 +235,32 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/melody-osgood,-lac,-doula,-cbe,-placenta-specialist",
+        "source": "/birth-doulas/melody-osgood:rest",
         "destination": "/doulas/melody-osgood",
         "type": 301
       },
       {
-        "source": "/childbirth-educators/melody-osgood,-lac,-doula,-cbe,-placenta-specialist",
+        "source": "/childbirth-educators/melody-osgood:rest",
         "destination": "/doulas/melody-osgood",
         "type": 301
       },
       {
-        "source": "/birth-doulas/melody-e-osgood,-lac,-trained-doula",
+        "source": "/birth-doulas/melody-e-osgood:rest",
         "destination": "/doulas/melody-osgood",
         "type": 301
       },
       {
-        "source": "/birth-doulas/joanna-jackson-(bai,-cappa)",
+        "source": "/birth-doulas/joanna-jackson:rest",
         "destination": "/doulas/joanna-jackson",
         "type": 301
       },
       {
-        "source": "/birth-doulas/joanna-jackson-(bai%2C-cappa)",
-        "destination": "/doulas/joanna-jackson",
-        "type": 301
-      },
-      {
-        "source": "/birth-doulas/phyllis-sharp-cd(dona),%2Cclc",
+        "source": "/birth-doulas/phyllis-sharp:rest",
         "destination": "/doulas/phyllis-sharp",
         "type": 301
       },
       {
-        "source": "/birth-doulas/megan-stavalone,-dc",
-        "destination": "/doulas/megan-stavalone",
-        "type": 301
-      },
-      {
-        "source": "/birth-doulas/megan-stavalone,%2Cdc",
+        "source": "/birth-doulas/megan-stavalone:rest",
         "destination": "/doulas/megan-stavalone",
         "type": 301
       },
@@ -285,7 +275,7 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/jennie-kieffer,-clc,-cd(dona),-cvd(tvl)",
+        "source": "/birth-doulas/jennie-kieffer:rest",
         "destination": "/doulas/jennie-kieffer",
         "type": 301
       },
@@ -300,12 +290,12 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/ashley-wyffels-",
+        "source": "/birth-doulas/ashley-wyffels:rest",
         "destination": "/doulas/ashley-wyffels",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/ashley-wyffels-",
+        "source": "/postpartum-doulas/ashley-wyffels:rest",
         "destination": "/doulas/ashley-wyffels",
         "type": 301
       },
@@ -330,7 +320,7 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/christine-landers,-bd,-hchd,-pes",
+        "source": "/birth-doulas/christine-landers:rest",
         "destination": "/doulas/christine-landers",
         "type": 301
       },
@@ -345,57 +335,62 @@
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/erin-hegeman,-advanced-holistic-doula-",
+        "source": "/postpartum-doulas/erin-hegeman:rest",
         "destination": "/doulas/erin-hegeman",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/chels%C3%A9-inman",
+        "source": "/postpartum-doulas/chelsé-inman",
         "destination": "/doulas/chelse-inman",
         "type": 301
       },
       {
-        "source": "/birth-doulas/melissa-ebner-",
+        "source": "/postpartum-doulas/chelse-inman",
+        "destination": "/doulas/chelse-inman",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/melissa-ebner:rest",
         "destination": "/doulas/melissa-ebner",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/melissa-ebner-",
+        "source": "/postpartum-doulas/melissa-ebner:rest",
         "destination": "/doulas/melissa-ebner",
         "type": 301
       },
       {
-        "source": "/lactation-support/melissa-ebner-lc",
+        "source": "/lactation-support/melissa-ebner:rest",
         "destination": "/doulas/melissa-ebner",
         "type": 301
       },
       {
-        "source": "/birth-doulas/eileen-steinchen,-lmhc",
+        "source": "/birth-doulas/eileen-steinchen:rest",
         "destination": "/doulas/eileen-steinchen",
         "type": 301
       },
       {
-        "source": "/birth-doulas/bridget-strub,-cd(dona),-lcce",
+        "source": "/birth-doulas/bridget-strub:rest",
         "destination": "/doulas/bridget-strub",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/kirsten-elting--ba,-cd(dona),-lcce,-clec,-clc",
+        "source": "/postpartum-doulas/kirsten-elting:rest",
         "destination": "/doulas/kirsten-elting",
         "type": 301
       },
       {
-        "source": "/birth-doulas/kirsten-elting--ba,-cd(dona),-lcce,-clec,-clc,-sbd,-cvd(tvl)",
+        "source": "/birth-doulas/kirsten-elting:rest",
         "destination": "/doulas/kirsten-elting",
         "type": 301
       },
       {
-        "source": "/birth-doulas/lakeisha-washington,-mpa,-cd(dona)",
+        "source": "/birth-doulas/lakeisha-washington:rest",
         "destination": "/doulas/lakeisha-washington",
         "type": 301
       },
       {
-        "source": "/childbirth-educators/tara-rice,-ibce",
+        "source": "/childbirth-educators/tara-rice:rest",
         "destination": "/doulas/tara-rice",
         "type": 301
       },
@@ -405,12 +400,12 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/tamara-l-albert,-cd(dona),-lcce",
+        "source": "/birth-doulas/tamara-l-albert:rest",
         "destination": "/doulas/tamara-albert",
         "type": 301
       },
       {
-        "source": "/childbirth-educators/tamara-l-albert-cd(dona),-lcce",
+        "source": "/childbirth-educators/tamara-l-albert:rest",
         "destination": "/doulas/tamara-albert",
         "type": 301
       },
@@ -420,27 +415,27 @@
         "type": 301
       },
       {
-        "source": "/fertility-doulas/michelle-grosodonia-maiola-full-spectrum-dti",
+        "source": "/fertility-doulas/michelle-grosodonia-maiola:rest",
         "destination": "/doulas/michelle-grosodonia-maiola",
         "type": 301
       },
       {
-        "source": "/birth-doulas/michelle-grosodonia-maiola-cd-(dti),-eryt-200,-reiki-master",
+        "source": "/birth-doulas/michelle-grosodonia-maiola:rest",
         "destination": "/doulas/michelle-grosodonia-maiola",
         "type": 301
       },
       {
-        "source": "/fertility-doulas/morgan-moy-cd,-clc,-cbe",
+        "source": "/fertility-doulas/morgan-moy:rest",
         "destination": "/doulas/morgan-moy",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/morgan-moy-m.s.,-ccc-slp%2Fl-tssld",
+        "source": "/postpartum-doulas/morgan-moy:rest",
         "destination": "/doulas/morgan-moy",
         "type": 301
       },
       {
-        "source": "/birth-doulas/morgan-moy-m.s.,-ccc-slp%2Fl-tssld",
+        "source": "/birth-doulas/morgan-moy:rest",
         "destination": "/doulas/morgan-moy",
         "type": 301
       },
@@ -470,17 +465,17 @@
         "type": 301
       },
       {
-        "source": "/birth-doulas/mindy-class,-cd(dona),-clc",
+        "source": "/birth-doulas/mindy-class:rest",
         "destination": "/doulas/mindy-class",
         "type": 301
       },
       {
-        "source": "/postpartum-doulas/mindy-class,-cd(dona),-clc",
+        "source": "/postpartum-doulas/mindy-class:rest",
         "destination": "/doulas/mindy-class",
         "type": 301
       },
       {
-        "source": "/birth-doulas/julia-m.-sittig,-msw,-advcd%2Fbdt(dona),-lcce",
+        "source": "/birth-doulas/julia-m.-sittig:rest",
         "destination": "/doulas/julia-m-sittig/",
         "type": 301
       },
