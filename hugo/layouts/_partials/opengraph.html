@@ -1,15 +1,24 @@
-{{/* This partial is used to generate the Open Graph meta tags for a page. */}}
+{{- $description := .Site.Params.description -}}
+{{- if .IsPage -}}
+  {{- with .Description -}}
+    {{- $description = . -}}
+  {{- else -}}
+    {{- $description = .Summary -}}
+  {{- end -}}
+{{- end -}}
 
+
+<meta name="description" content="{{ $description | plainify }}" />
 
 <meta property="og:title" content="{{ .Title }}" />
 <meta property="og:url" content="{{ .Permalink }}" />
-<meta property="og:description" content="{{ .Summary | plainify }}" />
+<meta property="og:description" content="{{ $description | plainify }}" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content="{{ .Permalink }}" />
 <meta property="twitter:domain" content="{{ .Site.BaseURL }}" />
 <meta name="twitter:title" content="{{ .Title }}" />
-<meta name="twitter:description" content="{{ .Summary | plainify }}" />
+<meta name="twitter:description" content="{{ $description | plainify }}" />
 
 {{- if eq .Type "doulas" -}}
   <meta property="og:type" content="profile" />
