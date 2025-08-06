@@ -3,6 +3,22 @@
   {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
   {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
   <style>{{ $inlineCSS.Content | safeCSS }}</style>
+
+  <link
+    rel="preload"
+    as="image"
+    fetchpriority="high"
+    media="(min-width: 30rem) and (orientation: landscape)"
+    href="/assets/images/hero-section.avif"
+    type="image/avif" />
+
+  <link
+    rel="preload"
+    as="image"
+    fetchpriority="high"
+    media="(max-width: 29.99rem), (orientation: portrait)"
+    href="/assets/images/hero-section-small.avif"
+    type="image/avif" />
 {{ end }}
 
 {{ define "hero" }}
