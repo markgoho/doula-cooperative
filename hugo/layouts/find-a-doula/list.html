@@ -33,16 +33,66 @@
 {{ define "footer-scripts" }}
   {{ if in .Permalink "/search/" }}
     <script>
-      window.addEventListener("DOMContentLoaded", event => {
-        new PagefindUI({
-          element: "#search",
-          showSubResults: true,
-          showImages: true,
-          resetStyles: false,
-        });
+      new PagefindUI({
+        element: "#search",
+        showSubResults: true,
+        showImages: true,
+        resetStyles: false,
       });
+
+      const container = document.querySelector("#search");
+      if (container) {
+        const INPUT_SELECTOR = ".pagefind-ui__search-input";
+        const MESSAGE_SELECTOR = ".pagefind-ui__message";
+        const PIRSCH_EVENT_NAME = "Doula Search";
+        const DEBOUNCE_MS = 600;
+        const RENDER_DELAY_MS = 150;
+
+        let lastQuerySent = "";
+        let debounceId;
+
+        container.addEventListener("input", event => {
+          const target = event.target;
+          if (
+            !(target instanceof HTMLInputElement) ||
+            !target.matches(INPUT_SELECTOR)
+          ) {
+            return;
+          }
+
+          clearTimeout(debounceId);
+          debounceId = setTimeout(() => {
+            const query = String(target.value || "").trim();
+            if (!query || query === lastQuerySent) {
+              return;
+            }
+
+            // Parse total results from the message element
+            let resultCount = 0;
+            const messageEl = container.querySelector(MESSAGE_SELECTOR);
+            if (messageEl && typeof messageEl.textContent === "string") {
+              const match = messageEl.textContent.match(/(\d+)\s+results\b/i);
+              if (match) {
+                resultCount = Number(match[1]);
+              }
+            }
+
+            const meta = {
+              query,
+              result_count: resultCount,
+              ui: "pagefind",
+            };
+
+            if (typeof window.pirsch === "function") {
+              window.pirsch(PIRSCH_EVENT_NAME, { meta });
+            }
+            lastQuerySent = query;
+          }, DEBOUNCE_MS + RENDER_DELAY_MS);
+        });
+      }
     </script>
   {{ end }}
+
   {{ if in .Permalink "/match/" }}
     {{ $opts := dict "targetPath" "doula-match-form.js" }}
     {{ $built := resources.Get "ts/doula-match-form.ts" | js.Build $opts | resources.Minify | resources.Fingerprint }}
