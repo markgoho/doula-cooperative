@@ -4,21 +4,8 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
 import Mailgun from "mailgun.js";
-
-interface DoulaMatchFormRequest {
-  name: string;
-  phone: string;
-  email: string;
-  zipcode: string;
-  estimatedDueDate: {
-    month: string;
-    day: string;
-    year: string;
-  };
-  services: string[];
-  birthLocation: string;
-  otherInfo: string;
-}
+import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
+import { DoulaMatchFormDocument } from "./types";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<QueryDocumentSnapshot | undefined>,
@@ -30,14 +17,6 @@ export async function handleDocumentCreated(
     return;
   }
 
-  const newRequest = snapshot.data() as DoulaMatchFormRequest;
-
-  const mailgun = new Mailgun(FormData);
-  const mg = mailgun.client({
-    username: "api",
-    key: apiKey ?? "",
-  });
-
   const {
     name,
     phone,
@@ -47,14 +26,19 @@ export async function handleDocumentCreated(
     services,
     birthLocation,
     otherInfo,
-  } = newRequest;
+  } = snapshot.data() as DoulaMatchFormDocument;
+
+  const mailgun = new Mailgun(FormData);
+  const mg = mailgun.client({
+    username: "api",
+    key: apiKey ?? "",
+  });
 
   await mg.messages.create("mg.doulacooperative.com", {
     from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
-    to: ["markgoho@gmail.com", "majesticdoulacare@gmail.com"],
+    to: [MARK_EMAIL, REFERRAL_EMAIL],
     subject: "New Doula Match Request",
     html: `
-      <h1>New Doula Match Request</h1>
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Phone:</strong> ${phone}</p>

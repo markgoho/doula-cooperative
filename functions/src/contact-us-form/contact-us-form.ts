@@ -1,16 +1,7 @@
 import { Response } from "express";
 import * as admin from "firebase-admin";
 import { logger } from "firebase-functions";
-import { Request } from "firebase-functions/v2/https";
-
-interface ContactUsFormRequest extends Request {
-  body: {
-    contactName?: string;
-    contactEmail: string;
-    contactPhone: string;
-    contactMessage: string;
-  };
-}
+import { ContactUsFormRequest } from "./types";
 
 export async function handleContactUsForm(
   request: ContactUsFormRequest,
@@ -28,6 +19,7 @@ export async function handleContactUsForm(
       .add({
         ...request.body,
         submitted: today,
+        sent: false,
       });
 
     response.status(200).send("Okay");

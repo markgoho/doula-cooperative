@@ -3,6 +3,8 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-functions/firestore";
 import Mailgun from "mailgun.js";
+import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
+import { ContactUsFormDocument } from "./types";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<QueryDocumentSnapshot | undefined>,
@@ -13,7 +15,8 @@ export async function handleDocumentCreated(
     return;
   }
 
-  const { contactName, email, message, submitted } = snapshot.data();
+  const { contactName, email, message } =
+    snapshot.data() as ContactUsFormDocument;
 
   const mailgun = new Mailgun(FormData);
   const mg = mailgun.client({
@@ -23,15 +26,14 @@ export async function handleDocumentCreated(
 
   await mg.messages.create("mg.doulacooperative.com", {
     from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
-    to: ["markgoho@gmail.com", "majesticdoulacare@gmail.com"],
+    to: [MARK_EMAIL, REFERRAL_EMAIL],
     subject: "Hello",
     html: `
-    <p>Name: ${String(contactName)}</p>
-    <p>Email: ${String(email)}</p>
-    <p>Message: ${String(message)}</p>
-    <p>Submitted: ${String(submitted)}</p>
+    <p>Name: ${contactName}</p>
+    <p>Email: ${email}</p>
+    <p>Message: ${message}</p>
     `,
-    "h:Reply-To": String(email),
+    "h:Reply-To": email,
   });
 
   await snapshot.ref.update({ sent: true });

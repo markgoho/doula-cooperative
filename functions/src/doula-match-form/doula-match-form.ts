@@ -1,24 +1,7 @@
 import { Response } from "express";
 import * as admin from "firebase-admin";
 import { logger } from "firebase-functions";
-import { Request } from "firebase-functions/v2/https";
-
-interface DoulaMatchFormRequest extends Request {
-  body: {
-    name?: string;
-    phone: string;
-    email: string;
-    zipcode: string;
-    estimatedDueDate: {
-      month: string;
-      day: string;
-      year: string;
-    };
-    services: string[];
-    birthLocation: string;
-    otherInfo: string;
-  };
-}
+import { DoulaMatchFormRequest } from "./types";
 
 export async function handleDoulaMatchForm(
   request: DoulaMatchFormRequest,
