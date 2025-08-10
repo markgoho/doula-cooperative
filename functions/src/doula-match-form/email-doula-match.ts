@@ -37,7 +37,7 @@ export async function handleDocumentCreated(
   await mg.messages.create("mg.doulacooperative.com", {
     from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
     to: [MARK_EMAIL, REFERRAL_EMAIL],
-    subject: "New Doula Match Request",
+    subject: `New Doula Match Request from ${name}`,
     html: `
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
