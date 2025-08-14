@@ -1,7 +1,7 @@
 ---
 title: "How much does doula support cost and why?"
 draft: false
-summary: "Get an overview of doula fees in the area and understand the factors that contribute to the cost, ensuring you can make an informed decision."
+summary: "Get an overview of doula fees in  the area and understand the factors that contribute to the cost, ensuring you can make an informed decision."
 ---
 
 The average fee for birth doula services in Rochester is around $1,000. The average fee for postpartum doula support is around $30-35/hour.
