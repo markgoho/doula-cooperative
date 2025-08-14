@@ -7,3 +7,13 @@
     </p>
   </section>
 {{ end }}
+
+{{ define "footer-scripts" }}
+  <script>
+    pirsch("404 Not Found", {
+      meta: {
+        path: window.location.pathname,
+      },
+    });
+  </script>
+{{ end }}
