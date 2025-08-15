@@ -375,6 +375,11 @@
         "type": 301
       },
       {
+        "source": "/birth-doulas/Bridget-Strub**",
+        "destination": "/doulas/bridget-strub",
+        "type": 301
+      },
+      {
         "source": "/postpartum-doulas/kirsten-elting**",
         "destination": "/doulas/kirsten-elting",
         "type": 301
@@ -436,6 +441,11 @@
       },
       {
         "source": "/birth-doulas/morgan-moy-m.s.**",
+        "destination": "/doulas/morgan-moy",
+        "type": 301
+      },
+      {
+        "source": "/birth-doulas/morgan-moy-m.s.,-ccc-slp/l-tssld",
         "destination": "/doulas/morgan-moy",
         "type": 301
       },
