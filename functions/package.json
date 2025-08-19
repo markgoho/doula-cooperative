@@ -8,7 +8,8 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "tsc -p tsconfig.test.json && mocha lib/test/**/*.js"
   },
   "engines": {
     "node": "22"
@@ -17,12 +18,17 @@
   "dependencies": {
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.3.2",
+    "gray-matter": "^4.0.3",
     "mailgun.js": "^12.0.3"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.16",
     "@types/express": "^4.17.23",
+    "@types/mocha": "^10.0.7",
+    "chai": "^5.1.1",
     "express": "^4.21.2",
     "firebase-functions-test": "^3.4.1",
+    "mocha": "^10.7.0",
     "typescript": "^5.9.2"
   },
   "private": true

@@ -50,6 +50,16 @@ export const emailContactForm = onDocumentCreated(
   },
 );
 
+export const updateDoulaProfile = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleUpdateDoulaProfile } = await import(
+      "./doula-profile/doula-profile.js"
+    );
+    await handleUpdateDoulaProfile(request, response);
+  },
+);
+
 export const emailDoulaMatch = onDocumentCreated(
   { document: "matchRequests/{requestId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
