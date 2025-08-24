@@ -10,10 +10,12 @@
 
 {{ define "footer-scripts" }}
   <script>
-    window.pirsch("404 Not Found", {
-      meta: {
-        path: window.location.pathname,
-      },
-    });
+    if (typeof window.pirsch === "function") {
+      window.pirsch("404 Not Found", {
+        meta: {
+          path: window.location.pathname,
+        },
+      });
+    }
   </script>
 {{ end }}
