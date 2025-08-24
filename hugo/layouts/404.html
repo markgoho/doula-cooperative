@@ -10,12 +10,10 @@
 
 {{ define "footer-scripts" }}
   <script>
-    if (typeof window.pirsch === "function") {
-      window.pirsch("404 Not Found", {
-        meta: {
-          path: window.location.pathname,
-        },
-      });
-    }
+    document.addEventListener("readystatechange", () => {
+      if (document.readyState === "complete") {
+        pirschNotFound();
+      }
+    });
   </script>
 {{ end }}
