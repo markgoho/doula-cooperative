@@ -14,8 +14,8 @@
     "build:search": "bun run build && bun run index"
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.34",
-    "@types/bun": "^1.2.20",
+    "@playwright/mcp": "^0.0.35",
+    "@types/bun": "^1.2.21",
     "eslint": "^9.34.0",
     "eslint-plugin-unicorn": "^60.0.0",
     "firebase-tools": "^14.14.0",
@@ -23,7 +23,7 @@
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.2.0",
     "sharp": "^0.34.3",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.41.0"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"
