@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "doula-cooperative"
-  }
+  },
+  "targets": {
+    "doula-cooperative": {
+      "hosting": {
+        "main-site": [
+          "doula-cooperative"
+        ],
+        "members-site": [
+          "doula-coop-members"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
