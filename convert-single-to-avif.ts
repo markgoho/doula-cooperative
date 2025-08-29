@@ -70,7 +70,9 @@ async function convertToAvif(inputPath: string) {
     console.log(`Converted: ${inputPath} → ${avifPath}`);
   } catch (error) {
     console.error(`Failed to convert ${inputPath}:`, error);
-    throw new Error(`Failed to convert ${inputPath}: ${error}`);
+    throw new Error(
+      `Failed to convert ${inputPath}: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
