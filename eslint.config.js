@@ -71,4 +71,24 @@ export default tseslint.config(
       ...tseslint.configs.disableTypeChecked.rules,
     },
   },
+  // Separate config for members directory (Angular project)
+  {
+    files: ["members/**/*.spec.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "members/tsconfig.spec.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    files: ["members/**/*.{ts,tsx}"],
+    ignores: ["members/**/*.spec.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "members/tsconfig.app.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
 );
