@@ -1,0 +1,30 @@
+{
+  "kind": "identitytoolkit#DownloadAccountResponse",
+  "users": [
+    {
+      "localId": "nv8ZbzAweAEN081Qd5ushiR1f4aV",
+      "lastLoginAt": "1756665599599",
+      "displayName": "Doula Admin",
+      "photoUrl": "",
+      "emailVerified": true,
+      "email": "webmaster@doulacooperative.com",
+      "salt": "fakeSalt6JoiswkVrC4JrHmqQzpK",
+      "passwordHash": "fakeHash:salt=fakeSalt6JoiswkVrC4JrHmqQzpK:password=abcd1234",
+      "passwordUpdatedAt": 1756665599599,
+      "validSince": "1756665599",
+      "mfaInfo": [],
+      "createdAt": "1756665599599",
+      "providerUserInfo": [
+        {
+          "providerId": "password",
+          "email": "webmaster@doulacooperative.com",
+          "federatedId": "webmaster@doulacooperative.com",
+          "rawId": "webmaster@doulacooperative.com",
+          "displayName": "Doula Admin",
+          "photoUrl": ""
+        }
+      ],
+      "customAttributes": "{ \"role\": \"admin\" }"
+    }
+  ]
+}
