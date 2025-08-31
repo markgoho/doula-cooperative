@@ -10,6 +10,9 @@ export default tseslint.config(
       "dist/**",
       "build/**",
       ".firebase/**",
+      ".angular/**",
+      "members/.angular/**",
+      "members/dist/**",
       "firebase-debug.log",
       "firestore-debug.log",
       "functions/lib/**",
@@ -26,6 +29,7 @@ export default tseslint.config(
   },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
+    ignores: [".angular/**", "members/.angular/**"],
     languageOptions: {
       parserOptions: {
         project: true,
@@ -66,6 +70,7 @@ export default tseslint.config(
   },
   {
     files: ["**/*.{js,jsx}"],
+    ignores: [".angular/**", "members/.angular/**", "**/.angular/**"],
     rules: {
       // Disable TypeScript-specific rules for JS files
       ...tseslint.configs.disableTypeChecked.rules,
@@ -83,7 +88,7 @@ export default tseslint.config(
   },
   {
     files: ["members/**/*.{ts,tsx}"],
-    ignores: ["members/**/*.spec.ts"],
+    ignores: ["members/**/*.spec.ts", "members/.angular/**"],
     languageOptions: {
       parserOptions: {
         project: "members/tsconfig.app.json",
