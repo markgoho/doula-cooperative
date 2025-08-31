@@ -7,3 +7,4 @@ alwaysApply: false
 
 - always use `inject` to provide dependencies rather than the `constructor`
 - use signal-based APIs whenever possible
+- when creating new components, always use ChangeDetection.OnPush in the component metadata
