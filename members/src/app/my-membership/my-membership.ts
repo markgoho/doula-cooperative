@@ -8,4 +8,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class MyMembership {}
+export class MyMembership {
+  protected readonly currentYear = new Date().getFullYear();
+}
