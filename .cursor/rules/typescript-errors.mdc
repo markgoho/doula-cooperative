@@ -1,0 +1,6 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+
+- always try to resolve errors in typescript code by inspecting or viewing eslint and TS errors before considering work to be done
