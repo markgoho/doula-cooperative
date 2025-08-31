@@ -28,17 +28,20 @@ export async function handleDocumentCreated(
     otherInfo,
   } = snapshot.data() as DoulaMatchFormDocument;
 
-  const mailgun = new Mailgun(FormData);
-  const mg = mailgun.client({
-    username: "api",
-    key: apiKey ?? "",
-  });
+  if (process.env.FUNCTIONS_EMULATOR) {
+    logger.info("Emulator detected, skipping email dispatch.");
+  } else {
+    const mailgun = new Mailgun(FormData);
+    const mg = mailgun.client({
+      username: "api",
+      key: apiKey ?? "",
+    });
 
-  await mg.messages.create("mg.doulacooperative.com", {
-    from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
-    to: [MARK_EMAIL, REFERRAL_EMAIL],
-    subject: `New Doula Match Request from ${name}`,
-    html: `
+    await mg.messages.create("mg.doulacooperative.com", {
+      from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
+      to: [MARK_EMAIL, REFERRAL_EMAIL],
+      subject: `New Doula Match Request from ${name}`,
+      html: `
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Phone:</strong> ${phone}</p>
@@ -51,8 +54,9 @@ export async function handleDocumentCreated(
       <p><strong>Other Info:</strong></p>
       <p>${otherInfo}</p>
     `,
-    "h:Reply-To": email,
-  });
+      "h:Reply-To": email,
+    });
+  }
 
   await snapshot.ref.update({ sent: true });
 }
