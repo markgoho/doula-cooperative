@@ -1,0 +1,122 @@
+.footer {
+  --icon-color: var(--teal-500);
+
+  padding: var(--space-m) var(--space-l);
+  background-color: var(--brown-800);
+  border-top: 5px solid var(--brown-500);
+  container: footer / inline-size;
+  color: var(--brown-450);
+}
+
+.footer__main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-m);
+  padding-block-end: var(--space-m);
+  border-bottom: 2px solid var(--brown-600);
+}
+
+.footer__nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-l);
+}
+
+.footer__brand-title {
+  font-size: var(--step-2);
+  font-weight: var(--font-weight-boldest);
+}
+
+.footer__inclusion {
+  font-size: var(--step--1);
+  max-width: 60ch;
+}
+
+.footer__col-title {
+  font-size: var(--step--2);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  color: var(--brown-450);
+}
+
+.footer__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.footer__links a {
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.footer__links a:hover {
+  color: var(--brown-400);
+}
+
+.footer__social {
+  display: flex;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-xs);
+}
+
+.footer__social-link {
+  display: grid;
+  place-content: center;
+}
+.footer__social-link:hover .footer-icon {
+  color: var(--brown-400);
+}
+.footer__social .twitter {
+  display: none;
+}
+.footer-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--brown-500);
+}
+
+.footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  text-align: center;
+  padding-block-start: var(--space-2xs);
+  font-size: var(--step--1);
+}
+
+.footer__login {
+  display: none;
+  text-transform: uppercase;
+}
+
+@container footer (width > 30rem) {
+  .footer__nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container footer (width > 45rem) {
+  .footer__bottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@container footer (width > 70rem) {
+  .footer__main {
+    grid-template-columns: 1fr 2fr;
+  }
+  .footer__nav {
+    justify-self: end;
+  }
+  .footer__nav {
+    grid-template-columns: repeat(3, max-content);
+    gap: var(--space-2xl);
+  }
+}

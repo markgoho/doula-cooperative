@@ -1,1 +1,314 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles ported from Hugo site: tokens, reset, typography, spacing, layout */
+
+/* Andy Bell’s More Modern CSS Reset (2024) */
+@view-transition {
+  navigation: auto;
+}
+
+/* Enable size interpolation for animations */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Prevent font size inflation */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Remove default margin in favour of better control in authored CSS */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin-block-end: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Core body defaults */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+/* Shorter line heights on headings and interactive elements */
+h1,
+h2,
+h3,
+h4,
+button,
+input,
+label {
+  line-height: 1.1;
+}
+
+/* Balance text wrapping on headings */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: pretty;
+}
+
+a > h2 {
+  text-decoration: none;
+}
+
+/* Unclassed anchors */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+  color: currentColor;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Ensure textareas without rows aren't tiny */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Anchored targets get extra scroll margin */
+:target {
+  scroll-margin-block: 5ex;
+}
+
+/* Color tokens */
+:root {
+  --brown-000: hsl(35, 69%, 94%);
+  --brown-100: hsl(34, 83%, 93%);
+  --brown-200: hsl(35, 67%, 88%);
+  --brown-300: hsl(34, 85%, 84%);
+  --brown-400: hsl(34, 59%, 69%);
+  --brown-450: hsl(35, 32%, 45%);
+  --brown-500: hsl(34, 70%, 16%);
+  --brown-600: hsl(33, 35%, 12%);
+  --brown-700: hsl(35, 74%, 5%);
+
+  --teal-300: hsl(192, 49%, 53%);
+  --teal-400: hsl(192, 51%, 33%);
+  --teal-500: hsl(192, 58%, 25%);
+  --teal-600: hsl(192, 60%, 15%);
+
+  --light-bg: linear-gradient(180deg, var(--brown-100) 0%, var(--brown-200) 100%);
+  --dark-bg: linear-gradient(180deg, var(--brown-600) 0%, var(--brown-700) 100%);
+}
+
+@supports (color: oklch(0.9 0.01 76)) {
+  :root {
+    --brown-000: oklch(0.9631 0.0189 76.55);
+    --brown-100: oklch(0.9581 0.0262 74.76);
+    --brown-200: oklch(0.9258 0.0368 76.4);
+    --brown-300: oklch(0.9062 0.0613 74.32);
+    --brown-400: oklch(0.8005 0.0833 73.63);
+    --brown-450: oklch(0.595 0.0703 75.08);
+    --brown-500: oklch(0.3188 0.0583 69.76);
+    --brown-600: oklch(0.2499 0.0255 71.84);
+    --brown-700: oklch(0.1721 0.0267 78.3);
+    --brown-800: oklch(0.1244 0.0229 87.86);
+
+    --teal-300: oklch(0.692 0.0943 216.79);
+    --teal-400: oklch(0.5022 0.0728 217.3);
+    --teal-500: oklch(0.422 0.064 217.78);
+    --teal-600: oklch(0.3035 0.0441 217.33);
+  }
+}
+
+/* Spacing and radii tokens */
+:root {
+  --spacing-nav-gap: 4.3125rem;
+
+  --border-width-md: 5px;
+  --border-radius-md: 5px;
+
+  --space-3xs: clamp(0.3125rem, 0.3rem + 0.0625cqi, 0.375rem);
+  --space-2xs: clamp(0.5625rem, 0.525rem + 0.1875cqi, 0.75rem);
+  --space-xs: clamp(0.875rem, 0.825rem + 0.25cqi, 1.125rem);
+  --space-s: clamp(1.125rem, 1.05rem + 0.375cqi, 1.5rem);
+  --space-m: clamp(1.6875rem, 1.575rem + 0.5625cqi, 2.25rem);
+  --space-l: clamp(2.25rem, 2.1rem + 0.75cqi, 3rem);
+  --space-xl: clamp(3.375rem, 3.15rem + 1.125cqi, 4.5rem);
+  --space-2xl: clamp(4.5rem, 4.2rem + 1.5cqi, 6rem);
+  --space-3xl: clamp(6.75rem, 6.3rem + 2.25cqi, 9rem);
+}
+
+/* Typography tokens */
+:root {
+  --font-family-main:
+    'Geologica', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-weight-boldest: 900;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-regular: 400;
+  --font-weight-light: 300;
+
+  --line-height-tight: 1.25em;
+  --line-height-relaxed: 1.5em;
+  --color-text-main: var(--brown-500);
+
+  --step--2: clamp(0.8889rem, 0.8747rem + 0.0711vw, 0.96rem);
+  --step--1: clamp(1rem, 0.96rem + 0.2vw, 1.2rem);
+  --step-0: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);
+  --step-1: clamp(1.2656rem, 1.1438rem + 0.6094vw, 1.875rem);
+  --step-2: clamp(1.4238rem, 1.2398rem + 0.9199vw, 2.3438rem);
+  --step-3: clamp(1.6018rem, 1.3362rem + 1.3279vw, 2.9297rem);
+  --step-4: clamp(1.802rem, 1.43rem + 1.8601vw, 3.6621rem);
+  --step-5: clamp(2.0273rem, 1.5172rem + 2.5504vw, 4.5776rem);
+  --step-6: clamp(2.2807rem, 1.5924rem + 3.4413vw, 5.722rem);
+}
+
+/* Font face: Geologica variable */
+@font-face {
+  font-family: 'Geologica';
+  src: url('/assets/fonts/Geologica-VariableFont_CRSV,SHRP,slnt,wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-variation-settings: 'slnt' 0;
+}
+
+/* Global typography */
+body {
+  font-family: var(--font-family-main);
+  font-size: var(--step-0);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-main);
+  background: var(--light-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-main);
+  margin-block-end: 0.5em;
+}
+
+h1 {
+  font-size: var(--step-6);
+  text-wrap: balance;
+}
+h2 {
+  font-size: var(--step-3);
+}
+h3 {
+  font-size: var(--step-2);
+}
+h4 {
+  font-size: var(--step-1);
+}
+h5,
+h6 {
+  font-size: var(--step-0);
+}
+
+p,
+li,
+blockquote,
+dd {
+  font-size: var(--step-0);
+  line-height: var(--line-height-relaxed);
+}
+
+p {
+  margin-block-start: 0.75em;
+}
+p > a {
+  text-decoration-line: underline;
+}
+
+a {
+  transition: color 0.2s;
+  color: var(--color-text-main);
+}
+
+main h1 {
+  text-align: center;
+  margin-block-start: var(--space-xl);
+}
+
+.highlight {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Layout container */
+:root {
+  --container-max-width: 75rem; /* 1200px */
+  --container-padding-inline: 1rem;
+}
+
+.container {
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding-inline: var(--container-padding-inline);
+  container-type: inline-size;
+  padding-block-end: var(--space-xl);
+}
+
+.main {
+  min-height: calc(100svh - 26rem);
+}
+
+/* Global button class */
+.button {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  font-size: var(--step-1);
+  color: var(--brown-100);
+  background: var(--teal-500);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-xs) var(--space-s);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.button:hover,
+.button:focus {
+  background: var(--teal-600);
+}
+.button-small {
+  font-size: var(--step-0);
+}

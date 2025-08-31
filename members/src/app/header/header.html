@@ -1,0 +1,13 @@
+<header class="header">
+  <nav class="navbar">
+    <a class="navbar__logo" routerLink="/">
+      <h2>{{ brandTitle }}</h2>
+    </a>
+    <ul class="navbar__nav">
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <a routerLink="/membership" class="navbar__link">My Membership</a>
+      </li>
+    </ul>
+    <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
+  </nav>
+</header>
