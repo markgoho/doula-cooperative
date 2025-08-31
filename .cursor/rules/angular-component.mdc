@@ -1,0 +1,9 @@
+---
+globs: members/**/*.ts
+alwaysApply: false
+---
+
+## Component Class
+
+- always use `inject` to provide dependencies rather than the `constructor`
+- use signal-based APIs whenever possible
