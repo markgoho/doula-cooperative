@@ -11,7 +11,8 @@
     "build:local": "rm -rf hugo/public && cd hugo && hugo && bun run index",
     "build": "cd hugo && hugo --minify && bun run index",
     "index": "bunx pagefind --site hugo/public",
-    "build:search": "bun run build && bun run index"
+    "build:search": "bun run build && bun run index",
+    "emulators": "firebase emulators:start --only functions,firestore,auth"
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.35",
