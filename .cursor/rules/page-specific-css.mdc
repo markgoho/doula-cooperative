@@ -1,5 +1,5 @@
 ---
-globs: *.html
+globs: hugo/**/*.html
 alwaysApply: false
 ---
 

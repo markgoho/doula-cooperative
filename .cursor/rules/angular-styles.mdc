@@ -1,0 +1,9 @@
+---
+globs: members/**/*.scss
+alwaysApply: false
+---
+
+- use modern css
+- follow the principles of intrinsic design
+- try to use color tokens instead of hard-coding colors
+- use length and spacing tokens instead of hard-coding values

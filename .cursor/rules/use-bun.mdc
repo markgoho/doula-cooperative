@@ -1,6 +1,5 @@
 ---
-description: 
-globs: *.ts,*.html,package.json,*.css,*.js
+globs: *.ts,*.html,package.json,*.js
 alwaysApply: false
 ---
 Default to using Bun instead of Node.js.

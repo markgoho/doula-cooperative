@@ -1,0 +1,9 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+
+- prefer destructuring imports, e.g. `import { method } from 'package';`
+- disabling eslint rules should be an absolutely last resort, consider other solutions before disabling a rule
+- if a rule _MUST_ be disabled, add a comment about why that's the only option
+- use object lookup map instead of switch case statement when possible

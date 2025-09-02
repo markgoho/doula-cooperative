@@ -1,0 +1,8 @@
+---
+globs: members/**/*.html
+alwaysApply: false
+---
+
+- use newer control flow syntax, `@if`, `@for`, etc.
+- use signals whenever possible to simplify change detection
+- do not unnecessarily nest elements if there is a way to use styling to achieve the same thing

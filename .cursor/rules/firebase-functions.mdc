@@ -1,0 +1,7 @@
+---
+globs: functions/**/*.ts
+alwaysApply: false
+---
+
+- use `import { getFirestore } from "firebase-admin/firestore";` to get access to firestore db
+- try to keep functions idempotent unless they involve setting a timestamp
