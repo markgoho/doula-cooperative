@@ -1,4 +1,4 @@
-import { Request } from "firebase-functions/v2/https";
+import { type Request } from "firebase-functions/v2/https";
 
 export interface DoulaMatchForm {
   name: string;

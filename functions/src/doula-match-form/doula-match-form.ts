@@ -1,5 +1,5 @@
 import { Response } from "express";
-import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { DoulaMatchFormRequest } from "./types";
 
@@ -12,14 +12,12 @@ export async function handleDoulaMatchForm(
   response.set("Access-control-Allow-Headers", "Content-Type");
 
   try {
+    const firestore = getFirestore();
     const today = new Date().toISOString();
-    await admin
-      .firestore()
-      .collection("matchRequests")
-      .add({
-        ...request.body,
-        submitted: today,
-      });
+    await firestore.collection("matchRequests").add({
+      ...request.body,
+      submitted: today,
+    });
 
     response.status(200).send("Okay");
   } catch (error: unknown) {

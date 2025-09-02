@@ -5,7 +5,7 @@ import {
 } from "firebase-functions/v2/firestore";
 import Mailgun from "mailgun.js";
 import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
-import { DoulaMatchFormDocument } from "./types";
+import { type DoulaMatchFormDocument } from "./types";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<QueryDocumentSnapshot | undefined>,

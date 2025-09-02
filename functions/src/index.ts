@@ -8,16 +8,14 @@
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
+import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { onRequest } from "firebase-functions/v2/https";
+import { onCall, onRequest } from "firebase-functions/v2/https";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {
   initializeApp();
 }
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
 
 export const contactUsForm = onRequest(
   { invoker: "public" },
@@ -58,5 +56,29 @@ export const emailDoulaMatch = onDocumentCreated(
       "./doula-match-form/email-doula-match.js"
     );
     await handleDocumentCreated(event, apiKey);
+  },
+);
+
+export const createMemberOnUserCreated = auth.user().onCreate(async user => {
+  const { handleUserCreated } = await import(
+    "./user-creation/user-creation.js"
+  );
+  await handleUserCreated(user);
+});
+
+export const deleteMemberOnUserDeleted = auth.user().onDelete(async user => {
+  const { handleUserDeleted } = await import(
+    "./user-deletion/user-deletion.js"
+  );
+  await handleUserDeleted(user);
+});
+
+export const setUserEmailVerified = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleSetUserEmailVerified } = await import(
+      "./set-user-email-verified/set-user-email-verified.js"
+    );
+    return await handleSetUserEmailVerified(request);
   },
 );

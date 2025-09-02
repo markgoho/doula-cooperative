@@ -5,7 +5,7 @@ import {
 import { logger } from "firebase-functions/v2";
 import Mailgun from "mailgun.js";
 import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
-import { ContactUsFormDocument } from "./types";
+import { type ContactUsFormDocument } from "./types";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<QueryDocumentSnapshot | undefined>,
