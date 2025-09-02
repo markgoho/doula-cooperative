@@ -1,13 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import {
+  ActionCodeInfo,
   Auth,
   User,
   UserCredential,
+  applyActionCode,
+  checkActionCode,
+  confirmPasswordReset,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
@@ -59,7 +65,8 @@ export class AuthService {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       await sendEmailVerification(userCredential.user, {
-        url: `https://doula-coop-members.web.app/verify-email`,
+        url: `https://doula-coop-members.web.app/firebase-test`,
+        handleCodeInApp: true,
       });
     } catch (error) {
       const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
@@ -95,7 +102,8 @@ export class AuthService {
     }
     try {
       await sendEmailVerification(user, {
-        url: `https://doula-coop-members.web.app/verify-email`,
+        url: `https://doula-coop-members.web.app/firebase-test`,
+        handleCodeInApp: true,
       });
     } catch {
       throw new Error('Failed to send verification email.');
@@ -122,6 +130,71 @@ export class AuthService {
         throw error;
       }
       throw new Error('Failed to update email verification status.');
+    }
+  }
+
+  // Firebase Auth Action Code Methods
+
+  /**
+   * Apply an action code to complete an auth action (verify email, recover email)
+   */
+  async applyActionCode(code: string): Promise<void> {
+    try {
+      await applyActionCode(this.auth, code);
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+    }
+  }
+
+  /**
+   * Check the validity of an action code and get information about it
+   */
+  async checkActionCode(code: string): Promise<ActionCodeInfo> {
+    try {
+      return await checkActionCode(this.auth, code);
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+    }
+  }
+
+  /**
+   * Verify a password reset code and get the associated email
+   */
+  async verifyPasswordResetCode(code: string): Promise<string> {
+    try {
+      return await verifyPasswordResetCode(this.auth, code);
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+    }
+  }
+
+  /**
+   * Confirm a password reset with the new password
+   */
+  async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+    try {
+      await confirmPasswordReset(this.auth, code, newPassword);
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+    }
+  }
+
+  /**
+   * Send a password reset email to a user
+   */
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    try {
+      await sendPasswordResetEmail(this.auth, email, {
+        url: `https://doula-coop-members.web.app/auth-actions?mode=resetPassword`,
+        handleCodeInApp: true,
+      });
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
     }
   }
 }

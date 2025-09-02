@@ -1,0 +1,159 @@
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+
+// Firebase Auth action modes
+type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+
+@Component({
+  imports: [RouterLink, ReactiveFormsModule],
+  templateUrl: './auth-actions.html',
+  styleUrls: ['./auth-actions.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class AuthActions {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
+
+  // Query params
+  mode = input<AuthActionMode | ''>('');
+  oobCode = input<string>('');
+
+  continueUrl = input<string>('');
+  lang = input<string>('en');
+
+  // UI state
+  processingState = signal<'init' | 'verifying' | 'needsPassword' | 'success' | 'error'>('init');
+  statusMessage = signal('');
+  emailForAction = signal<string>('');
+
+  // Reset password form (used when mode === 'resetPassword')
+  resetForm = this.fb.group({
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    confirmPassword: ['', [Validators.required]],
+  });
+
+  constructor() {
+    effect(() => {
+      const currentMode = this.mode();
+      const code = this.oobCode();
+      if (!currentMode || !code || this.processingState() !== 'init') {
+        return;
+      }
+      void this.handleAction(currentMode, code);
+    });
+  }
+
+  async handleAction(currentMode: AuthActionMode, code: string): Promise<void> {
+    this.processingState.set('verifying');
+    this.statusMessage.set('');
+
+    try {
+      switch (currentMode) {
+        case 'verifyEmail': {
+          await this.handleVerifyEmail(code);
+          break;
+        }
+        case 'resetPassword': {
+          await this.prepareResetPassword(code);
+          break;
+        }
+        case 'recoverEmail': {
+          await this.handleRecoverEmail(code);
+          break;
+        }
+        default: {
+          this.processingState.set('error');
+          this.statusMessage.set('Invalid or unsupported action.');
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unknown error occurred';
+      this.processingState.set('error');
+      this.statusMessage.set(message);
+    }
+  }
+
+  private async handleVerifyEmail(code: string): Promise<void> {
+    await this.authService.applyActionCode(code);
+    // After applying the action code, navigate to the in-app verification completion page
+    await this.router.navigate(['/verify-email']);
+    this.processingState.set('success');
+  }
+
+  private async prepareResetPassword(code: string): Promise<void> {
+    const email = await this.authService.verifyPasswordResetCode(code);
+    this.emailForAction.set(email);
+    this.processingState.set('needsPassword');
+  }
+
+  async submitNewPassword(): Promise<void> {
+    if (this.processingState() !== 'needsPassword') return;
+    if (this.resetForm.invalid) {
+      this.resetForm.markAllAsTouched();
+      return;
+    }
+
+    const { password, confirmPassword } = this.resetForm.getRawValue();
+    if (!password || !confirmPassword || password !== confirmPassword) {
+      this.statusMessage.set('Passwords do not match.');
+      return;
+    }
+
+    const code = this.oobCode();
+    if (!code) {
+      this.processingState.set('error');
+      this.statusMessage.set('Missing code for password reset.');
+      return;
+    }
+
+    this.processingState.set('verifying');
+    try {
+      await this.authService.confirmPasswordReset(code, password);
+      this.processingState.set('success');
+      this.statusMessage.set('Password has been reset successfully. You can now sign in.');
+      // Optionally redirect to sign-in with email prefilled
+      const email = this.emailForAction();
+      await this.router.navigate(
+        ['/sign-in'],
+        email && email !== '' ? { queryParams: { email } } : undefined,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reset password.';
+      this.processingState.set('error');
+      this.statusMessage.set(message);
+    }
+  }
+
+  private async handleRecoverEmail(code: string): Promise<void> {
+    // Get info first to retrieve the restored email, then apply the action.
+    const info = await this.authService.checkActionCode(code);
+    const restoredEmail = info.data.email as string | undefined;
+    if (restoredEmail && restoredEmail !== '') {
+      this.emailForAction.set(restoredEmail);
+    }
+    await this.authService.applyActionCode(code);
+
+    if (restoredEmail && restoredEmail !== '') {
+      // best-effort password reset recommendation
+      void this.authService.sendPasswordResetEmail(restoredEmail);
+    }
+
+    this.processingState.set('success');
+    this.statusMessage.set(
+      'Your email has been restored. Please check your inbox to secure your account.',
+    );
+
+    // Respect continueUrl if provided
+    const target = this.continueUrl();
+    if (target) {
+      globalThis.location.href = target;
+      return;
+    }
+    await this.router.navigate(['/sign-in']);
+  }
+}

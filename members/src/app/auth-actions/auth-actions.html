@@ -1,0 +1,56 @@
+<div class="auth-actions-container">
+  <div class="card">
+    @if (processingState() === 'verifying') {
+      <h1>Processing...</h1>
+      <p>Please wait while we complete your request.</p>
+    }
+
+    @if (processingState() === 'needsPassword') {
+      <h1>Reset your password</h1>
+      <p>
+        @if (emailForAction() && emailForAction() !== '') {
+          Setting a new password for <strong>{{ emailForAction() }}</strong
+          >.
+        } @else {
+          Enter your new password below.
+        }
+      </p>
+      <form [formGroup]="resetForm" (ngSubmit)="submitNewPassword()">
+        <div class="form-field">
+          <label for="password">New password</label>
+          <input id="password" type="password" formControlName="password" />
+          @if (resetForm.get('password')?.touched && resetForm.get('password')?.invalid) {
+            <small class="error">Password must be at least 6 characters.</small>
+          }
+        </div>
+        <div class="form-field">
+          <label for="confirmPassword">Confirm new password</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+          @if (
+            resetForm.get('confirmPassword')?.touched && resetForm.get('confirmPassword')?.invalid
+          ) {
+            <small class="error">Please confirm your password.</small>
+          }
+        </div>
+
+        @if (statusMessage()) {
+          <p class="status">{{ statusMessage() }}</p>
+        }
+
+        <button class="button" type="submit">Set new password</button>
+      </form>
+    }
+
+    @if (processingState() === 'success') {
+      <h1>Success</h1>
+      <p>{{ statusMessage() || 'Action completed successfully.' }}</p>
+      <a routerLink="/sign-in" class="button">Continue to sign in</a>
+    }
+
+    @if (processingState() === 'error') {
+      <h1>There was a problem</h1>
+      <p class="error">{{ statusMessage() }}</p>
+      <a routerLink="/sign-in" class="button">Go to sign in</a>
+    }
+  </div>
+</div>
