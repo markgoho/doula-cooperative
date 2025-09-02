@@ -59,7 +59,7 @@ export class AuthService {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       await sendEmailVerification(userCredential.user, {
-        url: `https://members.doulacooperative.com/verify-email`,
+        url: `https://doula-coop-members.web.app/verify-email`,
       });
     } catch (error) {
       const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
@@ -95,7 +95,7 @@ export class AuthService {
     }
     try {
       await sendEmailVerification(user, {
-        url: `https://members.doulacooperative.com/verify-email`,
+        url: `https://doula-coop-members.web.app/verify-email`,
       });
     } catch {
       throw new Error('Failed to send verification email.');
