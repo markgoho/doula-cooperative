@@ -1,0 +1,98 @@
+<h1>Join the Doula Cooperative</h1>
+<p class="subtitle">Create your account to access member benefits</p>
+
+<form [formGroup]="signUpForm" (ngSubmit)="onSubmit()" class="form">
+  <!-- Email Field -->
+  <div class="form-group">
+    <label for="email" class="form__label">Email Address</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      placeholder="Enter your email"
+      class="form__input"
+      [class.error]="email?.invalid && email?.touched"
+    />
+    @if (email?.invalid && email?.touched) {
+      <div class="form__error-message">
+        @if (email?.errors?.['required']) {
+          <span>Email is required</span>
+        }
+        @if (email?.errors?.['email']) {
+          <span>Please enter a valid email address</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Password Field -->
+  <div class="form-group">
+    <label for="password" class="form__label">Password</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      placeholder="Create a password"
+      class="form__input"
+      [class.error]="password?.invalid && password?.touched"
+    />
+    @if (password?.invalid && password?.touched) {
+      <div class="form__error-message">
+        @if (password?.errors?.['required']) {
+          <span>Password is required</span>
+        }
+        @if (password?.errors?.['minlength']) {
+          <span>Password must be at least 6 characters</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Confirm Password Field -->
+  <div class="form-group">
+    <label for="confirmPassword" class="form__label">Confirm Password</label>
+    <input
+      id="confirmPassword"
+      type="password"
+      formControlName="confirmPassword"
+      placeholder="Confirm your password"
+      class="form__input"
+      [class.error]="confirmPassword?.invalid && confirmPassword?.touched"
+    />
+    @if (confirmPassword?.invalid && confirmPassword?.touched) {
+      <div class="form__error-message">
+        @if (confirmPassword?.errors?.['required']) {
+          <span>Please confirm your password</span>
+        }
+        @if (confirmPassword?.errors?.['mismatch']) {
+          <span>Passwords do not match</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="form__error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Submit Button -->
+  <div class="full-width">
+    <button type="submit" class="button" [disabled]="loading() || signUpForm.invalid">
+      @if (loading()) {
+        <span>Creating Account...</span>
+      } @else {
+        <span>Create Account</span>
+      }
+    </button>
+  </div>
+</form>
+
+<div class="sign-in-link">
+  <p>
+    Already have an account?
+    <a routerLink="/sign-in">Sign In</a>
+  </p>
+</div>

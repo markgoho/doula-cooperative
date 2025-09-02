@@ -1,0 +1,139 @@
+.membership-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-l);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: var(--space-l);
+  color: var(--brown-600);
+}
+
+.authenticated-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.welcome-section {
+  margin-bottom: var(--space-l);
+}
+
+.welcome-section h2 {
+  color: var(--teal-400);
+  margin-bottom: var(--space-xs);
+}
+
+.membership-actions {
+  margin-top: var(--space-l);
+}
+
+.signin-view {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signin-form-container {
+  background: var(--brown-100);
+  padding: var(--space-l);
+  border-radius: var(--border-radius-md);
+  border: 3px solid var(--brown-400);
+}
+
+.signin-form-container h2 {
+  text-align: center;
+  margin-bottom: var(--space-m);
+  color: var(--brown-600);
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--brown-500);
+}
+
+.form-input {
+  padding: var(--space-xs);
+  border: var(--border-width-md) solid var(--brown-200);
+  border-radius: var(--space-3xs);
+  font-size: var(--step-0);
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--teal-400);
+}
+
+.form-input.error {
+  border-color: var(--brown-600);
+}
+
+.field-error {
+  color: var(--brown-600);
+  font-size: var(--step--1);
+  margin-top: var(--space-3xs);
+}
+
+.error-message {
+  background: var(--brown-100);
+  color: var(--brown-600);
+  padding: var(--space-xs);
+  border-radius: var(--space-3xs);
+  border: 1px solid var(--brown-200);
+  margin-bottom: var(--space-s);
+  text-align: center;
+}
+
+.form-footer {
+  margin-top: var(--space-l);
+  padding-top: var(--space-m);
+  border-top: 1px solid var(--brown-200);
+  text-align: center;
+  font-size: var(--step--1);
+  color: var(--brown-400);
+}
+
+.form-footer p {
+  margin: var(--space-3xs) 0;
+}
+
+.page-footer {
+  text-align: center;
+  margin-top: var(--space-l);
+  padding-top: var(--space-s);
+  border-top: 1px solid var(--brown-200);
+  color: var(--brown-400);
+  font-size: var(--step--1);
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .membership-container {
+    padding: var(--space-s);
+  }
+
+  .signin-form-container {
+    padding: var(--space-m);
+  }
+}

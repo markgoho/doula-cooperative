@@ -1,0 +1,21 @@
+<div class="email-verified-container">
+  @switch (verificationState()) {
+    @case ('verifying') {
+      <h1>Verifying your email...</h1>
+      <p>Please wait a moment.</p>
+    }
+    @case ('verified') {
+      <h1>Email Verified!</h1>
+      <p>Thank you for verifying your email address. You can now access your membership.</p>
+      <a routerLink="/membership" class="button">Go to Membership</a>
+    }
+    @case ('error') {
+      <h1>Verification Failed</h1>
+      <p>{{ errorMessage() }}</p>
+      <p>
+        Please try refreshing the page. If the problem persists, you can
+        <a routerLink="/contact-us">contact support</a>.
+      </p>
+    }
+  }
+</div>
