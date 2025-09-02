@@ -16,11 +16,17 @@
   ],
   "overrides": [
     {
-      "files": ["*.html"],
+      "files": "hugo/layouts/**/*.html",
       "options": {
         "parser": "go-template",
         "goTemplateBracketSpacing": true,
         "bracketSameLine": true
+      }
+    },
+    {
+      "files": "members/src/**/*.html",
+      "options": {
+        "parser": "angular"
       }
     }
   ]
