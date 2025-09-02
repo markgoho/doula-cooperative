@@ -2,7 +2,6 @@ import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angula
 import { Routes } from '@angular/router';
 import { AuthActions } from './auth-actions/auth-actions';
 import { EditProfile } from './edit-profile/edit-profile';
-import { EmailVerified } from './email-verified/email-verified';
 import { FirebaseTest } from './firebase-test/firebase-test';
 import { MyMembership } from './my-membership/my-membership';
 import { SignIn } from './sign-in/sign-in';
@@ -23,7 +22,6 @@ export const routes: Routes = [
   // Authentication routes
   { path: 'sign-up', component: SignUp, ...canActivate(redirectToMembership) },
   { path: 'sign-in', component: SignIn, ...canActivate(redirectToMembership) },
-  { path: 'verify-email', component: EmailVerified, ...canActivate(redirectUnauthorizedToSignIn) },
   { path: 'check-email', component: VerifyEmail, ...canActivate(redirectUnauthorizedToSignIn) },
 
   // Firebase Auth action handler entry points

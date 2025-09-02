@@ -18,8 +18,8 @@ export class AuthActions {
   private fb = inject(FormBuilder);
 
   // Query params
-  mode = input<AuthActionMode | ''>('');
-  oobCode = input<string>('');
+  mode = input.required<AuthActionMode>();
+  oobCode = input.required<string>();
 
   continueUrl = input<string>('');
   lang = input<string>('en');
@@ -41,7 +41,7 @@ export class AuthActions {
     effect(() => {
       const currentMode = this.mode();
       const code = this.oobCode();
-      if (!currentMode || !code || this.processingState() !== 'init') {
+      if (!code || this.processingState() !== 'init') {
         return;
       }
       void this.handleAction(currentMode, code);
@@ -80,8 +80,9 @@ export class AuthActions {
 
   private async handleVerifyEmail(code: string): Promise<void> {
     await this.authService.applyActionCode(code);
-    // After applying the action code, navigate to the in-app verification completion page
-    await this.router.navigate(['/verify-email']);
+    await this.authService.setUserEmailVerified();
+    // After applying the action code, navigate to the my membership page
+    await this.router.navigate(['/my-membership']);
     this.processingState.set('success');
   }
 
