@@ -82,7 +82,7 @@ export class AuthActions {
     await this.authService.applyActionCode(code);
     await this.authService.setUserEmailVerified();
     // After applying the action code, navigate to the my membership page
-    await this.router.navigate(['/my-membership']);
+    await this.router.navigate(['/membership']);
     this.processingState.set('success');
   }
 
