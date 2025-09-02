@@ -12,7 +12,10 @@
     "build": "cd hugo && hugo --minify && bun run index",
     "index": "bunx pagefind --site hugo/public",
     "build:search": "bun run build && bun run index",
-    "emulators": "firebase emulators:start --only functions,firestore,auth --import=emulator-seed-data"
+    "emulators:start": "firebase emulators:start --only functions,firestore,auth --import=emulator-seed-data",
+    "emulators:export": "firebase emulators:export emulator-seed-data",
+    "angular:start": "cd members && ng serve",
+    "functions:start": "cd functions && tsc --watch"
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.35",
