@@ -10,9 +10,11 @@ import { connectFirestoreEmulator, getFirestore, provideFirestore } from '@angul
 import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
+import { windowProvider } from './services/window.token';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    windowProvider,
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),

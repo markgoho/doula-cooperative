@@ -133,6 +133,17 @@ export class AuthService {
     }
   }
 
+  async claimProfile(): Promise<void> {
+    const claimProfileCallable = httpsCallable(this.functions, 'claimProfile');
+    try {
+      const result = await claimProfileCallable();
+      console.log('Profile claim result:', result.data);
+    } catch (error) {
+      console.error('Error calling claimProfile function:', error);
+      // Optionally, handle the error in the UI
+    }
+  }
+
   // Firebase Auth Action Code Methods
 
   /**
