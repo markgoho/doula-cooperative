@@ -1,8 +1,30 @@
 <h1>My Membership</h1>
 
-@if (user$ | async; as user) {
+@if (user(); as user) {
   <!-- Authenticated User View -->
   <div class="authenticated-view">
+    @if (claimableProfileExists()) {
+      <div class="claim-profile-banner">
+        <h3>Claim Your Doula Profile</h3>
+        <p>
+          We found an existing doula profile associated with your email address. Claim it now to
+          access your full membership details.
+        </p>
+        <button
+          type="button"
+          class="button"
+          (click)="onClaimProfile()"
+          [disabled]="claimInProgress()"
+        >
+          @if (claimInProgress()) {
+            Claiming Profile...
+          } @else {
+            Claim Profile
+          }
+        </button>
+      </div>
+    }
+
     <div class="welcome-section">
       <h2>Welcome back, {{ user.displayName || user.email }}!</h2>
       <p>You are successfully signed in to your membership account.</p>

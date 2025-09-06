@@ -82,9 +82,6 @@ export class AuthActions {
     await this.authService.applyActionCode(code);
     await this.authService.setUserEmailVerified();
 
-    // Attempt to claim the user's profile
-    await this.authService.claimProfile();
-
     // After applying the action code, navigate to the my membership page
     await this.router.navigate(['/membership']);
     this.processingState.set('success');
