@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "firebase": {
+      "command": "bunx firebase experimental:mcp",
+      "env": {}
+    }
+  }
+}
