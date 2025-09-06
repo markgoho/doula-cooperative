@@ -2,6 +2,12 @@ rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // A user can read a document in the import collection only if the document ID
+    // (the email) matches their own authenticated email.
+    match /migrated_users_import/{email} {
+      allow read: if request.auth != null && request.auth.token.email == email;
+    }
+
     // Lock down the members collection
     match /members/{uid} {
       allow read, write: if request.auth != null &&
