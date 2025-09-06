@@ -54,7 +54,8 @@ export const handleClaimProfile = async (
 
   try {
     if (profileData) {
-      await memberDocumentReference.set(profileData);
+      // Use { merge: true } to update the existing document instead of overwriting it.
+      await memberDocumentReference.set(profileData, { merge: true });
       console.log(
         `Successfully claimed profile for user: ${email} (UID: ${uid})`,
       );
