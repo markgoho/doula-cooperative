@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -15,8 +14,5 @@ export class Header {
 
   protected readonly brandTitle = 'Doula Cooperative';
 
-  // eslint-disable-next-line unicorn/no-null
-  private userSignal = toSignal(this.authService.user$, { initialValue: null });
-
-  protected readonly isAuthenticated = computed(() => this.userSignal() !== null);
+  protected readonly isAuthenticated = computed(() => this.authService.user() !== null);
 }

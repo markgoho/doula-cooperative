@@ -1,6 +1,4 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import type { User } from '@angular/fire/auth';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -19,7 +17,7 @@ export class VerifyEmail {
   errorMessage = signal('');
   successMessage = signal('');
 
-  user = toSignal<User | null>(this.authService.user$, { initialValue: undefined });
+  user = this.authService.user;
 
   constructor() {
     effect(() => {

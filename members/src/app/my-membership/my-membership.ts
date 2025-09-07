@@ -1,6 +1,5 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
@@ -16,8 +15,7 @@ export class MyMembership {
 
   protected readonly currentYear = new Date().getFullYear();
 
-  // Expose the observable for use with async pipe in template
-  protected user = toSignal(this.authService.user$);
+  protected user = this.authService.user;
   protected claimInProgress = signal(false);
   protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
     // eslint-disable-next-line unicorn/no-useless-undefined

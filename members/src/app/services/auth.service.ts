@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ActionCodeInfo,
   Auth,
@@ -8,16 +9,15 @@ import {
   checkActionCode,
   confirmPasswordReset,
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  user,
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -40,15 +40,9 @@ export class AuthService {
   private router = inject(Router);
   private functions = inject(Functions);
 
-  // Observable for auth state
-  get user$(): Observable<User | null> {
-    return new Observable((subscriber) => {
-      const unsubscribe = onAuthStateChanged(this.auth, (user) => {
-        subscriber.next(user);
-      });
-      return unsubscribe;
-    });
-  }
+  // Public signal for auth state
+  // eslint-disable-next-line unicorn/no-null
+  readonly user = toSignal(user(this.auth), { initialValue: null });
 
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
