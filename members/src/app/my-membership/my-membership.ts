@@ -1,37 +1,28 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AUTH_ERROR_MESSAGES, AuthService } from '../services/auth.service';
+import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
 @Component({
-  imports: [DatePipe, ReactiveFormsModule],
+  imports: [DatePipe],
   templateUrl: './my-membership.html',
   styleUrl: './my-membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyMembership {
   private authService = inject(AuthService);
-  private fb = inject(FormBuilder);
   private membershipService = inject(MembershipService);
 
   protected readonly currentYear = new Date().getFullYear();
 
   // Expose the observable for use with async pipe in template
   protected user = toSignal(this.authService.user$);
-  protected isLoading = signal(false);
-  protected errorMessage = signal<string>('');
   protected claimInProgress = signal(false);
   protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
     // eslint-disable-next-line unicorn/no-useless-undefined
     undefined,
   );
-
-  protected signInForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
-    password: ['', [Validators.required.bind(this), Validators.minLength.bind(this, 6)]],
-  });
 
   constructor() {
     effect(() => {
@@ -47,34 +38,6 @@ export class MyMembership {
     this.claimableProfileData.set(profileData);
   }
 
-  protected async onSignIn() {
-    if (this.signInForm.invalid) {
-      this.markFormGroupTouched();
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.errorMessage.set('');
-
-    try {
-      const formValue = this.signInForm.value as { email: string; password: string };
-      const { email, password } = formValue;
-      await this.authService.signInWithEmail(email, password);
-      this.signInForm.reset();
-    } catch (error: unknown) {
-      console.error('Sign in failed:', error);
-      const errorMessage =
-        error instanceof Error && 'code' in error
-          ? (error as { code: string }).code
-          : 'auth/unknown-error';
-      this.errorMessage.set(
-        AUTH_ERROR_MESSAGES[errorMessage] ?? AUTH_ERROR_MESSAGES['auth/unknown-error'],
-      );
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
   protected async onClaimProfile() {
     this.claimInProgress.set(true);
     try {
@@ -82,7 +45,7 @@ export class MyMembership {
       this.claimableProfileData.set(undefined); // Hide the banner after claiming
     } catch (error) {
       console.error('Failed to claim profile:', error);
-      this.errorMessage.set('An error occurred while claiming your profile. Please try again.');
+      // TODO: Add proper error handling (toast notification, etc.)
     } finally {
       this.claimInProgress.set(false);
     }
@@ -93,13 +56,6 @@ export class MyMembership {
       await this.authService.signOut();
     } catch (error: unknown) {
       console.error('Sign out failed:', error);
-    }
-  }
-
-  private markFormGroupTouched() {
-    for (const key of Object.keys(this.signInForm.controls)) {
-      const control = this.signInForm.get(key);
-      control?.markAsTouched();
     }
   }
 }
