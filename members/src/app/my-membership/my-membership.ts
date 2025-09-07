@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -5,7 +6,7 @@ import { AUTH_ERROR_MESSAGES, AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [DatePipe, ReactiveFormsModule],
   templateUrl: './my-membership.html',
   styleUrl: './my-membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,8 +22,11 @@ export class MyMembership {
   protected user = toSignal(this.authService.user$);
   protected isLoading = signal(false);
   protected errorMessage = signal<string>('');
-  protected claimableProfileExists = signal(false);
   protected claimInProgress = signal(false);
+  protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    undefined,
+  );
 
   protected signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
@@ -39,9 +43,8 @@ export class MyMembership {
 
   private async checkForClaimableProfile(): Promise<void> {
     const currentUser = this.user();
-    this.claimableProfileExists.set(
-      await this.membershipService.checkForClaimableProfile(currentUser),
-    );
+    const profileData = await this.membershipService.getClaimableProfileData(currentUser);
+    this.claimableProfileData.set(profileData);
   }
 
   protected async onSignIn() {
@@ -76,7 +79,7 @@ export class MyMembership {
     this.claimInProgress.set(true);
     try {
       await this.authService.claimProfile();
-      this.claimableProfileExists.set(false); // Hide the button after claiming
+      this.claimableProfileData.set(undefined); // Hide the banner after claiming
     } catch (error) {
       console.error('Failed to claim profile:', error);
       this.errorMessage.set('An error occurred while claiming your profile. Please try again.');

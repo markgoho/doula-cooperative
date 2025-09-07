@@ -3,9 +3,16 @@
 @if (user(); as user) {
   <!-- Authenticated User View -->
   <div class="authenticated-view">
-    @if (claimableProfileExists()) {
+    @if (claimableProfileData(); as profileData) {
       <div class="claim-profile-banner">
         <h3>Claim Your Doula Profile</h3>
+        <div class="profile-info">
+          <p><strong>Name:</strong> {{ profileData.name }}</p>
+          <p>
+            <strong>Member Since:</strong>
+            {{ profileData.subscriptionStart | date: 'MMMM yyyy' }}
+          </p>
+        </div>
         <p>
           We found an existing doula profile associated with your email address. Claim it now to
           access your full membership details.

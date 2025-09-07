@@ -35,6 +35,38 @@ h1 {
   margin-top: var(--space-l);
 }
 
+.claim-profile-banner {
+  background: var(--brown-100);
+  border: 3px solid var(--brown-400);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-l);
+  margin-bottom: var(--space-l);
+  text-align: center;
+}
+
+.claim-profile-banner h3 {
+  color: var(--brown-600);
+  margin-bottom: var(--space-s);
+}
+
+.profile-info {
+  background: var(--teal-50);
+  border: 2px solid var(--teal-200);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-s);
+  margin-bottom: var(--space-m);
+}
+
+.profile-info p {
+  margin: var(--space-3xs) 0;
+  color: var(--brown-600);
+}
+
+.claim-profile-banner p {
+  margin-bottom: var(--space-m);
+  color: var(--brown-500);
+}
+
 .signin-view {
   flex: 1;
   display: flex;
