@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -14,6 +15,7 @@ export class SignIn {
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private firestore = inject(Firestore);
 
   signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
@@ -31,14 +33,24 @@ export class SignIn {
       try {
         const { email, password } = this.signInForm.value as { email: string; password: string };
 
-        // Sign in user
-        await this.authService.signInWithEmail(email, password);
+        // Sign in user and get the user credential
+        const userCredential = await this.authService.signInWithEmail(email, password);
+        const signedInUser = userCredential.user;
 
-        // Check if email is verified
-        const signedInUser = this.authService.currentUser;
+        // Check email verification status from Firestore document (authoritative source)
+        const userDocumentReference = doc(this.firestore, 'members', signedInUser.uid);
+        const userDocumentSnapshot = await getDoc(userDocumentReference);
+
+        let isEmailVerified = false;
+        if (userDocumentSnapshot.exists()) {
+          const userData = userDocumentSnapshot.data() as { emailVerified?: boolean };
+          isEmailVerified = userData.emailVerified ?? false;
+        }
+
+        // Navigate based on email verification status
         await this.router.navigate(
-          signedInUser?.emailVerified === true ? ['/membership'] : ['/check-email'],
-          signedInUser?.emailVerified === true ? undefined : { queryParams: { email } },
+          isEmailVerified ? ['/membership'] : ['/check-email'],
+          isEmailVerified ? undefined : { queryParams: { email } },
         );
       } catch (error) {
         if (error instanceof Error) {
