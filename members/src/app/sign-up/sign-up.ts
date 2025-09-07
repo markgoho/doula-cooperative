@@ -60,13 +60,11 @@ export class SignUp {
 
       try {
         const formValue = this.signUpForm.value as SignUpFormValue;
-        const { email, password } = formValue;
-        await this.authService.signUpWithEmail(email, password);
+        const { password } = formValue;
+        await this.authService.signUpWithEmail(formValue.email, password);
 
-        // Redirect to email check page
-        await this.router.navigate(['/check-email'], {
-          queryParams: { email },
-        });
+        // Redirect to membership page - email verification status will be handled there
+        await this.router.navigate(['/membership']);
       } catch (error) {
         if (error instanceof Error) {
           this.errorMessage.set(error.message);

@@ -6,7 +6,6 @@ import { FirebaseTest } from './firebase-test/firebase-test';
 import { MyMembership } from './my-membership/my-membership';
 import { SignIn } from './sign-in/sign-in';
 import { SignUp } from './sign-up/sign-up';
-import { VerifyEmail } from './verify-email/verify-email';
 
 // Guards for different authentication states
 const redirectUnauthorizedToSignIn = () => redirectUnauthorizedTo(['sign-in']);
@@ -22,7 +21,6 @@ export const routes: Routes = [
   // Authentication routes
   { path: 'sign-up', component: SignUp, ...canActivate(redirectToMembership) },
   { path: 'sign-in', component: SignIn, ...canActivate(redirectToMembership) },
-  { path: 'check-email', component: VerifyEmail, ...canActivate(redirectUnauthorizedToSignIn) },
 
   // Firebase Auth action handler entry points
   { path: 'auth-actions', component: AuthActions },

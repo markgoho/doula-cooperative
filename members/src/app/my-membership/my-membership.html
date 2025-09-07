@@ -32,9 +32,52 @@
       </div>
     }
 
+    @if (!user.emailVerified) {
+      <div class="email-verification-banner">
+        <h3>Email Verification Required</h3>
+        <p>
+          Please verify your email address to access all membership features. We've sent a
+          verification email to <strong>{{ user.email }}</strong
+          >.
+        </p>
+
+        <div class="verification-actions">
+          <button
+            type="button"
+            class="button"
+            (click)="onResendVerificationEmail()"
+            [disabled]="emailVerificationResendInProgress()"
+          >
+            @if (emailVerificationResendInProgress()) {
+              <span>Sending...</span>
+            } @else {
+              <span>Resend Verification Email</span>
+            }
+          </button>
+        </div>
+
+        @if (emailVerificationSuccess()) {
+          <p class="success-message">{{ emailVerificationSuccess() }}</p>
+        }
+
+        @if (emailVerificationError()) {
+          <p class="error-message">{{ emailVerificationError() }}</p>
+        }
+
+        <p class="help-text">
+          If you don't see the email, please check your spam folder. If you're still having trouble,
+          you can
+          <a href="mailto:webmaster@doulacooperative.com">contact support</a>.
+        </p>
+      </div>
+    }
+
     <div class="welcome-section">
       <h2>Welcome back, {{ user.displayName || user.email }}!</h2>
       <p>You are successfully signed in to your membership account.</p>
+      @if (user.emailVerified) {
+        <p class="verified-status">✓ Your email is verified</p>
+      }
     </div>
 
     <div class="membership-actions">

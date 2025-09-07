@@ -67,6 +67,51 @@ h1 {
   color: var(--brown-500);
 }
 
+.email-verification-banner {
+  background: var(--orange-100);
+  border: 3px solid var(--orange-400);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-l);
+  margin-bottom: var(--space-l);
+  text-align: center;
+}
+
+.email-verification-banner h3 {
+  color: var(--orange-600);
+  margin-bottom: var(--space-s);
+}
+
+.email-verification-banner p {
+  margin-bottom: var(--space-m);
+  color: var(--orange-500);
+}
+
+.verification-actions {
+  margin-bottom: var(--space-m);
+}
+
+.success-message {
+  background: var(--teal-100);
+  color: var(--teal-600);
+  padding: var(--space-xs);
+  border-radius: var(--space-3xs);
+  border: 1px solid var(--teal-200);
+  margin-bottom: var(--space-s);
+  text-align: center;
+}
+
+.verified-status {
+  color: var(--teal-500);
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--space-xs);
+}
+
+.help-text {
+  font-size: var(--step--1);
+  color: var(--orange-400);
+  margin-top: var(--space-s);
+}
+
 .signin-view {
   flex: 1;
   display: flex;
