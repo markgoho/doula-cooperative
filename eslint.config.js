@@ -1,8 +1,9 @@
 import eslint from "@eslint/js";
 import unicorn from "eslint-plugin-unicorn";
+import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+export default defineConfig([
   {
     // config with just ignores is separate object
     ignores: [
@@ -16,6 +17,7 @@ export default tseslint.config(
       "firebase-debug.log",
       "firestore-debug.log",
       "functions/lib/**",
+      "hugo/public/**",
     ],
   },
   eslint.configs.recommended,
@@ -25,11 +27,20 @@ export default tseslint.config(
     plugins: {
       unicorn,
     },
-    ...unicorn.configs.recommended,
+    rules: {
+      ...unicorn.configs.recommended.rules,
+      // Allow arrow functions in computed signals and similar reactive contexts
+      'unicorn/consistent-function-scoping': [
+        'error',
+        {
+          checkArrowFunctions: false,
+        },
+      ],
+    },
   },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
-    ignores: [".angular/**", "members/.angular/**"],
+    ignores: [".angular/**", "members/.angular/**", "eslint.config.js"],
     languageOptions: {
       parserOptions: {
         project: true,
@@ -96,4 +107,4 @@ export default tseslint.config(
       },
     },
   },
-);
+]);
