@@ -8,6 +8,8 @@
         <a routerLink="/membership" class="navbar__link">My Membership</a>
       </li>
     </ul>
-    <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
+    @if (isAuthenticated()) {
+      <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
+    }
   </nav>
 </header>
