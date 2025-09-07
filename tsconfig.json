@@ -25,5 +25,16 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  "include": ["*.ts", "functions/src/**/*.ts", "hugo/assets/ts/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "members",
+    "functions/node_modules",
+    "hugo/public",
+    "hugo/resources",
+    "members/dist",
+    "firebase-debug.log",
+    "firestore-debug.log"
+  ]
 }
