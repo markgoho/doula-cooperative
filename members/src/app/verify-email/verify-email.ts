@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
-  selector: 'app-verify-email',
   templateUrl: './verify-email.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

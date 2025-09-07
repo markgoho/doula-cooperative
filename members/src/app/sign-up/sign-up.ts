@@ -16,7 +16,6 @@ interface SignUpFormValue {
 }
 
 @Component({
-  selector: 'app-sign-up',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './sign-up.html',
   styleUrls: ['./sign-up.scss'],
