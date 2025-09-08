@@ -1,3 +1,4 @@
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import type { CallableRequest } from "firebase-functions/v2/https";
 import { HttpsError } from "firebase-functions/v2/https";
@@ -60,7 +61,21 @@ export const handleClaimProfile = async (
         `Successfully claimed profile for user: ${email} (UID: ${uid})`,
       );
 
-      // 5. Delete the document from the import collection.
+      // 5. Update the auth displayName if name property exists in profile data.
+      if (profileData.name && typeof profileData.name === "string") {
+        const auth = getAuth();
+        try {
+          await auth.updateUser(uid, {
+            displayName: profileData.name,
+          });
+          console.log(`Successfully updated displayName for user: ${email}`);
+        } catch (authError) {
+          console.error("Error updating auth displayName:", authError);
+          // Don't throw here as the profile claim was successful
+        }
+      }
+
+      // 6. Delete the document from the import collection.
       await importDocumentReference.delete();
       console.log(`Successfully deleted import record for: ${email}`);
 
