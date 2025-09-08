@@ -1,5 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
@@ -13,8 +20,6 @@ export class MyMembership {
   private authService = inject(AuthService);
   private membershipService = inject(MembershipService);
 
-  protected readonly currentYear = new Date().getFullYear();
-
   protected user = this.authService.user;
   protected claimInProgress = signal(false);
   protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
@@ -22,10 +27,37 @@ export class MyMembership {
     undefined,
   );
 
+  protected emailVerified = computed(() => this.user()?.emailVerified ?? false);
+
   // Email verification related signals
   protected emailVerificationResendInProgress = signal(false);
   protected emailVerificationError = signal('');
   protected emailVerificationSuccess = signal('');
+
+  protected userId = this.membershipService.userId;
+  protected userDocument = this.membershipService.userDocument;
+
+  // Computed signals for formatted user data
+  protected membershipCreated = computed(() => {
+    const userDocument = this.userDocument();
+    if (userDocument?.createdAt) {
+      return userDocument.createdAt.toDate();
+    }
+    return;
+  });
+
+  protected userFullName = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.name;
+  });
+
+  protected subscriptionStarted = computed(() => {
+    const userDocument = this.userDocument();
+    if (userDocument?.subscriptionStart) {
+      return userDocument.subscriptionStart.toDate();
+    }
+    return;
+  });
 
   constructor() {
     effect(() => {
