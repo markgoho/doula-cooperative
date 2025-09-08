@@ -4,11 +4,13 @@
       <h2>{{ brandTitle }}</h2>
     </a>
     <ul class="navbar__nav">
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <a routerLink="/membership" class="navbar__link">My Membership</a>
-      </li>
+      @if (isAuthenticated()) {
+        <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <a routerLink="/membership" class="navbar__link">My Membership</a>
+        </li>
+      }
     </ul>
-    @if (isAuthenticated()) {
+    @if (isEmailVerified()) {
       <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
     }
   </nav>

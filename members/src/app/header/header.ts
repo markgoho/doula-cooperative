@@ -15,4 +15,8 @@ export class Header {
   protected readonly brandTitle = 'Doula Cooperative';
 
   protected readonly isAuthenticated = computed(() => this.authService.user() !== null);
+
+  protected readonly isEmailVerified = computed(() => {
+    return this.authService.user()?.emailVerified ?? false;
+  });
 }
