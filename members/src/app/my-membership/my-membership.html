@@ -72,51 +72,49 @@
       </div>
     } @else {
       <div class="welcome-section">
-        @if (userId()) {
-          <p>Welcome back, {{ user.displayName || user.email }}!</p>
+        <p>Welcome back, {{ userDisplayName() }}!</p>
 
-          <!-- User Membership Information -->
-          @if (userDocument(); as userDoc) {
-            <div class="membership-info-section">
-              <h3>Your Membership Details</h3>
-              <div class="membership-details">
-                @if (userFullName(); as fullName) {
-                  <div class="detail-item">
-                    <span class="detail-label">Full Name:</span>
-                    <span class="detail-value">{{ fullName }}</span>
-                  </div>
-                }
-
-                @if (membershipCreated(); as createdDate) {
-                  <div class="detail-item">
-                    <span class="detail-label">Account Created:</span>
-                    <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
-                  </div>
-                }
-
-                @if (subscriptionStarted(); as subscriptionDate) {
-                  <div class="detail-item">
-                    <span class="detail-label">Doula Cooperative Subscription:</span>
-                    <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
-                  </div>
-                }
-
+        <!-- User Membership Information -->
+        @if (userDocument(); as userDoc) {
+          <div class="membership-info-section">
+            <h3>Your Membership Details</h3>
+            <div class="membership-details">
+              @if (userFullName(); as fullName) {
                 <div class="detail-item">
-                  <span class="detail-label">Email:</span>
-                  <span class="detail-value">{{ userDoc.email }}</span>
+                  <span class="detail-label">Full Name:</span>
+                  <span class="detail-value">{{ fullName }}</span>
                 </div>
+              }
 
+              @if (membershipCreated(); as createdDate) {
                 <div class="detail-item">
-                  <span class="detail-label">Email Verified:</span>
-                  <span class="detail-value">{{ userDoc.emailVerified ? 'Yes' : 'No' }}</span>
+                  <span class="detail-label">Account Created:</span>
+                  <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
                 </div>
+              }
+
+              @if (subscriptionStarted(); as subscriptionDate) {
+                <div class="detail-item">
+                  <span class="detail-label">Doula Cooperative Subscription:</span>
+                  <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
+                </div>
+              }
+
+              <div class="detail-item">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ userDoc.email }}</span>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">Email Verified:</span>
+                <span class="detail-value">{{ userDoc.emailVerified ? 'Yes' : 'No' }}</span>
               </div>
             </div>
-          } @else {
-            <div class="loading-info">
-              <p>Loading membership information...</p>
-            </div>
-          }
+          </div>
+        } @else {
+          <div class="loading-info">
+            <p>Loading membership information...</p>
+          </div>
         }
       </div>
     }

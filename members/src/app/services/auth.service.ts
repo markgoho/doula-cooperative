@@ -18,6 +18,7 @@ import {
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
+import { map } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -41,8 +42,10 @@ export class AuthService {
   private functions = inject(Functions);
 
   // Public signal for auth state
+  readonly user$ = user(this.auth);
+  readonly userId$ = this.user$.pipe(map((user) => user?.uid));
   // eslint-disable-next-line unicorn/no-null
-  readonly user = toSignal(user(this.auth), { initialValue: null });
+  readonly user = toSignal(this.user$, { initialValue: null });
 
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {

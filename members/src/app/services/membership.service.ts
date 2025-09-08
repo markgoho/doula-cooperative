@@ -1,6 +1,15 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { User } from '@angular/fire/auth';
-import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
+import {
+  doc,
+  docData,
+  DocumentReference,
+  Firestore,
+  getDoc,
+  Timestamp,
+} from '@angular/fire/firestore';
+import { of, switchMap } from 'rxjs';
 import { AuthService } from './auth.service';
 
 interface MigratedUserData {
@@ -8,7 +17,7 @@ interface MigratedUserData {
   subscriptionStart: Timestamp;
 }
 
-interface UserDocument {
+export interface UserDocument {
   createdAt: Timestamp;
   email: string;
   uid: string;
@@ -24,38 +33,22 @@ export class MembershipService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
 
-  userId = computed(() => this.authService.user()?.uid ?? '');
+  userId = computed(() => this.authService.user()?.uid ?? 'abcd');
 
-  // eslint-disable-next-line unicorn/no-useless-undefined
-  userDocument = signal<UserDocument | undefined>(undefined);
-
-  constructor() {
-    // Load user document when userId changes
-    effect(() => {
-      console.log('UserId changed:', this.userId());
-      const userId = this.userId();
+  userDocument$ = this.authService.userId$.pipe(
+    switchMap((userId) => {
       if (userId) {
-        void this.loadUserDocument(userId);
-      } else {
-        this.userDocument.set(undefined);
+        const userDocumentReference = doc(
+          this.firestore,
+          `members/${userId}`,
+        ) as DocumentReference<UserDocument>;
+        return docData(userDocumentReference);
       }
-    });
-  }
-
-  private async loadUserDocument(userId: string): Promise<void> {
-    try {
-      const documentReference = doc(this.firestore, `members/${userId}`);
-      const documentData = await getDoc(documentReference);
-      if (documentData.exists()) {
-        this.userDocument.set(documentData.data() as UserDocument);
-      } else {
-        this.userDocument.set(undefined);
-      }
-    } catch (error) {
-      console.error('Error loading user document:', error);
-      this.userDocument.set(undefined);
-    }
-  }
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      return of(undefined);
+    }),
+  );
+  userDocument = toSignal(this.userDocument$);
 
   async getClaimableProfileData(
     user: User | null | undefined,

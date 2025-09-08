@@ -34,7 +34,6 @@ export class MyMembership {
   protected emailVerificationError = signal('');
   protected emailVerificationSuccess = signal('');
 
-  protected userId = this.membershipService.userId;
   protected userDocument = this.membershipService.userDocument;
 
   // Computed signals for formatted user data
@@ -49,6 +48,11 @@ export class MyMembership {
   protected userFullName = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.name;
+  });
+
+  protected userDisplayName = computed(() => {
+    const user = this.user();
+    return user?.displayName ?? user?.email ?? 'User';
   });
 
   protected subscriptionStarted = computed(() => {
