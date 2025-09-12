@@ -120,36 +120,9 @@ export class AuthService {
 
       const setUserEmailVerified = httpsCallable(this.functions, 'setUserEmailVerified');
       await setUserEmailVerified();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error calling setUserEmailVerified function:', error);
-      // Preserve the original error message instead of throwing a generic one
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Failed to update email verification status.');
-    }
-  }
-
-  async claimProfile(): Promise<void> {
-    const user = this.currentUser;
-    if (!user) {
-      console.error('Attempted to claim profile without a logged-in user.');
-      // Re-throw the error so the component can handle it
-      throw new Error('No authenticated user to claim profile.');
-    }
-
-    // Force a refresh of the user's ID token to get the latest claims
-    // and email_verified status before calling the function.
-    await user.getIdToken(true);
-
-    const claimProfileCallable = httpsCallable(this.functions, 'claimProfile');
-    try {
-      const result = await claimProfileCallable();
-      console.log('Profile claim result:', result.data);
-    } catch (error) {
-      console.error('Error calling claimProfile function:', error);
-      // Re-throw the error so the component can handle it
-      throw error;
+      throw new Error('An error occurred while setting the email as verified.', { cause: error });
     }
   }
 

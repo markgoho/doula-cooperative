@@ -21,11 +21,6 @@ export class MyMembership {
   private membershipService = inject(MembershipService);
 
   protected user = this.authService.user;
-  protected claimInProgress = signal(false);
-  protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
-    // eslint-disable-next-line unicorn/no-useless-undefined
-    undefined,
-  );
 
   protected userDocument = this.membershipService.userDocument;
 
@@ -68,19 +63,6 @@ export class MyMembership {
     const currentUser = this.user();
     const profileData = await this.membershipService.getClaimableProfileData(currentUser);
     this.claimableProfileData.set(profileData);
-  }
-
-  protected async onClaimProfile() {
-    this.claimInProgress.set(true);
-    try {
-      await this.authService.claimProfile();
-      this.claimableProfileData.set(undefined); // Hide the banner after claiming
-    } catch (error) {
-      console.error('Failed to claim profile:', error);
-      // TODO: Add proper error handling (toast notification, etc.)
-    } finally {
-      this.claimInProgress.set(false);
-    }
   }
 
   protected async onSignOut() {

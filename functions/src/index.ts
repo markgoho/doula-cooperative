@@ -82,8 +82,3 @@ export const setUserEmailVerified = onCall(
     return await handleSetUserEmailVerified(request);
   },
 );
-
-export const claimProfile = onCall({ invoker: "public" }, async request => {
-  const { handleClaimProfile } = await import("./claim-profile/index.js");
-  return handleClaimProfile(request.data, request);
-});
