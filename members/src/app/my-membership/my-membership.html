@@ -32,92 +32,52 @@
       </div>
     }
 
-    @if (!emailVerified()) {
-      <div class="email-verification-banner">
-        <h3>Email Verification Required</h3>
-        <p>
-          Please verify your email address to access all membership features. We've sent a
-          verification email to <strong>{{ user.email }}</strong
-          >.
-        </p>
+    <div class="welcome-section">
+      <p>Welcome back, {{ userDisplayName() }}!</p>
 
-        <div class="verification-actions">
-          <button
-            type="button"
-            class="button"
-            (click)="onResendVerificationEmail()"
-            [disabled]="emailVerificationResendInProgress()"
-          >
-            @if (emailVerificationResendInProgress()) {
-              <span>Sending...</span>
-            } @else {
-              <span>Resend Verification Email</span>
+      <!-- User Membership Information -->
+      @if (userDocument(); as userDoc) {
+        <div class="membership-info-section">
+          <h3>Your Membership Details</h3>
+          <div class="membership-details">
+            @if (userFullName(); as fullName) {
+              <div class="detail-item">
+                <span class="detail-label">Full Name:</span>
+                <span class="detail-value">{{ fullName }}</span>
+              </div>
             }
-          </button>
-        </div>
 
-        @if (emailVerificationSuccess()) {
-          <p class="success-message">{{ emailVerificationSuccess() }}</p>
-        }
-
-        @if (emailVerificationError()) {
-          <p class="error-message">{{ emailVerificationError() }}</p>
-        }
-
-        <p class="help-text">
-          If you don't see the email, please check your spam folder. If you're still having trouble,
-          you can
-          <a href="mailto:webmaster@doulacooperative.com">contact support</a>.
-        </p>
-      </div>
-    } @else {
-      <div class="welcome-section">
-        <p>Welcome back, {{ userDisplayName() }}!</p>
-
-        <!-- User Membership Information -->
-        @if (userDocument(); as userDoc) {
-          <div class="membership-info-section">
-            <h3>Your Membership Details</h3>
-            <div class="membership-details">
-              @if (userFullName(); as fullName) {
-                <div class="detail-item">
-                  <span class="detail-label">Full Name:</span>
-                  <span class="detail-value">{{ fullName }}</span>
-                </div>
-              }
-
-              @if (membershipCreated(); as createdDate) {
-                <div class="detail-item">
-                  <span class="detail-label">Account Created:</span>
-                  <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
-                </div>
-              }
-
-              @if (subscriptionStarted(); as subscriptionDate) {
-                <div class="detail-item">
-                  <span class="detail-label">Doula Cooperative Subscription:</span>
-                  <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
-                </div>
-              }
-
+            @if (membershipCreated(); as createdDate) {
               <div class="detail-item">
-                <span class="detail-label">Email:</span>
-                <span class="detail-value">{{ userDoc.email }}</span>
+                <span class="detail-label">Account Created:</span>
+                <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
               </div>
+            }
 
+            @if (subscriptionStarted(); as subscriptionDate) {
               <div class="detail-item">
-                <span class="detail-label">Email Verified:</span>
-                <span class="detail-value">{{ userDoc.emailVerified ? 'Yes' : 'No' }}</span>
+                <span class="detail-label">Doula Cooperative Subscription:</span>
+                <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
               </div>
+            }
+
+            <div class="detail-item">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">{{ userDoc.email }}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Email Verified:</span>
+              <span class="detail-value">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
             </div>
           </div>
-        } @else {
-          <div class="loading-info">
-            <p>Loading membership information...</p>
-          </div>
-        }
-      </div>
-    }
+        </div>
+      } @else {
+        <div class="loading-info">
+          <p>Loading membership information...</p>
+        </div>
+      }
+    </div>
 
     <div class="membership-actions">
       <button type="button" class="button" (click)="onSignOut()">Sign Out</button>

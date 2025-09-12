@@ -1,0 +1,38 @@
+.main {
+  flex: 1;
+}
+
+.verification-banner {
+  background-color: var(--brown-400);
+  color: var(--brown-800);
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  button {
+    background-color: var(--brown-500);
+    color: var(--brown-100);
+    border: 1px solid var(--brown-500);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: 500;
+    transition:
+      background-color 0.2s ease-in-out,
+      color 0.2s ease-in-out;
+
+    &:hover,
+    &:focus {
+      background-color: var(--brown-100);
+      color: var(--brown-500);
+    }
+  }
+}

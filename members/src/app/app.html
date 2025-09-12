@@ -1,4 +1,13 @@
 <app-header />
+@if (showVerificationBanner()) {
+  <div class="verification-banner">
+    <p>
+      Your email address is not verified. Please check your inbox for a verification link to access
+      all features.
+    </p>
+    <button (click)="resendVerificationEmail()">Resend Verification Email</button>
+  </div>
+}
 <main class="main container">
   <router-outlet />
 </main>

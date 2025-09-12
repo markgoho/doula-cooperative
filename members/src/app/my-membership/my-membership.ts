@@ -27,13 +27,6 @@ export class MyMembership {
     undefined,
   );
 
-  protected emailVerified = computed(() => this.user()?.emailVerified ?? false);
-
-  // Email verification related signals
-  protected emailVerificationResendInProgress = signal(false);
-  protected emailVerificationError = signal('');
-  protected emailVerificationSuccess = signal('');
-
   protected userDocument = this.membershipService.userDocument;
 
   // Computed signals for formatted user data
@@ -87,22 +80,6 @@ export class MyMembership {
       // TODO: Add proper error handling (toast notification, etc.)
     } finally {
       this.claimInProgress.set(false);
-    }
-  }
-
-  protected async onResendVerificationEmail() {
-    this.emailVerificationResendInProgress.set(true);
-    this.emailVerificationError.set('');
-    this.emailVerificationSuccess.set('');
-
-    try {
-      await this.authService.resendEmailVerification();
-      this.emailVerificationSuccess.set('Verification email sent! Please check your inbox.');
-    } catch (error) {
-      console.error('Failed to resend verification email:', error);
-      this.emailVerificationError.set('Failed to send verification email. Please try again.');
-    } finally {
-      this.emailVerificationResendInProgress.set(false);
     }
   }
 
