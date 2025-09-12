@@ -1,5 +1,4 @@
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 
 export async function handleSetUserEmailVerified(request: CallableRequest) {
@@ -22,16 +21,6 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
     );
   }
 
-  try {
-    const firestore = getFirestore();
-    const userDocumentReference = firestore.collection("members").doc(uid);
-    await userDocumentReference.update({ emailVerified: true });
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating user email verification status:", error);
-    throw new HttpsError(
-      "internal",
-      "Failed to update user email verification status.",
-    );
-  }
+  console.log(`Email verification confirmed for user: ${uid}`);
+  return { success: true };
 }

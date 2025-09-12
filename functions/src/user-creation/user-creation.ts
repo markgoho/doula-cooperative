@@ -3,7 +3,7 @@ import { type auth } from "firebase-functions/v1";
 
 export async function handleUserCreated(user: auth.UserRecord) {
   try {
-    const { uid, email, emailVerified } = user;
+    const { uid, email } = user;
     const firestore = getFirestore();
 
     // Create a new document in the members collection
@@ -12,7 +12,6 @@ export async function handleUserCreated(user: auth.UserRecord) {
       createdAt: Timestamp.now(),
       email,
       uid,
-      emailVerified,
     });
 
     console.log(`Created member document for user: ${user.uid}`);

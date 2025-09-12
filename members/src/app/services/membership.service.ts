@@ -21,7 +21,6 @@ export interface UserDocument {
   createdAt: Timestamp;
   email: string;
   uid: string;
-  emailVerified: boolean;
   name?: string;
   subscriptionStart?: Timestamp;
 }
