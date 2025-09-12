@@ -3,14 +3,13 @@
   "users": [
     {
       "localId": "MlhzVKJUPF2rlyxcbU1MZ49FmuI7",
-      "lastLoginAt": "1757213121006",
-      "emailVerified": true,
-      "email": "markgoho@gmail.com",
-      "salt": "fakeSaltnEzgd3Que0gfUw9lVzi4",
-      "passwordHash": "fakeHash:salt=fakeSaltnEzgd3Que0gfUw9lVzi4:password=test1234",
-      "passwordUpdatedAt": 1757213473941,
-      "validSince": "1757213473",
       "createdAt": "1757205997724",
+      "lastLoginAt": "1757213121006",
+      "displayName": "",
+      "photoUrl": "",
+      "passwordHash": "fakeHash:salt=fakeSaltnEzgd3Que0gfUw9lVzi4:password=test1234",
+      "salt": "fakeSaltnEzgd3Que0gfUw9lVzi4",
+      "passwordUpdatedAt": 1757702145311,
       "providerUserInfo": [
         {
           "providerId": "password",
@@ -21,10 +20,10 @@
           "photoUrl": ""
         }
       ],
-      "lastRefreshAt": "2025-09-07T02:51:13.941Z",
-      "displayName": "",
-      "photoUrl": "",
-      "customAttributes": ""
+      "validSince": "1757702145",
+      "email": "markgoho@gmail.com",
+      "emailVerified": true,
+      "disabled": false
     }
   ]
 }
