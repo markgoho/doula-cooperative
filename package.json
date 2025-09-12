@@ -22,7 +22,7 @@
     "@types/bun": "^1.2.21",
     "eslint": "^9.35.0",
     "eslint-plugin-unicorn": "^61.0.2",
-    "firebase-tools": "^14.15.2",
+    "firebase-tools": "^14.16.0",
     "prettier": "^3.6.2",
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.2.0",
