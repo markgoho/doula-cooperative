@@ -3,10 +3,6 @@
     "firebase": {
       "command": "bunx firebase experimental:mcp",
       "env": {}
-    },
-    "playwright": {
-      "command": "bunx @playwright/mcp@latest --caps=vision",
-      "env": {}
     }
   }
 }
