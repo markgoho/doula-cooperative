@@ -1,3 +1,4 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Footer } from './footer/footer';
@@ -6,7 +7,7 @@ import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer],
+  imports: [RouterOutlet, Header, Footer, AsyncPipe],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,4 +31,6 @@ export class App {
       // Optionally, show an error message to the user.
     }
   }
+
+  protected idToken$ = this.authService.idToken$;
 }

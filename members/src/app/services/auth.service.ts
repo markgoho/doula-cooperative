@@ -9,6 +9,7 @@ import {
   checkActionCode,
   confirmPasswordReset,
   createUserWithEmailAndPassword,
+  idToken,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -18,7 +19,7 @@ import {
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -47,6 +48,12 @@ export class AuthService {
   // eslint-disable-next-line unicorn/no-null
   readonly user = toSignal(this.user$, { initialValue: null });
 
+  readonly idToken$ = idToken(this.auth).pipe(
+    tap((token) => {
+      console.log('idToken', token);
+    }),
+  );
+
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
     try {
@@ -62,7 +69,7 @@ export class AuthService {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       await sendEmailVerification(userCredential.user, {
-        url: `https://doula-coop-members.web.app/firebase-test`,
+        url: `${globalThis.window.location.origin}/membership`,
         handleCodeInApp: true,
       });
     } catch (error) {
@@ -84,14 +91,15 @@ export class AuthService {
 
   // Reload the current user's data
   async reloadUser(): Promise<void> {
-    const user = this.auth.currentUser;
-    if (user) {
-      try {
-        await user.reload();
-      } catch (error) {
-        console.error('Error reloading user:', error);
-        throw new Error('Failed to reload user data.');
-      }
+    const current = this.auth.currentUser;
+    if (!current) return;
+    try {
+      await current.reload();
+      // Force ID token refresh so downstream listeners (onIdTokenChanged) re-emit
+      await current.getIdToken(true);
+    } catch (error) {
+      console.error('Error reloading user:', error);
+      throw new Error('Failed to reload user data.');
     }
   }
 
@@ -112,7 +120,7 @@ export class AuthService {
     }
     try {
       await sendEmailVerification(user, {
-        url: `${globalThis.window.location.origin}/firebase-test`,
+        url: `${globalThis.window.location.origin}/membership`,
         handleCodeInApp: true,
       });
     } catch {
