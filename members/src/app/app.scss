@@ -16,23 +16,4 @@
     margin: 0;
     font-weight: 500;
   }
-
-  button {
-    background-color: var(--brown-500);
-    color: var(--brown-100);
-    border: 1px solid var(--brown-500);
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: 500;
-    transition:
-      background-color 0.2s ease-in-out,
-      color 0.2s ease-in-out;
-
-    &:hover,
-    &:focus {
-      background-color: var(--brown-100);
-      color: var(--brown-500);
-    }
-  }
 }

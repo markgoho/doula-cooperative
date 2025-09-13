@@ -47,6 +47,12 @@ export class AuthService {
   // eslint-disable-next-line unicorn/no-null
   readonly user = toSignal(this.user$, { initialValue: null });
 
+  // Derived signal that tracks emailVerified and re-emits on ID token changes
+  readonly emailVerified = toSignal(
+    idToken(this.auth).pipe(map(() => this.auth.currentUser?.emailVerified ?? false)),
+    { initialValue: false },
+  );
+
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
     try {

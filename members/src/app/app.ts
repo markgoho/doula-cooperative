@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Footer } from './footer/footer';
@@ -7,7 +6,7 @@ import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer, AsyncPipe],
+  imports: [RouterOutlet, Header, Footer],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,8 +17,9 @@ export class App {
 
   protected showVerificationBanner = computed(() => {
     const user = this.authService.user();
-    console.log('user', user);
-    return user && !user.emailVerified;
+    if (!user) return false;
+    // Use emailVerified signal so this recomputes when idToken changes
+    return !this.authService.emailVerified();
   });
 
   protected async resendVerificationEmail(): Promise<void> {
