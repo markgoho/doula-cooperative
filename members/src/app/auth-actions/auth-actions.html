@@ -3,6 +3,11 @@
   <p>Please wait while we complete your request.</p>
 }
 
+@if (processingState() === 'finalizing') {
+  <h1>Processing...</h1>
+  <p>Verifying your email address...</p>
+}
+
 @if (processingState() === 'needsPassword') {
   <h1>Reset your password</h1>
   <p>

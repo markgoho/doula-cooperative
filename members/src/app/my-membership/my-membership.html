@@ -1,86 +1,43 @@
 <h1>My Membership</h1>
 
-@if (user(); as user) {
-  <!-- Authenticated User View -->
-  <div class="authenticated-view">
-    @if (claimableProfileData(); as profileData) {
-      <div class="claim-profile-banner">
-        <h3>Claim Your Doula Profile</h3>
-        <div class="profile-info">
-          <p><strong>Name:</strong> {{ profileData.name }}</p>
-          <p>
-            <strong>Member Since:</strong>
-            {{ profileData.subscriptionStart | date: 'MMMM yyyy' }}
-          </p>
-        </div>
-        <p>
-          We found an existing doula profile associated with your email address. Claim it now to
-          access your full membership details.
-        </p>
-        <button
-          type="button"
-          class="button"
-          (click)="onClaimProfile()"
-          [disabled]="claimInProgress()"
-        >
-          @if (claimInProgress()) {
-            Claiming Profile...
-          } @else {
-            Claim Profile
-          }
-        </button>
-      </div>
-    }
-
-    <div class="welcome-section">
-      <p>Welcome back, {{ userDisplayName() }}!</p>
-
-      <!-- User Membership Information -->
-      @if (userDocument(); as userDoc) {
-        <div class="membership-info-section">
-          <h3>Your Membership Details</h3>
-          <div class="membership-details">
-            @if (userFullName(); as fullName) {
-              <div class="detail-item">
-                <span class="detail-label">Full Name:</span>
-                <span class="detail-value">{{ fullName }}</span>
-              </div>
-            }
-
-            @if (membershipCreated(); as createdDate) {
-              <div class="detail-item">
-                <span class="detail-label">Account Created:</span>
-                <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
-              </div>
-            }
-
-            @if (subscriptionStarted(); as subscriptionDate) {
-              <div class="detail-item">
-                <span class="detail-label">Doula Cooperative Subscription:</span>
-                <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
-              </div>
-            }
-
-            <div class="detail-item">
-              <span class="detail-label">Email:</span>
-              <span class="detail-value">{{ userDoc.email }}</span>
-            </div>
-
-            <div class="detail-item">
-              <span class="detail-label">Email Verified:</span>
-              <span class="detail-value">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
-            </div>
+@if (isInitialLoad()) {
+  <p>Loading membership information...</p>
+} @else {
+  <div class="membership__details">
+    <p>Welcome back, {{ userDisplayName() }}!</p>
+    @if (userDocument(); as userDoc) {
+      <div class="membership__info">
+        <h3>Your Membership Details</h3>
+        <dl>
+          <div class="membership__info-item">
+            <dt>Account Created:</dt>
+            <dd>{{ membershipCreated() | date: 'longDate' }}</dd>
           </div>
-        </div>
-      } @else {
-        <div class="loading-info">
-          <p>Loading membership information...</p>
-        </div>
-      }
-    </div>
-
-    <div class="membership-actions">
-      <button type="button" class="button" (click)="onSignOut()">Sign Out</button>
-    </div>
+          <div class="membership__info-item">
+            <dt>Email:</dt>
+            <dd>{{ userDoc.email }}</dd>
+          </div>
+          <div class="membership__info-item">
+            <dt>Email Verified:</dt>
+            <dd>{{ user()?.emailVerified ? 'Yes' : 'No' }}</dd>
+          </div>
+          @if (userFullName(); as name) {
+            <div class="membership__info-item">
+              <dt>Name:</dt>
+              <dd>{{ name }}</dd>
+            </div>
+          }
+          @if (subscriptionStarted(); as subscriptionDate) {
+            <div class="membership__info-item">
+              <dt>Subscription Started:</dt>
+              <dd>{{ subscriptionDate | date: 'longDate' }}</dd>
+            </div>
+          }
+        </dl>
+      </div>
+    } @else {
+      <p>We could not find your membership information.</p>
+    }
   </div>
+  <button (click)="onSignOut()" class="button">Sign Out</button>
 }

@@ -1,12 +1,5 @@
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
@@ -21,8 +14,8 @@ export class MyMembership {
   private membershipService = inject(MembershipService);
 
   protected user = this.authService.user;
-
   protected userDocument = this.membershipService.userDocument;
+  protected isInitialLoad = this.membershipService.isInitialLoad;
 
   // Computed signals for formatted user data
   protected membershipCreated = computed(() => {
@@ -50,20 +43,6 @@ export class MyMembership {
     }
     return;
   });
-
-  constructor() {
-    effect(() => {
-      // When the user signal changes, trigger the check for a claimable profile.
-      // We wrap the async logic in a void call to satisfy the effect's synchronous nature.
-      void this.checkForClaimableProfile();
-    });
-  }
-
-  private async checkForClaimableProfile(): Promise<void> {
-    const currentUser = this.user();
-    const profileData = await this.membershipService.getClaimableProfileData(currentUser);
-    this.claimableProfileData.set(profileData);
-  }
 
   protected async onSignOut() {
     try {

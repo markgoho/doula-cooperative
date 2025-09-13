@@ -25,7 +25,9 @@ export class AuthActions {
   lang = input<string>('en');
 
   // UI state
-  processingState = signal<'init' | 'verifying' | 'needsPassword' | 'success' | 'error'>('init');
+  processingState = signal<
+    'init' | 'verifying' | 'finalizing' | 'needsPassword' | 'success' | 'error'
+  >('init');
   statusMessage = signal('');
   emailForAction = signal<string>('');
 
@@ -80,7 +82,11 @@ export class AuthActions {
 
   private async handleVerifyEmail(code: string): Promise<void> {
     await this.authService.applyActionCode(code);
-    await this.authService.setUserEmailVerified();
+
+    this.processingState.set('finalizing');
+    this.statusMessage.set('Finalizing verification...');
+
+    await this.authService.claimProfile();
 
     // After applying the action code, navigate to the my membership page
     await this.router.navigate(['/membership']);

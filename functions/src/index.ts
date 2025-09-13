@@ -82,3 +82,15 @@ export const setUserEmailVerified = onCall(
     return await handleSetUserEmailVerified(request);
   },
 );
+
+export const claimProfile = onCall(
+  {
+    enforceAppCheck: true, // Enable App Check
+  },
+  async request => {
+    const { handleClaimProfile: handler } = await import(
+      "./claim-profile/claim-profile.js"
+    );
+    return handler(request);
+  },
+);

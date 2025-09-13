@@ -1,8 +1,9 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import * as logger from "firebase-functions/logger";
 import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 
-export async function handleSetUserEmailVerified(request: CallableRequest) {
+export async function handleClaimProfile(request: CallableRequest) {
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
@@ -26,11 +27,9 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
   if (!userRecord.emailVerified) {
     throw new HttpsError(
       "failed-precondition",
-      "Email must be verified before updating verification status.",
+      "Email must be verified before claiming profile.",
     );
   }
-
-  console.log(`Email verification confirmed for user: ${uid}`);
 
   const database = getFirestore();
 
@@ -44,13 +43,11 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
       const importDocument = await transaction.get(importDocumentReference);
 
       if (!importDocument.exists) {
-        console.log(`No profile to claim for user: ${email}`);
         return; // No data to return
       }
 
       const data = importDocument.data();
       if (!data) {
-        console.log(`No profile data for user: ${email}`);
         return;
       }
 
@@ -61,10 +58,6 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
     });
 
     if (profileData) {
-      console.log(
-        `Successfully claimed profile for user: ${email} (UID: ${uid})`,
-      );
-
       // Update the auth displayName if name property exists in profile data.
       // This is done outside the transaction as it's an external operation.
       if (profileData.name && typeof profileData.name === "string") {
@@ -73,9 +66,11 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
           await auth.updateUser(uid, {
             displayName: profileData.name,
           });
-          console.log(`Successfully updated displayName for user: ${email}`);
         } catch (authError) {
-          console.error("Error updating auth displayName:", authError);
+          logger.error(
+            "[claimProfile] Error updating auth displayName:",
+            authError,
+          );
           // Don't throw here as the profile claim was successful
         }
       }
@@ -85,7 +80,7 @@ export async function handleSetUserEmailVerified(request: CallableRequest) {
       return { status: "no_profile_to_claim" };
     }
   } catch (error) {
-    console.error("Error in profile claim transaction:", error);
+    logger.error("[claimProfile] Error in profile claim transaction:", error);
     throw new HttpsError(
       "internal",
       "An error occurred while claiming the profile.",

@@ -62,7 +62,7 @@ export class AuthService {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       await sendEmailVerification(userCredential.user, {
-        url: `https://doula-coop-members.web.app/firebase-test`,
+        url: `/auth-actions`,
         handleCodeInApp: true,
       });
     } catch (error) {
@@ -99,7 +99,7 @@ export class AuthService {
     }
     try {
       await sendEmailVerification(user, {
-        url: `https://doula-coop-members.web.app/firebase-test`,
+        url: `/auth-actions`,
         handleCodeInApp: true,
       });
     } catch {
@@ -107,7 +107,7 @@ export class AuthService {
     }
   }
 
-  async setUserEmailVerified(): Promise<void> {
+  async claimProfile(): Promise<void> {
     try {
       const user = this.auth.currentUser;
       if (!user) {
@@ -118,11 +118,14 @@ export class AuthService {
       // This avoids stale tokens where email_verified may still be false
       await user.reload();
 
-      const setUserEmailVerified = httpsCallable(this.functions, 'setUserEmailVerified');
-      await setUserEmailVerified();
+      // Introduce a small delay to allow for backend propagation of email verification
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const claimProfile = httpsCallable(this.functions, 'claimProfile');
+      await claimProfile();
     } catch (error: unknown) {
-      console.error('Error calling setUserEmailVerified function:', error);
-      throw new Error('An error occurred while setting the email as verified.', { cause: error });
+      console.error('Error calling claimProfile function:', error);
+      throw new Error('An error occurred while claiming the profile.', { cause: error });
     }
   }
 
