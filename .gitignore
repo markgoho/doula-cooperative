@@ -39,4 +39,5 @@ hugo/resources
 
 # Firebase
 *-debug.log
+*-debug.*.log
 .firebase
