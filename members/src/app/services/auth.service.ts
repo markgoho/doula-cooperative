@@ -14,12 +14,11 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
-  user,
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { map, tap } from 'rxjs';
+import { map } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -42,17 +41,11 @@ export class AuthService {
   private router = inject(Router);
   private functions = inject(Functions);
 
-  // Public signal for auth state
-  readonly user$ = user(this.auth);
+  // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
+  readonly user$ = idToken(this.auth).pipe(map(() => this.auth.currentUser));
   readonly userId$ = this.user$.pipe(map((user) => user?.uid));
   // eslint-disable-next-line unicorn/no-null
   readonly user = toSignal(this.user$, { initialValue: null });
-
-  readonly idToken$ = idToken(this.auth).pipe(
-    tap((token) => {
-      console.log('idToken', token);
-    }),
-  );
 
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {

@@ -18,6 +18,7 @@ export class App {
 
   protected showVerificationBanner = computed(() => {
     const user = this.authService.user();
+    console.log('user', user);
     return user && !user.emailVerified;
   });
 
@@ -31,6 +32,4 @@ export class App {
       // Optionally, show an error message to the user.
     }
   }
-
-  protected idToken$ = this.authService.idToken$;
 }
