@@ -73,16 +73,6 @@ export const deleteMemberOnUserDeleted = auth.user().onDelete(async user => {
   await handleUserDeleted(user);
 });
 
-export const setUserEmailVerified = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleSetUserEmailVerified } = await import(
-      "./set-user-email-verified/set-user-email-verified.js"
-    );
-    return await handleSetUserEmailVerified(request);
-  },
-);
-
 export const claimProfile = onCall({ invoker: "public" }, async request => {
   const { handleClaimProfile } = await import("./claim-profile/index.js");
   return handleClaimProfile(request.data, request);
