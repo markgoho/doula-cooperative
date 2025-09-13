@@ -80,7 +80,7 @@ export class AuthActions {
 
   private async handleVerifyEmail(code: string): Promise<void> {
     await this.authService.applyActionCode(code);
-    await this.authService.setUserEmailVerified();
+    await this.authService.reloadUser();
 
     // After applying the action code, navigate to the my membership page
     await this.router.navigate(['/membership']);

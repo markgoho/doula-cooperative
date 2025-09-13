@@ -82,6 +82,19 @@ export class AuthService {
     }
   }
 
+  // Reload the current user's data
+  async reloadUser(): Promise<void> {
+    const user = this.auth.currentUser;
+    if (user) {
+      try {
+        await user.reload();
+      } catch (error) {
+        console.error('Error reloading user:', error);
+        throw new Error('Failed to reload user data.');
+      }
+    }
+  }
+
   // Get current user (synchronous)
   get currentUser(): User | null {
     return this.auth.currentUser;
@@ -99,34 +112,11 @@ export class AuthService {
     }
     try {
       await sendEmailVerification(user, {
-        url: `https://doula-coop-members.web.app/firebase-test`,
+        url: `${globalThis.window.location.origin}/firebase-test`,
         handleCodeInApp: true,
       });
     } catch {
       throw new Error('Failed to send verification email.');
-    }
-  }
-
-  async setUserEmailVerified(): Promise<void> {
-    try {
-      const user = this.auth.currentUser;
-      if (!user) {
-        throw new Error('No authenticated user');
-      }
-
-      // Ensure the ID token reflects the latest Auth state after email verification
-      // This avoids stale tokens where email_verified may still be false
-      await user.reload();
-
-      const setUserEmailVerified = httpsCallable(this.functions, 'setUserEmailVerified');
-      await setUserEmailVerified();
-    } catch (error) {
-      console.error('Error calling setUserEmailVerified function:', error);
-      // Preserve the original error message instead of throwing a generic one
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Failed to update email verification status.');
     }
   }
 
@@ -209,7 +199,7 @@ export class AuthService {
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
       await sendPasswordResetEmail(this.auth, email, {
-        url: `https://doula-coop-members.web.app/auth-actions?mode=resetPassword`,
+        url: `${globalThis.window.location.origin}/auth-actions?mode=resetPassword`,
         handleCodeInApp: true,
       });
     } catch (error) {
