@@ -1,4 +1,5 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
 import { type auth } from "firebase-functions/v1";
 
 export async function handleUserCreated(user: auth.UserRecord) {
@@ -12,11 +13,12 @@ export async function handleUserCreated(user: auth.UserRecord) {
       createdAt: Timestamp.now(),
       email,
       uid,
+      membershipActive: false,
     });
 
-    console.log(`Created member document for user: ${user.uid}`);
+    logger.log(`Created member document for user: ${user.uid}`);
   } catch (error: unknown) {
-    console.error("Error creating member document:", error);
+    logger.error("Error creating member document:", error);
     throw error;
   }
 }

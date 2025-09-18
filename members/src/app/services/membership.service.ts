@@ -17,12 +17,14 @@ interface MigratedUserData {
   subscriptionStart: Timestamp;
 }
 
-export interface UserDocument {
+export interface Member {
   createdAt: Timestamp;
   email: string;
   uid: string;
   name?: string;
   subscriptionStart?: Timestamp;
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
 }
 
 @Injectable({
@@ -40,7 +42,7 @@ export class MembershipService {
         const userDocumentReference = doc(
           this.firestore,
           `members/${userId}`,
-        ) as DocumentReference<UserDocument>;
+        ) as DocumentReference<Member>;
         return docData(userDocumentReference);
       }
       // eslint-disable-next-line unicorn/no-useless-undefined
