@@ -3,15 +3,15 @@
     <a class="navbar__logo" routerLink="/">
       <h2>{{ brandTitle }}</h2>
     </a>
-    <ul class="navbar__nav">
-      @if (isAuthenticated()) {
+    @if (isAuthenticated()) {
+      <ul class="navbar__nav">
         <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <a routerLink="/membership" class="navbar__link">Membership</a>
         </li>
+      </ul>
+      @if (isEmailVerified()) {
+        <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
       }
-    </ul>
-    @if (isEmailVerified()) {
-      <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
     }
   </nav>
 </header>
