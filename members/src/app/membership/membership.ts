@@ -12,11 +12,11 @@ import { MembershipService } from '../services/membership.service';
 
 @Component({
   imports: [DatePipe],
-  templateUrl: './my-membership.html',
-  styleUrl: './my-membership.scss',
+  templateUrl: './membership.html',
+  styleUrl: './membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MyMembership {
+export class Membership {
   private authService = inject(AuthService);
   private membershipService = inject(MembershipService);
 
