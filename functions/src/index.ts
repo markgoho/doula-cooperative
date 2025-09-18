@@ -11,6 +11,10 @@ import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, onRequest } from "firebase-functions/v2/https";
+import {
+  handleUpdateMembershipStatus,
+  type UpdateMembershipStatusData,
+} from "./update-membership-status";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {
@@ -77,3 +81,13 @@ export const claimProfile = onCall({ invoker: "public" }, async request => {
   const { handleClaimProfile } = await import("./claim-profile/index.js");
   return handleClaimProfile(request.data, request);
 });
+
+export const updateMembershipStatus = onCall(
+  { invoker: "public" },
+  async request => {
+    return handleUpdateMembershipStatus(
+      request.data as UpdateMembershipStatusData,
+      request,
+    );
+  },
+);
