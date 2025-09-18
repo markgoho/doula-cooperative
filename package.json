@@ -15,11 +15,13 @@
     "emulators:start": "firebase emulators:start --only functions,firestore,auth --import=emulator-seed-data",
     "emulators:export": "firebase emulators:export emulator-seed-data",
     "angular:start": "cd members && bun start",
-    "functions:start": "cd functions && tsc --watch"
+    "functions:start": "cd functions && tsc --watch",
+    "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" --names \"emulators,functions,angular\""
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.37",
     "@types/bun": "^1.2.22",
+    "concurrently": "^9.2.1",
     "eslint": "^9.35.0",
     "eslint-plugin-unicorn": "^61.0.2",
     "firebase-tools": "^14.17.0",
