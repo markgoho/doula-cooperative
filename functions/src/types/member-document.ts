@@ -8,4 +8,5 @@ export interface MemberDocument {
   subscriptionStart?: Timestamp;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
+  slug?: string;
 }
