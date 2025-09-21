@@ -43,3 +43,7 @@ hugo/resources
 .firebase
 
 .playwright-mcp
+
+# Playwright
+.playwright/
+.playwright-mcp/
