@@ -9,6 +9,7 @@ import {
   getDoc,
   Timestamp,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { of, switchMap } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -32,6 +33,7 @@ export interface Member {
 })
 export class MembershipService {
   private firestore = inject(Firestore);
+  private functions = inject(Functions);
   private authService = inject(AuthService);
 
   userId = computed(() => this.authService.user()?.uid ?? 'abcd');
@@ -67,5 +69,27 @@ export class MembershipService {
       }
     }
     return undefined;
+  }
+
+  async readProfile(): Promise<{ content: string }> {
+    const user = this.authService.currentUser;
+    if (!user) {
+      console.error('Attempted to read profile without a logged-in user.');
+      // Re-throw the error so the component can handle it
+      throw new Error('No authenticated user to read profile.');
+    }
+
+    const readProfileCallable = httpsCallable<unknown, { content: string }>(
+      this.functions,
+      'readProfile',
+    );
+    try {
+      const { data } = await readProfileCallable();
+      return data;
+    } catch (error) {
+      console.error('Error calling readProfile function:', error);
+      // Re-throw the error so the component can handle it
+      throw error;
+    }
   }
 }
