@@ -41,3 +41,5 @@ hugo/resources
 *-debug.log
 *-debug.*.log
 .firebase
+
+.playwright-mcp
