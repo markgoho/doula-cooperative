@@ -5,25 +5,26 @@
       "localId": "MlhzVKJUPF2rlyxcbU1MZ49FmuI7",
       "createdAt": "1757205997724",
       "lastLoginAt": "1757213121006",
-      "displayName": "",
+      "displayName": "Mark Goho",
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltnEzgd3Que0gfUw9lVzi4:password=test1234",
       "salt": "fakeSaltnEzgd3Que0gfUw9lVzi4",
-      "passwordUpdatedAt": 1758465837855,
+      "passwordUpdatedAt": 1758471599953,
       "providerUserInfo": [
         {
           "providerId": "password",
           "email": "markgoho@gmail.com",
           "federatedId": "markgoho@gmail.com",
           "rawId": "markgoho@gmail.com",
-          "displayName": "",
+          "displayName": "Mark Goho",
           "photoUrl": ""
         }
       ],
-      "validSince": "1758465837",
+      "validSince": "1758471599",
       "email": "markgoho@gmail.com",
       "emailVerified": true,
-      "disabled": false
+      "disabled": false,
+      "lastRefreshAt": "2025-09-21T16:47:00.483Z"
     }
   ]
 }
