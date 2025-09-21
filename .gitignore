@@ -47,3 +47,5 @@ hugo/resources
 # Playwright
 .playwright/
 .playwright-mcp/
+
+*.pem
