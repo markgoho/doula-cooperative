@@ -307,6 +307,11 @@
           "type": 301
         },
         {
+          "source": "/postpartum-doulas/Sarah-Ozimek",
+          "destination": "/doulas/sarah-ozimek",
+          "type": 301
+        },
+        {
           "source": "/birth-doulas/sarah-ozimek",
           "destination": "/doulas/sarah-ozimek",
           "type": 301
@@ -407,13 +412,23 @@
           "type": 301
         },
         {
+          "source": "/birth-doulas/Jenna-Roberge-karns",
+          "destination": "/doulas/jenna-roberge-karns",
+          "type": 301
+        },
+        {
           "source": "/birth-doulas/tamara-l-albert**",
-          "destination": "/doulas/tamara-albert",
+          "destination": "/doulas/tamara-l-albert",
+          "type": 301
+        },
+        {
+          "source": "/birth-doulas/tamara-l-albert**",
+          "destination": "/doulas/tamara-l-albert",
           "type": 301
         },
         {
           "source": "/childbirth-educators/tamara-l-albert**",
-          "destination": "/doulas/tamara-albert",
+          "destination": "/doulas/tamara-l-albert",
           "type": 301
         },
         {
@@ -453,6 +468,11 @@
         },
         {
           "source": "/postpartum-doulas/kat-head",
+          "destination": "/doulas/kat-head",
+          "type": 301
+        },
+        {
+          "source": "/postpartum-doulas/Kat-Head",
           "destination": "/doulas/kat-head",
           "type": 301
         },
