@@ -10,7 +10,7 @@ export interface UpdateMembershipStatusData {
 }
 
 export const handleUpdateMembershipStatus = async (
-  data: UpdateMembershipStatusData,
+  data: unknown,
   context: CallableRequest,
 ) => {
   // 1. Ensure the user is authenticated.
@@ -30,7 +30,8 @@ export const handleUpdateMembershipStatus = async (
     );
   }
 
-  const { userId, membershipActive, expiresInOneYear } = data;
+  const { userId, membershipActive, expiresInOneYear } =
+    data as UpdateMembershipStatusData;
 
   const database = getFirestore();
   const memberDocumentReference = database.collection("members").doc(userId);

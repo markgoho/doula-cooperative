@@ -10,11 +10,8 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { onCall, onRequest } from "firebase-functions/v2/https";
-import {
-  handleUpdateMembershipStatus,
-  type UpdateMembershipStatusData,
-} from "./update-membership-status";
+import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
+import { PROFILE_SECRETS } from "./constants/profile-secrets";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {
@@ -85,9 +82,30 @@ export const claimProfile = onCall({ invoker: "public" }, async request => {
 export const updateMembershipStatus = onCall(
   { invoker: "public" },
   async request => {
-    return handleUpdateMembershipStatus(
-      request.data as UpdateMembershipStatusData,
-      request,
+    const { handleUpdateMembershipStatus } = await import(
+      "./update-membership-status/index.js"
     );
+
+    return handleUpdateMembershipStatus(request.data, request);
+  },
+);
+
+export const readProfile = onCall(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async request => {
+    const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
+    const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
+    const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      throw new HttpsError("internal", "Missing GitHub secrets.");
+    }
+
+    const { handleReadProfile } = await import("./read-profile/index.js");
+    return handleReadProfile(request, [
+      GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID,
+    ]);
   },
 );

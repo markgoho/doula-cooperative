@@ -7,6 +7,7 @@ import { MemberDocument } from "../types/member-document";
 interface ProfileData {
   name: string;
   subscriptionStart: Timestamp;
+  slug: string;
 }
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
@@ -78,10 +79,14 @@ export const handleClaimProfile = async (
     return { status: "no_profile_to_claim" };
   }
 
-  const profileData = importDocument.data() as ProfileData;
+  const profileData = importDocument.data() as ProfileData | undefined;
 
   // 4. Create the new profile in the 'members' collection.
   const memberDocumentReference = database.collection("members").doc(uid);
+
+  if (!profileData) {
+    throw new HttpsError("not-found", "No profile data found for this user.");
+  }
 
   try {
     const { subscriptionStart, ...restOfProfileData } = profileData;
