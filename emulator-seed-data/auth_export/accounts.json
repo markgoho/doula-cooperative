@@ -4,7 +4,7 @@
     {
       "localId": "MlhzVKJUPF2rlyxcbU1MZ49FmuI7",
       "createdAt": "1757205997724",
-      "lastLoginAt": "1757213121006",
+      "lastLoginAt": "1758473571312",
       "displayName": "Mark Goho",
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltnEzgd3Que0gfUw9lVzi4:password=test1234",
@@ -24,7 +24,7 @@
       "email": "markgoho@gmail.com",
       "emailVerified": true,
       "disabled": false,
-      "lastRefreshAt": "2025-09-21T16:47:00.483Z"
+      "lastRefreshAt": "2025-09-21T16:53:30.614Z"
     }
   ]
 }
