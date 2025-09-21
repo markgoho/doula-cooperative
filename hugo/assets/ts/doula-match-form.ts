@@ -26,6 +26,8 @@ interface DoulaMatchFormRequest {
   services: string[];
   birthLocation: string;
   otherInfo: string;
+  insurance: string[];
+  otherHospitalName?: string;
 }
 
 async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
@@ -61,14 +63,35 @@ const doSubmit = async () => {
   // eslint-disable-next-line unicorn/prefer-spread
   const services: string[] = Array.from(
     document.querySelectorAll<HTMLInputElement>(
-      'input[type="checkbox"]:checked',
+      'input[type="checkbox"]:checked:not(#medicaid):not(#carrot)',
     ),
   ).map((checkbox: HTMLInputElement) => checkbox.id);
 
-  const birthLocation =
-    document.querySelector<HTMLInputElement>(
-      'input[name="birth-location"]:checked',
-    )?.id ?? "n/a";
+  const selectedBirthLocationRadio = document.querySelector<HTMLInputElement>(
+    'input[name="birth-location"]:checked',
+  );
+
+  let birthLocation = "n/a";
+  if (selectedBirthLocationRadio) {
+    if (selectedBirthLocationRadio.id === "other-hospital") {
+      const otherHospitalInput = document.querySelector<HTMLInputElement>(
+        "#other-hospital-input",
+      );
+      birthLocation = otherHospitalInput?.value ?? "Other Hospital";
+    } else {
+      const label = document.querySelector<HTMLLabelElement>(
+        `label[for="${selectedBirthLocationRadio.id}"]`,
+      );
+      birthLocation = label?.textContent ?? selectedBirthLocationRadio.id;
+    }
+  }
+
+  // eslint-disable-next-line unicorn/prefer-spread
+  const insurance: string[] = Array.from(
+    document.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"][id="medicaid"]:checked, input[type="checkbox"][id="carrot"]:checked',
+    ),
+  ).map((checkbox: HTMLInputElement) => checkbox.id);
 
   const formData: DoulaMatchFormRequest = {
     name: contactName?.value ?? "",
@@ -83,6 +106,7 @@ const doSubmit = async () => {
     services,
     birthLocation,
     otherInfo: otherInfo?.value ?? "",
+    insurance,
   };
 
   try {
@@ -114,11 +138,38 @@ const birthDoulaCheckbox =
 const birthLocationFieldset = document.querySelector<HTMLFieldSetElement>(
   "#birth-location-fieldset",
 );
+const dynamicLayoutContainer = document.querySelector<HTMLDivElement>(
+  ".dynamic-layout-container",
+);
 
-if (birthDoulaCheckbox && birthLocationFieldset) {
+if (birthDoulaCheckbox && birthLocationFieldset && dynamicLayoutContainer) {
   birthDoulaCheckbox.addEventListener("change", () => {
     birthLocationFieldset.style.display = birthDoulaCheckbox.checked
       ? "grid"
       : "none";
+    dynamicLayoutContainer.classList.toggle(
+      "birth-doula-selected",
+      birthDoulaCheckbox.checked,
+    );
   });
 }
+
+const birthLocationRadios = document.querySelectorAll<HTMLInputElement>(
+  'input[name="birth-location"]',
+);
+const otherHospitalInputContainer = document.querySelector<HTMLDivElement>(
+  "#other-hospital-input-container",
+);
+const otherHospitalRadio =
+  document.querySelector<HTMLInputElement>("#other-hospital");
+
+// eslint-disable-next-line unicorn/no-array-for-each
+birthLocationRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    if (otherHospitalInputContainer) {
+      otherHospitalInputContainer.style.display = otherHospitalRadio?.checked
+        ? "block"
+        : "none";
+    }
+  });
+});

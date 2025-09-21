@@ -13,6 +13,7 @@ export interface DoulaMatchForm {
   services: string[];
   birthLocation: string;
   otherInfo: string;
+  insurance: string[];
 }
 
 export interface DoulaMatchFormRequest extends Request {

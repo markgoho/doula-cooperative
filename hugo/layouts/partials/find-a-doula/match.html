@@ -83,93 +83,126 @@
       </div>
     </fieldset>
 
-    <fieldset>
-      <legend>I am looking for...</legend>
-      <div class="input-grid">
-        <input class="form__input" type="checkbox" id="birth-doula" /><label
-          class="form__label"
-          for="birth-doula"
-          >birth doula support</label
-        >
-        <input
-          class="form__input"
-          type="checkbox"
-          id="postpartum-doula" /><label
-          class="form__label"
-          for="postpartum-doula"
-          >postpartum doula support</label
-        >
-        <input
-          class="form__input"
-          type="checkbox"
-          id="lactation-support" /><label
-          class="form__label"
-          for="lactation-support"
-          >lactation support</label
-        >
-        <input
-          class="form__input"
-          type="checkbox"
-          id="childbirth-classes" /><label
-          class="form__label"
-          for="childbirth-classes"
-          >childbirth classes</label
-        >
-        <input
-          class="form__input"
-          type="checkbox"
-          id="other-info-looking-for" /><label
-          class="form__label"
-          for="other-info-looking-for"
-          >other information</label
-        >
-      </div>
-    </fieldset>
+    <div class="dynamic-layout-container full-width">
+      <fieldset>
+        <legend>I am looking for...</legend>
+        <div class="input-grid">
+          <input class="form__input" type="checkbox" id="birth-doula" /><label
+            class="form__label"
+            for="birth-doula"
+            >birth doula support</label
+          >
+          <input
+            class="form__input"
+            type="checkbox"
+            id="postpartum-doula" /><label
+            class="form__label"
+            for="postpartum-doula"
+            >postpartum doula support</label
+          >
+          <input
+            class="form__input"
+            type="checkbox"
+            id="lactation-support" /><label
+            class="form__label"
+            for="lactation-support"
+            >lactation support</label
+          >
+          <input
+            class="form__input"
+            type="checkbox"
+            id="childbirth-classes" /><label
+            class="form__label"
+            for="childbirth-classes"
+            >childbirth classes</label
+          >
+          <input
+            class="form__input"
+            type="checkbox"
+            id="other-info-looking-for" /><label
+            class="form__label"
+            for="other-info-looking-for"
+            >other information</label
+          >
+        </div>
+      </fieldset>
 
-    <fieldset id="birth-location-fieldset" style="display: none;">
-      <legend>My birth is planned at...</legend>
-      <div class="input-grid">
-        <input
-          class="form__input"
-          type="radio"
-          id="home-birth"
-          name="birth-location" /><label class="form__label" for="home-birth"
-          >home</label
-        >
-        <input
-          class="form__input"
-          type="radio"
-          id="highland"
-          name="birth-location" /><label class="form__label" for="highland"
-          >Highland Hospital</label
-        >
-        <input
-          class="form__input"
-          type="radio"
-          id="rochester-general"
-          name="birth-location" /><label
-          class="form__label"
-          for="rochester-general"
-          >Rochester General Hospital</label
-        >
-        <input
-          class="form__input"
-          type="radio"
-          id="strong"
-          name="birth-location" /><label class="form__label" for="strong"
-          >Strong Hospital</label
-        >
-        <input
-          class="form__input"
-          type="radio"
-          id="other-hospital"
-          name="birth-location" /><label
-          class="form__label"
-          for="other-hospital"
-          >Other Hospital</label
-        >
-      </div>
-    </fieldset>
+      <fieldset id="birth-location-fieldset" style="display: none;">
+        <legend>My birth is planned at...</legend>
+        <div class="input-grid">
+          <input
+            class="form__input"
+            type="radio"
+            id="home-birth"
+            name="birth-location" /><label class="form__label" for="home-birth"
+            >home</label
+          >
+          <input
+            class="form__input"
+            type="radio"
+            id="highland"
+            name="birth-location" /><label class="form__label" for="highland"
+            >Highland Hospital</label
+          >
+          <input
+            class="form__input"
+            type="radio"
+            id="rochester-general"
+            name="birth-location" /><label
+            class="form__label"
+            for="rochester-general"
+            >Rochester General Hospital</label
+          >
+          <input
+            class="form__input"
+            type="radio"
+            id="strong"
+            name="birth-location" /><label class="form__label" for="strong"
+            >Strong Hospital</label
+          >
+          <input
+            class="form__input"
+            type="radio"
+            id="other-hospital"
+            name="birth-location" /><label
+            class="form__label"
+            for="other-hospital"
+            >Other Hospital</label
+          >
+        </div>
+        <div
+          class="form-group single-column"
+          id="other-hospital-input-container"
+          style="display: none;">
+          <label class="form__label" for="other-hospital-input"
+            >Other hospital name</label
+          >
+          <input
+            class="form__input"
+            type="text"
+            id="other-hospital-input"
+            name="other-hospital-input" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>
+          I plan to offset the cost for Doula Services with (optional):
+        </legend>
+        <div class="input-grid">
+          <input class="form__input" type="checkbox" id="medicaid" /><label
+            class="form__label"
+            for="medicaid"
+            >Medicaid</label
+          >
+          <input class="form__input" type="checkbox" id="carrot" /><label
+            class="form__label"
+            for="carrot"
+            >Carrot</label
+          >
+        </div>
+      </fieldset>
+    </div>
     <div class="form-group full-width">
       <label class="form__label " for="other-info"
         >Is there any other information you'd like to share with us?</label

@@ -3,7 +3,9 @@ import {
   type FirestoreEvent,
   type QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
+import FormData from "form-data";
 import Mailgun from "mailgun.js";
+import type { MailgunMessageData } from "mailgun.js/definitions";
 import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
 import { type DoulaMatchFormDocument } from "./types";
 
@@ -26,22 +28,14 @@ export async function handleDocumentCreated(
     services,
     birthLocation,
     otherInfo,
+    insurance,
   } = snapshot.data() as DoulaMatchFormDocument;
 
-  if (process.env.FUNCTIONS_EMULATOR) {
-    logger.info("Emulator detected, skipping email dispatch.");
-  } else {
-    const mailgun = new Mailgun(FormData);
-    const mg = mailgun.client({
-      username: "api",
-      key: apiKey ?? "",
-    });
-
-    await mg.messages.create("mg.doulacooperative.com", {
-      from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
-      to: [MARK_EMAIL, REFERRAL_EMAIL],
-      subject: `New Doula Match Request from ${name}`,
-      html: `
+  const emailMessage: MailgunMessageData = {
+    from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
+    to: [MARK_EMAIL, REFERRAL_EMAIL],
+    subject: `New Doula Match Request from ${name}`,
+    html: `
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Phone:</strong> ${phone}</p>
@@ -50,12 +44,34 @@ export async function handleDocumentCreated(
         estimatedDueDate.day
       }/${estimatedDueDate.year}</p>
       <p><strong>Services:</strong> ${services.join(", ")}</p>
+      ${
+        insurance.length > 0
+          ? `<p><strong>Insurance/Cost offset:</strong> ${insurance.join(
+              ", ",
+            )}</p>`
+          : ""
+      }
       <p><strong>Birth Location:</strong> ${birthLocation}</p>
       <p><strong>Other Info:</strong></p>
       <p>${otherInfo}</p>
     `,
-      "h:Reply-To": email,
+    "h:Reply-To": email,
+  };
+
+  if (process.env.FUNCTIONS_EMULATOR) {
+    logger.info(
+      "Emulator detected, skipping email dispatch. Would have sent:",
+      {
+        emailMessage,
+      },
+    );
+  } else {
+    const mailgun = new Mailgun(FormData);
+    const mg = mailgun.client({
+      username: "api",
+      key: apiKey ?? "",
     });
+    await mg.messages.create("mg.doulacooperative.com", emailMessage);
   }
 
   await snapshot.ref.update({ sent: true });
