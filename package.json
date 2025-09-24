@@ -19,7 +19,7 @@
     "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" --names \"emulators,functions,angular\""
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.37",
+    "@playwright/mcp": "^0.0.39",
     "@types/bun": "^1.2.22",
     "concurrently": "^9.2.1",
     "eslint": "^9.35.0",
