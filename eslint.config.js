@@ -36,6 +36,7 @@ export default defineConfig([
           checkArrowFunctions: false,
         },
       ],
+      "unicorn/no-useless-undefined": "off",
     },
   },
   {
