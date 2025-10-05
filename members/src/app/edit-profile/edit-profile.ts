@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { MembershipService } from '../services/membership.service';
+import { ProfileData, ProfileService } from '../services/profile.service';
 
 @Component({
   imports: [],
@@ -8,9 +8,10 @@ import { MembershipService } from '../services/membership.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfile implements OnInit {
-  private membershipService = inject(MembershipService);
+  private profileService = inject(ProfileService);
 
-  profileContent = signal<string>('');
+  // eslint-disable-next-line unicorn/no-useless-undefined
+  profileData = signal<ProfileData | undefined>(undefined);
   isLoading = signal<boolean>(true);
   error = signal<string>('');
 
@@ -18,12 +19,16 @@ export class EditProfile implements OnInit {
     void this.loadProfile();
   }
 
+  getTagUrl(tag: string): string {
+    return this.profileService.getTagUrl(tag);
+  }
+
   private async loadProfile(): Promise<void> {
     try {
       this.isLoading.set(true);
       this.error.set('');
-      const result = await this.membershipService.readProfile();
-      this.profileContent.set(result.content);
+      const profileData = await this.profileService.getProfile();
+      this.profileData.set(profileData);
     } catch (error: unknown) {
       console.error('Error reading profile:', error);
       let errorMessage = 'Failed to load profile';
