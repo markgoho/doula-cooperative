@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { MembershipService } from './membership.service';
 
 export interface ProfileData {
   title: string;
@@ -21,7 +20,6 @@ export interface ProfileData {
   providedIn: 'root',
 })
 export class ProfileService {
-  private membershipService = inject(MembershipService);
   private functions = inject(Functions);
 
   async getProfile(): Promise<ProfileData | undefined> {
