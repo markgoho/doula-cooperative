@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
 export interface ProfileData {
@@ -21,10 +21,20 @@ export interface ProfileData {
 })
 export class ProfileService {
   private functions = inject(Functions);
+  private cachedProfile = signal<ProfileData | undefined>(undefined);
 
-  async getProfile(): Promise<ProfileData | undefined> {
+  // Public readonly signal for components to subscribe to profile changes
+  readonly profile = this.cachedProfile.asReadonly();
+
+  async loadAndParseProfile(): Promise<ProfileData | undefined> {
+    // Return cached profile if available
+    const cached = this.cachedProfile();
+    if (cached) {
+      return cached;
+    }
+
     try {
-      const result = await this.readProfile();
+      const result = await this.fetchProfileFromServer();
       const profileData = this.parseProfileContent(result.content);
 
       // Use the image URL directly from the backend
@@ -32,14 +42,16 @@ export class ProfileService {
         profileData.image = result.image;
       }
 
+      // Cache the profile data
+      this.cachedProfile.set(profileData);
       return profileData;
     } catch (error) {
-      console.error('Error reading profile:', error);
+      console.error('Error loading profile:', error);
       return undefined;
     }
   }
 
-  async readProfile(): Promise<{ content: string; image?: string }> {
+  async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
     const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(
       this.functions,
       'readProfile',
@@ -52,6 +64,19 @@ export class ProfileService {
       // Re-throw the error so the component can handle it
       throw error;
     }
+  }
+
+  async preloadProfile(): Promise<ProfileData | undefined> {
+    try {
+      return await this.loadAndParseProfile();
+    } catch (error) {
+      console.error('Error preloading profile:', error);
+      return undefined;
+    }
+  }
+
+  clearProfileCache(): void {
+    this.cachedProfile.set(undefined);
   }
 
   private parseProfileContent(content: string): ProfileData | undefined {
