@@ -70,10 +70,13 @@ export async function handleReadProfile(
     // 5. Decode the content and return it
     const content = Buffer.from(fileData.content, "base64").toString("utf8");
 
-    // 6. Try to fetch profile image (optional)
+    // Construct the full GitHub URL for the image
     let image: string | undefined;
 
     const imagePath = `hugo/content/doulas/${slug}/${slug}.avif`;
+    const imageUrl = `https://raw.githubusercontent.com/markgoho/doula-cooperative/refs/heads/trunk/${imagePath}`;
+
+    // Check if image exists by making a request to the URL
     try {
       const { data: imageData } = await octokit.rest.repos.getContent({
         owner,
@@ -82,8 +85,8 @@ export async function handleReadProfile(
       });
 
       if ("content" in imageData) {
-        // Return base64 content for the image
-        image = imageData.content;
+        // Return the full GitHub URL for the image
+        image = imageUrl;
       }
     } catch {
       // Image doesn't exist, which is fine - continue without it

@@ -29,9 +29,9 @@ export class ProfileService {
       const result = await this.readProfile();
       const profileData = this.parseProfileContent(result.content);
 
-      // Convert base64 image data to data URL if image is present
+      // Use the image URL directly from the backend
       if (profileData && result.image) {
-        profileData.image = `data:image/avif;base64,${result.image}`;
+        profileData.image = result.image;
       }
 
       return profileData;
