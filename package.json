@@ -7,7 +7,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write .",
-    "hugo:dev": "cd hugo && hugo server --disableFastRender",
+    "hugo:dev": "cd hugo && hugo server --disableFastRender -D",
     "build:local": "rm -rf hugo/public && cd hugo && hugo && bun run index",
     "build": "cd hugo && hugo --minify && bun run index",
     "index": "bunx pagefind --site hugo/public",
@@ -16,7 +16,7 @@
     "emulators:export": "firebase emulators:export emulator-seed-data",
     "angular:start": "cd members && bun start",
     "functions:start": "cd functions && tsc --watch",
-    "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" --names \"emulators,functions,angular\""
+    "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" \"bun run hugo:dev\" --names \"emulators,functions,angular,hugo\""
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.41",
