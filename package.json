@@ -19,19 +19,19 @@
     "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" --names \"emulators,functions,angular\""
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.39",
-    "@types/bun": "^1.2.22",
+    "@playwright/mcp": "^0.0.41",
+    "@types/bun": "^1.2.23",
     "concurrently": "^9.2.1",
-    "eslint": "^9.35.0",
+    "eslint": "^9.37.0",
     "eslint-plugin-unicorn": "^61.0.2",
-    "firebase-tools": "^14.17.0",
+    "firebase-tools": "^14.18.0",
     "prettier": "^3.6.2",
     "prettier-plugin-go-template": "^0.0.15",
-    "prettier-plugin-organize-imports": "^4.2.0",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "sharp": "^0.34.4",
-    "typescript-eslint": "^8.44.0"
+    "typescript-eslint": "^8.45.0"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
