@@ -14,6 +14,7 @@ export interface ProfileData {
   };
   bio: string;
   draft?: boolean;
+  image?: string;
 }
 
 @Injectable({
@@ -26,15 +27,22 @@ export class ProfileService {
   async getProfile(): Promise<ProfileData | undefined> {
     try {
       const result = await this.readProfile();
-      return this.parseProfileContent(result.content);
+      const profileData = this.parseProfileContent(result.content);
+
+      // Convert base64 image data to data URL if image is present
+      if (profileData && result.image) {
+        profileData.image = `data:image/avif;base64,${result.image}`;
+      }
+
+      return profileData;
     } catch (error) {
       console.error('Error reading profile:', error);
       return undefined;
     }
   }
 
-  async readProfile(): Promise<{ content: string }> {
-    const readProfileCallable = httpsCallable<unknown, { content: string }>(
+  async readProfile(): Promise<{ content: string; image?: string }> {
+    const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(
       this.functions,
       'readProfile',
     );

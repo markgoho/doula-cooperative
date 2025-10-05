@@ -17,10 +17,18 @@
 
       <!-- Headshot Section -->
       <section class="headshot">
-        <!-- TODO: Add profile image when available -->
-        <div class="headshot-placeholder">
-          <p>Profile image will be displayed here</p>
-        </div>
+        @if (profileData()?.image) {
+          <img
+            [src]="profileData()?.image"
+            alt="Headshot of {{ profileData()?.title }}"
+            class="headshot__image"
+            style="view-transition-name: headshot-{{ profileData()?.title }}"
+          />
+        } @else {
+          <div class="headshot-placeholder">
+            <p>Profile image will be displayed here</p>
+          </div>
+        }
 
         <!-- Tags -->
         @if (profileData()?.tags && (profileData()?.tags)!.length > 0) {

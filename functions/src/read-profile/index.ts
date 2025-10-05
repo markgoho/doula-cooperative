@@ -55,6 +55,7 @@ export async function handleReadProfile(
   const repo = "doula-cooperative"; // <-- IMPORTANT: Change this
 
   try {
+    // Fetch the markdown content
     const { data: fileData } = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -68,8 +69,29 @@ export async function handleReadProfile(
 
     // 5. Decode the content and return it
     const content = Buffer.from(fileData.content, "base64").toString("utf8");
+
+    // 6. Try to fetch profile image (optional)
+    let image: string | undefined;
+
+    const imagePath = `hugo/content/doulas/${slug}/${slug}.avif`;
+    try {
+      const { data: imageData } = await octokit.rest.repos.getContent({
+        owner,
+        repo,
+        path: imagePath,
+      });
+
+      if ("content" in imageData) {
+        // Return base64 content for the image
+        image = imageData.content;
+      }
+    } catch {
+      // Image doesn't exist, which is fine - continue without it
+      logger.info(`Profile image not found for user ${slug}`);
+    }
+
     logger.info(`Successfully read ${filePath} for user ${uid}`);
-    return { content };
+    return { content, image };
   } catch (error) {
     logger.error("Error interacting with GitHub API", error);
     throw new HttpsError(

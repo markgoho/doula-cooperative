@@ -1,17 +1,3 @@
-:root {
-  --container-max-width: 87.5rem;
-  --space-xs: 0.25rem;
-  --space-2xs: 0.5rem;
-  --space-s: 1rem;
-  --space-m: 1.5rem;
-  --space-l: 2rem;
-  --space-xl: 3rem;
-  --step-4: 2.25rem;
-  --step--1: 0.9375rem;
-  --primary-700: #1B5665;
-  --teal-500: #1B5665;
-}
-
 picture {
   display: contents;
 }
@@ -34,19 +20,27 @@ picture {
 
 .credentials {
   font-size: var(--step--1);
-  color: var(--primary-700);
+  color: var(--brown-450);
   font-weight: 300;
-  font-variation-settings: "slnt" -12;
+  font-variation-settings: 'slnt' -12;
 }
 
 .headshot {
   padding-block-end: var(--space-l);
 }
 
+.headshot__image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--border-radius-md);
+  border: 8px solid var(--teal-500);
+  object-fit: cover;
+}
+
 .headshot-placeholder {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 7px;
+  border-radius: var(--border-radius-md);
   border: 8px solid var(--teal-500);
   background-color: #f5f5f5;
   display: flex;
@@ -133,17 +127,8 @@ picture {
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: #145055;
+      background-color: var(--teal-600);
     }
-  }
-}
-
-.contact-info a {
-  color: var(--teal-500);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
   }
 }
 
@@ -154,9 +139,9 @@ picture {
     grid-template-columns: minmax(300px, 1fr) 1fr;
     grid-template-rows: max-content min-content 1fr;
     grid-template-areas:
-      "headshot title"
-      "headshot bio"
-      "headshot contact-info";
+      'headshot title'
+      'headshot bio'
+      'headshot contact-info';
   }
 
   .headshot {
