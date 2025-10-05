@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+
+# Doula Cooperative Platform
+
+**Tech Stack:** Firebase (Functions, Firestore, Auth), Hugo (static site), Angular (members area), TypeScript, SCSS
+
+**Project Structure:**
+
+- `/functions/` - Firebase Cloud Functions for user management, profile operations, email verification
+- `/hugo/` - Static website built with Hugo, doula directory, content pages, available at localhost:1313
+- `/members/` - Angular application for member dashboard and management, available at localhost:4200
+- `/emulator-seed-data/` - Firebase emulator data for development
+
+**Response Guidelines:**
+
+- Be extremely concise. Sacrifice grammar for the sake of concision.
+
+**Helpful tips:**
+
+- The applications are already running, don't try to start them with any commands

@@ -13,3 +13,4 @@ alwaysApply: false
 - `standalone: true` is the default, it's no longer necessary to add this to component metadata
 - we've enabled `withComponentInputBinding()` in the router, so make sure to leverage this feature when trying too access query params from the url
 - components should never access firebase directly, there should always be a service in between
+- use signals for class properties
