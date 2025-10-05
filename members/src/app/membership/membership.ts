@@ -23,7 +23,6 @@ export class Membership {
   protected user = this.authService.user;
   protected claimInProgress = signal(false);
   protected claimableProfileData = signal<{ name: string; subscriptionStart: Date } | undefined>(
-    // eslint-disable-next-line unicorn/no-useless-undefined
     undefined,
   );
 

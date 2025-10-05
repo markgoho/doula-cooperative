@@ -45,7 +45,6 @@ export class MembershipService {
         ) as DocumentReference<Member>;
         return docData(userDocumentReference);
       }
-      // eslint-disable-next-line unicorn/no-useless-undefined
       return of(undefined);
     }),
   );
