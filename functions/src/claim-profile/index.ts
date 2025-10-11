@@ -4,10 +4,11 @@ import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import { MemberDocument } from "../types/member-document";
 
-interface ProfileData {
+export interface ProfileData {
   name: string;
   subscriptionStart: Timestamp;
   slug: string;
+  hasProfile: boolean;
 }
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
@@ -90,10 +91,12 @@ export const handleClaimProfile = async (
 
   try {
     const { subscriptionStart, ...restOfProfileData } = profileData;
+
     const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
 
     const memberUpdate: Partial<MemberDocument> = {
       ...restOfProfileData,
+      subscriptionStart,
       membershipActive: true,
       membershipExpiresAt,
     };
