@@ -19,7 +19,6 @@
     "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" \"bun run hugo:dev\" --names \"emulators,functions,angular,hugo\""
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.42",
     "@types/bun": "^1.3.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.37.0",
