@@ -9,4 +9,5 @@ export interface MemberDocument {
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   slug?: string;
+  hasProfile?: boolean;
 }
