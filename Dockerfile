@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set versions for our tools as arguments
 ARG HUGO_VERSION=0.151.0
 ARG DART_SASS_VERSION=1.93.2
-ARG BUN_VERSION=v1.3.0
+ARG BUN_VERSION=1.3.0
 
 # 1. Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,12 +29,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
   && apt-get install -y nodejs
 
 # 2. Install Bun
-RUN curl -fsSL "https://github.com/oven-sh/bun/releases/download/${BUN_VERSION}/bun-linux-x64.zip" -o bun.zip \
-  && unzip bun.zip \
-  && mv bun-linux-x64/bun /usr/local/bin/bun \
-  && chmod +x /usr/local/bin/bun \
-  && rm -rf bun.zip bun-linux-x64
-ENV PATH="/usr/local/bin:$PATH"
+RUN curl -fsSL https://bun.com/install | bash -s "bun-v${BUN_VERSION}"
+ENV PATH="/root/.bun/bin:$PATH"
 
 # 3. Install Hugo (Extended Version)
 RUN wget "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb" \
