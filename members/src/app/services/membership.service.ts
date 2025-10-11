@@ -15,6 +15,13 @@ import { AuthService } from './auth.service';
 interface MigratedUserData {
   name: string;
   subscriptionStart: Timestamp;
+  hasProfile?: boolean;
+}
+
+export interface ClaimableMembershipData {
+  name: string;
+  subscriptionStart: Date;
+  hasProfile: boolean;
 }
 
 export interface Member {
@@ -25,6 +32,7 @@ export interface Member {
   subscriptionStart?: Timestamp;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
+  hasProfile?: boolean;
 }
 
 @Injectable({
@@ -52,7 +60,7 @@ export class MembershipService {
 
   async getClaimableProfileData(
     user: User | null | undefined,
-  ): Promise<{ name: string; subscriptionStart: Date } | undefined> {
+  ): Promise<ClaimableMembershipData | undefined> {
     if (user?.email && user.emailVerified) {
       const userDocumentReference = doc(this.firestore, `migrated_users_import/${user.email}`);
       const userDocument = await getDoc(userDocumentReference);
@@ -62,6 +70,7 @@ export class MembershipService {
         return {
           name: data.name,
           subscriptionStart: data.subscriptionStart.toDate(),
+          hasProfile: data.hasProfile ?? false,
         };
       }
     }

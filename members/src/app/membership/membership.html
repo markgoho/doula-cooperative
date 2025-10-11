@@ -5,7 +5,7 @@
   <div class="authenticated-view">
     @if (claimableProfileData(); as profileData) {
       <div class="claim-profile-banner">
-        <h3>Claim Your Doula Profile</h3>
+        <h3>Claim Your Existing Membership</h3>
         <div><strong>Name:</strong> {{ profileData.name }}</div>
 
         <div>
@@ -14,8 +14,13 @@
         </div>
 
         <p>
-          We found an existing doula profile associated with your email address. Claim it now to
-          access your full membership details.
+          @if (profileData.hasProfile) {
+            We found an existing doula profile associated with your email address. Claim it now to
+            access your full membership details and profile management.
+          } @else {
+            We found an existing membership subscription associated with your email address. Claim
+            it now to access your membership details and set up your doula profile.
+          }
         </p>
         <button
           type="button"
@@ -24,9 +29,9 @@
           [disabled]="claimInProgress()"
         >
           @if (claimInProgress()) {
-            Claiming Profile...
+            Claiming Membership...
           } @else {
-            Claim Profile
+            Claim Membership
           }
         </button>
       </div>
@@ -38,7 +43,7 @@
       <!-- User Membership Information -->
       @if (userDocument(); as userDoc) {
         <div class="membership-info-section">
-          <h3>Your Membership Details</h3>
+          <h3>Your Account Details</h3>
           <div class="membership-details">
             @if (userFullName(); as fullName) {
               <div class="detail-item">
