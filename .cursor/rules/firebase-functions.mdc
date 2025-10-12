@@ -5,3 +5,4 @@ alwaysApply: false
 
 - use `import { getFirestore } from "firebase-admin/firestore";` to get access to firestore db
 - try to keep functions idempotent unless they involve setting a timestamp
+- **MUST** use collection constants from `src/constants/collections.ts` instead of hardcoding collection names (e.g., use `MEMBERS_COLLECTION` not `"members"`)
