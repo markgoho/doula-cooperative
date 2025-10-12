@@ -1,33 +1,22 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import firebaseFunctionsTest from "firebase-functions-test";
 import { deleteMemberOnUserDeleted } from "../src";
+import {
+  cleanupTestMembers,
+  getMemberDocument,
+} from "../src/test-utils/firestore-helpers";
+import {
+  initializeTest,
+  MEMBERS_COLLECTION,
+} from "../src/test-utils/test-setup";
 import { type MemberDocument } from "../src/types/member-document";
 
-// Configure Firestore to use emulator (must be set before initializing)
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+const test = initializeTest();
 
-// Initialize in online mode using emulator with dedicated test project ID
-const test = firebaseFunctionsTest(
-  {
-    projectId: "doula-cooperative-test",
-  },
-  "./service-account-key.json", // This can be a dummy path for emulator
-);
-
-const MEMBERS_COLLECTION = "members";
-
-const SETUP_DEFAULTS: SetupOptions = {
-  testUid: "test-user-delete-001",
-  testEmail: "testdelete001@example.com",
-};
-
-interface SetupOptions {
-  testUid: string;
-  testEmail: string;
-}
-
-async function setup({ testUid, testEmail }: SetupOptions = SETUP_DEFAULTS) {
+async function setup({
+  testUid = "test-user-delete-001",
+  testEmail = "testdelete001@example.com",
+} = {}) {
   const wrappedUserDelete = test.wrap(deleteMemberOnUserDeleted);
   const user = test.auth.makeUserRecord({
     uid: testUid,
@@ -63,31 +52,6 @@ async function createTestMemberDocument({
   await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData);
 }
 
-async function getMemberDocument({
-  firestore,
-  uid,
-}: {
-  firestore: ReturnType<typeof getFirestore>;
-  uid: string;
-}) {
-  return firestore.collection(MEMBERS_COLLECTION).doc(uid).get();
-}
-
-async function cleanup() {
-  // Clean up all test data by querying for documents with test prefix
-  const firestore = getFirestore();
-  const testDocuments = await firestore
-    .collection(MEMBERS_COLLECTION)
-    .where("uid", ">=", "test-")
-    .where("uid", "<", "test-\uF8FF")
-    .get();
-
-  const deletePromises = testDocuments.docs.map(document =>
-    document.ref.delete(),
-  );
-  await Promise.all(deletePromises);
-}
-
 describe("deleteMemberOnUserDeleted", () => {
   afterAll(() => {
     test.cleanup();
@@ -107,6 +71,6 @@ describe("deleteMemberOnUserDeleted", () => {
     const afterDeletion = await getMemberDocument({ firestore, uid: testUid });
     expect(afterDeletion.exists).toBe(false);
 
-    await cleanup();
+    await cleanupTestMembers({ firestore });
   });
 });

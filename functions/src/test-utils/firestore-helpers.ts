@@ -1,0 +1,51 @@
+import { getFirestore } from "firebase-admin/firestore";
+import { type MemberDocument } from "../types/member-document";
+
+const MEMBERS_COLLECTION = "members";
+
+/**
+ * Get a member document reference from Firestore
+ */
+export async function getMemberDocument({
+  firestore,
+  uid,
+}: {
+  firestore: ReturnType<typeof getFirestore>;
+  uid: string;
+}) {
+  return firestore.collection(MEMBERS_COLLECTION).doc(uid).get();
+}
+
+/**
+ * Get member document data from Firestore
+ */
+export async function getMemberData({
+  firestore,
+  uid,
+}: {
+  firestore: ReturnType<typeof getFirestore>;
+  uid: string;
+}): Promise<MemberDocument | undefined> {
+  const document = await getMemberDocument({ firestore, uid });
+  return document.data() as MemberDocument | undefined;
+}
+
+/**
+ * Clean up test member documents by prefix
+ */
+export async function cleanupTestMembers({
+  firestore,
+}: {
+  firestore: ReturnType<typeof getFirestore>;
+}) {
+  const testDocuments = await firestore
+    .collection(MEMBERS_COLLECTION)
+    .where("uid", ">=", "test-")
+    .where("uid", "<", "test-\uF8FF")
+    .get();
+
+  const deletePromises = testDocuments.docs.map(document =>
+    document.ref.delete(),
+  );
+  await Promise.all(deletePromises);
+}
