@@ -1,0 +1,159 @@
+---
+globs: functions/test/*.test.ts
+alwaysApply: false
+---
+
+- one assertion per test
+- use setup and cleanup functions
+
+## Setup Function (SIFERS pattern)
+
+- put all setup in the setup
+- this should be the "arrange" of Arrange Act Assert
+- export any variables or functions that need to be used in tests
+
+## Initialization
+
+**For ALL function types** (callable, trigger, HTTP):
+
+```typescript
+import { initializeTest } from "../src/test-utils/test-setup";
+
+const test = initializeTest();
+
+describe("myFunction", () => {
+  afterAll(() => {
+    test.cleanup();
+  });
+  // ... tests
+});
+```
+
+- `initializeTest()` handles both Firebase Admin SDK and firebase-functions-test initialization
+- Always use `test.cleanup()` in `afterAll()`
+- Safe to call multiple times (checks if already initialized)
+- HTTP functions skip `test.wrap()` but still benefit from proper cleanup
+
+## Importing Functions to Test
+
+### For Callable Functions (onCall)
+
+- import from `../src/index.ts` and use `test.wrap()`
+- this tests the lazy-loading layer
+
+Example:
+
+```typescript
+// ✅ CORRECT for callable functions
+import { claimProfile } from "../src";
+
+const test = initializeTest();
+const wrapped = test.wrap(claimProfile);
+```
+
+### For HTTP Functions (onRequest)
+
+- **import from `index.ts`** to test the lazy-loading layer
+- `test.wrap()` does NOT support v2 `onRequest` functions
+- call the function directly with mock request/response objects
+- **use same `initializeTest()` pattern** as callable functions
+- **NO `test.wrap()`** - only direct function calls
+- **DO use `test.cleanup()`** in `afterAll()`
+
+Example:
+
+```typescript
+// ✅ CORRECT for HTTP onRequest functions
+import { contactUsForm } from "../src"; // Import from index.ts to test lazy-loading
+import { initializeTest } from "../src/test-utils/test-setup";
+
+const test = initializeTest();
+
+describe("contactUsForm", () => {
+  afterAll(() => test.cleanup());
+  // ... tests
+});
+```
+
+## Testing HTTP Functions (onRequest)
+
+- **import from `index.ts`** to test the lazy-loading layer
+- create properly-typed mock `request` and `response` objects
+- define `MockResponse` interface in types file for the mock response
+- cast mock to `Response` for function call, return `mockResponse` for assertions
+- invoke the function directly with typed request and response
+- make assertions on the `mockResponse` object properties
+
+Example:
+
+```typescript
+import type { Response } from "express";
+import { contactUsForm } from "../src"; // Import from index.ts to test lazy-loading
+import type {
+  ContactUsFormRequest,
+  MockResponse,
+} from "../src/contact-us-form/types";
+import { initializeTest } from "../src/test-utils/test-setup";
+
+const test = initializeTest();
+
+function setup() {
+  const formData = {
+    /* ... */
+  };
+
+  const request: ContactUsFormRequest = {
+    body: formData,
+  } as ContactUsFormRequest;
+
+  const response: MockResponse = {
+    statusCode: 0,
+    headers: {},
+    body: undefined,
+    set(this: MockResponse, key: string, value: string): MockResponse {
+      this.headers[key] = value;
+      return this;
+    },
+    status(this: MockResponse, code: number): MockResponse {
+      this.statusCode = code;
+      return this;
+    },
+    send(this: MockResponse, body: unknown): MockResponse {
+      this.body = body;
+      return this;
+    },
+  };
+
+  return {
+    formData,
+    request,
+    response: response as unknown as Response,
+    mockResponse: response, // for assertions
+  };
+}
+
+describe("contactUsForm", () => {
+  afterAll(() => test.cleanup());
+
+  it("should return 200", async () => {
+    const { request, response, mockResponse } = setup();
+    await contactUsForm(request, response);
+    expect(mockResponse.statusCode).toBe(200);
+  });
+});
+```
+
+**Key Points:**
+
+- Define `MockResponse` interface in the types file
+- Cast to `Response` for function call, keep `mockResponse` for assertions
+- Use `this` parameter in method signatures for proper typing
+- No eslint disables needed!
+- **All function types:** Use `initializeTest()` and `test.cleanup()`
+- **HTTP functions:** No `test.wrap()`, call handler directly with mock req/res
+- **Callable/trigger functions:** Use `test.wrap()` to wrap the function
+
+## Constants
+
+- collection names and other shared constants should live in `src/constants/`
+- import from `../src/constants` in tests
