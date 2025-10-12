@@ -51,6 +51,111 @@ const test = initializeTest();
 const wrapped = test.wrap(claimProfile);
 ```
 
+### For Firestore Trigger Functions (onDocumentCreated, onDocumentUpdated, etc.)
+
+**Option 1: Using @firebase/rules-unit-testing (for handlers with external dependencies)**
+
+When testing handlers directly that have external dependencies (like email):
+
+- **import handler directly** (not from index.ts)
+- **use `initializeFirestoreTriggerTest()`** from `test-utils/test-setup`
+- **all Firestore operations inside `withSecurityRulesDisabled`** callback
+- set `process.env.FUNCTIONS_EMULATOR = "true"` in `beforeEach` to skip external services
+- **DO NOT** try to return values from `withSecurityRulesDisabled` (it returns `Promise<void>`)
+
+Example:
+
+```typescript
+import { type RulesTestEnvironment } from "@firebase/rules-unit-testing";
+import { beforeAll, afterAll, beforeEach } from "bun:test";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { MESSAGES_COLLECTION } from "../src/constants";
+import { handleDocumentCreated } from "../src/contact-us-form/email-contact-form";
+import { type ContactUsFormDocument } from "../src/contact-us-form/types";
+import {
+  cleanupFirestoreTriggerTest,
+  initializeFirestoreTriggerTest,
+} from "../src/test-utils/test-setup";
+
+let testEnvironment: RulesTestEnvironment;
+
+beforeAll(async () => {
+  testEnvironment = await initializeFirestoreTriggerTest();
+});
+
+afterAll(async () => {
+  await cleanupFirestoreTriggerTest();
+});
+
+function setup({
+  contactName = "Test Contact",
+  email = "test@example.com",
+  message = "Test message",
+} = {}) {
+  return {
+    contactName,
+    email,
+    message,
+    messageId: `test-${Date.now().toString()}`,
+  };
+}
+
+describe("emailContactForm", () => {
+  beforeEach(() => {
+    process.env.FUNCTIONS_EMULATOR = "true"; // Skip external services
+  });
+
+  it("should update sent field to true after processing", async () => {
+    await testEnvironment.withSecurityRulesDisabled(async context => {
+      // Arrange
+      const { contactName, email, message, messageId } = setup();
+      const database = context.firestore();
+      const reference = doc(database, `${MESSAGES_COLLECTION}/${messageId}`);
+
+      await setDoc(reference, {
+        contactName,
+        email,
+        message,
+        submitted: new Date().toISOString(),
+        sent: false,
+      });
+
+      const snapshot = await getDoc(reference);
+
+      const event = {
+        data: snapshot,
+        params: { messageId },
+      };
+
+      // Act
+      await handleDocumentCreated(
+        event as unknown as Parameters<typeof handleDocumentCreated>[0],
+        process.env.MAILGUN_API_KEY,
+      );
+
+      // Assert
+      const updatedDocument = await getDoc(reference);
+      const data = updatedDocument.data() as ContactUsFormDocument;
+      expect(data.sent).toBe(true);
+    });
+  });
+});
+```
+
+**Option 2: Using firebase-functions-test (simpler, for basic triggers)**
+
+- **import from `index.ts`** to test the lazy-loading layer
+- **use `test.wrap()`** to wrap the function
+- create mock snapshots with `test.firestore.makeDocumentSnapshot()`
+
+**Key Points:**
+
+- Use Option 1 when handler has external dependencies (e.g., email, external APIs)
+- Use Option 2 for simpler triggers without external dependencies
+- Set `FUNCTIONS_EMULATOR=true` to avoid calling external services
+- Keep ALL test logic inside `withSecurityRulesDisabled` callback (don't try to return values)
+- Assert on Firestore changes, not external side effects
+
 ### For HTTP Functions (onRequest)
 
 - **import from `index.ts`** to test the lazy-loading layer
