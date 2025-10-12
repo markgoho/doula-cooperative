@@ -1,3 +1,4 @@
+import { getFirestore } from "firebase-admin/firestore";
 import {
   type FirestoreEvent,
   type QueryDocumentSnapshot,
@@ -41,5 +42,7 @@ export async function handleDocumentCreated(
     });
   }
 
-  await snapshot.ref.update({ sent: true });
+  // Use Admin SDK to update the document
+  const firestore = getFirestore();
+  await firestore.doc(snapshot.ref.path).update({ sent: true });
 }
