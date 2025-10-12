@@ -10,7 +10,7 @@ export async function handleDoulaMatchForm(
 ): Promise<void> {
   response.set("Access-Control-Allow-Origin", "*");
   response.set("Access-Control-Allow-Methods", "POST");
-  response.set("Access-control-Allow-Headers", "Content-Type");
+  response.set("Access-Control-Allow-Headers", "Content-Type");
 
   try {
     const firestore = getFirestore();

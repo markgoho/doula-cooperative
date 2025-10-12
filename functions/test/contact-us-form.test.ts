@@ -7,8 +7,8 @@ import {
   type ContactUsForm,
   type ContactUsFormDocument,
   type ContactUsFormRequest,
-  type MockResponse,
 } from "../src/contact-us-form/types";
+import { type MockResponse } from "../src/test-utils/mock-response";
 import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
