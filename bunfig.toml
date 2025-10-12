@@ -1,0 +1,13 @@
+[test]
+# Enable coverage reporting by default
+coverage = true
+
+coverageReporter = ["text"]
+
+# Coverage threshold (optional - uncomment to enforce minimum coverage)
+coverageThreshold = 0.8
+
+# Exclude patterns from coverage (only source code should be included)
+coverageSkipTestFiles = true
+
+
