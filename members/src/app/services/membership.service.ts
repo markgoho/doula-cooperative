@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { User } from '@angular/fire/auth';
+import { Auth, authState, User } from '@angular/fire/auth';
 import {
   doc,
   docData,
@@ -9,8 +9,7 @@ import {
   getDoc,
   Timestamp,
 } from '@angular/fire/firestore';
-import { of, switchMap } from 'rxjs';
-import { AuthService } from './auth.service';
+import { map, of, switchMap } from 'rxjs';
 
 interface MigratedUserData {
   name: string;
@@ -33,6 +32,7 @@ export interface Member {
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   hasProfile?: boolean;
+  slug?: string;
 }
 
 @Injectable({
@@ -40,11 +40,15 @@ export interface Member {
 })
 export class MembershipService {
   private firestore = inject(Firestore);
-  private authService = inject(AuthService);
+  private auth = inject(Auth);
 
-  userId = computed(() => this.authService.user()?.uid ?? 'abcd');
+  // Use authState directly to avoid circular dependency with AuthService
+  private user$ = authState(this.auth);
+  private userId$ = this.user$.pipe(map((user) => user?.uid));
 
-  userDocument$ = this.authService.userId$.pipe(
+  userId = computed(() => this.auth.currentUser?.uid ?? 'abcd');
+
+  userDocument$ = this.userId$.pipe(
     switchMap((userId) => {
       if (userId) {
         const userDocumentReference = doc(
@@ -57,6 +61,10 @@ export class MembershipService {
     }),
   );
   userDocument = toSignal(this.userDocument$);
+
+  // Computed properties for easy access to specific member document fields
+  membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
+  hasProfile = computed(() => this.userDocument()?.hasProfile ?? false);
 
   async getClaimableProfileData(
     user: User | null | undefined,

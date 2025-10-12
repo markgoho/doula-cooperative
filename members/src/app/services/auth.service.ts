@@ -59,7 +59,7 @@ export class AuthService {
   );
 
   constructor() {
-    // Preload profile when user logs in (only once per session)
+    // Preload profile when user logs in (ProfileService will check if they should have a profile)
     this.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
       if (user && !this.profilePreloaded()) {
         this.profilePreloaded.set(true);
@@ -160,8 +160,7 @@ export class AuthService {
 
     const claimProfileCallable = httpsCallable(this.functions, 'claimProfile');
     try {
-      const result = await claimProfileCallable();
-      console.log('Profile claim result:', result.data);
+      await claimProfileCallable();
     } catch (error) {
       console.error('Error calling claimProfile function:', error);
       // Re-throw the error so the component can handle it

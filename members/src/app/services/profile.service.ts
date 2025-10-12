@@ -1,5 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
+import { MembershipService } from './membership.service';
 
 export interface ProfileData {
   title: string;
@@ -21,6 +23,7 @@ export interface ProfileData {
 })
 export class ProfileService {
   private functions = inject(Functions);
+  private membershipService = inject(MembershipService);
   private cachedProfile = signal<ProfileData | undefined>(undefined);
 
   // Public readonly signal for components to subscribe to profile changes
@@ -34,6 +37,24 @@ export class ProfileService {
     }
 
     try {
+      // Check if user has active membership and a profile before attempting to fetch
+      const userDocument = await firstValueFrom(this.membershipService.userDocument$);
+
+      if (!userDocument) {
+        console.info('No user document found - cannot load profile');
+        return undefined;
+      }
+
+      if (!userDocument.membershipActive) {
+        console.info('User does not have active membership - cannot load profile');
+        return undefined;
+      }
+
+      if (!userDocument.hasProfile) {
+        console.info('User does not have a profile yet - cannot load profile');
+        return undefined;
+      }
+
       const result = await this.fetchProfileFromServer();
       const profileData = this.parseProfileContent(result.content);
 
@@ -46,7 +67,16 @@ export class ProfileService {
       this.cachedProfile.set(profileData);
       return profileData;
     } catch (error) {
-      console.error('Error loading profile:', error);
+      // Check if this is a "profile not found" error which is normal for users without profiles
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('Profile not found') ||
+        errorMessage.includes('may need to claim')
+      ) {
+        console.info('Profile not found - user may need to claim their membership');
+      } else {
+        console.error('Error loading profile:', error);
+      }
       return undefined;
     }
   }
@@ -60,7 +90,16 @@ export class ProfileService {
       const { data } = await readProfileCallable();
       return data;
     } catch (error) {
-      console.error('Error calling readProfile function:', error);
+      // Check if this is a "profile not found" error which is normal for users without profiles
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('Profile not found') ||
+        errorMessage.includes('may need to claim')
+      ) {
+        console.info('Profile not found - user may need to claim their membership:', errorMessage);
+      } else {
+        console.error('Error calling readProfile function:', error);
+      }
       // Re-throw the error so the component can handle it
       throw error;
     }
@@ -68,9 +107,36 @@ export class ProfileService {
 
   async preloadProfile(): Promise<ProfileData | undefined> {
     try {
+      // Check if user has active membership and a profile before attempting to fetch
+      const userDocument = await firstValueFrom(this.membershipService.userDocument$);
+
+      if (!userDocument) {
+        console.info('No user document found - skipping profile preload');
+        return undefined;
+      }
+
+      if (!userDocument.membershipActive) {
+        console.info('User does not have active membership - skipping profile preload');
+        return undefined;
+      }
+
+      if (!userDocument.hasProfile) {
+        console.info('User does not have a profile yet - skipping profile preload');
+        return undefined;
+      }
+
       return await this.loadAndParseProfile();
     } catch (error) {
-      console.error('Error preloading profile:', error);
+      // Check if this is a "profile not found" error which is normal for users without profiles
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('Profile not found') ||
+        errorMessage.includes('may need to claim')
+      ) {
+        console.info('Profile not found during preload - user may need to claim their membership');
+      } else {
+        console.error('Error preloading profile:', error);
+      }
       return undefined;
     }
   }

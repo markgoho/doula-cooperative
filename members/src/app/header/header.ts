@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 
 @Component({
   selector: 'app-header',
@@ -11,6 +12,7 @@ import { AuthService } from '../services/auth.service';
 })
 export class Header {
   private authService = inject(AuthService);
+  private membershipService = inject(MembershipService);
 
   protected readonly brandTitle = 'Doula Cooperative';
 
@@ -18,5 +20,9 @@ export class Header {
 
   protected readonly isEmailVerified = computed(() => {
     return this.authService.user()?.emailVerified ?? false;
+  });
+
+  protected readonly canEditProfile = computed(() => {
+    return this.isEmailVerified() && this.membershipService.membershipActive();
   });
 }

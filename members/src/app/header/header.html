@@ -9,7 +9,7 @@
           <a routerLink="/membership" class="navbar__link">Membership</a>
         </li>
       </ul>
-      @if (isEmailVerified()) {
+      @if (canEditProfile()) {
         <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
       }
     }
