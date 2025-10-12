@@ -5,7 +5,8 @@ import {
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
 import Mailgun from "mailgun.js";
-import { MARK_EMAIL, REFERRAL_EMAIL } from "../constants";
+import { MARK_EMAIL, NO_REPLY_EMAIL, REFERRAL_EMAIL } from "../constants";
+import { EMAIL_DOMAIN } from "../constants/email-domain";
 import { type ContactUsFormDocument } from "./types";
 
 export async function handleDocumentCreated(
@@ -28,9 +29,8 @@ export async function handleDocumentCreated(
       username: "api",
       key: apiKey ?? "",
     });
-
-    await mg.messages.create("mg.doulacooperative.com", {
-      from: "Doula Cooperative <noreply@mg.doulacooperative.com>",
+    await mg.messages.create(EMAIL_DOMAIN, {
+      from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,
       to: [MARK_EMAIL, REFERRAL_EMAIL],
       subject: `New Contact Us Form Submission from ${contactName}`,
       html: `
