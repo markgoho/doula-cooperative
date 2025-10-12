@@ -1,6 +1,7 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type auth } from "firebase-functions/v1";
+import { MEMBERS_COLLECTION } from "../constants";
 import { type MemberDocument } from "../types/member-document";
 
 export async function handleUserCreated(user: auth.UserRecord) {
@@ -22,7 +23,7 @@ export async function handleUserCreated(user: auth.UserRecord) {
       membershipActive: false,
     };
 
-    await firestore.collection("members").doc(uid).set(memberData);
+    await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData);
 
     logger.log(`Created member document for user: ${user.uid}`);
   } catch (error: unknown) {

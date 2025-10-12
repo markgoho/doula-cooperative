@@ -2,6 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
+import { MEMBERS_COLLECTION } from "../constants";
 
 export interface UpdateMembershipStatusData {
   userId: string;
@@ -34,7 +35,9 @@ export const handleUpdateMembershipStatus = async (
     data as UpdateMembershipStatusData;
 
   const database = getFirestore();
-  const memberDocumentReference = database.collection("members").doc(userId);
+  const memberDocumentReference = database
+    .collection(MEMBERS_COLLECTION)
+    .doc(userId);
 
   try {
     const updateData: {

@@ -1,14 +1,12 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { deleteMemberOnUserDeleted } from "../src";
+import { MEMBERS_COLLECTION } from "../src/constants";
 import {
   cleanupTestMembers,
   getMemberDocument,
 } from "../src/test-utils/firestore-helpers";
-import {
-  initializeTest,
-  MEMBERS_COLLECTION,
-} from "../src/test-utils/test-setup";
+import { initializeTest } from "../src/test-utils/test-setup";
 import { type MemberDocument } from "../src/types/member-document";
 
 const test = initializeTest();

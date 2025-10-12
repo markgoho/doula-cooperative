@@ -2,6 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { type CallableRequest, HttpsError } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
 import { App } from "octokit";
+import { MEMBERS_COLLECTION } from "../constants";
 import { type MemberDocument } from "../types/member-document";
 
 export async function handleReadProfile(
@@ -20,7 +21,7 @@ export async function handleReadProfile(
 
   // 2. Get the Hugo file path from the members collection
   const database = getFirestore();
-  const memberReference = database.collection("members").doc(uid);
+  const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
   const memberDocument = await memberReference.get();
 
   if (!memberDocument.exists) {

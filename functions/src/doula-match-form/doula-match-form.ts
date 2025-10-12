@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
+import { MATCH_REQUESTS_COLLECTION } from "../constants";
 import { DoulaMatchFormRequest } from "./types";
 
 export async function handleDoulaMatchForm(
@@ -14,7 +15,7 @@ export async function handleDoulaMatchForm(
   try {
     const firestore = getFirestore();
     const today = new Date().toISOString();
-    await firestore.collection("matchRequests").add({
+    await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       ...request.body,
       submitted: today,
     });

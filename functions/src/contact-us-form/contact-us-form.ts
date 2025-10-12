@@ -1,6 +1,7 @@
 import { type Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
+import { MESSAGES_COLLECTION } from "../constants";
 import { type ContactUsFormRequest } from "./types";
 
 export async function handleContactUsForm(
@@ -14,7 +15,7 @@ export async function handleContactUsForm(
   try {
     const firestore = getFirestore();
     const today = new Date().toISOString();
-    await firestore.collection("messages").add({
+    await firestore.collection(MESSAGES_COLLECTION).add({
       ...request.body,
       submitted: today,
       sent: false,

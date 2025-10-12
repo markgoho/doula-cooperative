@@ -2,6 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
+import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../constants";
 import { MemberDocument } from "../types/member-document";
 
 export interface ProfileData {
@@ -69,7 +70,7 @@ export const handleClaimProfile = async (
 
   // 3. Look for a matching document in the import collection.
   const importDocumentReference = database
-    .collection("migrated_users_import")
+    .collection(IMPORT_COLLECTION)
     .doc(email);
   const importDocument = await importDocumentReference.get();
 
@@ -83,7 +84,9 @@ export const handleClaimProfile = async (
   const profileData = importDocument.data() as ProfileData | undefined;
 
   // 4. Create the new profile in the 'members' collection.
-  const memberDocumentReference = database.collection("members").doc(uid);
+  const memberDocumentReference = database
+    .collection(MEMBERS_COLLECTION)
+    .doc(uid);
 
   if (!profileData) {
     throw new HttpsError("not-found", "No profile data found for this user.");

@@ -4,15 +4,13 @@ import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import type { CallableRequest } from "firebase-functions/v2/https";
 import { claimProfile } from "../src";
 import { type ProfileData } from "../src/claim-profile";
+import { IMPORT_COLLECTION } from "../src/constants";
 import {
   cleanupTestMembers,
   getMemberData,
   getMemberDocument,
 } from "../src/test-utils/firestore-helpers";
-import {
-  IMPORT_COLLECTION,
-  initializeTest,
-} from "../src/test-utils/test-setup";
+import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
 
