@@ -33,10 +33,31 @@ export async function handleReadProfile(
   if (!memberData) {
     throw new HttpsError("not-found", "Member document data is empty.");
   }
+
+  // Check if user has an active membership
+  if (!memberData.membershipActive) {
+    throw new HttpsError(
+      "failed-precondition",
+      "User does not have an active membership.",
+    );
+  }
+
+  // Check if user has a profile
+  if (!memberData.hasProfile) {
+    throw new HttpsError(
+      "failed-precondition",
+      "User does not have a profile yet.",
+    );
+  }
+
   const slug = memberData.slug;
 
   if (!slug) {
-    throw new HttpsError("not-found", "No slug found for this user.");
+    // User exists in members collection but doesn't have a slug yet (no GitHub profile)
+    throw new HttpsError(
+      "not-found",
+      "Profile not found. User may need to claim their existing membership first.",
+    );
   }
 
   const filePath = `hugo/content/doulas/${slug}/index.md`;
