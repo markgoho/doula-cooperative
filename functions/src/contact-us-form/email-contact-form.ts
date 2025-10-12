@@ -4,9 +4,9 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
-import Mailgun from "mailgun.js";
+import { MailgunMessageData } from "mailgun.js/definitions";
 import { MARK_EMAIL, NO_REPLY_EMAIL, REFERRAL_EMAIL } from "../constants";
-import { EMAIL_DOMAIN } from "../constants/email-domain";
+import { sendEmail } from "../utils/send-email";
 import { type ContactUsFormDocument } from "./types";
 
 export async function handleDocumentCreated(
@@ -21,25 +21,22 @@ export async function handleDocumentCreated(
   const { contactName, email, message } =
     snapshot.data() as ContactUsFormDocument;
 
-  if (process.env.FUNCTIONS_EMULATOR) {
-    logger.info("Emulator detected, skipping email dispatch.");
-  } else {
-    const mailgun = new Mailgun(FormData);
-    const mg = mailgun.client({
-      username: "api",
-      key: apiKey ?? "",
-    });
-    await mg.messages.create(EMAIL_DOMAIN, {
-      from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,
-      to: [MARK_EMAIL, REFERRAL_EMAIL],
-      subject: `New Contact Us Form Submission from ${contactName}`,
-      html: `
+  const emailMessage: MailgunMessageData = {
+    from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,
+    to: [MARK_EMAIL, REFERRAL_EMAIL],
+    subject: `New Contact Us Form Submission from ${contactName}`,
+    html: `
     <p>Name: ${contactName}</p>
     <p>Email: ${email}</p>
     <p>Message: ${message}</p>
     `,
-      "h:Reply-To": email,
-    });
+    "h:Reply-To": email,
+  };
+
+  if (process.env.FUNCTIONS_EMULATOR) {
+    logger.info("Emulator detected, skipping email dispatch.");
+  } else {
+    await sendEmail(emailMessage, apiKey ?? "");
   }
 
   // Use Admin SDK to update the document

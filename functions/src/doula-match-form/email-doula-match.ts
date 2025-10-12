@@ -1,17 +1,12 @@
+import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
   type FirestoreEvent,
   type QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
-import FormData from "form-data";
-import Mailgun from "mailgun.js";
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import {
-  EMAIL_DOMAIN,
-  MARK_EMAIL,
-  NO_REPLY_EMAIL,
-  REFERRAL_EMAIL,
-} from "../constants";
+import { MARK_EMAIL, NO_REPLY_EMAIL, REFERRAL_EMAIL } from "../constants";
+import { sendEmail } from "../utils/send-email";
 import { type DoulaMatchFormDocument } from "./types";
 
 export async function handleDocumentCreated(
@@ -64,20 +59,12 @@ export async function handleDocumentCreated(
   };
 
   if (process.env.FUNCTIONS_EMULATOR) {
-    logger.info(
-      "Emulator detected, skipping email dispatch. Would have sent:",
-      {
-        emailMessage,
-      },
-    );
+    logger.info("Emulator detected, skipping email dispatch.");
   } else {
-    const mailgun = new Mailgun(FormData);
-    const mg = mailgun.client({
-      username: "api",
-      key: apiKey ?? "",
-    });
-    await mg.messages.create(EMAIL_DOMAIN, emailMessage);
+    await sendEmail(emailMessage, apiKey ?? "");
   }
 
-  await snapshot.ref.update({ sent: true });
+  // Use Admin SDK to update the document
+  const firestore = getFirestore();
+  await firestore.doc(snapshot.ref.path).update({ sent: true });
 }
