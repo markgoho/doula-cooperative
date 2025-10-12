@@ -21,6 +21,7 @@
     "octokit": "^5.0.3"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
     "@types/express": "^4.17.23",
     "express": "^4.21.2",
     "firebase-functions-test": "^3.4.1",
