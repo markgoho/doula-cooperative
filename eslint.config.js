@@ -97,6 +97,10 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // Allow empty mock components in test files
+      "@typescript-eslint/no-extraneous-class": "off",
+    },
   },
   {
     files: ["members/**/*.{ts,tsx}"],
