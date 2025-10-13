@@ -1,8 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { CallableRequest } from "firebase-functions/v2/https";
 import { readProfile } from "../src";
 import { MEMBERS_COLLECTION } from "../src/constants";
+import { createMockCallableRequest } from "../src/test-utils/mock-request";
 import { initializeTest } from "../src/test-utils/test-setup";
 import { type MemberDocument } from "../src/types/member-document";
 
@@ -20,25 +20,6 @@ void mock.module("octokit", () => ({
 }));
 
 const test = initializeTest();
-
-// Helper to create a mock CallableRequest for testing
-function createMockRequest({
-  uid,
-}: {
-  uid?: string;
-} = {}): CallableRequest {
-  return {
-    data: undefined,
-    auth: uid
-      ? {
-          uid,
-          token: {},
-        }
-      : undefined,
-    rawRequest: {} as CallableRequest["rawRequest"],
-    acceptsStreaming: false,
-  } as CallableRequest;
-}
 
 function setup({
   testUid = "test-read-001",
@@ -177,7 +158,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest());
+      await wrappedReadProfile(createMockCallableRequest());
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -194,7 +175,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain("No member document found for this user");
@@ -219,7 +200,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -246,7 +227,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain("User does not have a profile yet");
@@ -269,7 +250,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain("Profile not found");
@@ -294,7 +275,7 @@ describe("readProfile", () => {
 
     // Act
     const result = await wrappedReadProfile(
-      createMockRequest({ uid: testUid }),
+      createMockCallableRequest({ uid: testUid }),
     );
 
     // Assert
@@ -318,7 +299,7 @@ describe("readProfile", () => {
 
     // Act
     const result = await wrappedReadProfile(
-      createMockRequest({ uid: testUid }),
+      createMockCallableRequest({ uid: testUid }),
     );
 
     // Assert
@@ -344,7 +325,7 @@ describe("readProfile", () => {
 
     // Act
     const result = await wrappedReadProfile(
-      createMockRequest({ uid: testUid }),
+      createMockCallableRequest({ uid: testUid }),
     );
 
     // Assert
@@ -367,7 +348,7 @@ describe("readProfile", () => {
     setupGitHubMock();
 
     // Act
-    await wrappedReadProfile(createMockRequest({ uid: testUid }));
+    await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
 
     // Assert
     expect(mockGetContent).toHaveBeenCalledWith(
@@ -393,7 +374,7 @@ describe("readProfile", () => {
     setupGitHubMock({ imageExists: true });
 
     // Act
-    await wrappedReadProfile(createMockRequest({ uid: testUid }));
+    await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
 
     // Assert
     expect(mockGetContent).toHaveBeenCalledWith(
@@ -420,7 +401,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain("Failed to read the file from GitHub");
@@ -445,7 +426,7 @@ describe("readProfile", () => {
 
     // Act
     const result = await wrappedReadProfile(
-      createMockRequest({ uid: testUid }),
+      createMockCallableRequest({ uid: testUid }),
     );
 
     // Assert
@@ -468,7 +449,7 @@ describe("readProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedReadProfile(createMockRequest({ uid: testUid }));
+      await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -497,7 +478,7 @@ describe("readProfile", () => {
 
     // Act
     const result = await wrappedReadProfile(
-      createMockRequest({ uid: testUid }),
+      createMockCallableRequest({ uid: testUid }),
     );
 
     // Assert
@@ -522,7 +503,7 @@ describe("readProfile", () => {
     setupGitHubMock();
 
     // Act
-    await wrappedReadProfile(createMockRequest({ uid: testUid }));
+    await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
 
     // Assert
     expect(mockGetContent).toHaveBeenCalledWith(

@@ -10,3 +10,28 @@ export interface MockResponse {
   status(code: number): MockResponse;
   send(body: unknown): MockResponse;
 }
+
+/**
+ * Create a mock response object for testing HTTP functions
+ */
+export function createMockResponse(): MockResponse {
+  const response: MockResponse = {
+    statusCode: 0,
+    headers: {},
+    body: undefined,
+    set(this: MockResponse, key: string, value: string): MockResponse {
+      this.headers[key] = value;
+      return this;
+    },
+    status(this: MockResponse, code: number): MockResponse {
+      this.statusCode = code;
+      return this;
+    },
+    send(this: MockResponse, body: unknown): MockResponse {
+      this.body = body;
+      return this;
+    },
+  };
+
+  return response;
+}

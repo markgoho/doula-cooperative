@@ -8,7 +8,15 @@ import {
   type ContactUsFormDocument,
   type ContactUsFormRequest,
 } from "../src/contact-us-form/types";
-import { type MockResponse } from "../src/test-utils/mock-response";
+import {
+  cleanupTestDocumentsByEmail,
+  getDocumentByEmail,
+} from "../src/test-utils/firestore-helpers";
+import { createMockResponse } from "../src/test-utils/mock-response";
+import {
+  assertCorsHeaders,
+  assertSuccessStatus,
+} from "../src/test-utils/shared-assertions";
 import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
@@ -30,46 +38,15 @@ function setup({
     body: formData,
   } as ContactUsFormRequest;
 
-  const response: MockResponse = {
-    statusCode: 0,
-    headers: {},
-    body: undefined,
-    set(this: MockResponse, key: string, value: string): MockResponse {
-      this.headers[key] = value;
-      return this;
-    },
-    status(this: MockResponse, code: number): MockResponse {
-      this.statusCode = code;
-      return this;
-    },
-    send(this: MockResponse, body: unknown): MockResponse {
-      this.body = body;
-      return this;
-    },
-  };
+  const mockResponse = createMockResponse();
 
   return {
     formData,
     firestore,
     request,
-    response: response as unknown as Response,
-    mockResponse: response,
+    response: mockResponse as unknown as Response,
+    mockResponse,
   };
-}
-
-async function getMessageDocument({
-  firestore,
-  email,
-}: {
-  firestore: ReturnType<typeof getFirestore>;
-  email: string;
-}) {
-  const messages = await firestore
-    .collection(MESSAGES_COLLECTION)
-    .where("email", "==", email)
-    .get();
-
-  return messages.docs[0];
 }
 
 async function cleanupContactUsForm({
@@ -77,16 +54,11 @@ async function cleanupContactUsForm({
 }: {
   firestore: ReturnType<typeof getFirestore>;
 }) {
-  const testMessages = await firestore
-    .collection(MESSAGES_COLLECTION)
-    .where("email", ">=", "testcontact")
-    .where("email", "<", "testcontact\uF8FF")
-    .get();
-
-  const deletePromises = testMessages.docs.map(document =>
-    document.ref.delete(),
-  );
-  await Promise.all(deletePromises);
+  await cleanupTestDocumentsByEmail({
+    firestore,
+    collection: MESSAGES_COLLECTION,
+    emailPrefix: "testcontact",
+  });
 }
 
 describe("contactUsForm", () => {
@@ -102,8 +74,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     expect(messageDocument.exists).toBe(true);
@@ -121,8 +94,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -140,8 +114,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: testEmail,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -161,8 +136,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -179,8 +155,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -197,8 +174,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -215,8 +193,9 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    const messageDocument = await getMessageDocument({
+    const messageDocument = await getDocumentByEmail({
       firestore,
+      collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
     const data = messageDocument.data() as ContactUsFormDocument;
@@ -233,12 +212,12 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    expect(mockResponse.statusCode).toBe(200);
+    assertSuccessStatus(mockResponse);
 
     await cleanupContactUsForm({ firestore });
   });
 
-  it("should set Access-Control-Allow-Origin header", async () => {
+  it("should set CORS headers correctly", async () => {
     // Arrange
     const { firestore, request, response, mockResponse } = setup();
 
@@ -246,35 +225,7 @@ describe("contactUsForm", () => {
     await contactUsForm(request, response);
 
     // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Origin"]).toBe("*");
-
-    await cleanupContactUsForm({ firestore });
-  });
-
-  it("should set Access-Control-Allow-Methods header", async () => {
-    // Arrange
-    const { firestore, request, response, mockResponse } = setup();
-
-    // Act
-    await contactUsForm(request, response);
-
-    // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Methods"]).toBe("POST");
-
-    await cleanupContactUsForm({ firestore });
-  });
-
-  it("should set Access-Control-Allow-Headers header", async () => {
-    // Arrange
-    const { firestore, request, response, mockResponse } = setup();
-
-    // Act
-    await contactUsForm(request, response);
-
-    // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Headers"]).toBe(
-      "Content-Type",
-    );
+    assertCorsHeaders(mockResponse);
 
     await cleanupContactUsForm({ firestore });
   });

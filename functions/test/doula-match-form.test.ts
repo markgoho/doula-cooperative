@@ -8,7 +8,15 @@ import {
   type DoulaMatchFormDocument,
   type DoulaMatchFormRequest,
 } from "../src/doula-match-form/types";
-import { type MockResponse } from "../src/test-utils/mock-response";
+import {
+  cleanupTestDocumentsByEmail,
+  getDocumentByEmail,
+} from "../src/test-utils/firestore-helpers";
+import { createMockResponse } from "../src/test-utils/mock-response";
+import {
+  assertCorsHeaders,
+  assertSuccessStatus,
+} from "../src/test-utils/shared-assertions";
 import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
@@ -42,46 +50,15 @@ function setup({
     body: formData,
   } as DoulaMatchFormRequest;
 
-  const response: MockResponse = {
-    statusCode: 0,
-    headers: {},
-    body: undefined,
-    set(this: MockResponse, key: string, value: string): MockResponse {
-      this.headers[key] = value;
-      return this;
-    },
-    status(this: MockResponse, code: number): MockResponse {
-      this.statusCode = code;
-      return this;
-    },
-    send(this: MockResponse, body: unknown): MockResponse {
-      this.body = body;
-      return this;
-    },
-  };
+  const mockResponse = createMockResponse();
 
   return {
     formData,
     firestore,
     request,
-    response: response as unknown as Response,
-    mockResponse: response,
+    response: mockResponse as unknown as Response,
+    mockResponse,
   };
-}
-
-async function getMatchRequestDocument({
-  firestore,
-  email,
-}: {
-  firestore: ReturnType<typeof getFirestore>;
-  email: string;
-}) {
-  const matchRequests = await firestore
-    .collection(MATCH_REQUESTS_COLLECTION)
-    .where("email", "==", email)
-    .get();
-
-  return matchRequests.docs[0];
 }
 
 async function cleanupDoulaMatchForm({
@@ -89,16 +66,11 @@ async function cleanupDoulaMatchForm({
 }: {
   firestore: ReturnType<typeof getFirestore>;
 }) {
-  const testMatchRequests = await firestore
-    .collection(MATCH_REQUESTS_COLLECTION)
-    .where("email", ">=", "testmatch")
-    .where("email", "<", "testmatch\uF8FF")
-    .get();
-
-  const deletePromises = testMatchRequests.docs.map(document =>
-    document.ref.delete(),
-  );
-  await Promise.all(deletePromises);
+  await cleanupTestDocumentsByEmail({
+    firestore,
+    collection: MATCH_REQUESTS_COLLECTION,
+    emailPrefix: "testmatch",
+  });
 }
 
 describe("doulaMatchForm", () => {
@@ -114,8 +86,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     expect(matchRequestDocument.exists).toBe(true);
@@ -133,8 +106,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -154,8 +128,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -173,8 +148,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: testEmail,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -194,8 +170,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -215,8 +192,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -236,8 +214,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -257,8 +236,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -278,8 +258,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -299,8 +280,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -317,8 +299,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -335,8 +318,9 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    const matchRequestDocument = await getMatchRequestDocument({
+    const matchRequestDocument = await getDocumentByEmail({
       firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
@@ -353,12 +337,12 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    expect(mockResponse.statusCode).toBe(200);
+    assertSuccessStatus(mockResponse);
 
     await cleanupDoulaMatchForm({ firestore });
   });
 
-  it("should set Access-Control-Allow-Origin header", async () => {
+  it("should set CORS headers correctly", async () => {
     // Arrange
     const { firestore, request, response, mockResponse } = setup();
 
@@ -366,35 +350,7 @@ describe("doulaMatchForm", () => {
     await doulaMatchForm(request, response);
 
     // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Origin"]).toBe("*");
-
-    await cleanupDoulaMatchForm({ firestore });
-  });
-
-  it("should set Access-Control-Allow-Methods header", async () => {
-    // Arrange
-    const { firestore, request, response, mockResponse } = setup();
-
-    // Act
-    await doulaMatchForm(request, response);
-
-    // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Methods"]).toBe("POST");
-
-    await cleanupDoulaMatchForm({ firestore });
-  });
-
-  it("should set Access-Control-Allow-Headers header", async () => {
-    // Arrange
-    const { firestore, request, response, mockResponse } = setup();
-
-    // Act
-    await doulaMatchForm(request, response);
-
-    // Assert
-    expect(mockResponse.headers["Access-Control-Allow-Headers"]).toBe(
-      "Content-Type",
-    );
+    assertCorsHeaders(mockResponse);
 
     await cleanupDoulaMatchForm({ firestore });
   });

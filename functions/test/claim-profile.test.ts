@@ -1,7 +1,6 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { CallableRequest } from "firebase-functions/v2/https";
 import { claimProfile } from "../src";
 import { type ProfileData } from "../src/claim-profile";
 import { IMPORT_COLLECTION } from "../src/constants";
@@ -10,37 +9,10 @@ import {
   getMemberData,
   getMemberDocument,
 } from "../src/test-utils/firestore-helpers";
+import { createMockCallableRequest } from "../src/test-utils/mock-request";
 import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
-
-// Helper to create a mock CallableRequest for testing
-function createMockRequest({
-  data,
-  uid,
-  email,
-  emailVerified = true,
-}: {
-  data?: unknown;
-  uid?: string;
-  email?: string;
-  emailVerified?: boolean;
-} = {}): CallableRequest {
-  return {
-    data,
-    auth: uid
-      ? {
-          uid,
-          token: {
-            email,
-            email_verified: emailVerified,
-          },
-        }
-      : undefined,
-    rawRequest: {} as CallableRequest["rawRequest"],
-    acceptsStreaming: false,
-  } as CallableRequest;
-}
 
 function setup({
   testUid = "test-claim-001",
@@ -132,7 +104,7 @@ describe("claimProfile", () => {
 
     // Act & Assert
     try {
-      await wrappedClaimProfile(createMockRequest());
+      await wrappedClaimProfile(createMockCallableRequest());
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -152,7 +124,7 @@ describe("claimProfile", () => {
     // Act & Assert
     try {
       await wrappedClaimProfile(
-        createMockRequest({
+        createMockCallableRequest({
           uid: testUid,
           email: testEmail,
           emailVerified: false,
@@ -176,7 +148,7 @@ describe("claimProfile", () => {
 
     // Act
     const result = await wrappedClaimProfile(
-      createMockRequest({ uid: testUid, email: testEmail }),
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
     );
 
     // Assert
@@ -193,7 +165,7 @@ describe("claimProfile", () => {
 
     // Act
     const result = await wrappedClaimProfile(
-      createMockRequest({ uid: testUid, email: testEmail }),
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
     );
 
     // Assert
@@ -210,7 +182,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -232,7 +204,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -259,7 +231,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -287,7 +259,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -315,7 +287,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -339,7 +311,7 @@ describe("claimProfile", () => {
 
     // Act
     await wrappedClaimProfile(
-      createMockRequest({
+      createMockCallableRequest({
         data: undefined,
         uid: testUid,
         email: testEmail,
@@ -364,7 +336,7 @@ describe("claimProfile", () => {
 
     // Act
     const result = await wrappedClaimProfile(
-      createMockRequest({ uid: testUid, email: testEmail }),
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
     );
 
     // Assert
@@ -384,7 +356,7 @@ describe("claimProfile", () => {
 
     // Act
     const result = await wrappedClaimProfile(
-      createMockRequest({ uid: testUid, email: testEmail }),
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
     );
 
     // Assert
@@ -404,7 +376,7 @@ describe("claimProfile", () => {
 
     // Act
     const result = await wrappedClaimProfile(
-      createMockRequest({ uid: testUid, email: testEmail }),
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
     );
 
     // Assert
