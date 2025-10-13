@@ -3,17 +3,37 @@ globs: members/**/*.spec.ts
 alwaysApply: false
 ---
 
+## How to Run Tests
+
+Run tests from the `members` directory:
+
+```bash
+# Run all tests
+bun run test
+
+# Run a specific test file
+bun run test --include src/app/header/header.spec.ts
+```
+
 ## Testing Principles
 
 - test user behavior, not implementation details
 - follow Arrange-Act-Assert pattern
+- don't test that service methods were called with specific arguments - that's implementation detail
+- instead, test the user-visible outcome (e.g., no error message appears, loading state changes)
+- it's acceptable to ignore the `use undefined` lint rule in tests if this matches what the component expects (mock services should match the component's expectations, not enforce stricter types)
+- DO NOT import `test-providers.ts` - this happens automatically via the Angular test configuration and should not be done in individual unit tests
 
 ## Setup Function
 
-- create a `setup()` function with an options parameter to control the "Arrange" phase
-- provide sensible defaults in the options parameter so tests don't need to pass options when using default behavior
+- create a `setup()` function with destructured parameters in the function signature to control the "Arrange" phase
+- provide sensible defaults directly in the destructured parameters so tests don't need to pass options when using default behavior
 - setup should ONLY handle "Arrange" - never include user actions (Act) in setup
-- return mocked services and other test utilities from setup
+- return `user` and other test utilities from setup
+- only return mocked services if tests need to assert on them (avoid in integration tests)
+- use behavior-based options (e.g., `shouldSucceed`, `errorMessage`) rather than exposing mock implementation functions
+- never expose implementation details like `signInImplementation` functions - describe WHAT should happen, not HOW
+- only include properties in mock services that the component actually uses (don't add unused properties)
 
 ## User Events
 
@@ -32,3 +52,40 @@ alwaysApply: false
 
 - use minimal mock components with clear, testable content
 - follow same component patterns as real components (ChangeDetection.OnPush, etc.)
+
+## Form Testing
+
+- test validation by simulating actual user interaction (typing, tabbing, clicking)
+- remember: validation errors only appear when fields are both invalid AND touched
+- don't try to click disabled buttons - that's not real user behavior
+- test button enabled/disabled states based on form validity
+
+## Unit Tests vs Integration Tests
+
+**Unit Tests (`*.spec.ts`)** test component behavior in isolation:
+
+- UI states and rendering (loading, error, success states)
+- Form validation and user interactions
+- Service method calls and their effects on the UI
+- Edge cases and error handling
+- All detailed component behavior
+
+**Integration Tests (`*.integration.spec.ts`)** test routing flows ONLY:
+
+- Which page does the user land on after success?
+- Which page does the user land on after failure?
+- NO testing of intermediate states, error messages, or service calls
+- NO testing of form validation or UI details
+- Keep integration tests minimal - typically 2-3 tests per flow (success/failure paths)
+
+### Integration Test Guidelines
+
+- use `provideRouter()` with `withComponentInputBinding()` to enable query parameter binding to component inputs
+- create mock components for each route in the flow with minimal, identifiable content
+- setup function should accept semantic parameters (e.g., `mode`, `oobCode`) rather than raw URLs
+- build routes internally in the setup function using `URLSearchParams` to hide implementation details
+- use behavior-based options (e.g., `shouldSucceed`, `errorMessage`) to control mock behavior, not implementation functions
+- destructure parameters in the function signature with defaults
+- tests should ONLY assert on navigation outcomes - which page content is visible
+- avoid asserting on service method calls, error messages, or intermediate states
+- use `await router.navigateByUrl()` followed by `fixture.detectChanges()` to trigger initial navigation
