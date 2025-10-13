@@ -31,9 +31,7 @@ export class AuthActions {
 
   // Reset password form (used when mode === 'resetPassword')
   resetForm = this.fb.group({
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     password: ['', [Validators.required, Validators.minLength(6)]],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     confirmPassword: ['', [Validators.required]],
   });
 

@@ -28,11 +28,8 @@ export class SignUp {
 
   signUpForm = this.fb.group(
     {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       email: ['', [Validators.required, Validators.email]],
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       password: ['', [Validators.required, Validators.minLength(6)]],
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       confirmPassword: ['', [Validators.required]],
     },
     {
@@ -44,7 +41,7 @@ export class SignUp {
           confirmPassword.setErrors({ mismatch: true });
           return { mismatch: true };
         }
-        // eslint-disable-next-line
+        // eslint-disable-next-line unicorn/no-null
         return null as ValidationErrors | null;
       },
     },

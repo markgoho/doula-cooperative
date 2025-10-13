@@ -12,8 +12,7 @@ export default defineConfig([
       "build/**",
       ".firebase/**",
       ".angular/**",
-      "members/.angular/**",
-      "members/dist/**",
+      "members/**",
       "firebase-debug.log",
       "firestore-debug.log",
       "functions/lib/**",
@@ -86,30 +85,6 @@ export default defineConfig([
     rules: {
       // Disable TypeScript-specific rules for JS files
       ...tseslint.configs.disableTypeChecked.rules,
-    },
-  },
-  // Separate config for members directory (Angular project)
-  {
-    files: ["members/**/*.spec.ts"],
-    languageOptions: {
-      parserOptions: {
-        project: "members/tsconfig.spec.json",
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: {
-      // Allow empty mock components in test files
-      "@typescript-eslint/no-extraneous-class": "off",
-    },
-  },
-  {
-    files: ["members/**/*.{ts,tsx}"],
-    ignores: ["members/**/*.spec.ts", "members/.angular/**"],
-    languageOptions: {
-      parserOptions: {
-        project: "members/tsconfig.app.json",
-        tsconfigRootDir: import.meta.dirname,
-      },
     },
   },
 ]);
