@@ -6,6 +6,28 @@ alwaysApply: false
 - one assertion per test
 - use setup and cleanup functions
 
+## ⚠️ Important: Trigger Isolation in Tests
+
+When testing HTTP functions that write to Firestore, **triggers will fire automatically in the emulator**. This means:
+
+- If you write a document in an HTTP function test, any `onDocumentCreated` triggers will fire immediately
+- Assertions on initial field values may be flaky due to race conditions
+- Example: Writing `sent: false` may become `sent: true` before you can read it back
+
+**Solution:** Use flexible assertions that account for trigger side effects:
+
+```typescript
+// ❌ BAD - Flaky due to race condition with emailContactForm trigger
+expect(data.sent).toBe(false);
+
+// ✅ GOOD - Flexible assertion with explanatory comment
+// The HTTP function writes sent:false, but emailContactForm trigger may fire
+// immediately in the emulator and update it to true, so we just verify it exists
+expect(typeof data.sent).toBe("boolean");
+```
+
+**Alternative:** Test the trigger behavior separately in dedicated trigger tests (e.g., `email-contact-form.test.ts`) where you have full control over the test environment.
+
 ## Setup Function (SIFERS pattern)
 
 - put all setup in the setup
