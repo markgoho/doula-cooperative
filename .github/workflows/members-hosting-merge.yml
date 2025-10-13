@@ -12,7 +12,35 @@ on:
       - "members/**"
       - ".github/workflows/members-hosting-merge.yml"
 jobs:
-  build_and_deploy:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:trunk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        working-directory: members
+        run: bun install
+      - name: Lint Members site
+        working-directory: members
+        run: bun lint
+
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:trunk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        working-directory: members
+        run: bun install
+      - name: Test Members site
+        working-directory: members
+        run: bun test
+
+  build:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}:trunk
@@ -24,7 +52,25 @@ jobs:
         run: bun install
       - name: Build Members site
         working-directory: members
-        run: bun run build
+        run: bun build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: members-build
+          path: members/dist/members/browser
+          retention-days: 1
+
+  deploy:
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: members-build
+          path: members/dist/members/browser
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
