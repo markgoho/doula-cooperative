@@ -194,10 +194,9 @@ Example:
 ```typescript
 import type { Response } from "express";
 import { contactUsForm } from "../src"; // Import from index.ts to test lazy-loading
-import type {
-  ContactUsFormRequest,
-  MockResponse,
-} from "../src/contact-us-form/types";
+import type { ContactUsFormRequest } from "../src/contact-us-form/types";
+import { createMockResponse } from "../src/test-utils/mock-response";
+import { assertSuccessStatus } from "../src/test-utils/shared-assertions";
 import { initializeTest } from "../src/test-utils/test-setup";
 
 const test = initializeTest();
@@ -211,29 +210,13 @@ function setup() {
     body: formData,
   } as ContactUsFormRequest;
 
-  const response: MockResponse = {
-    statusCode: 0,
-    headers: {},
-    body: undefined,
-    set(this: MockResponse, key: string, value: string): MockResponse {
-      this.headers[key] = value;
-      return this;
-    },
-    status(this: MockResponse, code: number): MockResponse {
-      this.statusCode = code;
-      return this;
-    },
-    send(this: MockResponse, body: unknown): MockResponse {
-      this.body = body;
-      return this;
-    },
-  };
+  const mockResponse = createMockResponse();
 
   return {
     formData,
     request,
-    response: response as unknown as Response,
-    mockResponse: response, // for assertions
+    response: mockResponse as unknown as Response,
+    mockResponse, // for assertions
   };
 }
 
@@ -243,7 +226,7 @@ describe("contactUsForm", () => {
   it("should return 200", async () => {
     const { request, response, mockResponse } = setup();
     await contactUsForm(request, response);
-    expect(mockResponse.statusCode).toBe(200);
+    assertSuccessStatus(mockResponse);
   });
 });
 ```
@@ -257,6 +240,82 @@ describe("contactUsForm", () => {
 - **All function types:** Use `initializeTest()` and `test.cleanup()`
 - **HTTP functions:** No `test.wrap()`, call handler directly with mock req/res
 - **Callable/trigger functions:** Use `test.wrap()` to wrap the function
+
+## Shared Test Utilities
+
+### Mock Request Factory
+
+Use `createMockCallableRequest()` for callable function tests:
+
+```typescript
+import { createMockCallableRequest } from "../src/test-utils/mock-request";
+
+// In tests
+const request = createMockCallableRequest({
+  data: undefined,
+  uid: "test-uid",
+  email: "test@example.com",
+  emailVerified: true,
+});
+```
+
+### Mock Response Factory
+
+Use `createMockResponse()` for HTTP function tests:
+
+```typescript
+import { createMockResponse } from "../src/test-utils/mock-response";
+
+// In setup function
+const mockResponse = createMockResponse();
+
+return {
+  response: mockResponse as unknown as Response,
+  mockResponse, // for assertions
+};
+```
+
+### Firestore Test Helpers
+
+Use shared helpers for common Firestore test operations:
+
+```typescript
+import {
+  cleanupTestDocumentsByEmail,
+  getDocumentByEmail,
+} from "../src/test-utils/firestore-helpers";
+
+// Get document by email
+const document = await getDocumentByEmail({
+  firestore,
+  collection: MESSAGES_COLLECTION,
+  email: "test@example.com",
+});
+
+// Clean up test documents by email prefix
+await cleanupTestDocumentsByEmail({
+  firestore,
+  collection: MESSAGES_COLLECTION,
+  emailPrefix: "testcontact",
+});
+```
+
+### Shared Assertions
+
+Use shared assertion helpers for common test patterns:
+
+```typescript
+import {
+  assertCorsHeaders,
+  assertSuccessStatus,
+} from "../src/test-utils/shared-assertions";
+
+// Assert HTTP status
+assertSuccessStatus(mockResponse);
+
+// Assert CORS headers (consolidates 3 assertions)
+assertCorsHeaders(mockResponse);
+```
 
 ## Constants
 
