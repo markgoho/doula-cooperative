@@ -1,0 +1,34 @@
+---
+globs: members/**/*.spec.ts
+alwaysApply: false
+---
+
+## Testing Principles
+
+- test user behavior, not implementation details
+- follow Arrange-Act-Assert pattern
+
+## Setup Function
+
+- create a `setup()` function with an options parameter to control the "Arrange" phase
+- provide sensible defaults in the options parameter so tests don't need to pass options when using default behavior
+- setup should ONLY handle "Arrange" - never include user actions (Act) in setup
+- return mocked services and other test utilities from setup
+
+## User Events
+
+- `const user = userEvent.setup()` should be created inside the setup function and returned
+- use `user` variable name consistently
+- destructure `user` from setup in each test
+
+## Routing
+
+- avoid testing routing in component tests - this is integration testing, not unit testing
+- if a component navigates, that's an implementation detail - don't test it
+- test user behavior and UI state changes, not navigation calls
+- routing should be tested in integration/e2e tests, not component specs
+
+## Mock Components
+
+- use minimal mock components with clear, testable content
+- follow same component patterns as real components (ChangeDetection.OnPush, etc.)
