@@ -79,17 +79,6 @@ export const claimProfile = onCall({ invoker: "public" }, async request => {
   return handleClaimProfile(request.data, request);
 });
 
-export const updateMembershipStatus = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleUpdateMembershipStatus } = await import(
-      "./update-membership-status/index.js"
-    );
-
-    return handleUpdateMembershipStatus(request.data, request);
-  },
-);
-
 export const readProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
   async request => {
