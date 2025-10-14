@@ -62,9 +62,11 @@ interface SetupOptions {
   isMembershipActive?: boolean;
 }
 
-async function setup(options: SetupOptions = {}) {
-  const { isAuthenticated = false, isEmailVerified = false, isMembershipActive = false } = options;
-
+async function setup({
+  isAuthenticated = false,
+  isEmailVerified = false,
+  isMembershipActive = false,
+}: SetupOptions = {}) {
   // eslint-disable-next-line unicorn/no-null
   const mockUser = isAuthenticated ? { emailVerified: isEmailVerified } : null;
 
