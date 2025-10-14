@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ProfileService } from '../services/profile.service';
 
 @Component({
-  imports: [],
   templateUrl: './edit-profile.html',
   styleUrl: './edit-profile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
