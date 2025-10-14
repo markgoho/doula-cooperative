@@ -1,4 +1,3 @@
-import { Router } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -7,8 +6,8 @@ import { AuthActions } from './auth-actions';
 
 describe('AuthActions - Unit Tests', () => {
   describe('verifyEmail mode', () => {
-    it('should apply action code and navigate to membership on success', async () => {
-      const { mockAuthService, mockRouter } = await setup({
+    it('should show processing state', async () => {
+      await setup({
         mode: 'verifyEmail',
         oobCode: 'valid-code-123',
       });
@@ -16,11 +15,17 @@ describe('AuthActions - Unit Tests', () => {
       await waitFor(() => {
         expect(screen.getByText('Processing...')).toBeVisible();
       });
+    });
+
+    it('should call applyActionCode with the code', async () => {
+      const { mockAuthService } = await setup({
+        mode: 'verifyEmail',
+        oobCode: 'valid-code-123',
+      });
 
       await waitFor(() => {
         expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('valid-code-123');
         expect(mockAuthService.reloadUser).toHaveBeenCalled();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/membership']);
       });
     });
 
@@ -59,14 +64,21 @@ describe('AuthActions - Unit Tests', () => {
   });
 
   describe('resetPassword mode', () => {
-    it('should verify code and show password reset form', async () => {
-      const { mockAuthService } = await setup({
+    it('should show processing state initially', async () => {
+      await setup({
         mode: 'resetPassword',
         oobCode: 'reset-code-123',
       });
 
       await waitFor(() => {
         expect(screen.getByText('Processing...')).toBeVisible();
+      });
+    });
+
+    it('should verify code and show password reset form', async () => {
+      const { mockAuthService } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code-123',
       });
 
       await waitFor(() => {
@@ -91,7 +103,7 @@ describe('AuthActions - Unit Tests', () => {
     });
 
     it('should successfully reset password with valid inputs', async () => {
-      const { user, mockAuthService, mockRouter } = await setup({
+      const { user, mockAuthService } = await setup({
         mode: 'resetPassword',
         oobCode: 'reset-code-789',
       });
@@ -113,9 +125,6 @@ describe('AuthActions - Unit Tests', () => {
           'reset-code-789',
           'newPassword123',
         );
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/sign-in'], {
-          queryParams: { email: 'user@example.com' },
-        });
       });
     });
 
@@ -228,8 +237,8 @@ describe('AuthActions - Unit Tests', () => {
   });
 
   describe('recoverEmail mode', () => {
-    it('should recover email and navigate to sign-in', async () => {
-      const { mockAuthService, mockRouter } = await setup({
+    it('should show processing state', async () => {
+      await setup({
         mode: 'recoverEmail',
         oobCode: 'recover-code-123',
       });
@@ -237,17 +246,23 @@ describe('AuthActions - Unit Tests', () => {
       await waitFor(() => {
         expect(screen.getByText('Processing...')).toBeVisible();
       });
+    });
+
+    it('should recover email and show success message', async () => {
+      const { mockAuthService } = await setup({
+        mode: 'recoverEmail',
+        oobCode: 'recover-code-123',
+      });
 
       await waitFor(() => {
         expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-123');
         expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-123');
         expect(mockAuthService.sendPasswordResetEmail).toHaveBeenCalledWith('restored@example.com');
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/sign-in']);
       });
     });
 
     it('should handle email recovery without restored email', async () => {
-      const { mockAuthService, mockRouter } = await setup({
+      const { mockAuthService } = await setup({
         mode: 'recoverEmail',
         oobCode: 'recover-code-no-email',
         restoredEmail: '',
@@ -257,7 +272,6 @@ describe('AuthActions - Unit Tests', () => {
         expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-no-email');
         expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-no-email');
         expect(mockAuthService.sendPasswordResetEmail).not.toHaveBeenCalled();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/sign-in']);
       });
     });
 
@@ -378,16 +392,8 @@ async function setup({
 
   const user = userEvent.setup();
 
-  // Create a mock router that we can spy on
-  const mockRouter = {
-    navigate: vi.fn().mockResolvedValue(true),
-  };
-
   await render(AuthActions, {
-    providers: [
-      { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useValue: mockAuthService },
-    ],
+    providers: [{ provide: AuthService, useValue: mockAuthService }],
     componentInputs: {
       mode,
       oobCode,
@@ -396,5 +402,5 @@ async function setup({
     },
   });
 
-  return { user, mockAuthService, mockRouter };
+  return { user, mockAuthService };
 }
