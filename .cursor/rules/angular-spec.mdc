@@ -19,6 +19,11 @@ bun run test --include src/app/header/header.spec.ts
 
 - test user behavior, not implementation details
 - follow Arrange-Act-Assert pattern
+- **CRITICAL**: Each test should have ONE logical assertion - if testing multiple things, split into separate tests
+  - Exception: When asserting multiple attributes of the same element (e.g., `href`, `target`, `rel` on a link), these can be grouped as they're testing one concept
+  - Exception: When asserting visibility AND content together (e.g., element is visible and has correct text)
+  - Bad: Testing both "shows error message" AND "button is disabled" in one test
+  - Good: Separate tests for each behavior
 - don't test that service methods were called with specific arguments - that's implementation detail
 - instead, test the user-visible outcome (e.g., no error message appears, loading state changes)
 - it's acceptable to ignore the `use undefined` lint rule in tests if this matches what the component expects (mock services should match the component's expectations, not enforce stricter types)
@@ -26,7 +31,17 @@ bun run test --include src/app/header/header.spec.ts
 
 ## Setup Function
 
-- create a `setup()` function with destructured parameters in the function signature to control the "Arrange" phase
+- **CRITICAL**: The setup function MUST destructure parameters directly in the function signature with defaults, like this:
+  ```typescript
+  async function setup({
+    isAuthenticated = false,
+    userEmail = "test@example.com",
+    shouldSucceed = true,
+  }: SetupOptions = {}) {
+    // implementation
+  }
+  ```
+- **NEVER** destructure inside the function body - always in the signature
 - provide sensible defaults directly in the destructured parameters so tests don't need to pass options when using default behavior
 - setup should ONLY handle "Arrange" - never include user actions (Act) in setup
 - return `user` and other test utilities from setup
