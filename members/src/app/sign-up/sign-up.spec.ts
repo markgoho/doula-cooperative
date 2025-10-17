@@ -15,6 +15,34 @@ describe('SignUp', () => {
     expect(screen.getByLabelText('Email Address')).toBeVisible();
   });
 
+  it('should prefill email when email query parameter is provided', async () => {
+    await setup({ email: 'prefilled@example.com' });
+    const emailInput = screen.getByLabelText<HTMLInputElement>('Email Address');
+    expect(emailInput.value).toBe('prefilled@example.com');
+  });
+
+  it('should make email field readonly when email is prefilled', async () => {
+    await setup({ email: 'prefilled@example.com' });
+    const emailInput = screen.getByLabelText<HTMLInputElement>('Email Address');
+    expect(emailInput).toHaveAttribute('readonly');
+  });
+
+  it('should show info message when email is prefilled', async () => {
+    await setup({ email: 'prefilled@example.com' });
+    expect(screen.getByText('This email was provided by your invitation')).toBeVisible();
+  });
+
+  it('should not make email field readonly when email is not prefilled', async () => {
+    await setup();
+    const emailInput = screen.getByLabelText<HTMLInputElement>('Email Address');
+    expect(emailInput).not.toHaveAttribute('readonly');
+  });
+
+  it('should not show info message when email is not prefilled', async () => {
+    await setup();
+    expect(screen.queryByText('This email was provided by your invitation')).not.toBeInTheDocument();
+  });
+
   it('should render password input', async () => {
     await setup();
     expect(screen.getByLabelText('Password')).toBeVisible();
@@ -217,12 +245,11 @@ describe('SignUp', () => {
 interface SetupOptions {
   signUpResponse?: Promise<void>;
   signUpError?: Error;
+  email?: string;
 }
 
 async function setup(options: SetupOptions = {}) {
-  const { signUpResponse, signUpError } = options;
-
-  const user = userEvent.setup();
+  const { signUpResponse, signUpError, email } = options;
 
   const mockAuthService = {
     signUpWithEmail: signUpError
@@ -232,7 +259,10 @@ async function setup(options: SetupOptions = {}) {
 
   await render(SignUp, {
     providers: [{ provide: AuthService, useValue: mockAuthService }],
+    componentInputs: email ? { email } : undefined,
   });
+
+  const user = userEvent.setup();
 
   return { user, mockAuthService };
 }

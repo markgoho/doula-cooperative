@@ -382,6 +382,12 @@ fieldset {
   &:focus-visible {
     outline: 3px solid var(--brown-400);
   }
+
+  &[readonly] {
+    background-color: var(--brown-100);
+    color: var(--brown-450);
+    cursor: not-allowed;
+  }
 }
 
 /* Checkbox and radio inputs */
@@ -411,6 +417,13 @@ fieldset {
 .form__error-message {
   color: var(--color-error, #d93025);
   font-size: var(--step--1);
+}
+
+/* Info messages */
+.form__info-message {
+  color: var(--teal-500);
+  font-size: var(--step--1);
+  font-style: italic;
 }
 
 /* Validation styles */

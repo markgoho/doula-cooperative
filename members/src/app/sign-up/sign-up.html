@@ -11,14 +11,20 @@
       formControlName="email"
       placeholder="Enter your email"
       class="form__input"
-      [class.error]="email?.invalid && email?.touched"
+      [class.error]="emailControl?.invalid && emailControl?.touched"
+      [readonly]="emailReadonly()"
     />
-    @if (email?.invalid && email?.touched) {
+    @if (emailReadonly()) {
+      <div class="form__info-message">
+        <span>This email was provided by your invitation</span>
+      </div>
+    }
+    @if (emailControl?.invalid && emailControl?.touched) {
       <div class="form__error-message">
-        @if (email?.errors?.['required']) {
+        @if (emailControl?.errors?.['required']) {
           <span>Email is required</span>
         }
-        @if (email?.errors?.['email']) {
+        @if (emailControl?.errors?.['email']) {
           <span>Please enter a valid email address</span>
         }
       </div>
@@ -34,14 +40,14 @@
       formControlName="password"
       placeholder="Create a password"
       class="form__input"
-      [class.error]="password?.invalid && password?.touched"
+      [class.error]="passwordControl?.invalid && passwordControl?.touched"
     />
-    @if (password?.invalid && password?.touched) {
+    @if (passwordControl?.invalid && passwordControl?.touched) {
       <div class="form__error-message">
-        @if (password?.errors?.['required']) {
+        @if (passwordControl?.errors?.['required']) {
           <span>Password is required</span>
         }
-        @if (password?.errors?.['minlength']) {
+        @if (passwordControl?.errors?.['minlength']) {
           <span>Password must be at least 6 characters</span>
         }
       </div>
@@ -57,14 +63,14 @@
       formControlName="confirmPassword"
       placeholder="Confirm your password"
       class="form__input"
-      [class.error]="confirmPassword?.invalid && confirmPassword?.touched"
+      [class.error]="confirmPasswordControl?.invalid && confirmPasswordControl?.touched"
     />
-    @if (confirmPassword?.invalid && confirmPassword?.touched) {
+    @if (confirmPasswordControl?.invalid && confirmPasswordControl?.touched) {
       <div class="form__error-message">
-        @if (confirmPassword?.errors?.['required']) {
+        @if (confirmPasswordControl?.errors?.['required']) {
           <span>Please confirm your password</span>
         }
-        @if (confirmPassword?.errors?.['mismatch']) {
+        @if (confirmPasswordControl?.errors?.['mismatch']) {
           <span>Passwords do not match</span>
         }
       </div>

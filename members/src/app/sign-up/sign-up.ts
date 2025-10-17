@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -26,6 +26,9 @@ export class SignUp {
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
+  // Query parameter input for email prefill
+  email = input<string>();
+
   signUpForm = this.fb.group(
     {
       email: ['', [Validators.required, Validators.email]],
@@ -49,6 +52,18 @@ export class SignUp {
 
   loading = signal(false);
   errorMessage = signal('');
+  emailReadonly = signal(false);
+
+  constructor() {
+    // Prefill email when query parameter is provided
+    effect(() => {
+      const emailParameter = this.email();
+      if (emailParameter) {
+        this.signUpForm.patchValue({ email: emailParameter });
+        this.emailReadonly.set(true);
+      }
+    });
+  }
 
   async onSubmit() {
     if (this.signUpForm.valid) {
@@ -81,13 +96,13 @@ export class SignUp {
     }
   }
 
-  get email() {
+  get emailControl() {
     return this.signUpForm.get('email');
   }
-  get password() {
+  get passwordControl() {
     return this.signUpForm.get('password');
   }
-  get confirmPassword() {
+  get confirmPasswordControl() {
     return this.signUpForm.get('confirmPassword');
   }
 }
