@@ -9,6 +9,7 @@ import {
   ERROR_IDS,
   MEMBERS_COLLECTION,
   NO_REPLY_EMAIL,
+  PROCESSED_STRIPE_EVENTS_COLLECTION,
   REFERRAL_EMAIL,
 } from "../constants";
 import { MemberDocument } from "../types/member-document";
@@ -66,7 +67,7 @@ async function sendWelcomeEmail(
       <p>Click the link below to access your member portal and create your password:</p>
       <p><a href="${resetLink}">${resetLink}</a></p>
 
-      <p>This link will expire in 24 hours. If you need a new link, you can request one from the sign-in page.</p>
+      <p>This link will expire in 1 hour. If you need a new link, you can request one from the sign-in page.</p>
 
       <p>Once you've set your password, you'll be able to:</p>
       <ul>
@@ -148,6 +149,36 @@ export async function handler(request: Request, response: Response) {
     return;
   }
 
+  // Check for duplicate webhook events (idempotency)
+  const database = getFirestore();
+  const processedEventDocument = await database
+    .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
+    .doc(event.id)
+    .get();
+
+  if (processedEventDocument.exists) {
+    const data = processedEventDocument.data();
+    const processedAt = data?.processedAt as Timestamp | undefined;
+    logger.info(`Event ${event.id} already processed, skipping`, {
+      eventId: event.id,
+      eventType: event.type,
+      processedAt: processedAt?.toDate().toISOString(),
+    });
+    response.json({ received: true, duplicate: true });
+    return;
+  }
+
+  // Mark event as being processed (prevents concurrent processing)
+  await database
+    .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
+    .doc(event.id)
+    .set({
+      eventId: event.id,
+      eventType: event.type,
+      processedAt: Timestamp.now(),
+      received: true,
+    });
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
@@ -167,7 +198,6 @@ export async function handler(request: Request, response: Response) {
     logger.info(`Processing membership for: ${customerEmail}`);
 
     const auth = getAuth();
-    const database = getFirestore();
 
     let userRecord: UserRecord | undefined;
     let isNewUser = false;
@@ -305,12 +335,33 @@ export async function handler(request: Request, response: Response) {
     }
 
     // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)
+    let emailSent = false;
     if (isNewUser) {
       if (mailgunApiKey) {
         try {
           await sendWelcomeEmail(customerEmail, userRecord.uid, mailgunApiKey);
+          emailSent = true;
+
+          // Update member document with email success status
+          await database
+            .collection(MEMBERS_COLLECTION)
+            .doc(userRecord.uid)
+            .set(
+              {
+                welcomeEmailStatus: "sent",
+                welcomeEmailSentAt: Timestamp.now(),
+              },
+              { merge: true }
+            );
+
+          logger.info("Welcome email sent successfully", {
+            uid: userRecord.uid,
+            email: customerEmail,
+          });
         } catch (error) {
           // Email failure should not fail the entire webhook
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
           logger.error("Email failed but account is active", {
             error,
             errorId: ERROR_IDS.STRIPE_WEBHOOK_EMAIL_FAILED,
@@ -319,6 +370,26 @@ export async function handler(request: Request, response: Response) {
             memberDocCreated: true,
             actionRequired: "Manually resend welcome email",
           });
+
+          // Store failure status in member document for recovery
+          try {
+            await database
+              .collection(MEMBERS_COLLECTION)
+              .doc(userRecord.uid)
+              .set(
+                {
+                  welcomeEmailStatus: "failed",
+                  welcomeEmailError: errorMessage,
+                },
+                { merge: true }
+              );
+          } catch (firestoreError) {
+            // Log but don't fail if we can't update the email status
+            logger.error("Failed to update email failure status in Firestore", {
+              error: firestoreError,
+              uid: userRecord.uid,
+            });
+          }
           // Continue - account was created successfully, email can be resent manually
         }
       } else if (process.env.FUNCTIONS_EMULATOR) {
@@ -331,11 +402,29 @@ export async function handler(request: Request, response: Response) {
           uid: userRecord.uid,
           email: customerEmail,
         });
-        // Don't fail the webhook, but log the configuration error
+
+        // Store pending status for manual follow-up
+        try {
+          await database
+            .collection(MEMBERS_COLLECTION)
+            .doc(userRecord.uid)
+            .set(
+              {
+                welcomeEmailStatus: "pending",
+                welcomeEmailError: "MAILGUN_API_KEY not configured",
+              },
+              { merge: true }
+            );
+        } catch (firestoreError) {
+          logger.error("Failed to update pending email status", {
+            error: firestoreError,
+            uid: userRecord.uid,
+          });
+        }
       }
     }
 
-    response.json({ received: true, userId: userRecord.uid });
+    response.json({ received: true, userId: userRecord.uid, emailSent });
   } else {
     logger.warn(`Unhandled event type: ${event.type}`, {
       errorId: ERROR_IDS.STRIPE_WEBHOOK_UNHANDLED_EVENT,

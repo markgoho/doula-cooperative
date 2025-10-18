@@ -38,6 +38,9 @@ export interface MemberDocument {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
+  welcomeEmailStatus?: "sent" | "failed" | "pending";
+  welcomeEmailSentAt?: Timestamp;
+  welcomeEmailError?: string;
 }
 
 /**

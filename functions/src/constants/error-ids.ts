@@ -27,6 +27,13 @@ export const ERROR_IDS = {
   LEGACY_ACTIVATION_INVALID_DATA: "legacy_activation_invalid_data",
   LEGACY_ACTIVATION_FIRESTORE_FAILED: "legacy_activation_firestore_failed",
   LEGACY_ACTIVATION_SYSTEMIC_FAILURE: "legacy_activation_systemic_failure",
+
+  // Mailgun-specific errors
+  MAILGUN_AUTH_FAILED: "mailgun_auth_failed",
+  MAILGUN_DOMAIN_NOT_CONFIGURED: "mailgun_domain_not_configured",
+  MAILGUN_RATE_LIMITED: "mailgun_rate_limited",
+  MAILGUN_INVALID_RECIPIENT: "mailgun_invalid_recipient",
+  MAILGUN_NETWORK_ERROR: "mailgun_network_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

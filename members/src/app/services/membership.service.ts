@@ -23,7 +23,13 @@ export interface ClaimableMembershipData {
   hasProfile: boolean;
 }
 
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'incomplete';
+export type SubscriptionStatus =
+  | 'active'
+  | 'past_due'
+  | 'canceled'
+  | 'incomplete'
+  | 'trialing'
+  | 'unpaid';
 
 export interface Member {
   createdAt: Timestamp;

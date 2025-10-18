@@ -103,9 +103,11 @@ All operations logged via `firebase-functions/v2/logger`:
 
 Welcome email includes:
 - Greeting with membership activation confirmation
-- Password reset link (expires in 24 hours)
+- Password reset link (expires in 1 hour - Firebase Auth default)
 - List of member benefits
 - Contact information for support
+
+**Note:** Password reset link expiration is controlled by Firebase Auth settings and defaults to 1 hour.
 
 ## Future Enhancements
 

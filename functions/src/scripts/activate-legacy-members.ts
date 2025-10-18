@@ -28,6 +28,12 @@ interface MigratedUserData {
   email?: string;
 }
 
+interface FailureRecord {
+  email: string;
+  reason: 'invalid_data' | 'firestore_error';
+  error?: unknown;
+}
+
 export async function activateLegacyMembers(): Promise<void> {
   const database = getFirestore();
 
@@ -45,8 +51,7 @@ export async function activateLegacyMembers(): Promise<void> {
   logger.info(`Found ${String(snapshot.size)} legacy member(s) to activate.`);
 
   let successCount = 0;
-  let errorCount = 0;
-  let invalidDataCount = 0;
+  const failures: FailureRecord[] = [];
 
   for (const document of snapshot.docs) {
     const email = document.id;
@@ -59,7 +64,7 @@ export async function activateLegacyMembers(): Promise<void> {
         email,
         hasSubscriptionStart: !!data.subscriptionStart,
       });
-      invalidDataCount++;
+      failures.push({ email, reason: 'invalid_data' });
       continue;
     }
 
@@ -82,22 +87,44 @@ export async function activateLegacyMembers(): Promise<void> {
         errorId: ERROR_IDS.LEGACY_ACTIVATION_FIRESTORE_FAILED,
         email,
       });
+      failures.push({ email, reason: 'firestore_error', error });
 
-      // Check if this is a systemic error
-      if (errorCount > 5 && successCount === 0) {
+      // Check if this is a systemic error (many consecutive failures)
+      if (failures.length > 5 && successCount === 0) {
         logger.error("Multiple consecutive failures - aborting script", {
           errorId: ERROR_IDS.LEGACY_ACTIVATION_SYSTEMIC_FAILURE,
-          errorCount,
+          failureCount: failures.length,
           successCount,
+          failedEmails: failures.map(f => f.email),
         });
-        throw new Error("Script aborted due to systemic failures");
+        throw new Error(
+          `Script aborted due to systemic failures. ${failures.length} members failed, 0 succeeded. Failed emails: ${failures.map(f => f.email).join(', ')}`
+        );
       }
-
-      errorCount++;
     }
   }
 
+  // Report results
+  const totalProcessed = successCount + failures.length;
+  const invalidDataCount = failures.filter(f => f.reason === 'invalid_data').length;
+  const firestoreErrorCount = failures.filter(f => f.reason === 'firestore_error').length;
+
   logger.info(
-    `Legacy member activation complete. Success: ${String(successCount)}, Errors: ${String(errorCount)}, Invalid Data: ${String(invalidDataCount)}`,
+    `Legacy member activation complete. Success: ${String(successCount)}/${String(totalProcessed)}, Invalid Data: ${String(invalidDataCount)}, Firestore Errors: ${String(firestoreErrorCount)}`,
   );
+
+  // If there were any failures, throw an error with details
+  if (failures.length > 0) {
+    const failedEmails = failures.map(f => f.email).join(', ');
+    logger.error("Script completed with failures", {
+      errorId: ERROR_IDS.LEGACY_ACTIVATION_FIRESTORE_FAILED,
+      failureCount: failures.length,
+      successCount,
+      failedEmails,
+      failures: failures.map(f => ({ email: f.email, reason: f.reason })),
+    });
+    throw new Error(
+      `Failed to activate ${failures.length} member(s): ${failedEmails}. Please review logs and retry failed members manually.`
+    );
+  }
 }

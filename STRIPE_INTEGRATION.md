@@ -21,7 +21,7 @@ The system now supports a payment-first membership flow where users pay via Stri
 - `functions/src/index.ts` - Added stripeWebhook export
 - `functions/src/types/member-document.ts` - Added Stripe fields (stripeCustomerId, stripeSubscriptionId, subscriptionStatus)
 - `members/src/app/services/membership.service.ts` - Updated Member interface with Stripe fields
-- `hugo/content/join-the-doula-cooperative.md` - Added membership benefits and payment link placeholder
+- `hugo/layouts/join-cooperative/single.html` - Integrated Stripe Pricing Table widget
 - `functions/package.json` - Added stripe dependency
 
 ## Setup Instructions
@@ -35,39 +35,33 @@ cd functions
 npm install stripe  # Already completed
 ```
 
-### 2. Create Stripe Product and Payment Link
+### 2. Stripe Pricing Table Configuration
 
+The Hugo site uses a **Stripe Pricing Table** widget (not a payment link) that is already integrated in `hugo/layouts/join-cooperative/single.html`.
+
+**Current Implementation:**
+```html
+<stripe-pricing-table
+  pricing-table-id="prctbl_1SJdC0JnElCHrlM6MYmo3xVd"
+  publishable-key="pk_live_51SJca8JnElCHrlM6AUzlWNeJHh05jb3j0YqdeNR73AHgFruGmeA3BALuAnRAO1ccbo7DYqH474X4wGjnp6HsGUf600VWHGFDjS">
+</stripe-pricing-table>
+```
+
+**To Update Pricing Table (if needed):**
 1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Go to **Products** → **Add Product**
-3. Create a new product:
-   - **Name:** Doula Membership
-   - **Description:** Annual membership in the Rochester Doula Cooperative
-   - **Price:** $100.00 USD
-   - **Billing period:** Yearly (recurring)
-4. After creating the product, click **Create payment link**
-5. Configure the payment link:
+2. Go to **Products** → Select your product → **Pricing tables**
+3. Create or edit a pricing table with your membership product
+4. Configure settings:
    - Enable **Collect customer email** (required for account creation)
-   - Optionally add customer name field
-   - Set success URL: `https://doulacooperative.com/join-success` (or similar)
+   - Enable **Collect customer name** (optional but recommended)
+   - Set success URL: `https://doulacooperative.com/join-success`
    - Set cancel URL: `https://doulacooperative.com/join-the-doula-cooperative`
-6. Copy the payment link URL (format: `https://buy.stripe.com/xxxxx`)
+5. Copy the `pricing-table-id` and `publishable-key`
+6. Update the widget in `hugo/layouts/join-cooperative/single.html`
 
-### 3. Update Hugo Join Page
+**Note:** Stripe Pricing Tables provide a better UX than payment links, allowing customers to see pricing details inline without leaving your site.
 
-Replace the TODO placeholder in `hugo/content/join-the-doula-cooperative.md`:
-
-```markdown
-<!-- TODO: Replace with your actual Stripe Payment Link -->
-[Join the Cooperative](https://buy.stripe.com/YOUR_PAYMENT_LINK_HERE)
-```
-
-With your actual Stripe payment link:
-
-```markdown
-[Join the Cooperative](https://buy.stripe.com/xxxxx)
-```
-
-### 4. Deploy Firebase Function
+### 3. Deploy Firebase Function
 
 Deploy the new stripeWebhook function:
 
@@ -79,7 +73,7 @@ firebase deploy --only functions:stripeWebhook
 
 After deployment, note the function URL from the output (e.g., `https://us-central1-your-project.cloudfunctions.net/stripeWebhook`)
 
-### 5. Configure Stripe Secrets
+### 4. Configure Stripe Secrets
 
 Set the required secrets in Firebase:
 
@@ -90,7 +84,7 @@ firebase functions:secrets:set STRIPE_API_KEY
 # You'll be prompted to enter the value - paste your sk_live_... or sk_test_... key
 ```
 
-### 6. Configure Stripe Webhook
+### 5. Configure Stripe Webhook
 
 1. In Stripe Dashboard, go to **Developers** → **Webhooks**
 2. Click **Add endpoint**
@@ -108,23 +102,24 @@ firebase functions:secrets:set STRIPE_API_KEY
    # Paste the whsec_... value when prompted
    ```
 
-### 7. Test the Integration
+### 6. Test the Integration
 
 #### Using Stripe Test Mode
 
 1. Switch Stripe to **Test mode** (toggle in dashboard)
-2. Use a test payment link (will start with `https://buy.stripe.com/test_...`)
-3. Complete a test purchase using a [test card](https://stripe.com/docs/testing):
+2. Create a test pricing table in Stripe Dashboard
+3. Update the Hugo template with test pricing table ID and test publishable key
+4. Complete a test purchase using a [test card](https://stripe.com/docs/testing):
    - Card number: `4242 4242 4242 4242`
    - Expiry: Any future date
    - CVC: Any 3 digits
-4. Check Firebase Functions logs for webhook processing:
+5. Check Firebase Functions logs for webhook processing:
    ```bash
    firebase functions:log --only stripeWebhook
    ```
-5. Verify the user was created in Firebase Auth
-6. Check that member document was created in Firestore `members` collection
-7. Confirm welcome email was sent (check logs or your email)
+6. Verify the user was created in Firebase Auth
+7. Check that member document was created in Firestore `members` collection
+8. Confirm welcome email was sent (check logs or your email)
 
 #### Using Stripe CLI for Local Testing
 
@@ -141,7 +136,7 @@ stripe listen --forward-to http://localhost:5001/your-project/us-central1/stripe
 stripe trigger checkout.session.completed
 ```
 
-### 8. Activate Legacy Members (One-time)
+### 7. Activate Legacy Members (One-time)
 
 If you have existing members in the `migrated_users_import` collection who should be grandfathered in:
 
@@ -160,27 +155,27 @@ This script will:
 - Set `membershipActive: true` for each
 - Calculate and set `membershipExpiresAt` based on their `subscriptionStart` date
 
-### 9. Go Live
+### 8. Go Live
 
 Once testing is complete:
 
 1. Switch Stripe to **Live mode**
-2. Update Hugo join page with **live** payment link
+2. Update Hugo template with **live** pricing table ID and live publishable key
 3. Ensure `STRIPE_API_KEY` is set to your live key (`sk_live_...`)
 4. Update webhook endpoint to use live mode
-5. Deploy Hugo site with updated payment link:
+5. Deploy Hugo site:
    ```bash
    cd hugo
    hugo
-   # Deploy public/ directory to Firebase Hosting
+   firebase deploy --only hosting:main-site
    ```
 
 ## How It Works
 
 ### User Flow
 
-1. **Payment:** User visits `doulacooperative.com/join-the-doula-cooperative` and clicks "Join the Cooperative"
-2. **Stripe Checkout:** Redirected to Stripe-hosted checkout page, completes payment
+1. **Payment:** User visits `doulacooperative.com/join-the-doula-cooperative` and views the Stripe Pricing Table
+2. **Stripe Checkout:** Clicks a pricing option, redirected to Stripe-hosted checkout page, completes payment
 3. **Webhook:** Stripe sends `checkout.session.completed` event to Firebase Function
 4. **Account Creation:** Firebase Function:
    - Verifies webhook signature

@@ -534,4 +534,149 @@ describe("stripeWebhook handler", () => {
       restoreEnvironment(originalEnvironment);
     });
   });
+
+  describe("Error handling - Critical paths", () => {
+    it("should return 500 when Firebase Auth user creation fails", async () => {
+      // Arrange
+      const testEmail = `auth-fail-${Date.now()}@example.com`;
+      const { mockRequest, mockResponse, auth, originalEnvironment } = setup({
+        testEmail,
+      });
+
+      // Mock auth.createUser to throw an error
+      const originalCreateUser = auth.createUser.bind(auth);
+      auth.createUser = mock(() => {
+        throw new Error("auth/quota-exceeded");
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      expect(mockResponse.statusCode).toBe(500);
+      expect(mockResponse.body).toBe("Unable to create account");
+
+      // Verify no member document was created
+      try {
+        await auth.getUserByEmail(testEmail);
+        expect.unreachable("User should not have been created");
+      } catch (error: unknown) {
+        // Expected - user doesn't exist
+        expect(error).toBeDefined();
+      }
+
+      // Cleanup
+      auth.createUser = originalCreateUser as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return 500 when Firestore member document creation fails after user created", async () => {
+      // Arrange
+      const testEmail = `doc-fail-${Date.now()}@example.com`;
+      const { mockRequest, mockResponse, auth, firestore, originalEnvironment } = setup({
+        testEmail,
+      });
+
+      // Mock Firestore collection().doc().set() to fail
+      const originalCollection = firestore.collection.bind(firestore);
+      let setCallCount = 0;
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            documentReference.set = mock(() => {
+              setCallCount++;
+              throw new Error("Firestore write timeout");
+            }) as never;
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      expect(mockResponse.statusCode).toBe(500);
+      expect(mockResponse.body).toBe(
+        "Account created but setup incomplete - support will contact you"
+      );
+      expect(setCallCount).toBeGreaterThan(0);
+
+      // Verify auth user WAS created (orphaned)
+      const userRecord = await auth.getUserByEmail(testEmail);
+      expect(userRecord).toBeDefined();
+
+      // Cleanup - delete the orphaned user
+      await auth.deleteUser(userRecord.uid);
+      firestore.collection = originalCollection as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return 500 when member document update fails for existing user", async () => {
+      // Arrange
+      const testEmail = `update-fail-${Date.now()}@example.com`;
+      const { mockRequest, mockResponse, auth, firestore, originalEnvironment } = setup({
+        testEmail,
+      });
+
+      // Create existing user and member document first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+      await firestore
+        .collection(MEMBERS_COLLECTION)
+        .doc(existingUser.uid)
+        .set({
+          uid: existingUser.uid,
+          email: testEmail,
+          membershipActive: false,
+          createdAt: Timestamp.now(),
+        });
+
+      // Mock Firestore set to fail on update
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            if (documentId === existingUser.uid) {
+              documentReference.set = mock(() => {
+                throw new Error("Firestore permission denied");
+              }) as never;
+            }
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      expect(mockResponse.statusCode).toBe(500);
+      expect(mockResponse.body).toBe("Unable to update membership");
+
+      // Verify member document was NOT updated (still inactive)
+      const memberData = await getMemberData({
+        firestore: originalCollection("members") as never,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.membershipActive).toBe(false);
+      expect(memberData?.stripeCustomerId).toBeUndefined();
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+      await cleanupTestMembers({ firestore: originalCollection("members") as never });
+      firestore.collection = originalCollection as never;
+      restoreEnvironment(originalEnvironment);
+    });
+  });
 });
