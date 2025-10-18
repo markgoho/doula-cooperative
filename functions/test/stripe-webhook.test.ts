@@ -164,7 +164,7 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(500);
-      expect(mockResponse.body).toBe("Server configuration error");
+      expect(mockResponse.body).toBe("Stripe integration not configured");
 
       restoreEnvironment(originalEnvironment);
     });

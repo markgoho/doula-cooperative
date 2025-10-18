@@ -1,4 +1,4 @@
-import { getAuth } from "firebase-admin/auth";
+import { getAuth, type UserRecord } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import type { Response } from "express";
 import { logger } from "firebase-functions/v2";
@@ -6,45 +6,21 @@ import type { Request } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
 import Stripe from "stripe";
 import {
+  ERROR_IDS,
   MEMBERS_COLLECTION,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants";
 import { MemberDocument } from "../types/member-document";
 import { sendEmail } from "../utils/send-email";
-
-function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
-  const startDate = subscriptionStart.toDate();
-  const monthIndex = startDate.getMonth(); // 0-11
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  let expirationYear = currentYear;
-
-  // If the renewal month has already passed this year, or we are in the renewal month,
-  // the next renewal is next year.
-  if (
-    currentMonth > monthIndex ||
-    (currentMonth === monthIndex && now.getDate() > 1)
-  ) {
-    expirationYear += 1;
-  }
-
-  // Set the expiration to the last day of the subscription month in the expiration year.
-  const expirationDate = new Date(expirationYear, monthIndex + 1, 0);
-  return Timestamp.fromDate(expirationDate);
-}
+import { calculateExpirationDate } from "../utils/membership-dates";
 
 function generateSecurePassword(): string {
-  // Generate a secure random password (20 characters)
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
   const length = 20;
   let password = "";
 
-  // Use crypto for secure random generation
   const array = new Uint32Array(length);
   crypto.getRandomValues(array);
 
@@ -62,10 +38,20 @@ async function sendWelcomeEmail(
 ): Promise<void> {
   const auth = getAuth();
 
-  // Generate password reset link
-  const resetLink = await auth.generatePasswordResetLink(email, {
-    url: "https://members.doulacooperative.com/membership",
-  });
+  let resetLink: string;
+  try {
+    resetLink = await auth.generatePasswordResetLink(email, {
+      url: "https://members.doulacooperative.com/membership",
+    });
+  } catch (error) {
+    logger.error("Failed to generate password reset link", {
+      error,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_PASSWORD_RESET_LINK_FAILED,
+      uid,
+      email,
+    });
+    throw new Error(`Failed to generate password reset link for ${email}`);
+  }
 
   const emailMessage: MailgunMessageData = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
@@ -102,8 +88,18 @@ async function sendWelcomeEmail(
     logger.info(`Would have sent welcome email to: ${email}`);
     logger.info(`Password reset link: ${resetLink}`);
   } else {
-    await sendEmail(emailMessage, mailgunApiKey);
-    logger.info(`Welcome email sent to: ${email}`);
+    try {
+      await sendEmail(emailMessage, mailgunApiKey);
+      logger.info(`Welcome email sent to: ${email}`);
+    } catch (error) {
+      logger.error("Failed to send welcome email via Mailgun", {
+        error,
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_EMAIL_FAILED,
+        uid,
+        email,
+      });
+      throw new Error(`Failed to send welcome email to ${email}`);
+    }
   }
 }
 
@@ -113,8 +109,12 @@ export async function handler(request: Request, response: Response) {
   const mailgunApiKey = process.env.MAILGUN_API_KEY;
 
   if (!stripeApiKey || !webhookSecret) {
-    logger.error("Missing required Stripe secrets");
-    response.status(500).send("Server configuration error");
+    logger.error("Missing required Stripe secrets", {
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_MISSING_SECRETS,
+      hasApiKey: !!stripeApiKey,
+      hasWebhookSecret: !!webhookSecret,
+    });
+    response.status(500).send("Stripe integration not configured");
     return;
   }
 
@@ -122,7 +122,9 @@ export async function handler(request: Request, response: Response) {
   const sig = request.headers["stripe-signature"];
 
   if (!sig) {
-    logger.error("Missing stripe-signature header");
+    logger.error("Missing stripe-signature header", {
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_MISSING_SIGNATURE,
+    });
     response.status(400).send("Missing signature");
     return;
   }
@@ -130,19 +132,22 @@ export async function handler(request: Request, response: Response) {
   let event: Stripe.Event;
 
   try {
-    // Verify webhook signature
     event = stripe.webhooks.constructEvent(
       request.rawBody,
       sig,
       webhookSecret,
     );
   } catch (error: unknown) {
-    logger.error("Webhook signature verification failed:", error);
+    logger.error("Webhook signature verification failed", {
+      error,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_INVALID_SIGNATURE,
+      hasSignature: !!sig,
+      signatureLength: sig.length,
+    });
     response.status(400).send("Webhook signature verification failed");
     return;
   }
 
-  // Handle checkout.session.completed event
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
@@ -151,7 +156,10 @@ export async function handler(request: Request, response: Response) {
     const subscriptionId = session.subscription as string;
 
     if (!customerEmail) {
-      logger.error("No customer email in checkout session");
+      logger.error("No customer email in checkout session", {
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_MISSING_EMAIL,
+        customerId,
+      });
       response.status(400).send("Missing customer email");
       return;
     }
@@ -161,36 +169,39 @@ export async function handler(request: Request, response: Response) {
     const auth = getAuth();
     const database = getFirestore();
 
+    let userRecord: UserRecord | undefined;
+    let isNewUser = false;
+
+    // Step 1: Look up or create user
     try {
-      // Check if user already exists
-      let userRecord;
+      userRecord = await auth.getUserByEmail(customerEmail);
+      logger.info(`User already exists: ${customerEmail} (${userRecord.uid})`);
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "auth/user-not-found"
+      ) {
+        // Expected case - user doesn't exist yet
+        isNewUser = true;
+        logger.info(`User not found, will create new user for: ${customerEmail}`);
+      } else {
+        // Unexpected error during lookup
+        logger.error("Failed to look up user in Firebase Auth", {
+          error,
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED,
+          customerEmail,
+          customerId,
+        });
+        response.status(500).send("Unable to verify account status");
+        return;
+      }
+    }
+
+    // Step 2: Create user if needed
+    if (isNewUser) {
       try {
-        userRecord = await auth.getUserByEmail(customerEmail);
-        logger.info(`User already exists: ${customerEmail} (${userRecord.uid})`);
-
-        // Update existing member document with Stripe data
-        const memberDocumentReference = database
-          .collection(MEMBERS_COLLECTION)
-          .doc(userRecord.uid);
-
-        const subscriptionStart = Timestamp.now();
-        const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
-
-        const memberUpdate: Partial<MemberDocument> = {
-          membershipActive: true,
-          subscriptionStart,
-          membershipExpiresAt,
-          stripeCustomerId: customerId,
-          stripeSubscriptionId: subscriptionId,
-          subscriptionStatus: "active",
-        };
-
-        await memberDocumentReference.set(memberUpdate, { merge: true });
-        logger.info(`Updated existing member document for: ${customerEmail}`);
-      } catch {
-        // User doesn't exist, create new user
-        logger.info(`Creating new user for: ${customerEmail}`);
-
         const temporaryPassword = generateSecurePassword();
 
         userRecord = await auth.createUser({
@@ -203,49 +214,133 @@ export async function handler(request: Request, response: Response) {
         });
 
         logger.info(`Created user: ${userRecord.uid}`);
+      } catch (error) {
+        logger.error("Failed to create user in Firebase Auth", {
+          error,
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_USER_CREATE_FAILED,
+          customerEmail,
+          customerId,
+        });
+        response.status(500).send("Unable to create account");
+        return;
+      }
+    }
 
-        // Create member document
-        const subscriptionStart = Timestamp.now();
-        const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
+    if (!userRecord) {
+      logger.error("User record is undefined after lookup/create", {
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+        customerEmail,
+      });
+      response.status(500).send("Internal server error");
+      return;
+    }
 
-        const memberDocument: MemberDocument = {
-          uid: userRecord.uid,
-          email: customerEmail,
-          createdAt: subscriptionStart,
-          membershipActive: true,
-          subscriptionStart,
-          membershipExpiresAt,
-          stripeCustomerId: customerId,
-          stripeSubscriptionId: subscriptionId,
-          subscriptionStatus: "active",
-          ...(session.customer_details?.name && {
-            name: session.customer_details.name,
-          }),
-        };
+    // Step 3: Create or update member document
+    const subscriptionStart = Timestamp.now();
+    const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
 
+    if (isNewUser) {
+      // Create new member document
+      const memberDocument: MemberDocument = {
+        uid: userRecord.uid,
+        email: customerEmail,
+        createdAt: subscriptionStart,
+        membershipActive: true,
+        subscriptionStart,
+        membershipExpiresAt,
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        subscriptionStatus: "active",
+        ...(session.customer_details?.name && {
+          name: session.customer_details.name,
+        }),
+      };
+
+      try {
         await database
           .collection(MEMBERS_COLLECTION)
           .doc(userRecord.uid)
           .set(memberDocument);
-
         logger.info(`Created member document for: ${customerEmail}`);
-
-        // Send welcome email with password reset link
-        if (mailgunApiKey) {
-          await sendWelcomeEmail(customerEmail, userRecord.uid, mailgunApiKey);
-        } else {
-          logger.warn("MAILGUN_API_KEY not configured, skipping welcome email");
-        }
+      } catch (error) {
+        logger.error("Failed to create member document", {
+          error,
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED,
+          uid: userRecord.uid,
+          customerEmail,
+          requiresManualIntervention: true,
+        });
+        response
+          .status(500)
+          .send("Account created but setup incomplete - support will contact you");
+        return;
       }
+    } else {
+      // Update existing member document
+      const memberUpdate: Partial<MemberDocument> = {
+        membershipActive: true,
+        subscriptionStart,
+        membershipExpiresAt,
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        subscriptionStatus: "active",
+      };
 
-      response.json({ received: true, userId: userRecord.uid });
-    } catch (error) {
-      logger.error("Error processing checkout session:", error);
-      response.status(500).send("Internal server error");
+      try {
+        await database
+          .collection(MEMBERS_COLLECTION)
+          .doc(userRecord.uid)
+          .set(memberUpdate, { merge: true });
+        logger.info(`Updated existing member document for: ${customerEmail}`);
+      } catch (error) {
+        logger.error("Failed to update member document", {
+          error,
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED,
+          uid: userRecord.uid,
+          customerEmail,
+        });
+        response.status(500).send("Unable to update membership");
+        return;
+      }
     }
+
+    // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)
+    if (isNewUser) {
+      if (mailgunApiKey) {
+        try {
+          await sendWelcomeEmail(customerEmail, userRecord.uid, mailgunApiKey);
+        } catch (error) {
+          // Email failure should not fail the entire webhook
+          logger.error("Email failed but account is active", {
+            error,
+            errorId: ERROR_IDS.STRIPE_WEBHOOK_EMAIL_FAILED,
+            uid: userRecord.uid,
+            email: customerEmail,
+            memberDocCreated: true,
+            actionRequired: "Manually resend welcome email",
+          });
+          // Continue - account was created successfully, email can be resent manually
+        }
+      } else if (process.env.FUNCTIONS_EMULATOR) {
+        logger.warn(
+          "MAILGUN_API_KEY not configured - emulator mode, skipping email",
+        );
+      } else {
+        logger.error("MAILGUN_API_KEY not configured in production", {
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED,
+          uid: userRecord.uid,
+          email: customerEmail,
+        });
+        // Don't fail the webhook, but log the configuration error
+      }
+    }
+
+    response.json({ received: true, userId: userRecord.uid });
   } else {
-    // Unexpected event type
-    logger.warn(`Unhandled event type: ${event.type}`);
+    logger.warn(`Unhandled event type: ${event.type}`, {
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_UNHANDLED_EVENT,
+      eventType: event.type,
+    });
     response.json({ received: true });
   }
 }
