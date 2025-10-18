@@ -14,7 +14,28 @@ npm run build        # Compile TypeScript to JavaScript
 npm run build:watch  # Compile with watch mode
 ```
 
+### Type Checking
+
+TypeScript type checking is handled separately for source and test files:
+
+```bash
+npm run typecheck        # Type check source files only (src/)
+npm run typecheck:tests  # Type check test files (src/ + test/)
+```
+
+**Why separate type checking for tests?**
+- The default `tsconfig.json` only includes `src/` for production builds
+- Tests use `tsconfig.test.json` which extends the base config and includes both `src/` and `test/`
+- This keeps test files out of production builds while still providing full type checking when needed
+
+**When to run `typecheck:tests`:**
+- After modifying test files
+- Before committing changes that include test updates
+- When debugging type errors in tests that don't appear during `npm run build`
+
 ### Testing
+
+**Unit Tests:**
 Tests use Bun test runner (not Jest/npm). Run tests with:
 ```bash
 bun test                                    # Run all tests
@@ -23,7 +44,23 @@ bun test test/claim-profile.test.ts         # Run specific test file
 
 All test files are in the `test/` directory and use Firebase emulators (Firestore on 127.0.0.1:8080, Auth on 127.0.0.1:9099).
 
+**Stripe Webhook Testing:**
+Use Stripe CLI to test webhook functionality locally:
+```bash
+# Install Stripe CLI: https://stripe.com/docs/stripe-cli
+stripe login
+
+# Forward webhooks to local emulator
+stripe listen --forward-to http://localhost:5001/PROJECT_ID/us-central1/stripeWebhook
+
+# In another terminal, trigger a test event
+stripe trigger checkout.session.completed
+```
+
+For production testing, use Stripe's test mode with test cards (e.g., `4242 4242 4242 4242`).
+
 ### Linting and Local Development
+
 ```bash
 npm run lint    # Run ESLint
 npm run serve   # Build and start Firebase emulators for functions
@@ -45,6 +82,7 @@ All functions are exported from `src/index.ts` with lazy imports using dynamic i
 **HTTP Endpoints (onRequest):**
 - `contactUsForm` - Public endpoint for contact form submissions, writes to `messages` collection
 - `doulaMatchForm` - Public endpoint for doula matching requests, writes to `matchRequests` collection
+- `stripeWebhook` - Webhook endpoint for Stripe payment events, handles automatic account creation after payment
 
 **Callable Functions (onCall):**
 - `claimProfile` - Authenticated function to claim pre-imported profile from `import` collection
@@ -60,8 +98,11 @@ All functions are exported from `src/index.ts` with lazy imports using dynamic i
 
 ### Key Collections
 
-- `members` - Primary user collection, keyed by Firebase Auth UID. Contains membership status, profile slugs, subscription dates
-- `import` - Temporary collection for pre-imported profiles keyed by email, deleted after claim
+- `members` - Primary user collection, keyed by Firebase Auth UID. Contains membership status, profile slugs, subscription dates, and Stripe subscription data
+  - Core fields: `uid`, `email`, `createdAt`, `membershipActive`, `membershipExpiresAt`
+  - Profile fields: `name`, `slug`, `hasProfile`, `subscriptionStart`
+  - Stripe fields: `stripeCustomerId`, `stripeSubscriptionId`, `subscriptionStatus`
+- `import` (or `migrated_users_import`) - Temporary collection for pre-imported profiles keyed by email, deleted after claim
 - `messages` - Contact form submissions
 - `matchRequests` - Doula match form submissions
 
@@ -77,6 +118,14 @@ All functions are exported from `src/index.ts` with lazy imports using dynamic i
 - Sends emails via Mailgun API
 - Requires secret: `MAILGUN_API_KEY`
 - Domain configured in `src/constants/email-domain.ts`
+
+**Stripe Integration (stripeWebhook):**
+- Handles `checkout.session.completed` webhook events
+- Automatically creates Firebase Auth users after successful payment
+- Creates member documents with Stripe subscription data
+- Sends welcome emails with password reset links
+- Requires secrets: `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`
+- See `STRIPE_INTEGRATION.md` in repo root for complete setup guide
 
 ### Test Utilities
 
@@ -94,6 +143,16 @@ Tests use a setup function pattern that returns test dependencies and follows Ar
 The `claimProfile` function calculates membership expiration (`membershipExpiresAt`) based on the subscription start date. Expiration is set to the last day of the subscription month in the current or next year, depending on whether the renewal month has passed.
 
 ### Authentication Flow
+
+**Payment-First Flow (New Members via Stripe):**
+1. User completes payment on Stripe-hosted checkout (via Hugo site)
+2. Stripe sends `checkout.session.completed` webhook to `stripeWebhook` function
+3. Function creates Firebase Auth user with temporary password
+4. Function creates member document with `membershipActive: true` and Stripe subscription data
+5. Function sends welcome email with password reset link
+6. User sets password via Firebase Auth and signs in to members portal
+
+**Legacy Flow (Pre-existing Members):**
 1. User signs up via Firebase Auth
 2. `createMemberOnUserCreated` trigger creates basic member document with `membershipActive: false`
 3. User calls `claimProfile` to claim pre-imported profile (if exists)

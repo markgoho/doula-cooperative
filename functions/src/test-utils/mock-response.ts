@@ -9,6 +9,7 @@ export interface MockResponse {
   set(key: string, value: string): MockResponse;
   status(code: number): MockResponse;
   send(body: unknown): MockResponse;
+  json(body: unknown): MockResponse;
 }
 
 /**
@@ -28,6 +29,10 @@ export function createMockResponse(): MockResponse {
       return this;
     },
     send(this: MockResponse, body: unknown): MockResponse {
+      this.body = body;
+      return this;
+    },
+    json(this: MockResponse, body: unknown): MockResponse {
       this.body = body;
       return this;
     },

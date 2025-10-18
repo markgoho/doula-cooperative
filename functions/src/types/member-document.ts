@@ -1,5 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
 
+export type SubscriptionStatus = "active" | "past_due" | "canceled" | "incomplete";
+
 export interface MemberDocument {
   createdAt: Timestamp;
   email: string;
@@ -10,4 +12,7 @@ export interface MemberDocument {
   membershipExpiresAt?: Timestamp;
   slug?: string;
   hasProfile?: boolean;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: SubscriptionStatus;
 }

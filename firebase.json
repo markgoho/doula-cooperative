@@ -39,6 +39,15 @@
       ],
       "headers": [
         {
+          "source": "/join-the-doula-cooperative/**",
+          "headers": [
+            {
+              "key": "Permissions-Policy",
+              "value": "payment=(self \"https://js.stripe.com\")"
+            }
+          ]
+        },
+        {
           "source": "**/*.@(eot|otf|ttf|ttc|woff|woff2|font)",
           "headers": [
             {

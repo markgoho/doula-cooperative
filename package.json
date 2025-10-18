@@ -16,6 +16,7 @@
     "emulators:export": "firebase emulators:export emulator-seed-data",
     "angular:start": "cd members && bun start",
     "functions:start": "cd functions && tsc --watch",
+    "emulators:test": "bunx firebase emulators:start --only functions,firestore,auth --project=doula-cooperative-test",
     "start": "concurrently \"bun run emulators:start\" \"bun run functions:start\" \"bun run angular:start\" \"bun run hugo:dev\" --names \"emulators,functions,angular,hugo\""
   },
   "devDependencies": {

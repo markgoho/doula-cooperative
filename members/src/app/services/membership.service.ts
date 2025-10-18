@@ -23,6 +23,8 @@ export interface ClaimableMembershipData {
   hasProfile: boolean;
 }
 
+export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'incomplete';
+
 export interface Member {
   createdAt: Timestamp;
   email: string;
@@ -33,6 +35,9 @@ export interface Member {
   membershipExpiresAt?: Timestamp;
   hasProfile?: boolean;
   slug?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: SubscriptionStatus;
 }
 
 @Injectable({
