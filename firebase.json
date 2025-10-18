@@ -26,7 +26,11 @@
     {
       "target": "main-site",
       "public": "hugo/public",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
       "rewrites": [
         {
           "source": "/api/contact-us-form",
@@ -35,6 +39,10 @@
         {
           "source": "/api/doula-match-form",
           "function": "doulaMatchForm"
+        },
+        {
+          "source": "/api/stripe-webhook",
+          "function": "stripeWebhook"
         }
       ],
       "headers": [
@@ -575,7 +583,11 @@
     {
       "target": "members-site",
       "public": "members/dist/members/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
       "rewrites": [
         {
           "source": "**",

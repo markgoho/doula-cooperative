@@ -1,6 +1,6 @@
+import type { Response } from "express";
 import { getAuth, type UserRecord } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { Response } from "express";
 import { logger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
@@ -12,9 +12,12 @@ import {
   PROCESSED_STRIPE_EVENTS_COLLECTION,
   REFERRAL_EMAIL,
 } from "../constants";
-import { MemberDocument } from "../types/member-document";
-import { sendEmail } from "../utils/send-email";
+import {
+  createStripeMemberDocument,
+  createStripeMemberUpdate,
+} from "../utils/member-factory";
 import { calculateExpirationDate } from "../utils/membership-dates";
+import { sendEmail } from "../utils/send-email";
 
 function generateSecurePassword(): string {
   const characters =
@@ -119,7 +122,19 @@ export async function handler(request: Request, response: Response) {
     return;
   }
 
-  const stripe = new Stripe(stripeApiKey);
+  let stripe: Stripe;
+  try {
+    stripe = new Stripe(stripeApiKey);
+  } catch (error) {
+    logger.error("Failed to initialize Stripe client", {
+      error,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_MISSING_SECRETS,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    response.status(500).send("Invalid Stripe configuration");
+    return;
+  }
+
   const sig = request.headers["stripe-signature"];
 
   if (!sig) {
@@ -133,11 +148,7 @@ export async function handler(request: Request, response: Response) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      request.rawBody,
-      sig,
-      webhookSecret,
-    );
+    event = stripe.webhooks.constructEvent(request.rawBody, sig, webhookSecret);
   } catch (error: unknown) {
     logger.error("Webhook signature verification failed", {
       error,
@@ -150,34 +161,41 @@ export async function handler(request: Request, response: Response) {
   }
 
   // Check for duplicate webhook events (idempotency)
+  // Use .create() which atomically fails if document exists, preventing race conditions
   const database = getFirestore();
-  const processedEventDocument = await database
+  const processedEventReference = database
     .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-    .doc(event.id)
-    .get();
+    .doc(event.id);
 
-  if (processedEventDocument.exists) {
-    const data = processedEventDocument.data();
-    const processedAt = data?.processedAt as Timestamp | undefined;
-    logger.info(`Event ${event.id} already processed, skipping`, {
-      eventId: event.id,
-      eventType: event.type,
-      processedAt: processedAt?.toDate().toISOString(),
-    });
-    response.json({ received: true, duplicate: true });
-    return;
-  }
-
-  // Mark event as being processed (prevents concurrent processing)
-  await database
-    .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-    .doc(event.id)
-    .set({
+  try {
+    await processedEventReference.create({
       eventId: event.id,
       eventType: event.type,
       processedAt: Timestamp.now(),
       received: true,
     });
+  } catch (error: unknown) {
+    // Check if this is an already-exists error (duplicate webhook)
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === 6 // Firestore error code 6 is ALREADY_EXISTS
+    ) {
+      const processedEventDocument = await processedEventReference.get();
+      const data = processedEventDocument.data();
+      const processedAt = data?.processedAt as Timestamp | undefined;
+      logger.info(`Event ${event.id} already processed, skipping`, {
+        eventId: event.id,
+        eventType: event.type,
+        processedAt: processedAt?.toDate().toISOString(),
+      });
+      response.json({ received: true, duplicate: true });
+      return;
+    }
+    // Re-throw if it's a different error
+    throw error;
+  }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -215,7 +233,9 @@ export async function handler(request: Request, response: Response) {
       ) {
         // Expected case - user doesn't exist yet
         isNewUser = true;
-        logger.info(`User not found, will create new user for: ${customerEmail}`);
+        logger.info(
+          `User not found, will create new user for: ${customerEmail}`,
+        );
       } else {
         // Unexpected error during lookup
         logger.error("Failed to look up user in Firebase Auth", {
@@ -270,23 +290,19 @@ export async function handler(request: Request, response: Response) {
     const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
 
     if (isNewUser) {
-      // Create new member document
-      const memberDocument: MemberDocument = {
-        uid: userRecord.uid,
-        email: customerEmail,
-        createdAt: subscriptionStart,
-        membershipActive: true,
-        subscriptionStart,
-        membershipExpiresAt,
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscriptionId,
-        subscriptionStatus: "active",
-        ...(session.customer_details?.name && {
-          name: session.customer_details.name,
-        }),
-      };
-
+      // Create new member document using factory function
       try {
+        const memberDocument = createStripeMemberDocument({
+          uid: userRecord.uid,
+          email: customerEmail,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subscriptionId,
+          subscriptionStatus: "active",
+          subscriptionStart,
+          membershipExpiresAt,
+          name: session.customer_details?.name ?? undefined,
+        });
+
         await database
           .collection(MEMBERS_COLLECTION)
           .doc(userRecord.uid)
@@ -302,21 +318,22 @@ export async function handler(request: Request, response: Response) {
         });
         response
           .status(500)
-          .send("Account created but setup incomplete - support will contact you");
+          .send(
+            "Account created but setup incomplete - support will contact you",
+          );
         return;
       }
     } else {
-      // Update existing member document
-      const memberUpdate: Partial<MemberDocument> = {
-        membershipActive: true,
-        subscriptionStart,
-        membershipExpiresAt,
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscriptionId,
-        subscriptionStatus: "active",
-      };
-
+      // Update existing member document using factory function
       try {
+        const memberUpdate = createStripeMemberUpdate({
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subscriptionId,
+          subscriptionStatus: "active",
+          subscriptionStart,
+          membershipExpiresAt,
+        });
+
         await database
           .collection(MEMBERS_COLLECTION)
           .doc(userRecord.uid)
@@ -343,16 +360,13 @@ export async function handler(request: Request, response: Response) {
           emailSent = true;
 
           // Update member document with email success status
-          await database
-            .collection(MEMBERS_COLLECTION)
-            .doc(userRecord.uid)
-            .set(
-              {
-                welcomeEmailStatus: "sent",
-                welcomeEmailSentAt: Timestamp.now(),
-              },
-              { merge: true }
-            );
+          await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
+            {
+              welcomeEmailStatus: "sent",
+              welcomeEmailSentAt: Timestamp.now(),
+            },
+            { merge: true },
+          );
 
           logger.info("Welcome email sent successfully", {
             uid: userRecord.uid,
@@ -360,7 +374,8 @@ export async function handler(request: Request, response: Response) {
           });
         } catch (error) {
           // Email failure should not fail the entire webhook
-          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
 
           logger.error("Email failed but account is active", {
             error,
@@ -381,7 +396,7 @@ export async function handler(request: Request, response: Response) {
                   welcomeEmailStatus: "failed",
                   welcomeEmailError: errorMessage,
                 },
-                { merge: true }
+                { merge: true },
               );
           } catch (firestoreError) {
             // Log but don't fail if we can't update the email status
@@ -405,16 +420,13 @@ export async function handler(request: Request, response: Response) {
 
         // Store pending status for manual follow-up
         try {
-          await database
-            .collection(MEMBERS_COLLECTION)
-            .doc(userRecord.uid)
-            .set(
-              {
-                welcomeEmailStatus: "pending",
-                welcomeEmailError: "MAILGUN_API_KEY not configured",
-              },
-              { merge: true }
-            );
+          await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
+            {
+              welcomeEmailStatus: "pending",
+              welcomeEmailError: "MAILGUN_API_KEY not configured",
+            },
+            { merge: true },
+          );
         } catch (firestoreError) {
           logger.error("Failed to update pending email status", {
             error: firestoreError,

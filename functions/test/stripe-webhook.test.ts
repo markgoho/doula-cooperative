@@ -69,8 +69,11 @@ function setup(options: SetupOptions = {}) {
     },
   } as unknown as Stripe.Checkout.Session;
 
+  // Generate unique event ID per test to avoid idempotency conflicts
+  const uniqueEventId = `evt_test_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
   const mockEvent = {
-    id: "evt_test_123",
+    id: uniqueEventId,
     object: "event",
     api_version: "2023-10-16",
     created: Math.floor(Date.now() / 1000),
