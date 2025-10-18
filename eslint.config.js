@@ -36,6 +36,13 @@ export default defineConfig([
         },
       ],
       "unicorn/no-useless-undefined": ['error', {checkArguments: false}],
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowNumber: true,
+          allowBoolean: true,
+        },
+      ],
     },
   },
   {
