@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI assistants when working with code in this repository.
 
 ## Project Overview
 
@@ -13,6 +13,7 @@ The application uses Angular's **zoneless change detection** and modern Angular 
 **Package Manager:** This project uses **Bun** (not npm or yarn) as configured in `angular.json`.
 
 ### Development
+
 ```bash
 bun install      # Install dependencies
 bun start        # Start dev server at http://localhost:4200
@@ -20,7 +21,9 @@ bun run watch    # Build with watch mode
 ```
 
 ### Testing
+
 Tests use **Vitest** (not Karma/Jest):
+
 ```bash
 bun test                                   # Run all tests in watch mode
 bun test --watch=false                     # Run all tests once
@@ -28,22 +31,27 @@ bun test --watch=false --reporter=verbose  # Run with verbose output
 ```
 
 To run a single test file, use Vitest directly with the full path from project root:
+
 ```bash
 bun vitest run src/app/header/header.spec.ts
 ```
 
 ### Production Build
+
 ```bash
 bun run build  # Build for production (outputs to dist/)
 ```
 
 ### Linting
+
 ```bash
 bun run lint  # Run ESLint on TypeScript and HTML files
 ```
 
 ### Prettier Configuration
+
 Prettier is configured in package.json:
+
 - `printWidth: 100`
 - `singleQuote: true`
 - HTML files use Angular parser
@@ -70,6 +78,7 @@ src/app/
 ### Key Services
 
 **AuthService** (`src/app/services/auth.service.ts`):
+
 - Manages Firebase authentication operations (sign up, sign in, sign out)
 - Provides reactive user state via signals: `user()`, `emailVerified()`
 - Handles email verification, password reset flows
@@ -77,17 +86,20 @@ src/app/
 - All auth errors are mapped to user-friendly messages in `AUTH_ERROR_MESSAGES`
 
 **MembershipService** (`src/app/services/membership.service.ts`):
+
 - Manages member document data from Firestore `members` collection
 - Provides reactive signals: `membershipActive()`, `hasProfile()`
 - Handles profile claiming flow from `migrated_users_import` collection
 
 **ProfileService** (`src/app/services/profile.service.ts`):
+
 - Fetches and caches profile content via `readProfile` cloud function
 - Profile data is cached and only fetched once per session
 
 ### Firebase Integration
 
 **Configuration** (`src/app/app.config.ts`):
+
 - Firebase emulators are **automatically connected in development mode** (`isDevMode()`)
 - Auth emulator: `http://localhost:9099`
 - Firestore emulator: `localhost:8080`
@@ -95,18 +107,21 @@ src/app/
 - Production Firebase config is hardcoded in app.config.ts
 
 **Collections:**
+
 - `members` - Primary user collection keyed by Firebase Auth UID
 - `migrated_users_import` - Pre-imported profiles keyed by email (deleted after claim)
 
 ### Routing and Guards
 
 **Routes** (`src/app/app.routes.ts`):
+
 - Protected routes use `@angular/fire/auth-guard` with `canActivate`
 - `redirectUnauthorizedToSignIn` - Redirects unauthenticated users to `/sign-in`
 - `redirectToMembership` - Redirects authenticated users away from auth pages
 - Route bindings use `withComponentInputBinding()` to pass query params as component inputs
 
 **Key Routes:**
+
 - `/sign-in`, `/sign-up` - Authentication flows (redirect if already logged in)
 - `/membership` - Main dashboard (requires authentication)
 - `/profile` - Profile editing (requires authentication and active membership)
@@ -115,12 +130,14 @@ src/app/
 ### Component Naming Convention
 
 Components use **PascalCase class names without "Component" suffix**:
+
 - `Header` not `HeaderComponent`
 - `SignIn` not `SignInComponent`
 
 ### TypeScript Configuration
 
 Strict TypeScript settings are enabled:
+
 - `strict: true`
 - `noImplicitReturns: true`
 - `noFallthroughCasesInSwitch: true`
@@ -129,11 +146,13 @@ Strict TypeScript settings are enabled:
 ### ESLint Configuration
 
 Uses ESLint (not TSLint) with:
+
 - `@angular-eslint` - Angular-specific rules
 - `typescript-eslint` - TypeScript rules
 - `eslint-plugin-unicorn` - Additional code quality rules
 
 **Important customizations:**
+
 - `unicorn/consistent-function-scoping.checkArrowFunctions: false` - Allows arrow functions in signals and reactive contexts
 - `unicorn/no-useless-undefined.checkArguments: false` - Allows explicit undefined in function arguments
 - Component selector prefix: `app-`
@@ -146,12 +165,14 @@ Uses ESLint (not TSLint) with:
 Tests use **@testing-library/angular** with **Vitest** (not Karma or Jest).
 
 **Setup files:**
+
 - `src/test-setup.ts` - Imports `@testing-library/jest-dom/vitest` matchers
 - `src/test-providers.ts` - Default test providers (zoneless change detection)
 
 ### Test File Patterns
 
 **Unit tests** (`*.spec.ts`):
+
 - Located next to the component/service being tested
 - Use a `setup()` function that returns the rendered component with mocked dependencies
 - Setup function accepts an options object with semantic parameters (e.g., `isAuthenticated`, `isEmailVerified`)
@@ -160,6 +181,7 @@ Tests use **@testing-library/angular** with **Vitest** (not Karma or Jest).
 - Always use explicit assertions about element visibility and document presence
 
 **Integration tests** (`*.integration.spec.ts`):
+
 - Test navigation flows and multi-component interactions
 - Use mock route components and `provideRouter()` with real routing
 - Access router via `view.fixture.debugElement.injector.get(Router)`
@@ -169,6 +191,7 @@ Tests use **@testing-library/angular** with **Vitest** (not Karma or Jest).
 
 **Setup Function Pattern:**
 All tests MUST use a setup function that follows this pattern:
+
 ```typescript
 interface SetupOptions {
   isAuthenticated?: boolean;
@@ -176,30 +199,27 @@ interface SetupOptions {
   // ... other semantic options
 }
 
-async function setup({
-  isAuthenticated = false,
-  isEmailVerified = false,
-}: SetupOptions = {}) {
+async function setup({ isAuthenticated = false, isEmailVerified = false }: SetupOptions = {}) {
   // Create mocks based on semantic options
   const mockAuthService = {
     user: signal(isAuthenticated ? { emailVerified: isEmailVerified } : null),
   };
 
   return await render(Component, {
-    providers: [
-      { provide: AuthService, useValue: mockAuthService },
-    ],
+    providers: [{ provide: AuthService, useValue: mockAuthService }],
   });
 }
 ```
 
 **Assertions:**
+
 - ALWAYS assert visibility: `expect(element).toBeVisible()` or `expect(element).not.toBeInTheDocument()`
 - NEVER use `toBeTruthy()` or `toBeFalsy()` on DOM elements
 - Use `waitFor()` for async operations that affect the DOM
 - Use `screen.getByRole()` for accessibility-first queries
 
 **Mock Service Properties:**
+
 - Use `signal()` for reactive properties like `user`, `emailVerified`, `membershipActive`
 - Use `vi.fn().mockResolvedValue()` for async methods
 - Use `vi.fn().mockImplementation()` when behavior depends on parameters
@@ -207,6 +227,7 @@ async function setup({
 ### Common Test Patterns
 
 **Mocking AuthService:**
+
 ```typescript
 const mockAuthService = {
   user: signal(mockUser),
@@ -217,6 +238,7 @@ const mockAuthService = {
 ```
 
 **Mocking MembershipService:**
+
 ```typescript
 const mockMembershipService = {
   membershipActive: signal(true),
@@ -226,6 +248,7 @@ const mockMembershipService = {
 ```
 
 **Testing user interactions:**
+
 ```typescript
 const user = userEvent.setup();
 await user.type(screen.getByLabelText('Email'), 'test@example.com');
@@ -237,6 +260,7 @@ await user.click(screen.getByRole('button', { name: 'Submit' }));
 ### Zoneless Change Detection
 
 The app uses `provideZonelessChangeDetection()` instead of Zone.js. This means:
+
 - Components rely on signals and reactive primitives for change detection
 - Manual `detectChanges()` calls are needed in tests after programmatic state changes
 - Async operations should use signals or `toSignal()` to trigger change detection
@@ -244,6 +268,7 @@ The app uses `provideZonelessChangeDetection()` instead of Zone.js. This means:
 ### Signal Usage
 
 Signals are the primary reactive primitive:
+
 - Use `signal()` for writable state
 - Use `computed()` for derived state
 - Use `toSignal()` to convert Observables to signals
@@ -274,7 +299,8 @@ Signals are the primary reactive primitive:
 ## Relationship to Functions Directory
 
 The sibling `../functions` directory contains Firebase Cloud Functions that this app calls:
+
 - `claimProfile` - Claims pre-imported profile
 - `readProfile` - Fetches profile content from GitHub
 
-See `../functions/CLAUDE.md` for details on the backend architecture.
+See `../functions/AGENTS.md` for details on the backend architecture.

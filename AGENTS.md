@@ -1,6 +1,6 @@
-# GEMINI.md
+# AGENTS.md
 
-This file provides guidance to Gemini CLI when working with code in this repository.
+This file provides guidance to AI assistants when working with code in this repository.
 
 ## Project Overview
 
@@ -116,17 +116,17 @@ cd functions && npm run lint
 │   ├── src/            # TypeScript source
 │   ├── lib/            # Compiled JavaScript (git-ignored)
 │   ├── test/           # Bun test files
-│   └── GEMINI.md       # Functions-specific guidance
+│   └── AGENTS.md       # Functions-specific guidance
 ├── hugo/               # Hugo static site
 │   ├── content/        # Markdown content
 │   ├── layouts/        # Go templates
 │   ├── assets/         # SCSS, TypeScript, images
 │   ├── public/         # Built site (git-ignored)
-│   └── GEMINI.md       # Hugo-specific guidance
+│   └── AGENTS.md       # Hugo-specific guidance
 ├── members/            # Angular application
 │   ├── src/app/        # Components and services
 │   ├── dist/           # Built app (git-ignored)
-│   └── GEMINI.md       # Angular-specific guidance
+│   └── AGENTS.md       # Angular-specific guidance
 ├── emulator-seed-data/ # Firebase emulator test data
 └── package.json        # Root package.json (Bun)
 ```
@@ -287,8 +287,8 @@ switch (code) {
 
 For detailed information about each sub-project, see:
 
-- **Hugo:** `hugo/GEMINI.md` - Template system, content structure, SCSS architecture
-- **Functions:** `functions/GEMINI.md` - Function types, external integrations, secret management
-- **Members:** `members/GEMINI.md` - Angular patterns, routing, services, testing guidelines
+- **Hugo:** `hugo/AGENTS.md` - Template system, content structure, SCSS architecture
+- **Functions:** `functions/AGENTS.md` - Function types, external integrations, secret management
+- **Members:** `members/AGENTS.md` - Angular patterns, routing, services, testing guidelines
 
 These files contain comprehensive architecture details that are not repeated here.
