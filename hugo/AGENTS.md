@@ -1,33 +1,18 @@
 # AGENTS.md
 
-This file provides guidance to AI assistants when working with code in this repository.
+Guidance for AI assistants working with the Hugo static site for Rochester Doula Cooperative (https://doulacooperative.com/).
 
 ## Project Overview
 
-This is a Hugo static site for the Rochester Doula Cooperative (https://doulacooperative.com/). The site connects families with professional birth and postpartum doulas in the Rochester, NY area.
+Hugo static site connecting families with professional birth and postpartum doulas in Rochester, NY area. Tech stack: Hugo (extended v0.129.0+), SCSS/Sass, TypeScript, Firebase Functions integration.
 
-## Commands
+## Build/Lint/Test Commands
 
-### Development
+- **Development:** `hugo server` or `hugo server -D` (with drafts) from `hugo/` directory
+- **Production build:** `hugo` (outputs to public/)
+- **New content:** `hugo new content/doulas/doula-name/index.md`
 
-```bash
-# Start Hugo development server (run from hugo/ directory)
-hugo server
-
-# Start with drafts visible
-hugo server -D
-
-# Build the site for production
-hugo
-
-# Create new content
-hugo new content/doulas/doula-name/index.md
-```
-
-### Requirements
-
-- Hugo extended version >= 0.129.0 (specified in hugo.toml)
-- The extended version is required for SCSS/Sass processing
+**Requirements:** Hugo extended version >= 0.129.0 (required for SCSS/Sass processing)
 
 ## Architecture
 
@@ -122,10 +107,53 @@ The `DIRECTORY_STRUCTURE.md` file is the authoritative living architecture docum
 
 ## Working with Doula Profiles
 
-When creating or modifying doula profiles:
+### Creating New Profiles
 
-1. Each doula gets a directory: `content/doulas/{slug}/`
-2. Required files: `index.md` and profile images
-3. Required front matter fields: `title`, `credentials`, `tags`, `contact`
-4. Tags define specialties (e.g., "Birth Doula", "Postpartum Doula")
-5. Images should be optimized in multiple formats/sizes
+```bash
+hugo new content/doulas/doula-slug/index.md
+```
+
+Then add required front matter:
+
+```yaml
+title: Doula Name
+credentials: Certifications/qualifications
+tags: ["Birth Doula", "Postpartum Doula"] # Specialties
+contact:
+  website: https://example.com
+  phone: "+1-555-0123"
+  email: doula@example.com
+```
+
+### Profile Structure
+
+- Directory: `content/doulas/{slug}/`
+- Required: `index.md` (metadata/bio) + profile images
+- Images: Optimized AVIF and JPG formats at 300px, 600px, 1200px widths
+- Images referenced in front matter with responsive srcsets
+
+### Image Optimization
+
+Use the provided scripts to convert images:
+
+- `convert-images-to-avif.ts` - Batch convert directory
+- `convert-single-to-avif.ts` - Convert single image
+
+Generates multiple sizes and formats for responsive delivery with JPG fallbacks.
+
+## Key Integration Points
+
+- Hugo forms POST to Firebase Functions: `/api/contact-us-form`, `/api/doula-match-form`
+- Functions read Hugo content from GitHub via Octokit
+- TypeScript files in `assets/ts/`: `contact-us-form.ts`, `doula-match-form.ts`
+
+## Cursor Rules
+
+Follow all applicable rules in `.cursor/rules/`:
+
+- **`modern-css.mdc`** - CSS custom properties, container queries, responsive units (rem), no hardcoded values
+- **`page-specific-css.mdc`** - Page-specific SCSS inlining pattern for Hugo templates
+- **`typescript.mdc`** - Destructuring imports, ESLint rules, object lookup maps, lint error resolution
+- **`typescript-errors.mdc`** - TypeScript strict mode, error handling
+- **`project-management.mdc`** - Task-driven development, PBI association, commit messages
+- **`use-playwright-to-verify.mdc`** - Use Playwright to verify Hugo changes render correctly in browser
