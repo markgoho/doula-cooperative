@@ -2,6 +2,8 @@
 
 This file provides guidance to AI assistants when working with code in this repository.
 
+**Note:** See root `AGENTS.md` for monorepo-wide guidance, build commands, and integration points.
+
 ## Project Overview
 
 This is an Angular application for the Doula Cooperative member portal. It uses Firebase for authentication, Firestore for data storage, and integrates with Firebase Cloud Functions (located in the sibling `../functions` directory).
@@ -10,7 +12,7 @@ The application uses Angular's **zoneless change detection** and modern Angular 
 
 ## Build and Development Commands
 
-**Package Manager:** This project uses **Bun** (not npm or yarn) as configured in `angular.json`.
+**Package Manager:** This project uses **Bun** (not npm or yarn). While `package.json` scripts use standard `ng` commands, always run them with `bun` (e.g., `bun run build`).
 
 ### Development
 
@@ -22,7 +24,7 @@ bun run watch    # Build with watch mode
 
 ### Testing
 
-Tests use **Vitest** (not Karma/Jest):
+Tests use **Vitest** with Angular CLI (not Karma/Jest):
 
 ```bash
 bun test                                   # Run all tests in watch mode
@@ -30,11 +32,13 @@ bun test --watch=false                     # Run all tests once
 bun test --watch=false --reporter=verbose  # Run with verbose output
 ```
 
-To run a single test file, use Vitest directly with the full path from project root:
+To run a single test file:
 
 ```bash
-bun vitest run src/app/header/header.spec.ts
+ng test --include="**/header.spec.ts" --watch=false
 ```
+
+**Note:** The project uses Angular's experimental unit test builder with Vitest. Use `ng test` commands rather than `bun vitest` directly.
 
 ### Production Build
 
@@ -47,6 +51,8 @@ bun run build  # Build for production (outputs to dist/)
 ```bash
 bun run lint  # Run ESLint on TypeScript and HTML files
 ```
+
+**Note:** You can also run `bun run lint` from the project root to lint all apps in the monorepo.
 
 ### Prettier Configuration
 
@@ -295,6 +301,14 @@ Signals are the primary reactive primitive:
 - Service methods throw errors that components catch and display
 - Use try-catch blocks in async operations
 - Display error messages in UI (don't just console.error)
+
+## Deployment
+
+The app is deployed to Firebase Hosting via GitHub Actions (see `.github/workflows/members-hosting-merge.yml`).
+
+- Production builds are automatically deployed on merges to `main` branch
+- Build command: `bun run build` (outputs to `dist/`)
+- Firebase configuration is in `../firebase.json`
 
 ## Relationship to Functions Directory
 
