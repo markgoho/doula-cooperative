@@ -50,7 +50,7 @@ export const emailContactForm = onDocumentCreated(
 );
 
 export const emailDoulaMatch = onDocumentCreated(
-  { document: "matchRequests/{requestId}", secrets: ["MAILGUN_API_KEY"] },
+  { document: "matchRequests/{matchRequestId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
     const apiKey = process.env.MAILGUN_API_KEY;
     const { handleDocumentCreated } = await import(

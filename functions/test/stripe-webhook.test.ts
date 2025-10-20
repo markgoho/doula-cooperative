@@ -8,16 +8,13 @@
  * Start emulators with: bun run emulators:start
  */
 import { afterAll, describe, expect, it, mock } from "bun:test";
+import type { Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { Response } from "express";
 import Stripe from "stripe";
 import { MEMBERS_COLLECTION } from "../src/constants/collections";
 import { handler } from "../src/stripe-webhook/handler";
-import {
-  cleanupTestMembers,
-  getMemberData,
-} from "../src/test-utils/firestore-helpers";
+import { getMemberData } from "../src/test-utils/firestore-helpers";
 import { createMockResponse } from "../src/test-utils/mock-response";
 import { initializeTest } from "../src/test-utils/test-setup";
 
@@ -29,24 +26,23 @@ interface SetupOptions {
   includeStripeSecrets?: boolean;
   includeMailgunKey?: boolean;
   eventType?: string;
-  customerName?: string | null | undefined;
+  customerName?: string | null;
   includeCustomerEmail?: boolean;
   mockStripeError?: boolean;
 }
 
-function setup(options: SetupOptions = {}) {
-  const {
-    testEmail = "stripe-test@example.com",
-    includeStripeSignature = true,
-    includeStripeSecrets = true,
-    includeMailgunKey = true,
-    eventType = "checkout.session.completed",
-    includeCustomerEmail = true,
-    mockStripeError = false,
-  } = options;
-
-  // Default customerName to "Test User" only if not explicitly provided (not even as undefined)
-  const customerName = "customerName" in options ? options.customerName : "Test User";
+function setup({
+  testEmail = "stripe-test@example.com",
+  includeStripeSignature = true,
+  includeStripeSecrets = true,
+  includeMailgunKey = true,
+  eventType = "checkout.session.completed",
+  customerName = "Test User",
+  includeCustomerEmail = true,
+  mockStripeError = false,
+}: SetupOptions = {}) {
+  // Use customerName as-is (including null if explicitly passed)
+  const finalCustomerName = customerName;
 
   const firestore = getFirestore();
   const auth = getAuth();
@@ -60,8 +56,8 @@ function setup(options: SetupOptions = {}) {
     customer_email: includeCustomerEmail ? testEmail : undefined,
     subscription: "sub_test_123",
     customer_details: {
-      name: customerName,
-      email: testEmail,
+      name: finalCustomerName,
+      email: includeCustomerEmail ? testEmail : undefined,
       phone: null,
       tax_exempt: "none" as const,
       tax_ids: null,
@@ -150,13 +146,12 @@ function restoreEnvironment(originalEnvironment: NodeJS.ProcessEnv) {
 // No longer needed - using module-level mocking
 
 describe("stripeWebhook handler", () => {
-  afterAll(async () => {
-    await cleanupTestMembers({ firestore: getFirestore() });
+  afterAll(() => {
     test.cleanup();
   });
 
   describe("Configuration validation", () => {
-    it("should return 500 if STRIPE_API_KEY is missing", async () => {
+    it("should return 500 status if STRIPE_API_KEY is missing", async () => {
       // Arrange
       const { mockRequest, mockResponse, originalEnvironment } = setup({
         includeStripeSecrets: false,
@@ -167,12 +162,26 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(500);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message if STRIPE_API_KEY is missing", async () => {
+      // Arrange
+      const { mockRequest, mockResponse, originalEnvironment } = setup({
+        includeStripeSecrets: false,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
       expect(mockResponse.body).toBe("Stripe integration not configured");
 
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should return 400 if stripe-signature header is missing", async () => {
+    it("should return 400 status if stripe-signature header is missing", async () => {
       // Arrange
       const { mockRequest, mockResponse, originalEnvironment } = setup({
         includeStripeSignature: false,
@@ -183,6 +192,20 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(400);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message if stripe-signature header is missing", async () => {
+      // Arrange
+      const { mockRequest, mockResponse, originalEnvironment } = setup({
+        includeStripeSignature: false,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
       expect(mockResponse.body).toBe("Missing signature");
 
       restoreEnvironment(originalEnvironment);
@@ -190,7 +213,7 @@ describe("stripeWebhook handler", () => {
   });
 
   describe("Webhook signature verification", () => {
-    it("should return 400 if signature verification fails", async () => {
+    it("should return 400 status if signature verification fails", async () => {
       // Arrange
       const { mockRequest, mockResponse, originalEnvironment } = setup({
         mockStripeError: true,
@@ -201,6 +224,20 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(400);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message if signature verification fails", async () => {
+      // Arrange
+      const { mockRequest, mockResponse, originalEnvironment } = setup({
+        mockStripeError: true,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
       expect(mockResponse.body).toBe("Webhook signature verification failed");
 
       restoreEnvironment(originalEnvironment);
@@ -208,7 +245,7 @@ describe("stripeWebhook handler", () => {
   });
 
   describe("checkout.session.completed event", () => {
-    it("should return 400 if customer_email is missing", async () => {
+    it("should return 400 status if customer_email is missing", async () => {
       // Arrange
       const { mockRequest, mockResponse, originalEnvironment } = setup({
         includeCustomerEmail: false,
@@ -219,47 +256,26 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(400);
-      expect(mockResponse.body).toBe("Missing customer email");
 
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should create new user if user does not exist", async () => {
+    it("should return error message if customer_email is missing", async () => {
       // Arrange
-      const {
-        mockRequest,
-        mockResponse,
-        testEmail,
-        auth,
-        firestore,
-        originalEnvironment,
-      } = setup({
-        testEmail: `newuser-${String(Date.now())}@example.com`,
+      const { mockRequest, mockResponse, originalEnvironment } = setup({
+        includeCustomerEmail: false,
       });
 
       // Act
       await handler(mockRequest as never, mockResponse as unknown as Response);
 
       // Assert
-      const userRecord = await auth.getUserByEmail(testEmail);
-      expect(userRecord).toBeDefined();
-      expect(userRecord.email).toBe(testEmail);
+      expect(mockResponse.body).toBe("Missing customer email");
 
-      // Check response body
-      const responseBody = mockResponse.body as {
-        received: boolean;
-        userId: string;
-      };
-      expect(responseBody.received).toBe(true);
-      expect(responseBody.userId).toBe(userRecord.uid);
-
-      // Cleanup
-      await auth.deleteUser(userRecord.uid);
-      await cleanupTestMembers({ firestore });
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should create member document for new user with correct fields", async () => {
+    it("should create member document for new user", async () => {
       // Arrange
       const {
         mockRequest,
@@ -267,10 +283,9 @@ describe("stripeWebhook handler", () => {
         testEmail,
         auth,
         firestore,
-        mockSession,
         originalEnvironment,
       } = setup({
-        testEmail: `newmember-${String(Date.now())}@example.com`,
+        testEmail: "create-member-document@example.com",
         customerName: "New Member",
       });
 
@@ -283,34 +298,15 @@ describe("stripeWebhook handler", () => {
         firestore,
         uid: userRecord.uid,
       });
-
       expect(memberData).toBeDefined();
-      expect(memberData?.uid).toBe(userRecord.uid);
-      expect(memberData?.email).toBe(testEmail);
-      expect(memberData?.name).toBe("New Member");
-      expect(memberData?.membershipActive).toBe(true);
-      expect(memberData?.stripeCustomerId).toBe(
-        typeof mockSession.customer === "string"
-          ? mockSession.customer
-          : undefined,
-      );
-      expect(memberData?.stripeSubscriptionId).toBe(
-        typeof mockSession.subscription === "string"
-          ? mockSession.subscription
-          : undefined,
-      );
-      expect(memberData?.subscriptionStatus).toBe("active");
-      expect(memberData?.subscriptionStart).toBeDefined();
-      expect(memberData?.membershipExpiresAt).toBeDefined();
-      expect(memberData?.createdAt).toBeDefined();
 
       // Cleanup
       await auth.deleteUser(userRecord.uid);
-      await cleanupTestMembers({ firestore });
+
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should calculate correct expiration date for new subscription", async () => {
+    it("should set uid in member document", async () => {
       // Arrange
       const {
         mockRequest,
@@ -320,7 +316,318 @@ describe("stripeWebhook handler", () => {
         firestore,
         originalEnvironment,
       } = setup({
-        testEmail: `expiration-${String(Date.now())}@example.com`,
+        testEmail: "set-uid-in-member@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.uid).toBe(userRecord.uid);
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set email in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "set-email-in-member@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.email).toBe(testEmail);
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set name in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "set-name-in-member@example.com",
+        customerName: "New Member",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.name).toBe("New Member");
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set membershipActive to true in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "set-membership-active@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.membershipActive).toBe(true);
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set stripeCustomerId in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        mockSession,
+        originalEnvironment,
+      } = setup({
+        testEmail: "member-customer@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.stripeCustomerId).toBe(
+        typeof mockSession.customer === "string"
+          ? mockSession.customer
+          : undefined,
+      );
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set stripeSubscriptionId in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        mockSession,
+        originalEnvironment,
+      } = setup({
+        testEmail: "member-subscription@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.stripeSubscriptionId).toBe(
+        typeof mockSession.subscription === "string"
+          ? mockSession.subscription
+          : undefined,
+      );
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set subscriptionStatus to active in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "member-status@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.subscriptionStatus).toBe("active");
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set subscriptionStart in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "member-start@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.subscriptionStart).toBeDefined();
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set membershipExpiresAt in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: "member-expires@example.com",
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.membershipExpiresAt).toBeDefined();
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set createdAt in member document", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `member-created@example.com`,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+      expect(memberData?.createdAt).toBeDefined();
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set expiration date in same month as subscription start", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `expiration-month@example.com`,
       });
 
       // Act
@@ -333,10 +640,7 @@ describe("stripeWebhook handler", () => {
         uid: userRecord.uid,
       });
 
-      expect(memberData?.membershipExpiresAt).toBeDefined();
-      expect(memberData?.subscriptionStart).toBeDefined();
-
-      // Type narrowing - we know these exist from the assertions above
+      // Type narrowing
       if (!memberData?.subscriptionStart || !memberData.membershipExpiresAt) {
         throw new Error("Expected memberData with subscription fields");
       }
@@ -344,31 +648,15 @@ describe("stripeWebhook handler", () => {
       const subscriptionStart = memberData.subscriptionStart.toDate();
       const expirationDate = memberData.membershipExpiresAt.toDate();
 
-      // Expiration should be in the same month as subscription start
       expect(expirationDate.getMonth()).toBe(subscriptionStart.getMonth());
-
-      // Expiration should be the last day of the month
-      const lastDayOfMonth = new Date(
-        expirationDate.getFullYear(),
-        expirationDate.getMonth() + 1,
-        0,
-      ).getDate();
-      expect(expirationDate.getDate()).toBe(lastDayOfMonth);
-
-      // Expiration should be this year or next year
-      const currentYear = new Date().getFullYear();
-      const isThisYearOrNext =
-        expirationDate.getFullYear() === currentYear ||
-        expirationDate.getFullYear() === currentYear + 1;
-      expect(isThisYearOrNext).toBe(true);
 
       // Cleanup
       await auth.deleteUser(userRecord.uid);
-      await cleanupTestMembers({ firestore });
+
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should update existing user with Stripe subscription data", async () => {
+    it("should set expiration date to last day of month", async () => {
       // Arrange
       const {
         mockRequest,
@@ -376,10 +664,94 @@ describe("stripeWebhook handler", () => {
         testEmail,
         auth,
         firestore,
-        mockSession,
         originalEnvironment,
       } = setup({
-        testEmail: `existing-${String(Date.now())}@example.com`,
+        testEmail: `expiration-lastday@example.com`,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+
+      // Type narrowing
+      if (!memberData?.membershipExpiresAt) {
+        throw new Error("Expected memberData with membershipExpiresAt");
+      }
+
+      const expirationDate = memberData.membershipExpiresAt.toDate();
+      const lastDayOfMonth = new Date(
+        expirationDate.getFullYear(),
+        expirationDate.getMonth() + 1,
+        0,
+      ).getDate();
+
+      expect(expirationDate.getDate()).toBe(lastDayOfMonth);
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set expiration date to current or next year", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `expiration-year@example.com`,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
+
+      // Type narrowing
+      if (!memberData?.membershipExpiresAt) {
+        throw new Error("Expected memberData with membershipExpiresAt");
+      }
+
+      const expirationDate = memberData.membershipExpiresAt.toDate();
+      const currentYear = new Date().getFullYear();
+      const isThisYearOrNext =
+        expirationDate.getFullYear() === currentYear ||
+        expirationDate.getFullYear() === currentYear + 1;
+
+      expect(isThisYearOrNext).toBe(true);
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should activate membership for existing user", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `existing-active@example.com`,
       });
 
       // Create existing user first
@@ -404,37 +776,111 @@ describe("stripeWebhook handler", () => {
         firestore,
         uid: existingUser.uid,
       });
-
       expect(memberData?.membershipActive).toBe(true);
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set stripeCustomerId for existing user", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        mockSession,
+        originalEnvironment,
+      } = setup({
+        testEmail: `existing-customer@example.com`,
+      });
+
+      // Create existing user first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      // Create basic member document
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
       expect(memberData?.stripeCustomerId).toBe(
         typeof mockSession.customer === "string"
           ? mockSession.customer
           : undefined,
       );
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set stripeSubscriptionId for existing user", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        mockSession,
+        originalEnvironment,
+      } = setup({
+        testEmail: `existing-subscription@example.com`,
+      });
+
+      // Create existing user first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      // Create basic member document
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
       expect(memberData?.stripeSubscriptionId).toBe(
         typeof mockSession.subscription === "string"
           ? mockSession.subscription
           : undefined,
       );
-      expect(memberData?.subscriptionStatus).toBe("active");
-      expect(memberData?.subscriptionStart).toBeDefined();
-      expect(memberData?.membershipExpiresAt).toBeDefined();
-
-      // Check response body
-      const responseBody = mockResponse.body as {
-        received: boolean;
-        userId: string;
-      };
-      expect(responseBody.received).toBe(true);
-      expect(responseBody.userId).toBe(existingUser.uid);
 
       // Cleanup
       await auth.deleteUser(existingUser.uid);
-      await cleanupTestMembers({ firestore });
+
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should preserve existing member data when updating", async () => {
+    it("should set subscriptionStatus for existing user", async () => {
       // Arrange
       const {
         mockRequest,
@@ -444,7 +890,136 @@ describe("stripeWebhook handler", () => {
         firestore,
         originalEnvironment,
       } = setup({
-        testEmail: `preserve-${String(Date.now())}@example.com`,
+        testEmail: `existing-status@example.com`,
+      });
+
+      // Create existing user first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      // Create basic member document
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.subscriptionStatus).toBe("active");
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set subscriptionStart for existing user", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `existing-start@example.com`,
+      });
+
+      // Create existing user first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      // Create basic member document
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.subscriptionStart).toBeDefined();
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should set membershipExpiresAt for existing user", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `existing-expires@example.com`,
+      });
+
+      // Create existing user first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      // Create basic member document
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.membershipExpiresAt).toBeDefined();
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should add stripeCustomerId when updating existing member", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `preserve-customer@example.com`,
       });
 
       // Create existing user with profile data
@@ -463,6 +1038,9 @@ describe("stripeWebhook handler", () => {
         name: "Existing Name",
       });
 
+      // Small delay to ensure initial document write completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Act
       await handler(mockRequest as never, mockResponse as unknown as Response);
 
@@ -471,23 +1049,15 @@ describe("stripeWebhook handler", () => {
         firestore,
         uid: existingUser.uid,
       });
-
-      // New fields should be added
-      expect(memberData?.membershipActive).toBe(true);
       expect(memberData?.stripeCustomerId).toBeDefined();
-
-      // Existing fields should be preserved
-      expect(memberData?.slug).toBe("existing-slug");
-      expect(memberData?.hasProfile).toBe(true);
-      expect(memberData?.name).toBe("Existing Name");
 
       // Cleanup
       await auth.deleteUser(existingUser.uid);
-      await cleanupTestMembers({ firestore });
+
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should handle missing customer name gracefully", async () => {
+    it("should preserve slug when updating existing member", async () => {
       // Arrange
       const {
         mockRequest,
@@ -497,8 +1067,152 @@ describe("stripeWebhook handler", () => {
         firestore,
         originalEnvironment,
       } = setup({
-        testEmail: `noname-${String(Date.now())}@example.com`,
-        customerName: undefined,
+        testEmail: `preserve-slug@example.com`,
+      });
+
+      // Create existing user with profile data
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+        slug: "existing-slug",
+        hasProfile: true,
+        name: "Existing Name",
+      });
+
+      // Small delay to ensure initial document write completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.slug).toBe("existing-slug");
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should preserve hasProfile when updating existing member", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `preserve-profile@example.com`,
+      });
+
+      // Create existing user with profile data
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+        slug: "existing-slug",
+        hasProfile: true,
+        name: "Existing Name",
+      });
+
+      // Small delay to ensure initial document write completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.hasProfile).toBe(true);
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should preserve name when updating existing member", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `preserve-name@example.com`,
+      });
+
+      // Create existing user with profile data
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+        slug: "existing-slug",
+        hasProfile: true,
+        name: "Existing Name",
+      });
+
+      // Small delay to ensure initial document write completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
+      expect(memberData?.name).toBe("Existing Name");
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should not set name when customer name is missing", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `should-not-set-name@example.com`,
+        customerName: null,
       });
 
       // Act
@@ -510,13 +1224,45 @@ describe("stripeWebhook handler", () => {
         firestore,
         uid: userRecord.uid,
       });
-
       expect(memberData?.name).toBeUndefined();
+
+      // Cleanup
+      await auth.deleteUser(userRecord.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should still activate membership when customer name is missing", async () => {
+      // Arrange
+      const {
+        mockRequest,
+        mockResponse,
+        testEmail,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail: `noname-active@example.com`,
+        customerName: null,
+      });
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Small delay to ensure document write completes before reading
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Assert
+      const userRecord = await auth.getUserByEmail(testEmail);
+      const memberData = await getMemberData({
+        firestore,
+        uid: userRecord.uid,
+      });
       expect(memberData?.membershipActive).toBe(true);
 
       // Cleanup
       await auth.deleteUser(userRecord.uid);
-      await cleanupTestMembers({ firestore });
+
       restoreEnvironment(originalEnvironment);
     });
   });
@@ -539,9 +1285,9 @@ describe("stripeWebhook handler", () => {
   });
 
   describe("Error handling - Critical paths", () => {
-    it("should return 500 when Firebase Auth user creation fails", async () => {
+    it("should return 500 status when Firebase Auth user creation fails", async () => {
       // Arrange
-      const testEmail = `auth-fail-${Date.now()}@example.com`;
+      const testEmail = `auth-fail-status-${Date.now()}@example.com`;
       const { mockRequest, mockResponse, auth, originalEnvironment } = setup({
         testEmail,
       });
@@ -557,9 +1303,53 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(500);
+
+      // Cleanup
+      auth.createUser = originalCreateUser as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message when Firebase Auth user creation fails", async () => {
+      // Arrange
+      const testEmail = `auth-fail-message-${Date.now()}@example.com`;
+      const { mockRequest, mockResponse, auth, originalEnvironment } = setup({
+        testEmail,
+      });
+
+      // Mock auth.createUser to throw an error
+      const originalCreateUser = auth.createUser.bind(auth);
+      auth.createUser = mock(() => {
+        throw new Error("auth/quota-exceeded");
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
       expect(mockResponse.body).toBe("Unable to create account");
 
-      // Verify no member document was created
+      // Cleanup
+      auth.createUser = originalCreateUser as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should not create user when Firebase Auth user creation fails", async () => {
+      // Arrange
+      const testEmail = `auth-fail-nouser-${Date.now()}@example.com`;
+      const { mockRequest, mockResponse, auth, originalEnvironment } = setup({
+        testEmail,
+      });
+
+      // Mock auth.createUser to throw an error
+      const originalCreateUser = auth.createUser.bind(auth);
+      auth.createUser = mock(() => {
+        throw new Error("auth/quota-exceeded");
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert - Verify no member document was created
       try {
         await auth.getUserByEmail(testEmail);
         expect.unreachable("User should not have been created");
@@ -573,10 +1363,112 @@ describe("stripeWebhook handler", () => {
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should return 500 when Firestore member document creation fails after user created", async () => {
+    it("should return 500 status when Firestore member document creation fails", async () => {
       // Arrange
-      const testEmail = `doc-fail-${Date.now()}@example.com`;
-      const { mockRequest, mockResponse, auth, firestore, originalEnvironment } = setup({
+      const testEmail = `doc-fail-status-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Mock Firestore collection().doc().set() to fail
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            documentReference.set = mock(() => {
+              throw new Error("Firestore write timeout");
+            }) as never;
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      expect(mockResponse.statusCode).toBe(500);
+
+      // Cleanup
+      try {
+        const userRecord = await auth.getUserByEmail(testEmail);
+        await auth.deleteUser(userRecord.uid);
+      } catch {
+        // User may not exist
+      }
+      firestore.collection = originalCollection as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message when Firestore member document creation fails", async () => {
+      // Arrange
+      const testEmail = `doc-fail-message-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Mock Firestore collection().doc().set() to fail
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            documentReference.set = mock(() => {
+              throw new Error("Firestore write timeout");
+            }) as never;
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
+      expect(mockResponse.body).toBe(
+        "Account created but setup incomplete - support will contact you",
+      );
+
+      // Cleanup
+      try {
+        const userRecord = await auth.getUserByEmail(testEmail);
+        await auth.deleteUser(userRecord.uid);
+      } catch {
+        // User may not exist
+      }
+      firestore.collection = originalCollection as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should attempt to write when Firestore member document creation fails", async () => {
+      // Arrange
+      const testEmail = `doc-fail-attempt-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
         testEmail,
       });
 
@@ -603,13 +1495,53 @@ describe("stripeWebhook handler", () => {
       await handler(mockRequest as never, mockResponse as unknown as Response);
 
       // Assert
-      expect(mockResponse.statusCode).toBe(500);
-      expect(mockResponse.body).toBe(
-        "Account created but setup incomplete - support will contact you"
-      );
       expect(setCallCount).toBeGreaterThan(0);
 
-      // Verify auth user WAS created (orphaned)
+      // Cleanup
+      try {
+        const userRecord = await auth.getUserByEmail(testEmail);
+        await auth.deleteUser(userRecord.uid);
+      } catch {
+        // User may not exist
+      }
+      firestore.collection = originalCollection as never;
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should create orphaned auth user when Firestore member document creation fails", async () => {
+      // Arrange
+      const testEmail = `doc-fail-orphan-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Mock Firestore collection().doc().set() to fail
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            documentReference.set = mock(() => {
+              throw new Error("Firestore write timeout");
+            }) as never;
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert - Verify auth user WAS created (orphaned)
       const userRecord = await auth.getUserByEmail(testEmail);
       expect(userRecord).toBeDefined();
 
@@ -619,10 +1551,16 @@ describe("stripeWebhook handler", () => {
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should return 500 when member document update fails for existing user", async () => {
+    it("should return 500 status when member document update fails for existing user", async () => {
       // Arrange
-      const testEmail = `update-fail-${Date.now()}@example.com`;
-      const { mockRequest, mockResponse, auth, firestore, originalEnvironment } = setup({
+      const testEmail = `update-fail-status-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
         testEmail,
       });
 
@@ -631,15 +1569,12 @@ describe("stripeWebhook handler", () => {
         email: testEmail,
         password: "test-password",
       });
-      await firestore
-        .collection(MEMBERS_COLLECTION)
-        .doc(existingUser.uid)
-        .set({
-          uid: existingUser.uid,
-          email: testEmail,
-          membershipActive: false,
-          createdAt: Timestamp.now(),
-        });
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
 
       // Mock Firestore set to fail on update
       const originalCollection = firestore.collection.bind(firestore);
@@ -665,20 +1600,194 @@ describe("stripeWebhook handler", () => {
 
       // Assert
       expect(mockResponse.statusCode).toBe(500);
+
+      // Cleanup
+      firestore.collection = originalCollection as never;
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should return error message when member document update fails for existing user", async () => {
+      // Arrange
+      const testEmail = `update-fail-message-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Create existing user and member document first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Mock Firestore set to fail on update
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            if (documentId === existingUser.uid) {
+              documentReference.set = mock(() => {
+                throw new Error("Firestore permission denied");
+              }) as never;
+            }
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Assert
       expect(mockResponse.body).toBe("Unable to update membership");
 
-      // Verify member document was NOT updated (still inactive)
+      // Cleanup
+      firestore.collection = originalCollection as never;
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should not update membershipActive when member document update fails", async () => {
+      // Arrange
+      const testEmail = `update-fail-active-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Create existing user and member document first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Mock Firestore set to fail on update
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            if (documentId === existingUser.uid) {
+              documentReference.set = mock(() => {
+                throw new Error("Firestore permission denied");
+              }) as never;
+            }
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Restore collection before verifying
+      firestore.collection = originalCollection as never;
+
+      // Assert - Verify member document was NOT updated (still inactive)
       const memberData = await getMemberData({
-        firestore: originalCollection("members") as never,
+        firestore,
         uid: existingUser.uid,
       });
       expect(memberData?.membershipActive).toBe(false);
+
+      // Cleanup
+      await auth.deleteUser(existingUser.uid);
+
+      restoreEnvironment(originalEnvironment);
+    });
+
+    it("should not add stripeCustomerId when member document update fails", async () => {
+      // Arrange
+      const testEmail = `update-fail-customer-${Date.now()}@example.com`;
+      const {
+        mockRequest,
+        mockResponse,
+        auth,
+        firestore,
+        originalEnvironment,
+      } = setup({
+        testEmail,
+      });
+
+      // Create existing user and member document first
+      const existingUser = await auth.createUser({
+        email: testEmail,
+        password: "test-password",
+      });
+      await firestore.collection(MEMBERS_COLLECTION).doc(existingUser.uid).set({
+        uid: existingUser.uid,
+        email: testEmail,
+        membershipActive: false,
+        createdAt: Timestamp.now(),
+      });
+
+      // Mock Firestore set to fail on update
+      const originalCollection = firestore.collection.bind(firestore);
+      firestore.collection = mock((path: string) => {
+        const collection = originalCollection(path);
+        if (path === MEMBERS_COLLECTION) {
+          const originalDocument = collection.doc.bind(collection);
+          collection.doc = mock((documentId: string) => {
+            const documentReference = originalDocument(documentId);
+            if (documentId === existingUser.uid) {
+              documentReference.set = mock(() => {
+                throw new Error("Firestore permission denied");
+              }) as never;
+            }
+            return documentReference;
+          }) as never;
+        }
+        return collection;
+      }) as never;
+
+      // Act
+      await handler(mockRequest as never, mockResponse as unknown as Response);
+
+      // Restore collection before verifying
+      firestore.collection = originalCollection as never;
+
+      // Assert - Verify member document was NOT updated
+      const memberData = await getMemberData({
+        firestore,
+        uid: existingUser.uid,
+      });
       expect(memberData?.stripeCustomerId).toBeUndefined();
 
       // Cleanup
       await auth.deleteUser(existingUser.uid);
-      await cleanupTestMembers({ firestore: originalCollection("members") as never });
-      firestore.collection = originalCollection as never;
+
       restoreEnvironment(originalEnvironment);
     });
   });

@@ -160,47 +160,48 @@ export async function handler(request: Request, response: Response) {
     return;
   }
 
-  // Check for duplicate webhook events (idempotency)
-  // Use .create() which atomically fails if document exists, preventing race conditions
-  const database = getFirestore();
-  const processedEventReference = database
-    .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-    .doc(event.id);
+  if (event.type === "checkout.session.completed") {
+    // Check for duplicate webhook events (idempotency)
+    // Use .create() which atomically fails if document exists, preventing race conditions
+    const database = getFirestore();
+    const processedEventReference = database
+      .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
+      .doc(event.id);
 
-  try {
-    await processedEventReference.create({
-      eventId: event.id,
-      eventType: event.type,
-      processedAt: Timestamp.now(),
-      received: true,
-    });
-  } catch (error: unknown) {
-    // Check if this is an already-exists error (duplicate webhook)
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === 6 // Firestore error code 6 is ALREADY_EXISTS
-    ) {
-      const processedEventDocument = await processedEventReference.get();
-      const data = processedEventDocument.data();
-      const processedAt = data?.processedAt as Timestamp | undefined;
-      logger.info(`Event ${event.id} already processed, skipping`, {
+    try {
+      await processedEventReference.create({
         eventId: event.id,
         eventType: event.type,
-        processedAt: processedAt?.toDate().toISOString(),
+        processedAt: Timestamp.now(),
+        received: true,
       });
-      response.json({ received: true, duplicate: true });
-      return;
+    } catch (error: unknown) {
+      // Check if this is an already-exists error (duplicate webhook)
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === 6 // Firestore error code 6 is ALREADY_EXISTS
+      ) {
+        const processedEventDocument = await processedEventReference.get();
+        const data = processedEventDocument.data();
+        const processedAt = data?.processedAt as Timestamp | undefined;
+        logger.info(`Event ${event.id} already processed, skipping`, {
+          eventId: event.id,
+          eventType: event.type,
+          processedAt: processedAt?.toDate().toISOString(),
+        });
+        response.json({ received: true, duplicate: true });
+        return;
+      }
+      // Re-throw if it's a different error
+      throw error;
     }
-    // Re-throw if it's a different error
-    throw error;
-  }
-
-  if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    const customerEmail = session.customer_email;
+    // Get email from customer_details (customer_email is often null in real webhooks)
+    const customerEmail =
+      session.customer_details?.email ?? session.customer_email;
     const customerId = session.customer as string;
     const subscriptionId = session.subscription as string;
 
@@ -291,6 +292,9 @@ export async function handler(request: Request, response: Response) {
 
     if (isNewUser) {
       // Create new member document using factory function
+      // NOTE: There's a potential race condition with createMemberOnUserCreated trigger.
+      // If the Auth trigger fires first, it creates a basic document, then this overwrites it.
+      // This is acceptable as we want the Stripe data to be authoritative.
       try {
         const memberDocument = createStripeMemberDocument({
           uid: userRecord.uid,

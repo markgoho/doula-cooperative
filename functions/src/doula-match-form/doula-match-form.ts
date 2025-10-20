@@ -18,6 +18,7 @@ export async function handleDoulaMatchForm(
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       ...request.body,
       submitted: today,
+      sent: false,
     });
 
     response.status(200).send("Okay");

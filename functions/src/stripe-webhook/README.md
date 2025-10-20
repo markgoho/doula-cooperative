@@ -5,7 +5,10 @@ This Firebase Function handles Stripe webhook events to automatically create use
 ## Function Signature
 
 ```typescript
-export async function handler(request: Request, response: Response): Promise<void>
+export async function handler(
+  request: Request,
+  response: Response,
+): Promise<void>;
 ```
 
 ## Events Handled
@@ -28,8 +31,8 @@ export async function handler(request: Request, response: Response): Promise<voi
 
 Required secrets (set via `firebase functions:secrets:set`):
 
-- `STRIPE_API_KEY` - Stripe secret key (sk_test_... or sk_live_...)
-- `STRIPE_WEBHOOK_SECRET` - Webhook signing secret (whsec_...)
+- `STRIPE_API_KEY` - Stripe secret key (sk*test*... or sk*live*...)
+- `STRIPE_WEBHOOK_SECRET` - Webhook signing secret (whsec\_...)
 - `MAILGUN_API_KEY` - Required for sending welcome email (optional in emulator mode)
 
 ## Testing
@@ -37,12 +40,17 @@ Required secrets (set via `firebase functions:secrets:set`):
 ### Local Testing with Stripe CLI
 
 ```bash
-# Forward webhooks to local emulator
-stripe listen --forward-to http://localhost:5001/PROJECT_ID/us-central1/stripeWebhook
+# 1. Start Firebase emulators
+bun run emulators:start
 
-# Trigger test event
+# 2. In a separate terminal, forward webhooks to local emulator
+stripe listen --forward-to http://localhost:5001/doula-cooperative-test/us-central1/stripeWebhook
+
+# 3. In another terminal, trigger test event
 stripe trigger checkout.session.completed
 ```
+
+The Stripe CLI will automatically use your test mode credentials and generate valid webhook signatures.
 
 ### Manual Testing
 
@@ -80,10 +88,12 @@ All operations logged via `firebase-functions/v2/logger`:
 ### Collections Modified
 
 **`members` collection:**
+
 - Creates new document with UID as key (for new users)
 - Updates existing document (for existing users)
 
 **Fields Set:**
+
 ```typescript
 {
   uid: string;
@@ -102,6 +112,7 @@ All operations logged via `firebase-functions/v2/logger`:
 ## Email Template
 
 Welcome email includes:
+
 - Greeting with membership activation confirmation
 - Password reset link (expires in 1 hour - Firebase Auth default)
 - List of member benefits

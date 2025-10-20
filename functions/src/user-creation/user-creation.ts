@@ -13,6 +13,17 @@ export async function handleUserCreated(user: auth.UserRecord) {
     }
 
     const firestore = getFirestore();
+    const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(uid);
+
+    // Check if document already exists (e.g., created by Stripe webhook)
+    const existingDocument = await memberReference.get();
+
+    if (existingDocument.exists) {
+      logger.log(
+        `Member document already exists for user: ${user.uid}, skipping creation`,
+      );
+      return;
+    }
 
     // Create a new document in the members collection
     // Use the auth UID as the document ID
@@ -23,7 +34,7 @@ export async function handleUserCreated(user: auth.UserRecord) {
       membershipActive: false,
     };
 
-    await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData);
+    await memberReference.set(memberData);
 
     logger.log(`Created member document for user: ${user.uid}`);
   } catch (error: unknown) {

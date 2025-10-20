@@ -5,12 +5,20 @@ import {
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
 import { MailgunMessageData } from "mailgun.js/definitions";
-import { MARK_EMAIL, NO_REPLY_EMAIL, REFERRAL_EMAIL } from "../constants";
+import {
+  MARK_EMAIL,
+  MESSAGES_COLLECTION,
+  NO_REPLY_EMAIL,
+  REFERRAL_EMAIL,
+} from "../constants";
 import { sendEmail } from "../utils/send-email";
 import { type ContactUsFormDocument } from "./types";
 
 export async function handleDocumentCreated(
-  event: FirestoreEvent<QueryDocumentSnapshot | undefined>,
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    { messageId: string }
+  >,
   apiKey: string | undefined,
 ) {
   const snapshot = event.data;
@@ -33,13 +41,25 @@ export async function handleDocumentCreated(
     "h:Reply-To": email,
   };
 
-  if (process.env.FUNCTIONS_EMULATOR) {
-    logger.info("Emulator detected, skipping email dispatch.");
-  } else {
-    await sendEmail(emailMessage, apiKey ?? "");
-  }
+  try {
+    if (process.env.FUNCTIONS_EMULATOR) {
+      logger.info("Emulator detected, skipping email dispatch.");
+    } else {
+      await sendEmail(emailMessage, apiKey ?? "");
+    }
 
-  // Use Admin SDK to update the document
-  const firestore = getFirestore();
-  await firestore.doc(snapshot.ref.path).update({ sent: true });
+    // Use collection constant and messageId from params to update document
+    const firestore = getFirestore();
+    const { messageId } = event.params;
+    await firestore
+      .collection(MESSAGES_COLLECTION)
+      .doc(messageId)
+      .update({ sent: true });
+
+    logger.info(`Successfully processed contact form ${messageId}`);
+  } catch (error) {
+    logger.error("Error processing contact form:", error);
+    // Don't throw - we don't want to retry email sends
+    // The sent field will remain false, allowing manual intervention
+  }
 }
