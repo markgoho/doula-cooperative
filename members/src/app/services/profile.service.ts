@@ -145,6 +145,26 @@ export class ProfileService {
     this.cachedProfile.set(undefined);
   }
 
+  async updateProfile(data: ProfileData): Promise<void> {
+    const writeProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
+      this.functions,
+      'writeProfile',
+    );
+
+    try {
+      await writeProfileCallable(data);
+
+      // Clear cache to force refresh on next load
+      this.clearProfileCache();
+
+      // Reload profile data to update the UI
+      await this.loadAndParseProfile();
+    } catch (error) {
+      console.error('Error calling writeProfile function:', error);
+      throw error;
+    }
+  }
+
   private parseProfileContent(content: string): ProfileData | undefined {
     // Parse front matter (YAML between --- markers)
     const frontMatterMatch = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(content);

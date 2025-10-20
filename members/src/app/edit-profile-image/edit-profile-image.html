@@ -1,0 +1,42 @@
+<h1>Edit Profile Image</h1>
+
+@if (profileData()) {
+  <div class="image-editor-container">
+    @if (profileData()?.image) {
+      <div class="current-image">
+        <h2>Current Profile Image</h2>
+        <img
+          [src]="profileData()?.image"
+          alt="Profile image of {{ profileData()?.title }}"
+          class="profile-image-large"
+        />
+      </div>
+    } @else {
+      <div class="no-image">
+        <p>No profile image set yet.</p>
+      </div>
+    }
+
+    <div class="coming-soon">
+      <h2>Image Editing Coming Soon</h2>
+      <p>
+        The ability to upload and edit your profile image will be available soon. For now, please
+        contact support if you need to update your profile image.
+      </p>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/profile" class="button button--primary">Back to Profile</a>
+    </div>
+  </div>
+} @else {
+  <div class="no-profile-message">
+    <h2>Profile Setup Required</h2>
+    <p>It looks like you don't have a doula profile set up yet.</p>
+    <p>
+      Please contact us to set up your profile, or visit the
+      <a href="/membership">Membership page</a> for more information.
+    </p>
+    <p>Once your profile is created, you'll be able to edit it here.</p>
+  </div>
+}

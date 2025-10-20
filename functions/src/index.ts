@@ -99,4 +99,24 @@ export const readProfile = onCall(
   },
 );
 
+export const writeProfile = onCall(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async request => {
+    const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
+    const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
+    const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      throw new HttpsError("internal", "Missing GitHub secrets.");
+    }
+
+    const { handleWriteProfile } = await import("./write-profile/index.js");
+    return handleWriteProfile(request, [
+      GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID,
+    ]);
+  },
+);
+
 export { stripeWebhook } from "./stripe-webhook/index.js";

@@ -2,6 +2,7 @@ import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angula
 import { Routes } from '@angular/router';
 import { AuthActions } from './auth-actions/auth-actions';
 import { EditProfile } from './edit-profile/edit-profile';
+import { EditProfileImage } from './edit-profile-image/edit-profile-image';
 import { Membership } from './membership/membership';
 import { SignIn } from './sign-in/sign-in';
 import { SignUp } from './sign-up/sign-up';
@@ -16,6 +17,7 @@ export const routes: Routes = [
   // Protected routes (require authentication and email verification)
   { path: 'membership', component: Membership, ...canActivate(redirectUnauthorizedToSignIn) },
   { path: 'profile', component: EditProfile, ...canActivate(redirectUnauthorizedToSignIn) },
+  { path: 'profile/image', component: EditProfileImage, ...canActivate(redirectUnauthorizedToSignIn) },
 
   // Authentication routes
   { path: 'sign-up', component: SignUp, ...canActivate(redirectToMembership) },
