@@ -1,7 +1,9 @@
 import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileData, ProfileService } from '../services/profile.service';
+import { ProfileService } from '../services/profile.service';
+import { type ProfileData } from '../types/profile-data';
 import { EditProfile } from './edit-profile';
 
 describe('EditProfile', () => {
@@ -148,14 +150,109 @@ describe('EditProfile', () => {
       expect(screen.queryByText('Contact Information')).not.toBeInTheDocument();
     });
   });
+
+  describe('form submission', () => {
+    it('should show validation error when title is empty', async () => {
+      const { user } = await setup();
+
+      const titleInput = screen.getByLabelText(/title/i);
+      await user.clear(titleInput);
+      await user.tab();
+
+      expect(titleInput).toHaveClass('ng-invalid');
+    });
+
+    it('should show validation error when bio is empty', async () => {
+      const { user } = await setup();
+
+      const bioInput = screen.getByLabelText(/bio/i);
+      await user.clear(bioInput);
+      await user.tab();
+
+      expect(bioInput).toHaveClass('ng-invalid');
+    });
+
+    it('should disable submit button when form is invalid', async () => {
+      const { user } = await setup();
+
+      const titleInput = screen.getByLabelText(/title/i);
+      await user.clear(titleInput);
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      expect(submitButton).toBeDisabled();
+    });
+
+    it('should enable submit button when form is valid', async () => {
+      await setup();
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      expect(submitButton).not.toBeDisabled();
+    });
+
+    it('should display error message when update fails', async () => {
+      const { user } = await setup({ updateShouldFail: true, errorMessage: 'Update failed' });
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/update failed/i)).toBeVisible();
+    });
+
+    it('should display generic error message for unknown errors', async () => {
+      const { user } = await setup({ updateShouldFail: true });
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/failed to update profile/i)).toBeVisible();
+    });
+
+    it('should display success message after successful update', async () => {
+      const { user } = await setup();
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/profile updated successfully/i)).toBeVisible();
+    });
+
+    it('should show loading state during submission', async () => {
+      const { user } = await setup();
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      await user.click(submitButton);
+
+      expect(screen.getByText(/saving/i)).toBeVisible();
+    });
+
+    it('should disable submit button during submission', async () => {
+      const { user } = await setup();
+
+      const submitButton = screen.getByRole('button', { name: /save/i });
+      const clickPromise = user.click(submitButton);
+
+      expect(submitButton).toBeDisabled();
+
+      await clickPromise;
+    });
+  });
 });
 
 interface SetupOptions {
   profileData?: ProfileData;
   hasProfile?: boolean;
+  updateShouldFail?: boolean;
+  errorMessage?: string;
 }
 
-async function setup({ profileData, hasProfile = true }: SetupOptions = {}) {
+async function setup({
+  profileData,
+  hasProfile = true,
+  updateShouldFail = false,
+  errorMessage,
+}: SetupOptions = {}) {
+  const user = userEvent.setup();
+
   const defaultProfile: ProfileData = {
     title: 'Jane Doe',
     credentials: 'CD(DONA), CPD',
@@ -173,9 +270,15 @@ async function setup({ profileData, hasProfile = true }: SetupOptions = {}) {
   const mockProfileService = {
     profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
     getTagUrl: vi.fn((tag: string) => tag.toLowerCase().replaceAll(/\s+/g, '-')),
+    updateProfile: vi.fn().mockImplementation(() => {
+      if (updateShouldFail) {
+        return Promise.reject(errorMessage ? new Error(errorMessage) : 'Unknown error');
+      }
+      return Promise.resolve();
+    }),
   };
 
-  await render(EditProfile, {
+  const result = await render(EditProfile, {
     providers: [
       {
         provide: ProfileService,
@@ -183,4 +286,6 @@ async function setup({ profileData, hasProfile = true }: SetupOptions = {}) {
       },
     ],
   });
+
+  return { ...result, user };
 }

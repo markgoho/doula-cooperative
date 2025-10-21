@@ -1,22 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
+import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
-
-export interface ProfileData {
-  title: string;
-  credentials?: string;
-  tags?: string[];
-  contact?: {
-    phone?: string;
-    email?: string;
-    website?: string;
-    business_name?: string;
-  };
-  bio: string;
-  draft?: boolean;
-  image?: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -154,11 +140,18 @@ export class ProfileService {
     try {
       await writeProfileCallable(data);
 
-      // Clear cache to force refresh on next load
+      // Clear cache to force refresh, then reload
+      // Note: We clear before fetching to ensure loadAndParseProfile doesn't return cached data
       this.clearProfileCache();
 
       // Reload profile data to update the UI
-      await this.loadAndParseProfile();
+      const newProfile = await this.loadAndParseProfile();
+
+      // If reload failed, we've already cleared the cache above
+      // The loadAndParseProfile error will be caught and re-thrown
+      if (!newProfile) {
+        console.warn('Profile update succeeded but reload returned no data');
+      }
     } catch (error) {
       console.error('Error calling writeProfile function:', error);
       throw error;

@@ -4,19 +4,10 @@ import * as logger from "firebase-functions/logger";
 import { App } from "octokit";
 import { MEMBERS_COLLECTION } from "../constants";
 import { type MemberDocument } from "../types/member-document";
+import { validateProfileData } from "./validation";
 
-export interface ProfileData {
-  title: string;
-  credentials?: string;
-  tags?: string[];
-  contact?: {
-    phone?: string;
-    email?: string;
-    website?: string;
-    business_name?: string;
-  };
-  bio: string;
-}
+export type { ProfileData } from "../types/profile-data";
+import type { ProfileData } from "../types/profile-data";
 
 function stripUrlProtocol(url: string): string {
   return url.replace(/^https?:\/\//, "");
@@ -36,7 +27,7 @@ function serializeToMarkdown(
   // Format tags as YAML array
   const tagsYaml =
     data.tags && data.tags.length > 0
-      ? `tags:\n${data.tags.map(tag => `  - "${tag}"`).join("\n")}`
+      ? `tags:\n${data.tags.map((tag: string) => `  - "${tag}"`).join("\n")}`
       : "";
 
   // Format contact information
@@ -121,6 +112,9 @@ export async function handleWriteProfile(
   }
   const uid = request.auth.uid;
   logger.info(`Write request initiated for user: ${uid}`);
+
+  // 2. Validate input data
+  validateProfileData(request.data);
 
   // 2. Get the Hugo file path from the members collection
   const database = getFirestore();
@@ -212,7 +206,53 @@ export async function handleWriteProfile(
 
     logger.info(`Successfully updated ${filePath} for user ${uid}`);
     return { success: true };
-  } catch (error) {
+  } catch (error: unknown) {
+    // Type guard for GitHub API errors
+    const isGitHubError = (value: unknown): value is { status: number; response?: { headers?: Record<string, string> } } => {
+      return typeof value === "object" && value !== null && "status" in value;
+    };
+
+    // Type guard for rate limit errors specifically
+    const isRateLimitError = (
+      value: unknown,
+    ): value is { status: number; response: { headers: Record<string, string> } } => {
+      return (
+        isGitHubError(value) &&
+        value.status === 403 &&
+        value.response?.headers?.["x-ratelimit-remaining"] === "0"
+      );
+    };
+
+    // Check for GitHub API rate limiting
+    if (isRateLimitError(error)) {
+      logger.error("GitHub API rate limit exceeded", {
+        rateLimitReset: error.response.headers["x-ratelimit-reset"],
+        error,
+      });
+      throw new HttpsError(
+        "resource-exhausted",
+        "Too many profile updates. Please try again later.",
+      );
+    }
+
+    // Check for other GitHub API errors
+    if (isGitHubError(error) && error.status === 404) {
+      logger.error("GitHub file not found", { filePath, error });
+      throw new HttpsError(
+        "not-found",
+        "Profile file not found. Please contact support.",
+      );
+    }
+
+    if (isGitHubError(error) && error.status === 409) {
+      logger.error("GitHub conflict - file was modified", { filePath, error });
+      throw new HttpsError(
+        "failed-precondition",
+        "Profile was modified by another process. Please refresh and try again.",
+      );
+    }
+
+    // Generic GitHub API error
     logger.error("Error interacting with GitHub API", error);
     throw new HttpsError(
       "internal",

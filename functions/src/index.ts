@@ -10,8 +10,14 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
+import {
+  type CallableRequest,
+  HttpsError,
+  onCall,
+  onRequest,
+} from "firebase-functions/v2/https";
 import { PROFILE_SECRETS } from "./constants/profile-secrets";
+import { type ProfileData } from "./write-profile/index.js";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {
@@ -101,7 +107,7 @@ export const readProfile = onCall(
 
 export const writeProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
-  async request => {
+  async (request: CallableRequest<ProfileData>) => {
     const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
     const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
     const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
