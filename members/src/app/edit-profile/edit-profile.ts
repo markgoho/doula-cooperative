@@ -1,7 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, inject, OnDestroy, signal } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { PROFILE_TAGS } from '../constants/profile-tags';
 import { ProfileService } from '../services/profile.service';
 
@@ -11,11 +15,9 @@ import { ProfileService } from '../services/profile.service';
   styleUrl: './edit-profile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EditProfile implements OnDestroy {
+export class EditProfile {
   private profileService = inject(ProfileService);
   private fb = inject(FormBuilder);
-  private router = inject(Router);
-  private destroy$ = new Subject<void>();
 
   // Use the profile service's cached profile signal directly
   readonly profileData = this.profileService.profile;
@@ -46,12 +48,7 @@ export class EditProfile implements OnDestroy {
       if (profile && !this.profileForm.dirty) {
         this.initializeForm(profile);
       }
-    }, { allowSignalWrites: true });
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+    });
   }
 
   private initializeForm(profile: ReturnType<typeof this.profileData>) {
@@ -155,6 +152,10 @@ export class EditProfile implements OnDestroy {
   }
   get tagsArray() {
     return this.profileForm.get('tags') as FormArray;
+  }
+
+  getTagControl(index: number) {
+    return this.tagsArray.at(index) as FormControl;
   }
   get bioControl() {
     return this.profileForm.get('bio');

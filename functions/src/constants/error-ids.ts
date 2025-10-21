@@ -34,6 +34,12 @@ export const ERROR_IDS = {
   MAILGUN_RATE_LIMITED: "mailgun_rate_limited",
   MAILGUN_INVALID_RECIPIENT: "mailgun_invalid_recipient",
   MAILGUN_NETWORK_ERROR: "mailgun_network_error",
+
+  // Write profile errors
+  WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
+  WRITE_PROFILE_GITHUB_NOT_FOUND: "write_profile_github_not_found",
+  WRITE_PROFILE_GITHUB_CONFLICT: "write_profile_github_conflict",
+  WRITE_PROFILE_GITHUB_GENERIC: "write_profile_github_generic",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

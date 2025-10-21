@@ -3,6 +3,7 @@ import { type CallableRequest, HttpsError } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
 import { App } from "octokit";
 import { MEMBERS_COLLECTION } from "../constants";
+import { ERROR_IDS } from "../constants/error-ids";
 import { type MemberDocument } from "../types/member-document";
 import { validateProfileData } from "./validation";
 
@@ -168,8 +169,9 @@ export async function handleWriteProfile(
     Number.parseInt(GITHUB_INSTALLATION_ID),
   );
 
-  const owner = "markgoho"; // <-- IMPORTANT: Change this
-  const repo = "doula-cooperative"; // <-- IMPORTANT: Change this
+  // These repository values can be hardcoded since they're specific to this project
+  const owner = "markgoho";
+  const repo = "doula-cooperative";
 
   try {
     // First, fetch the existing file to get its SHA and preserve metadata
@@ -226,6 +228,9 @@ export async function handleWriteProfile(
     // Check for GitHub API rate limiting
     if (isRateLimitError(error)) {
       logger.error("GitHub API rate limit exceeded", {
+        errorId: ERROR_IDS.WRITE_PROFILE_GITHUB_RATE_LIMIT,
+        uid,
+        slug,
         rateLimitReset: error.response.headers["x-ratelimit-reset"],
         error,
       });
@@ -237,7 +242,13 @@ export async function handleWriteProfile(
 
     // Check for other GitHub API errors
     if (isGitHubError(error) && error.status === 404) {
-      logger.error("GitHub file not found", { filePath, error });
+      logger.error("GitHub file not found", {
+        errorId: ERROR_IDS.WRITE_PROFILE_GITHUB_NOT_FOUND,
+        uid,
+        slug,
+        filePath,
+        error,
+      });
       throw new HttpsError(
         "not-found",
         "Profile file not found. Please contact support.",
@@ -245,7 +256,13 @@ export async function handleWriteProfile(
     }
 
     if (isGitHubError(error) && error.status === 409) {
-      logger.error("GitHub conflict - file was modified", { filePath, error });
+      logger.error("GitHub conflict - file was modified", {
+        errorId: ERROR_IDS.WRITE_PROFILE_GITHUB_CONFLICT,
+        uid,
+        slug,
+        filePath,
+        error,
+      });
       throw new HttpsError(
         "failed-precondition",
         "Profile was modified by another process. Please refresh and try again.",
@@ -253,7 +270,13 @@ export async function handleWriteProfile(
     }
 
     // Generic GitHub API error
-    logger.error("Error interacting with GitHub API", error);
+    logger.error("Error interacting with GitHub API", {
+      errorId: ERROR_IDS.WRITE_PROFILE_GITHUB_GENERIC,
+      uid,
+      slug,
+      filePath,
+      error,
+    });
     throw new HttpsError(
       "internal",
       "Failed to write the file to GitHub.",

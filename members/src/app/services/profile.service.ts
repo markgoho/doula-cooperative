@@ -137,24 +137,28 @@ export class ProfileService {
       'writeProfile',
     );
 
+    // Step 1: Write the profile - let write errors propagate immediately
     try {
       await writeProfileCallable(data);
-
-      // Clear cache to force refresh, then reload
-      // Note: We clear before fetching to ensure loadAndParseProfile doesn't return cached data
-      this.clearProfileCache();
-
-      // Reload profile data to update the UI
-      const newProfile = await this.loadAndParseProfile();
-
-      // If reload failed, we've already cleared the cache above
-      // The loadAndParseProfile error will be caught and re-thrown
-      if (!newProfile) {
-        console.warn('Profile update succeeded but reload returned no data');
-      }
     } catch (error) {
       console.error('Error calling writeProfile function:', error);
-      throw error;
+      throw error; // Propagate write errors
+    }
+
+    // Step 2: Clear cache after successful write
+    this.clearProfileCache();
+
+    // Step 3: Attempt reload - if this fails, we want the user to know
+    try {
+      const newProfile = await this.loadAndParseProfile();
+      if (!newProfile) {
+        console.error('Profile update succeeded but reload returned no data - user should refresh page');
+        throw new Error('Profile was updated but could not be reloaded. Please refresh the page to see your changes.');
+      }
+    } catch (error) {
+      console.error('Profile update succeeded but reload failed:', error);
+      // Re-throw with user-friendly message
+      throw new Error('Your profile was updated successfully, but we could not refresh the display. Please reload the page to see your changes.');
     }
   }
 

@@ -50,14 +50,16 @@
 
     <!-- Tags Selection -->
     <div class="form-group">
-      <label class="form__label">Services & Specialties *</label>
+      <div class="form__label" role="group" aria-labelledby="services-label">
+        <span id="services-label">Services & Specialties *</span>
+      </div>
       <p class="form__help-text">Select all that apply</p>
       <div class="tags-container">
         @for (tag of availableTags; track tag; let i = $index) {
           <label class="checkbox-label">
             <input
               type="checkbox"
-              [formControl]="tagsArray.at(i)"
+              [formControl]="getTagControl(i)"
               class="checkbox-input"
             />
             <span class="checkbox-text">{{ tag }}</span>
@@ -155,7 +157,7 @@
 
     <!-- Profile Image Link -->
     <div class="form-group">
-      <label class="form__label">Profile Image</label>
+      <span class="form__label">Profile Image</span>
       @if (profileData()?.image) {
         <img
           [src]="profileData()?.image"

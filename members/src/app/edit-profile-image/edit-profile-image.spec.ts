@@ -1,267 +1,121 @@
 import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { signal } from '@angular/core';
+import { describe, expect, it } from 'vitest';
 import { EditProfileImage } from './edit-profile-image';
+import { ProfileService } from '../services/profile.service';
+import type { ProfileData } from '../types/profile-data';
 
 describe('EditProfileImage', () => {
-  describe('image display', () => {
+  describe('when profile exists', () => {
     it('should display current image when imageUrl is provided', async () => {
-      await setup({ imageUrl: 'https://example.com/profile.jpg' });
+      await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+          image: 'https://example.com/profile.jpg',
+        },
+      });
 
       const image = screen.getByRole('img');
       expect(image).toHaveAttribute('src', 'https://example.com/profile.jpg');
+      expect(image).toHaveAttribute('alt', 'Profile image of Jane Doe');
     });
 
-    it('should display placeholder when no imageUrl provided', async () => {
-      await setup();
+    it('should display "No profile image set yet" when no image is provided', async () => {
+      await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+        },
+      });
 
-      expect(screen.getByText(/no image/i)).toBeVisible();
+      expect(screen.getByText(/no profile image set yet/i)).toBeVisible();
     });
 
-    it('should display alt text for accessibility', async () => {
-      await setup({ imageUrl: 'https://example.com/profile.jpg' });
+    it('should display coming soon message', async () => {
+      await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+        },
+      });
 
-      const image = screen.getByRole('img');
-      expect(image).toHaveAttribute('alt');
-    });
-  });
-
-  describe('file selection', () => {
-    it('should have a file input for selecting images', async () => {
-      await setup();
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      expect(fileInput).toHaveAttribute('type', 'file');
+      expect(screen.getByText(/image editing coming soon/i)).toBeVisible();
+      expect(
+        screen.getByText(/the ability to upload and edit your profile image will be available soon/i)
+      ).toBeVisible();
     });
 
-    it('should accept only image files', async () => {
-      await setup();
+    it('should have back to profile link', async () => {
+      await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+        },
+      });
 
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      expect(fileInput).toHaveAttribute('accept', expect.stringContaining('image'));
+      const link = screen.getByRole('link', { name: /back to profile/i });
+      expect(link).toBeVisible();
+      expect(link).toHaveAttribute('href', '/profile');
     });
 
-    it('should update preview when file is selected', async () => {
-      const user = userEvent.setup();
-      await setup();
+    it('should display current image heading when image exists', async () => {
+      await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+          image: 'https://example.com/profile.jpg',
+        },
+      });
 
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-
-      await user.upload(fileInput, file);
-
-      // Check that preview is shown (implementation specific)
-      // This test may need adjustment based on actual implementation
-      expect(fileInput.files?.[0]).toBe(file);
-    });
-
-    it('should show file name after selection', async () => {
-      const user = userEvent.setup();
-      await setup();
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-
-      await user.upload(fileInput, file);
-
-      expect(screen.getByText(/profile\.jpg/i)).toBeVisible();
+      expect(screen.getByText(/current profile image/i)).toBeVisible();
     });
   });
 
-  describe('file upload', () => {
-    it('should have an upload button', async () => {
-      await setup();
+  describe('when no profile exists', () => {
+    it('should display profile setup required message', async () => {
+      await setup({ profileData: undefined });
 
-      expect(screen.getByRole('button', { name: /upload|save/i })).toBeVisible();
+      expect(screen.getByText(/profile setup required/i)).toBeVisible();
+      expect(screen.getByText(/it looks like you don't have a doula profile set up yet/i)).toBeVisible();
     });
 
-    it('should disable upload button when no file selected', async () => {
-      await setup();
+    it('should display contact support instructions', async () => {
+      await setup({ profileData: undefined });
 
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      expect(uploadButton).toBeDisabled();
+      expect(
+        screen.getByText(/please contact us to set up your profile/i)
+      ).toBeVisible();
     });
 
-    it('should enable upload button when file is selected', async () => {
-      const user = userEvent.setup();
-      await setup();
+    it('should have link to membership page', async () => {
+      await setup({ profileData: undefined });
 
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-
-      await user.upload(fileInput, file);
-
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      expect(uploadButton).not.toBeDisabled();
+      const membershipLink = screen.getByRole('link', { name: /membership page/i });
+      expect(membershipLink).toBeVisible();
+      expect(membershipLink).toHaveAttribute('href', '/membership');
     });
 
-    it('should show loading state during upload', async () => {
-      const user = userEvent.setup();
-      let resolveUpload: () => void;
-      const mockOnUpload = vi.fn().mockImplementation(() => new Promise(resolve => {
-        resolveUpload = resolve;
-      }));
+    it('should display message about editing after profile creation', async () => {
+      await setup({ profileData: undefined });
 
-      await setup({ onUpload: mockOnUpload });
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, file);
-
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      await user.click(uploadButton);
-
-      expect(screen.getByText(/uploading/i)).toBeVisible();
-
-      resolveUpload!();
-    });
-
-    it('should call onUpload callback with selected file', async () => {
-      const user = userEvent.setup();
-      const mockOnUpload = vi.fn().mockResolvedValue(undefined);
-      await setup({ onUpload: mockOnUpload });
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, file);
-
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      await user.click(uploadButton);
-
-      expect(mockOnUpload).toHaveBeenCalledWith(file);
-    });
-
-    it('should show error message when upload fails', async () => {
-      const user = userEvent.setup();
-      const mockOnUpload = vi.fn().mockRejectedValue(new Error('Upload failed'));
-      await setup({ onUpload: mockOnUpload });
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, file);
-
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      await user.click(uploadButton);
-
-      expect(await screen.findByText(/upload failed|error/i)).toBeVisible();
-    });
-
-    it('should show success message after successful upload', async () => {
-      const user = userEvent.setup();
-      const mockOnUpload = vi.fn().mockResolvedValue(undefined);
-      await setup({ onUpload: mockOnUpload });
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, file);
-
-      const uploadButton = screen.getByRole('button', { name: /upload|save/i });
-      await user.click(uploadButton);
-
-      expect(await screen.findByText(/success|uploaded/i)).toBeVisible();
-    });
-  });
-
-  describe('file validation', () => {
-    it('should reject files larger than max size', async () => {
-      const user = userEvent.setup();
-      await setup({ maxFileSize: 1024 * 1024 }); // 1MB
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const largeFile = new File(
-        [new ArrayBuffer(2 * 1024 * 1024)], // 2MB
-        'large-image.jpg',
-        { type: 'image/jpeg' }
-      );
-
-      await user.upload(fileInput, largeFile);
-
-      expect(screen.getByText(/file too large|size/i)).toBeVisible();
-    });
-
-    it('should reject non-image files', async () => {
-      const user = userEvent.setup();
-      await setup();
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const textFile = new File(['text'], 'document.txt', { type: 'text/plain' });
-
-      await user.upload(fileInput, textFile);
-
-      expect(screen.getByText(/invalid file type|image/i)).toBeVisible();
-    });
-
-    it('should accept valid image formats (jpg, png, gif)', async () => {
-      const user = userEvent.setup();
-      await setup();
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-
-      // Test JPEG
-      const jpegFile = new File(['image'], 'image.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, jpegFile);
-      expect(screen.queryByText(/invalid file type/i)).not.toBeInTheDocument();
-
-      // Test PNG
-      const pngFile = new File(['image'], 'image.png', { type: 'image/png' });
-      await user.upload(fileInput, pngFile);
-      expect(screen.queryByText(/invalid file type/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('cancel action', () => {
-    it('should have a cancel button', async () => {
-      await setup();
-
-      expect(screen.getByRole('button', { name: /cancel|close/i })).toBeVisible();
-    });
-
-    it('should call onCancel callback when cancel is clicked', async () => {
-      const user = userEvent.setup();
-      const mockOnCancel = vi.fn();
-      await setup({ onCancel: mockOnCancel });
-
-      const cancelButton = screen.getByRole('button', { name: /cancel|close/i });
-      await user.click(cancelButton);
-
-      expect(mockOnCancel).toHaveBeenCalled();
-    });
-
-    it('should clear selected file when cancel is clicked', async () => {
-      const user = userEvent.setup();
-      await setup();
-
-      const fileInput = screen.getByLabelText(/choose image|select image|upload/i);
-      const file = new File(['image'], 'profile.jpg', { type: 'image/jpeg' });
-      await user.upload(fileInput, file);
-
-      const cancelButton = screen.getByRole('button', { name: /cancel|close/i });
-      await user.click(cancelButton);
-
-      expect(fileInput.files).toHaveLength(0);
+      expect(
+        screen.getByText(/once your profile is created, you'll be able to edit it here/i)
+      ).toBeVisible();
     });
   });
 });
 
 interface SetupOptions {
-  imageUrl?: string;
-  onUpload?: (file: File) => Promise<void>;
-  onCancel?: () => void;
-  maxFileSize?: number;
+  profileData?: ProfileData;
 }
 
-async function setup({
-  imageUrl,
-  onUpload = vi.fn().mockResolvedValue(undefined),
-  onCancel = vi.fn(),
-  maxFileSize,
-}: SetupOptions = {}) {
+async function setup({ profileData }: SetupOptions = {}) {
+  const mockProfileService = {
+    profile: signal(profileData),
+  } as unknown as ProfileService;
+
   return await render(EditProfileImage, {
-    componentInputs: {
-      imageUrl,
-      onUpload,
-      onCancel,
-      maxFileSize,
-    },
+    providers: [{ provide: ProfileService, useValue: mockProfileService }],
   });
 }
