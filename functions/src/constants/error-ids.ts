@@ -40,6 +40,8 @@ export const ERROR_IDS = {
   WRITE_PROFILE_GITHUB_NOT_FOUND: "write_profile_github_not_found",
   WRITE_PROFILE_GITHUB_CONFLICT: "write_profile_github_conflict",
   WRITE_PROFILE_GITHUB_GENERIC: "write_profile_github_generic",
+  WRITE_PROFILE_METADATA_PARSE_FAILED: "write_profile_metadata_parse_failed",
+  WRITE_PROFILE_PROCESSING_ERROR: "write_profile_processing_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

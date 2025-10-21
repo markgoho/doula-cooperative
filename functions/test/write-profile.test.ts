@@ -418,6 +418,70 @@ describe("writeProfile", () => {
     await cleanupWriteProfile();
   });
 
+  it("should throw error when tag array contains non-string elements", async () => {
+    // Arrange
+    const { testUid, wrappedWriteProfile, profileData } = setup();
+    const invalidData = {
+      ...profileData,
+      // eslint-disable-next-line unicorn/no-null
+      tags: [123, "valid tag", null] as unknown as string[],
+    };
+
+    // Act & Assert
+    try {
+      await wrappedWriteProfile(
+        createMockCallableRequest({ data: invalidData, uid: testUid }),
+      );
+      expect.unreachable();
+    } catch (error) {
+      expect(String(error)).toContain("All tags must be strings");
+    }
+
+    await cleanupWriteProfile();
+  });
+
+  it("should throw error when contact is not an object", async () => {
+    // Arrange
+    const { testUid, wrappedWriteProfile, profileData } = setup();
+    const invalidData = {
+      ...profileData,
+      contact: "not an object" as unknown as ProfileData["contact"],
+    };
+
+    // Act & Assert
+    try {
+      await wrappedWriteProfile(
+        createMockCallableRequest({ data: invalidData, uid: testUid }),
+      );
+      expect.unreachable();
+    } catch (error) {
+      expect(String(error)).toContain("Contact must be an object");
+    }
+
+    await cleanupWriteProfile();
+  });
+
+  it("should throw error when contact is an array", async () => {
+    // Arrange
+    const { testUid, wrappedWriteProfile, profileData } = setup();
+    const invalidData = {
+      ...profileData,
+      contact: ["phone", "email"] as unknown as ProfileData["contact"],
+    };
+
+    // Act & Assert
+    try {
+      await wrappedWriteProfile(
+        createMockCallableRequest({ data: invalidData, uid: testUid }),
+      );
+      expect.unreachable();
+    } catch (error) {
+      expect(String(error)).toContain("Contact must be an object");
+    }
+
+    await cleanupWriteProfile();
+  });
+
   it("should throw error when contact email is invalid", async () => {
     // Arrange
     const { testUid, wrappedWriteProfile, profileData } = setup();
@@ -1236,7 +1300,7 @@ Old bio.`,
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Failed to write the file to GitHub");
+      expect(String(error)).toContain("Failed to process profile update");
     }
 
     await cleanupWriteProfile();
@@ -1268,6 +1332,52 @@ Old bio.`,
 
     // Assert
     expect(result.success).toBe(true);
+
+    await cleanupWriteProfile();
+  });
+
+  it("should not include tags section when tags array is empty", async () => {
+    // Arrange
+    const { testUid, testEmail, slug, wrappedWriteProfile, firestore, profileData } = setup();
+
+    await createMemberDocument({ firestore, uid: testUid, email: testEmail, slug });
+    setupGitHubMock();
+
+    const dataWithEmptyTags = { ...profileData, tags: [] };
+
+    // Act
+    await wrappedWriteProfile(
+      createMockCallableRequest({ data: dataWithEmptyTags, uid: testUid })
+    );
+
+    // Assert
+    const callArguments = mockCreateOrUpdateFileContents.mock.calls[0][0] as { content: string };
+    const decodedContent = Buffer.from(callArguments.content, "base64").toString("utf8");
+
+    expect(decodedContent).not.toContain("tags:");
+
+    await cleanupWriteProfile();
+  });
+
+  it("should not include contact section when contact object is empty", async () => {
+    // Arrange
+    const { testUid, testEmail, slug, wrappedWriteProfile, firestore, profileData } = setup();
+
+    await createMemberDocument({ firestore, uid: testUid, email: testEmail, slug });
+    setupGitHubMock();
+
+    const dataWithEmptyContact = { ...profileData, contact: {} };
+
+    // Act
+    await wrappedWriteProfile(
+      createMockCallableRequest({ data: dataWithEmptyContact, uid: testUid })
+    );
+
+    // Assert
+    const callArguments = mockCreateOrUpdateFileContents.mock.calls[0][0] as { content: string };
+    const decodedContent = Buffer.from(callArguments.content, "base64").toString("utf8");
+
+    expect(decodedContent).not.toContain("contact:");
 
     await cleanupWriteProfile();
   });

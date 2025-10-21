@@ -157,8 +157,19 @@ export class ProfileService {
       }
     } catch (error) {
       console.error('Profile update succeeded but reload failed:', error);
-      // Re-throw with user-friendly message
-      throw new Error('Your profile was updated successfully, but we could not refresh the display. Please reload the page to see your changes.');
+
+      // Provide more specific error message based on error type
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Profile not found') || errorMessage.includes('may need to claim')) {
+        throw new Error('Your profile was updated successfully. Please refresh the page to see your changes.');
+      }
+
+      // Re-throw with original error preserved
+      const reloadError = new Error(
+        `Your profile was updated successfully, but we could not refresh the display: ${errorMessage}. Please reload the page.`
+      );
+      Object.defineProperty(reloadError, 'cause', { value: error });
+      throw reloadError;
     }
   }
 

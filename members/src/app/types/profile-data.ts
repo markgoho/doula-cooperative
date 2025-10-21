@@ -23,9 +23,9 @@ export interface ProfileData {
   /** Required: Bio/description of services */
   bio: string;
 
-  /** Optional: Draft status (frontend only - not stored in markdown) */
+  /** Optional: Draft status (read from markdown, preserved on updates, but not set by user input) */
   draft?: boolean;
 
-  /** Optional: Profile image URL (frontend only - not stored in markdown) */
+  /** Optional: Profile image URL (managed separately from markdown content, provided by backend) */
   image?: string;
 }

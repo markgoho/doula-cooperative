@@ -32,8 +32,10 @@ function serializeToMarkdown(
       : "";
 
   // Format contact information
-  const contactYaml =
-    data.contact && Object.keys(data.contact).length > 0
+  // Filter out undefined values before checking if contact object has data
+  const hasContactData = data.contact !== undefined &&
+    Object.values(data.contact).some(v => typeof v === 'string' && v !== '');
+  const contactYaml = hasContactData && data.contact
       ? `contact:
 ${data.contact.business_name ? `  business_name: ${data.contact.business_name}\n` : ""}${data.contact.website ? `  website: ${stripUrlProtocol(data.contact.website)}\n` : ""}${data.contact.phone ? `  phone: ${data.contact.phone}\n` : ""}${data.contact.email ? `  email: "${data.contact.email}"\n` : ""}`.trimEnd()
       : "";
@@ -66,6 +68,10 @@ function parseExistingMetadata(content: string): {
   const frontMatterMatch = /^---\n([\s\S]*?)\n---/.exec(content);
 
   if (!frontMatterMatch) {
+    logger.warn("No front matter found in existing profile content - metadata may be lost", {
+      errorId: ERROR_IDS.WRITE_PROFILE_METADATA_PARSE_FAILED,
+      contentPreview: content.slice(0, 200),
+    });
     return {};
   }
 
@@ -117,7 +123,7 @@ export async function handleWriteProfile(
   // 2. Validate input data
   validateProfileData(request.data);
 
-  // 2. Get the Hugo file path from the members collection
+  // 3. Get the Hugo file path from the members collection
   const database = getFirestore();
   const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
   const memberDocument = await memberReference.get();
@@ -160,7 +166,7 @@ export async function handleWriteProfile(
 
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
-  // 3. Authenticate as the GitHub App
+  // 4. Authenticate as the GitHub App
   const app = new App({
     appId: GITHUB_APP_ID,
     privateKey: GITHUB_PRIVATE_KEY,
@@ -192,10 +198,10 @@ export async function handleWriteProfile(
     );
     const existingMetadata = parseExistingMetadata(existingContent);
 
-    // 4. Serialize the profile data to markdown format
+    // 5. Serialize the profile data to markdown format
     const newContent = serializeToMarkdown(request.data, existingMetadata);
 
-    // 5. Update the file on GitHub
+    // 6. Update the file on GitHub
     await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
@@ -269,18 +275,35 @@ export async function handleWriteProfile(
       );
     }
 
-    // Generic GitHub API error
+    // Handle non-GitHub errors separately
+    if (!isGitHubError(error)) {
+      logger.error("Error updating profile - non-GitHub error", {
+        errorId: ERROR_IDS.WRITE_PROFILE_PROCESSING_ERROR,
+        uid,
+        slug,
+        filePath,
+        error,
+      });
+      throw new HttpsError(
+        "internal",
+        "Failed to process profile update. Please try again.",
+        error as Error,
+      );
+    }
+
+    // Generic GitHub API error (only reaches here if isGitHubError is true)
     logger.error("Error interacting with GitHub API", {
       errorId: ERROR_IDS.WRITE_PROFILE_GITHUB_GENERIC,
       uid,
       slug,
       filePath,
+      githubStatus: error.status,
       error,
     });
     throw new HttpsError(
       "internal",
       "Failed to write the file to GitHub.",
-      error as Error,
+      error instanceof Error ? error : new Error(JSON.stringify(error)),
     );
   }
 }

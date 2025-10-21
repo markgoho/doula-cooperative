@@ -82,7 +82,7 @@ export function validateProfileData(data: ProfileData): void {
 
   // Validate optional contact object
   if (data.contact !== undefined) {
-    if (typeof data.contact !== "object") {
+    if (typeof data.contact !== "object" || Array.isArray(data.contact)) {
       throw new HttpsError("invalid-argument", "Contact must be an object.");
     }
 
