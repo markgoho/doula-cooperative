@@ -10,7 +10,10 @@
       "WebFetch(domain:github.com)",
       "Bash(bunx ccstatusline@latest)",
       "WebFetch(domain:www.npmjs.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []
