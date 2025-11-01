@@ -116,3 +116,4 @@ Emulator ports: Auth:9099, Functions:5001, Firestore:8080
 - **Stripe**: Webhook handler for subscription management
 - **Mailgun**: Email sending via `MAILGUN_API_KEY` secret
 - **GitHub App**: Profile management via `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY`, `GITHUB_INSTALLATION_ID`
+- bun runs typescript files natively, do not ever suggest using tsx

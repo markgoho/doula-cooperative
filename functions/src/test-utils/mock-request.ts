@@ -8,11 +8,13 @@ export function createMockCallableRequest({
   uid,
   email,
   emailVerified = true,
+  isAdmin = false,
 }: {
   data?: unknown;
   uid?: string;
   email?: string;
   emailVerified?: boolean;
+  isAdmin?: boolean;
 } = {}): CallableRequest {
   return {
     data,
@@ -22,6 +24,7 @@ export function createMockCallableRequest({
           token: {
             email,
             email_verified: emailVerified,
+            admin: isAdmin,
           },
         }
       : undefined,

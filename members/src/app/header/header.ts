@@ -25,4 +25,6 @@ export class Header {
   protected readonly canEditProfile = computed(() => {
     return this.isEmailVerified() && this.membershipService.membershipActive();
   });
+
+  protected readonly isAdmin = this.authService.isAdmin;
 }

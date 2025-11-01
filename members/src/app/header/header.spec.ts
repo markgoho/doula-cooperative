@@ -72,6 +72,7 @@ async function setup({
 
   const mockAuthService = {
     user: signal(mockUser),
+    isAdmin: signal(false),
   };
 
   const mockMembershipService = {

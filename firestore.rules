@@ -2,6 +2,11 @@ rules_version='2'
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is an admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
     // A user can read a document in the import collection only if the document ID
     // (the email) matches their own authenticated email.
     match /migrated_users_import/{email} {
@@ -9,12 +14,12 @@ service cloud.firestore {
     }
 
     // Lock down the members collection - require email verification for all operations
+    // Admins have full read/write access to all member documents
     match /members/{uid} {
-      allow read: if request.auth != null &&
-                  request.auth.uid == uid;
-      allow write: if request.auth != null &&
-                   request.auth.uid == uid &&
-                   request.auth.token.email_verified == true;
+      allow read: if (request.auth != null && request.auth.uid == uid) || isAdmin();
+      allow write: if (request.auth != null &&
+                       request.auth.uid == uid &&
+                       request.auth.token.email_verified == true) || isAdmin();
     }
 
     match /{document=**} {

@@ -2,6 +2,7 @@ import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angula
 import { Routes } from '@angular/router';
 import { AuthActions } from './auth-actions/auth-actions';
 import { EditProfile } from './edit-profile/edit-profile';
+import { redirectNonAdminToMembership } from './guards/admin.guard';
 import { Membership } from './membership/membership';
 import { SignIn } from './sign-in/sign-in';
 import { SignUp } from './sign-up/sign-up';
@@ -16,6 +17,23 @@ export const routes: Routes = [
   // Protected routes (require authentication and email verification)
   { path: 'membership', component: Membership, ...canActivate(redirectUnauthorizedToSignIn) },
   { path: 'profile', component: EditProfile, ...canActivate(redirectUnauthorizedToSignIn) },
+
+  // Admin routes (require authentication and admin claim)
+  {
+    path: 'admin',
+    ...canActivate(redirectNonAdminToMembership),
+    children: [
+      { path: '', redirectTo: 'users', pathMatch: 'full' },
+      {
+        path: 'users',
+        loadComponent: () => import('./admin/users/admin-users').then((m) => m.AdminUsers),
+      },
+      {
+        path: 'users/:uid',
+        loadComponent: () => import('./admin/users/admin-user-detail').then((m) => m.AdminUserDetail),
+      },
+    ],
+  },
 
   // Authentication routes
   { path: 'sign-up', component: SignUp, ...canActivate(redirectToMembership) },

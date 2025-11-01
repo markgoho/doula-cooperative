@@ -1,0 +1,175 @@
+<div class="admin-user-detail">
+  <header>
+    <h1>User Details</h1>
+    <nav>
+      <a routerLink="/admin/users" class="back-link">← Back to User List</a>
+    </nav>
+  </header>
+
+  <main>
+    @if (loading()) {
+      <p class="loading">Loading user details...</p>
+    } @else if (error(); as errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    } @else if (member(); as user) {
+      @if (successMessage(); as message) {
+        <div class="success-message">{{ message }}</div>
+      }
+
+      <section class="user-info-card">
+        <h2>Account Information</h2>
+        <dl class="info-grid">
+          <dt>Name:</dt>
+          <dd>{{ user.name || '—' }}</dd>
+
+          <dt>Email:</dt>
+          <dd>{{ user.email }}</dd>
+
+          <dt>UID:</dt>
+          <dd class="monospace">{{ user.uid }}</dd>
+
+          <dt>Account Created:</dt>
+          <dd>{{ user.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
+
+          <dt>Membership:</dt>
+          <dd>
+            <span [class]="'status-badge ' + (user.membershipActive ? 'active' : 'inactive')">
+              {{ user.membershipActive ? 'Active' : 'Inactive' }}
+            </span>
+          </dd>
+        </dl>
+      </section>
+
+      <section class="subscription-card">
+        <h2>Membership Details</h2>
+        <dl class="info-grid">
+          <dt>Subscription Start:</dt>
+          <dd>
+            {{ user.subscriptionStart ? (user.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—' }}
+          </dd>
+
+          <dt>Membership Expires:</dt>
+          <dd>
+            {{
+              user.membershipExpiresAt ? (user.membershipExpiresAt.toDate() | date: 'MMM d, yyyy') : '—'
+            }}
+          </dd>
+
+          @if (user.stripeCustomerId) {
+            <dt>Stripe Customer ID:</dt>
+            <dd class="monospace">{{ user.stripeCustomerId }}</dd>
+
+            <dt>Stripe Subscription ID:</dt>
+            <dd class="monospace">{{ user.stripeSubscriptionId || '—' }}</dd>
+
+            <dt>Subscription Status:</dt>
+            <dd>{{ user.subscriptionStatus || '—' }}</dd>
+          }
+
+          <dt>Has Profile:</dt>
+          <dd>{{ user.hasProfile ? 'Yes' : 'No' }}</dd>
+
+          @if (user.slug) {
+            <dt>Profile Slug:</dt>
+            <dd class="monospace">{{ user.slug }}</dd>
+          }
+        </dl>
+
+        <div class="actions">
+          <h3>Membership Actions</h3>
+          @if (user.stripeCustomerId) {
+            <p class="warning">
+              ⚠️ This membership is managed by Stripe. Manual changes may conflict with Stripe
+              subscription updates.
+            </p>
+          }
+
+          <div class="action-buttons">
+            @if (user.membershipActive) {
+              <button
+                type="button"
+                class="button button-danger"
+                (click)="showDeactivateConfirm()"
+                [disabled]="actionInProgress()"
+              >
+                {{ actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="button"
+                (click)="showActivateConfirm()"
+                [disabled]="actionInProgress()"
+              >
+                {{ actionInProgress() ? 'Processing...' : 'Activate Membership' }}
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+
+      @if (user.hasProfile && user.slug) {
+        <section class="subscription-card">
+          <h2>Profile</h2>
+          <dl class="info-grid">
+            <dt>Profile Slug:</dt>
+            <dd class="monospace">{{ user.slug }}</dd>
+
+            <dt>Has Profile:</dt>
+            <dd>Yes</dd>
+          </dl>
+
+          @if (!profileContent() && !profileError()) {
+            <button
+              type="button"
+              class="button"
+              (click)="loadProfile()"
+              [disabled]="loadingProfile()"
+            >
+              {{ loadingProfile() ? 'Loading...' : 'View Profile Content' }}
+            </button>
+          }
+
+          @if (profileError(); as error) {
+            <p class="error">{{ error }}</p>
+            <button type="button" class="button" (click)="loadProfile()">Retry</button>
+          }
+
+          @if (profileContent(); as profile) {
+            <div class="profile-preview">
+              <h3>Profile Content</h3>
+
+              @if (profile.image) {
+                <div class="profile-image">
+                  <img [src]="profile.image" [alt]="user.name || 'Profile image'" />
+                </div>
+              }
+
+              <div class="profile-raw">
+                <h4>Raw Markdown</h4>
+                <pre><code>{{ profile.content }}</code></pre>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    }
+  </main>
+
+  <dialog #confirmDialog class="confirm-dialog">
+    <div class="dialog-content">
+      <h3>Confirm Action</h3>
+      <p>{{ getConfirmMessage() }}</p>
+      <div class="dialog-actions">
+        <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>
+        <button
+          type="button"
+          [class]="pendingAction() === 'deactivate' ? 'button button-danger' : 'button'"
+          (click)="confirmAction()"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </dialog>
+</div>

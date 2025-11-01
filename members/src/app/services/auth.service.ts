@@ -18,7 +18,7 @@ import {
 } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { map } from 'rxjs';
+import { from, map, switchMap } from 'rxjs';
 import { ProfileService } from './profile.service';
 
 // Global auth error messages object
@@ -55,6 +55,18 @@ export class AuthService {
   // Derived signal that tracks emailVerified and re-emits on ID token changes
   readonly emailVerified = toSignal(
     idToken(this.auth).pipe(map(() => this.auth.currentUser?.emailVerified ?? false)),
+    { initialValue: false },
+  );
+
+  // Derived signal for admin status from custom claims
+  readonly isAdmin = toSignal(
+    idToken(this.auth).pipe(
+      switchMap(() => {
+        const user = this.auth.currentUser;
+        if (!user) return from(Promise.resolve(false));
+        return from(user.getIdTokenResult().then((result) => result.claims['admin'] === true));
+      }),
+    ),
     { initialValue: false },
   );
 
@@ -118,6 +130,19 @@ export class AuthService {
     } catch (error) {
       console.error('Error reloading user:', error);
       throw new Error('Failed to reload user data.');
+    }
+  }
+
+  // Force refresh ID token to get updated custom claims
+  async refreshToken(): Promise<void> {
+    const current = this.auth.currentUser;
+    if (!current) return;
+    try {
+      await current.getIdToken(true);
+      console.log('🔄 Token refreshed - custom claims updated');
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      throw new Error('Failed to refresh token.');
     }
   }
 

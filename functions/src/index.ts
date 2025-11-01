@@ -100,3 +100,90 @@ export const readProfile = onCall(
 );
 
 export { stripeWebhook } from "./stripe-webhook/index.js";
+
+// Admin functions
+export const setAdminClaim = onCall({ invoker: "public" }, async request => {
+  const { handleSetAdminClaim } = await import("./admin/set-admin-claim.js");
+  return handleSetAdminClaim(request.data as { uid: string }, request);
+});
+
+export const removeAdminClaim = onCall({ invoker: "public" }, async request => {
+  const { handleRemoveAdminClaim } = await import(
+    "./admin/remove-admin-claim.js"
+  );
+  return handleRemoveAdminClaim(request.data as { uid: string }, request);
+});
+
+export const adminListMembers = onCall({ invoker: "public" }, async request => {
+  const { handleListMembers } = await import("./admin/list-members.js");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return handleListMembers(request.data, request);
+});
+
+export const adminGetMember = onCall({ invoker: "public" }, async request => {
+  const { handleGetMember } = await import("./admin/get-member.js");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return handleGetMember(request.data, request);
+});
+
+export const adminUpdateMember = onCall({ invoker: "public" }, async request => {
+  const { handleUpdateMember } = await import("./admin/update-member.js");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return handleUpdateMember(request.data, request);
+});
+
+export const adminActivateMembership = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleActivateMembership } = await import(
+      "./admin/activate-membership.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleActivateMembership(request.data, request);
+  },
+);
+
+export const adminDeactivateMembership = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleDeactivateMembership } = await import(
+      "./admin/deactivate-membership.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleDeactivateMembership(request.data, request);
+  },
+);
+
+export const adminExtendMembership = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleExtendMembership } = await import(
+      "./admin/extend-membership.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleExtendMembership(request.data, request);
+  },
+);
+
+export const adminReadMemberProfile = onCall(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async request => {
+    const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
+    const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
+    const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      throw new HttpsError("internal", "Missing GitHub secrets.");
+    }
+
+    const { handleAdminReadMemberProfile } = await import(
+      "./admin/read-member-profile.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleAdminReadMemberProfile(request.data, request, [
+      GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID,
+    ]);
+  },
+);
