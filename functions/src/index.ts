@@ -187,3 +187,25 @@ export const adminReadMemberProfile = onCall(
     ]);
   },
 );
+
+export const adminListUnclaimedProfiles = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleListUnclaimedProfiles } = await import(
+      "./admin/list-unclaimed-profiles.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleListUnclaimedProfiles(request.data, request);
+  },
+);
+
+export const adminGetUnclaimedProfile = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleGetUnclaimedProfile } = await import(
+      "./admin/get-unclaimed-profile.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleGetUnclaimedProfile(request.data, request);
+  },
+);

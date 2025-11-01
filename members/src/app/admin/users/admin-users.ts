@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AdminMembersService, type Member } from '../admin.service';
+import { AdminMembersService, type Member, type UnclaimedProfile } from '../admin.service';
 
 @Component({
   imports: [RouterLink, DatePipe],
@@ -17,8 +17,14 @@ export class AdminUsers {
   protected loading = signal(true);
   protected error = signal<string | undefined>(undefined);
 
+  protected unclaimedProfiles = signal<UnclaimedProfile[]>([]);
+  protected unclaimedTotal = signal(0);
+  protected unclaimedLoading = signal(true);
+  protected unclaimedError = signal<string | undefined>(undefined);
+
   constructor() {
     void this.loadMembers();
+    void this.loadUnclaimedProfiles();
   }
 
   private async loadMembers(): Promise<void> {
@@ -34,6 +40,22 @@ export class AdminUsers {
       this.error.set('Failed to load members. Please try again.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async loadUnclaimedProfiles(): Promise<void> {
+    this.unclaimedLoading.set(true);
+    this.unclaimedError.set(undefined);
+
+    try {
+      const response = await this.adminMembersService.listUnclaimedProfiles(100, 0);
+      this.unclaimedProfiles.set(response.profiles);
+      this.unclaimedTotal.set(response.total);
+    } catch (error) {
+      console.error('Error loading unclaimed profiles:', error);
+      this.unclaimedError.set('Failed to load unclaimed profiles. Please try again.');
+    } finally {
+      this.unclaimedLoading.set(false);
     }
   }
 }

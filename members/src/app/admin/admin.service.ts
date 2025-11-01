@@ -25,8 +25,22 @@ export interface Member {
   subscriptionStatus?: SubscriptionStatus;
 }
 
+export interface UnclaimedProfile {
+  email: string;
+  name: string;
+  subscriptionStart: Timestamp;
+  hasProfile?: boolean;
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
+}
+
 export interface ListMembersResponse {
   members: Member[];
+  total: number;
+}
+
+export interface ListUnclaimedProfilesResponse {
+  profiles: UnclaimedProfile[];
   total: number;
 }
 
@@ -140,5 +154,47 @@ export class AdminMembersService {
 
     const result = await readProfileCallable({ uid });
     return result.data;
+  }
+
+  async listUnclaimedProfiles(
+    limit = 50,
+    offset = 0,
+  ): Promise<ListUnclaimedProfilesResponse> {
+    const listUnclaimedProfilesCallable = httpsCallable<
+      { limit?: number; offset?: number },
+      ListUnclaimedProfilesResponse
+    >(this.functions, 'adminListUnclaimedProfiles');
+
+    const result = await listUnclaimedProfilesCallable({ limit, offset });
+
+    // Convert timestamp objects to Timestamp instances
+    const profiles = result.data.profiles.map((profile) =>
+      this.convertUnclaimedProfileTimestamps(profile),
+    );
+
+    return {
+      profiles,
+      total: result.data.total,
+    };
+  }
+
+  async getUnclaimedProfile(email: string): Promise<UnclaimedProfile> {
+    const getUnclaimedProfileCallable = httpsCallable<{ email: string }, UnclaimedProfile>(
+      this.functions,
+      'adminGetUnclaimedProfile',
+    );
+
+    const result = await getUnclaimedProfileCallable({ email });
+    return this.convertUnclaimedProfileTimestamps(result.data);
+  }
+
+  private convertUnclaimedProfileTimestamps(profile: UnclaimedProfile): UnclaimedProfile {
+    return {
+      ...profile,
+      subscriptionStart: this.toTimestamp(profile.subscriptionStart),
+      membershipExpiresAt: profile.membershipExpiresAt
+        ? this.toTimestamp(profile.membershipExpiresAt)
+        : undefined,
+    };
   }
 }
