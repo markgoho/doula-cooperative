@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.aihero.dev)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(test -f:*)",
+      "Bash(bash:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(bunx ccstatusline@latest)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bunx ccstatusline@latest"
+  }
+}
