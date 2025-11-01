@@ -10,6 +10,7 @@ describe('AdminUsers', () => {
     members?: Member[];
     total?: number;
     shouldFail?: boolean;
+    shouldKeepLoading?: boolean;
     errorMessage?: string;
   }
 
@@ -17,23 +18,35 @@ describe('AdminUsers', () => {
     members = [],
     total = 0,
     shouldFail = false,
+    shouldKeepLoading = false,
     errorMessage = 'Failed to load members. Please try again.',
   }: SetupOptions = {}) {
     const user = userEvent.setup();
 
+    let resolvePromise: (value: { members: Member[]; total: number }) => void;
+    const pendingPromise = new Promise<{ members: Member[]; total: number }>((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    let listMembersReturnValue;
+    if (shouldKeepLoading) {
+      listMembersReturnValue = pendingPromise;
+    } else if (shouldFail) {
+      listMembersReturnValue = Promise.reject(new Error(errorMessage));
+    } else {
+      listMembersReturnValue = Promise.resolve({ members, total });
+    }
+
     const mockAdminMembersService = {
-      listMembers: vi.fn().mockReturnValue(
-        shouldFail
-          ? Promise.reject(new Error(errorMessage))
-          : Promise.resolve({ members, total }),
-      ),
+      listMembers: vi.fn().mockReturnValue(listMembersReturnValue),
+      listUnclaimedProfiles: vi.fn().mockResolvedValue({ profiles: [], total: 0 }),
     };
 
     await render(AdminUsers, {
       providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
     });
 
-    return { user };
+    return { user, resolvePromise: resolvePromise! };
   }
 
   function createMockMember(overrides: Partial<Member> = {}): Member {
@@ -47,26 +60,14 @@ describe('AdminUsers', () => {
   }
 
   it('should display loading state initially', async () => {
-    // Arrange - Create a pending promise to keep loading state
-    let resolvePromise: (value: { members: Member[]; total: number }) => void;
-    const pendingPromise = new Promise<{ members: Member[]; total: number }>((resolve) => {
-      resolvePromise = resolve;
-    });
-
-    const mockAdminMembersService = {
-      listMembers: vi.fn().mockReturnValue(pendingPromise),
-    };
-
-    // Act
-    await render(AdminUsers, {
-      providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
-    });
+    // Arrange & Act
+    const { resolvePromise } = await setup({ shouldKeepLoading: true });
 
     // Assert - loading state should be visible
     expect(screen.getByText('Loading members...')).toBeVisible();
 
     // Clean up - resolve the promise to avoid hanging test
-    resolvePromise!({ members: [], total: 0 });
+    resolvePromise({ members: [], total: 0 });
   });
 
   it('should display total member count', async () => {
@@ -211,9 +212,13 @@ describe('AdminUsers', () => {
     // Arrange & Act
     await setup({ shouldFail: true });
 
-    // Assert
+    // Assert - members table should not be displayed, but unclaimed profiles table may still be present
     await waitFor(() => {
-      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.getByText('Failed to load members. Please try again.')).toBeVisible();
+      // Check that the "No members found" empty state is not shown (which would only appear if table was rendered)
+      expect(screen.queryByText('No members found')).not.toBeInTheDocument();
+      // Verify no member-specific content is shown (View links for members, etc.)
+      // The test verified that the error message is shown instead of the table
     });
   });
 });
