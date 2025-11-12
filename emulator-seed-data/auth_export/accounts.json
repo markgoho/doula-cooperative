@@ -9,7 +9,8 @@
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltLe7QumYcQ5EFiDnqoZXR:password=test1234",
       "salt": "fakeSaltLe7QumYcQ5EFiDnqoZXR",
-      "passwordUpdatedAt": 1762020715650,
+      "passwordUpdatedAt": 1762982109589,
+      "customAttributes": "{ \"admin\": true }",
       "providerUserInfo": [
         {
           "providerId": "password",
@@ -20,36 +21,35 @@
           "photoUrl": ""
         }
       ],
-      "validSince": "1762020715",
+      "validSince": "1762982109",
       "email": "webmaster@doulacooperative.com",
       "emailVerified": true,
-      "disabled": false,
-      "lastRefreshAt": "2025-11-01T18:11:55.650Z",
-      "customAttributes": "{ \"admin\": true }"
+      "disabled": false
     },
     {
-      "localId": "MlhzVKJUPF2rlyxcbU1MZ49FmuI7",
-      "createdAt": "1757205997724",
-      "lastLoginAt": "1760278065420",
-      "displayName": "Mark Goho",
-      "photoUrl": "",
-      "passwordHash": "fakeHash:salt=fakeSaltnEzgd3Que0gfUw9lVzi4:password=test1234",
-      "salt": "fakeSaltnEzgd3Que0gfUw9lVzi4",
-      "passwordUpdatedAt": 1762020451417,
+      "localId": "UJyp1a2g7L8k37c3osOVbhV4KjMb",
+      "lastLoginAt": "1762982337373",
+      "emailVerified": true,
+      "email": "markgoho@gmail.com",
+      "salt": "fakeSaltyqO4BElrO6rfUb9nw9JV",
+      "passwordHash": "fakeHash:salt=fakeSaltyqO4BElrO6rfUb9nw9JV:password=test1234",
+      "passwordUpdatedAt": 1762982332564,
+      "validSince": "1762982332",
+      "createdAt": "1762982324058",
       "providerUserInfo": [
         {
           "providerId": "password",
           "email": "markgoho@gmail.com",
           "federatedId": "markgoho@gmail.com",
           "rawId": "markgoho@gmail.com",
-          "displayName": "Mark Goho",
+          "displayName": "",
           "photoUrl": ""
         }
       ],
-      "validSince": "1762020451",
-      "email": "markgoho@gmail.com",
-      "emailVerified": true,
-      "disabled": false
+      "lastRefreshAt": "2025-11-12T21:18:57.373Z",
+      "displayName": "",
+      "photoUrl": "",
+      "customAttributes": ""
     }
   ]
 }
