@@ -38,14 +38,14 @@ export async function handleGetUnclaimedProfile(
       );
     }
 
-    const data = profileDocument.data()!;
+    const data = profileDocument.data() as UnclaimedProfileDocument;
     const profile: UnclaimedProfileDocument = {
       email: profileDocument.id,
-      name: data.name as string,
-      subscriptionStart: data.subscriptionStart as FirebaseFirestore.Timestamp,
-      hasProfile: data.hasProfile as boolean | undefined,
-      membershipActive: data.membershipActive as boolean | undefined,
-      membershipExpiresAt: data.membershipExpiresAt as FirebaseFirestore.Timestamp | undefined,
+      name: data.name,
+      subscriptionStart: data.subscriptionStart,
+      hasProfile: data.hasProfile,
+      membershipActive: data.membershipActive,
+      membershipExpiresAt: data.membershipExpiresAt,
     };
 
     logger.log(
