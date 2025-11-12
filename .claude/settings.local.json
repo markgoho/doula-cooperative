@@ -22,7 +22,8 @@
       "Bash(bun run lint:fix:*)",
       "Bash(bunx eslint:*)",
       "mcp__firebase__firebase_get_environment",
-      "WebFetch(domain:vitest.dev)"
+      "WebFetch(domain:vitest.dev)",
+      "Bash(bun run:*)"
     ],
     "deny": [],
     "ask": []
