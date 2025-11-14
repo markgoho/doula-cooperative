@@ -74,6 +74,13 @@ export const deleteMemberOnUserDeleted = auth.user().onDelete(async user => {
   await handleUserDeleted(user);
 });
 
+export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
+  const { handleSetAutoAdmin } = await import(
+    "./user-creation/set-auto-admin.js"
+  );
+  await handleSetAutoAdmin(user);
+});
+
 export const claimProfile = onCall({ invoker: "public" }, async request => {
   const { handleClaimProfile } = await import("./claim-profile/index.js");
   return handleClaimProfile(request.data, request);
