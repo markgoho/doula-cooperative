@@ -23,7 +23,12 @@
       "Bash(bunx eslint:*)",
       "mcp__firebase__firebase_get_environment",
       "WebFetch(domain:vitest.dev)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "WebFetch(domain:firebase.google.com)",
+      "Bash(gcloud auth application-default print-access-token:*)",
+      "Bash(gcloud --version:*)",
+      "Bash(firebase login:list:*)",
+      "Bash(bunx firebase-tools login:list:*)"
     ],
     "deny": [],
     "ask": []
