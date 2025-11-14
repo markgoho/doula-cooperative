@@ -1,11 +1,6 @@
 import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
 import { Routes } from '@angular/router';
-import { AuthActions } from './auth-actions/auth-actions';
-import { EditProfile } from './edit-profile/edit-profile';
 import { redirectNonAdminToMembership } from './guards/admin.guard';
-import { Membership } from './membership/membership';
-import { SignIn } from './sign-in/sign-in';
-import { SignUp } from './sign-up/sign-up';
 
 // Guards for different authentication states
 const redirectUnauthorizedToSignIn = () => redirectUnauthorizedTo(['sign-in']);
@@ -15,8 +10,16 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
 
   // Protected routes (require authentication and email verification)
-  { path: 'membership', component: Membership, ...canActivate(redirectUnauthorizedToSignIn) },
-  { path: 'profile', component: EditProfile, ...canActivate(redirectUnauthorizedToSignIn) },
+  {
+    path: 'membership',
+    loadComponent: () => import('./membership/membership').then((m) => m.Membership),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
 
   // Admin routes (require authentication and admin claim)
   {
@@ -36,11 +39,22 @@ export const routes: Routes = [
   },
 
   // Authentication routes
-  { path: 'sign-up', component: SignUp, ...canActivate(redirectToMembership) },
-  { path: 'sign-in', component: SignIn, ...canActivate(redirectToMembership) },
+  {
+    path: 'sign-up',
+    loadComponent: () => import('./sign-up/sign-up').then((m) => m.SignUp),
+    ...canActivate(redirectToMembership),
+  },
+  {
+    path: 'sign-in',
+    loadComponent: () => import('./sign-in/sign-in').then((m) => m.SignIn),
+    ...canActivate(redirectToMembership),
+  },
 
   // Firebase Auth action handler entry points
-  { path: 'auth-actions', component: AuthActions },
+  {
+    path: 'auth-actions',
+    loadComponent: () => import('./auth-actions/auth-actions').then((m) => m.AuthActions),
+  },
 
   // future routes can go here
 ];
