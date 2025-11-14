@@ -28,7 +28,12 @@
       "Bash(gcloud auth application-default print-access-token:*)",
       "Bash(gcloud --version:*)",
       "Bash(firebase login:list:*)",
-      "Bash(bunx firebase-tools login:list:*)"
+      "Bash(bunx firebase-tools login:list:*)",
+      "Bash(bun x esbuild-visualizer:*)",
+      "Bash(find:*)",
+      "Bash(bun x source-map-explorer:*)",
+      "Bash(sort:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
