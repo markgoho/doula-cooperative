@@ -1,117 +1,99 @@
-.admin-users {
+.header-stats {
+  font-size: var(--step-0);
+  color: var(--brown-450);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-l);
+}
+
+.members-section,
+.unclaimed-section {
+  background: var(--brown-000);
   padding: var(--space-l);
-  max-width: var(--container-max-width);
-  margin-inline: auto;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--brown-300);
+  margin-block-end: var(--space-l);
 
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-block-end: var(--space-l);
+  h2 {
+    margin-block-start: 0;
+  }
 
-    h1 {
-      margin: 0;
+  .section-description {
+    color: var(--brown-450);
+    margin-block-end: var(--space-m);
+  }
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: var(--space-l);
+  font-size: var(--step-1);
+}
+
+.error {
+  color: var(--color-error, #d93025);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-xs) var(--space-s);
+    text-align: left;
+    border-block-end: 1px solid var(--brown-200);
+  }
+
+  thead {
+    background: var(--brown-100);
+
+    th {
+      font-weight: var(--font-weight-bold);
+      color: var(--brown-500);
+      font-size: var(--step--1);
     }
-
-    .header-stats {
-      font-size: var(--step-0);
-      color: var(--brown-450);
-      font-weight: var(--font-weight-semibold);
-    }
   }
 
-  main {
-    background: var(--brown-000);
-    padding: var(--space-l);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--brown-300);
-  }
-
-  .loading,
-  .error {
-    text-align: center;
-    padding: var(--space-l);
-    font-size: var(--step-1);
-  }
-
-  .error {
-    color: var(--color-error, #d93025);
-  }
-
-  .table-container {
-    overflow-x: auto;
-  }
-
-  .members-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step-0);
-
-    th,
-    td {
-      padding: var(--space-xs) var(--space-s);
-      text-align: left;
-      border-block-end: 1px solid var(--brown-200);
-    }
-
-    thead {
+  tbody {
+    tr:hover {
       background: var(--brown-100);
-
-      th {
-        font-weight: var(--font-weight-bold);
-        color: var(--brown-500);
-      }
     }
 
-    tbody {
-      tr:hover {
-        background: var(--brown-100);
-      }
-
-      td {
-        color: var(--brown-500);
-      }
-    }
-
-    .empty-state {
-      text-align: center;
-      color: var(--brown-450);
-      font-style: italic;
-      padding: var(--space-l);
+    td {
+      color: var(--brown-500);
+      font-size: var(--step--2);
     }
   }
 
-  .status-badge {
-    display: inline-block;
-    padding: var(--space-3xs) var(--space-2xs);
-    border-radius: var(--border-radius-md);
-    font-size: var(--step--1);
-    font-weight: var(--font-weight-semibold);
-
-    &.active {
-      background: var(--teal-300);
-      color: var(--brown-700);
-    }
-
-    &.inactive {
-      background: var(--brown-300);
-      color: var(--brown-600);
-    }
+  .empty-state {
+    text-align: center;
+    color: var(--brown-450);
+    font-style: italic;
+    padding: var(--space-l);
   }
+}
 
-  .button-small {
-    display: inline-block;
-    padding: var(--space-3xs) var(--space-xs);
-    background: var(--teal-500);
-    color: var(--brown-000);
-    text-decoration: none;
-    border-radius: var(--border-radius-md);
-    font-size: var(--step--1);
-    font-weight: var(--font-weight-semibold);
-    transition: background 0.2s;
+.button-small {
+  display: inline-block;
+  padding: var(--space-3xs) var(--space-xs);
+  background: var(--teal-500);
+  color: var(--brown-000);
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  transition: background 0.2s;
 
-    &:hover {
-      background: var(--teal-600);
-    }
+  &:hover {
+    background: var(--teal-600);
   }
 }
