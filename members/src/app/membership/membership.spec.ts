@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -175,9 +175,7 @@ describe('Membership', () => {
       const signOutButton = screen.getByRole('button', { name: 'Sign Out' });
       await user.click(signOutButton);
 
-      await waitFor(() => {
-        expect(signOutMock).toHaveBeenCalledOnce();
-      });
+      expect(signOutMock).toHaveBeenCalledOnce();
     });
 
     it('should not crash when sign out fails', async () => {
@@ -193,9 +191,7 @@ describe('Membership', () => {
       const signOutButton = screen.getByRole('button', { name: 'Sign Out' });
       await user.click(signOutButton);
 
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Sign out failed:', expect.any(Error));
-      });
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Sign out failed:', expect.any(Error));
 
       consoleErrorSpy.mockRestore();
     });
@@ -208,10 +204,7 @@ describe('Membership', () => {
         claimableProfileData: undefined,
       });
 
-      // Wait a bit to ensure effect has run
-      await waitFor(() => {
-        expect(screen.queryByText('Claim Your Existing Membership')).not.toBeInTheDocument();
-      });
+      expect(screen.queryByText('Claim Your Existing Membership')).toBeNull();
     });
 
     it('should show claim banner when claimable profile exists', async () => {
@@ -224,9 +217,7 @@ describe('Membership', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Claim Your Existing Membership')).toBeVisible();
-      });
+      expect(await screen.findByText('Claim Your Existing Membership')).toBeVisible();
     });
 
     it('should show claimable profile name', async () => {
@@ -239,9 +230,7 @@ describe('Membership', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Jane Smith')).toBeVisible();
-      });
+      expect(await screen.findByText('Jane Smith')).toBeVisible();
     });
 
     it('should show claimable profile subscription start date', async () => {
@@ -254,9 +243,7 @@ describe('Membership', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(screen.getByText(/June 2023/)).toBeVisible();
-      });
+      expect(await screen.findByText(/June 2023/)).toBeVisible();
     });
 
     it('should show doula profile message when claimable profile has a profile', async () => {
@@ -269,11 +256,11 @@ describe('Membership', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(/We found an existing doula profile associated with your email address/),
-        ).toBeVisible();
-      });
+      expect(
+        await screen.findByText(
+          /We found an existing doula profile associated with your email address/,
+        ),
+      ).toBeVisible();
     });
 
     it('should show membership subscription message when claimable profile has no profile', async () => {
@@ -286,13 +273,11 @@ describe('Membership', () => {
         },
       });
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(
-            /We found an existing membership subscription associated with your email address/,
-          ),
-        ).toBeVisible();
-      });
+      expect(
+        await screen.findByText(
+          /We found an existing membership subscription associated with your email address/,
+        ),
+      ).toBeVisible();
     });
 
     it('should allow user to claim profile', async () => {
@@ -307,16 +292,12 @@ describe('Membership', () => {
         claimProfileImplementation: claimProfileMock,
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Claim Membership' })).toBeVisible();
-      });
+      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
 
       const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
       await user.click(claimButton);
 
-      await waitFor(() => {
-        expect(claimProfileMock).toHaveBeenCalledOnce();
-      });
+      expect(claimProfileMock).toHaveBeenCalledOnce();
     });
 
     it('should show loading state while claiming profile', async () => {
@@ -336,9 +317,7 @@ describe('Membership', () => {
         claimProfileImplementation: claimProfileMock,
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Claim Membership' })).toBeVisible();
-      });
+      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
 
       const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
       await user.click(claimButton);
@@ -348,9 +327,7 @@ describe('Membership', () => {
 
       // Resolve the promise
       resolveClaimProfile!();
-      await waitFor(() => {
-        expect(claimProfileMock).toHaveBeenCalledOnce();
-      });
+      expect(claimProfileMock).toHaveBeenCalledOnce();
     });
 
     it('should hide claim banner after successfully claiming profile', async () => {
@@ -365,16 +342,12 @@ describe('Membership', () => {
         claimProfileImplementation: claimProfileMock,
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Claim Membership' })).toBeVisible();
-      });
+      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
 
       const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
       await user.click(claimButton);
 
-      await waitFor(() => {
-        expect(screen.queryByText('Claim Your Existing Membership')).not.toBeInTheDocument();
-      });
+      expect(screen.queryByText('Claim Your Existing Membership')).toBeNull();
     });
 
     it('should not crash when claim profile fails', async () => {
@@ -392,16 +365,12 @@ describe('Membership', () => {
         claimProfileImplementation: claimProfileMock,
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Claim Membership' })).toBeVisible();
-      });
+      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
 
       const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
       await user.click(claimButton);
 
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to claim profile:', expect.any(Error));
-      });
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to claim profile:', expect.any(Error));
 
       // Banner should still be visible after error
       expect(screen.getByText('Claim Your Existing Membership')).toBeVisible();

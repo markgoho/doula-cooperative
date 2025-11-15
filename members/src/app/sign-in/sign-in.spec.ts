@@ -62,9 +62,7 @@ describe('SignIn', () => {
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     // User should see no error message after successful sign in
-    await waitFor(() => {
-      expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
-    });
+    expect(screen.queryByText(/error/i)).toBeNull();
   });
 
   it('should show loading state during sign in', async () => {
@@ -80,7 +78,7 @@ describe('SignIn', () => {
     expect(screen.getByRole('button', { name: 'Signing In...' })).toBeDisabled();
 
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: 'Signing In...' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Signing In...' })).toBeNull();
     });
   });
 
@@ -93,9 +91,7 @@ describe('SignIn', () => {
     await user.type(screen.getByLabelText('Password'), 'wrong-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeVisible();
-    });
+    expect(screen.getByText('Invalid credentials')).toBeVisible();
   });
 
   it('should clear error message when submitting form again', async () => {
@@ -112,9 +108,7 @@ describe('SignIn', () => {
     await user.type(screen.getByLabelText('Password'), 'wrong-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeVisible();
-    });
+    expect(screen.getByText('Invalid credentials')).toBeVisible();
 
     // Fix credentials and try again
     shouldFail = false;
@@ -122,9 +116,7 @@ describe('SignIn', () => {
     await user.type(screen.getByLabelText('Password'), 'correct-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
-    await waitFor(() => {
-      expect(screen.queryByText('Invalid credentials')).not.toBeInTheDocument();
-    });
+    expect(screen.queryByText('Invalid credentials')).toBeNull();
   });
 });
 

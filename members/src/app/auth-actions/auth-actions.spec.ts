@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -12,9 +12,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'valid-code-123',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Processing...')).toBeVisible();
-      });
+      expect(await screen.findByText('Processing...')).toBeVisible();
     });
 
     it('should call applyActionCode with the code', async () => {
@@ -23,10 +21,8 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'valid-code-123',
       });
 
-      await waitFor(() => {
-        expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('valid-code-123');
-        expect(mockAuthService.reloadUser).toHaveBeenCalled();
-      });
+      expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('valid-code-123');
+      expect(mockAuthService.reloadUser).toHaveBeenCalled();
     });
 
     it('should display error message when action code is invalid', async () => {
@@ -37,15 +33,10 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Invalid action code',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Processing...')).toBeVisible();
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Invalid action code')).toBeVisible();
-        expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('invalid-code');
-      });
+      expect(await screen.findByText('Processing...')).toBeVisible();
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Invalid action code')).toBeVisible();
+      expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('invalid-code');
     });
 
     it('should handle network errors gracefully', async () => {
@@ -56,10 +47,8 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Network request failed',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Network request failed')).toBeVisible();
-      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Network request failed')).toBeVisible();
     });
   });
 
@@ -70,9 +59,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-123',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Processing...')).toBeVisible();
-      });
+      expect(await screen.findByText('Processing...')).toBeVisible();
     });
 
     it('should verify code and show password reset form', async () => {
@@ -81,12 +68,10 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-123',
       });
 
-      await waitFor(() => {
-        expect(mockAuthService.verifyPasswordResetCode).toHaveBeenCalledWith('reset-code-123');
-        expect(screen.getByText('Reset your password')).toBeVisible();
-        expect(screen.getByText(/Setting a new password for/)).toBeVisible();
-        expect(screen.getByText('user@example.com')).toBeVisible();
-      });
+      expect(mockAuthService.verifyPasswordResetCode).toHaveBeenCalledWith('reset-code-123');
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+      expect(await screen.findByText(/Setting a new password for/)).toBeVisible();
+      expect(await screen.findByText('user@example.com')).toBeVisible();
     });
 
     it('should show generic message when email is not available', async () => {
@@ -96,10 +81,8 @@ describe('AuthActions - Unit Tests', () => {
         userEmail: '',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-        expect(screen.getByText('Enter your new password below.')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+      expect(await screen.findByText('Enter your new password below.')).toBeVisible();
     });
 
     it('should successfully reset password with valid inputs', async () => {
@@ -108,9 +91,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-789',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
 
       const passwordInput = screen.getByLabelText('New password');
       const confirmPasswordInput = screen.getByLabelText('Confirm new password');
@@ -120,12 +101,10 @@ describe('AuthActions - Unit Tests', () => {
       await user.type(confirmPasswordInput, 'newPassword123');
       await user.click(submitButton);
 
-      await waitFor(() => {
-        expect(mockAuthService.confirmPasswordReset).toHaveBeenCalledWith(
-          'reset-code-789',
-          'newPassword123',
-        );
-      });
+      expect(mockAuthService.confirmPasswordReset).toHaveBeenCalledWith(
+        'reset-code-789',
+        'newPassword123',
+      );
     });
 
     it('should show validation error when password is too short', async () => {
@@ -134,9 +113,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-short',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
 
       const passwordInput = screen.getByLabelText('New password');
       const confirmPasswordInput = screen.getByLabelText('Confirm new password');
@@ -146,9 +123,7 @@ describe('AuthActions - Unit Tests', () => {
       await user.type(confirmPasswordInput, '12345');
       await user.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Password must be at least 6 characters.')).toBeVisible();
-      });
+      expect(await screen.findByText('Password must be at least 6 characters.')).toBeVisible();
     });
 
     it('should show error when passwords do not match', async () => {
@@ -157,9 +132,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-mismatch',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
 
       const passwordInput = screen.getByLabelText('New password');
       const confirmPasswordInput = screen.getByLabelText('Confirm new password');
@@ -169,9 +142,7 @@ describe('AuthActions - Unit Tests', () => {
       await user.type(confirmPasswordInput, 'differentPassword');
       await user.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Passwords do not match.')).toBeVisible();
-      });
+      expect(await screen.findByText('Passwords do not match.')).toBeVisible();
     });
 
     it('should show validation errors when form is submitted empty', async () => {
@@ -180,17 +151,13 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'reset-code-empty',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
 
       const submitButton = screen.getByRole('button', { name: 'Set new password' });
       await user.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText('Password must be at least 6 characters.')).toBeVisible();
-        expect(screen.getByText('Please confirm your password.')).toBeVisible();
-      });
+      expect(await screen.findByText('Password must be at least 6 characters.')).toBeVisible();
+      expect(await screen.findByText('Please confirm your password.')).toBeVisible();
     });
 
     it('should handle password reset failure', async () => {
@@ -202,9 +169,7 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Password reset failed',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Reset your password')).toBeVisible();
-      });
+      expect(await screen.findByText('Reset your password')).toBeVisible();
 
       const passwordInput = screen.getByLabelText('New password');
       const confirmPasswordInput = screen.getByLabelText('Confirm new password');
@@ -214,11 +179,9 @@ describe('AuthActions - Unit Tests', () => {
       await user.type(confirmPasswordInput, 'newPassword123');
       await user.click(submitButton);
 
-      await waitFor(() => {
-        expect(mockAuthService.confirmPasswordReset).toHaveBeenCalled();
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Password reset failed')).toBeVisible();
-      });
+      expect(mockAuthService.confirmPasswordReset).toHaveBeenCalled();
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Password reset failed')).toBeVisible();
     });
 
     it('should handle invalid reset code', async () => {
@@ -229,10 +192,8 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Invalid or expired action code',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Invalid or expired action code')).toBeVisible();
-      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Invalid or expired action code')).toBeVisible();
     });
   });
 
@@ -243,9 +204,7 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'recover-code-123',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('Processing...')).toBeVisible();
-      });
+      expect(await screen.findByText('Processing...')).toBeVisible();
     });
 
     it('should recover email and show success message', async () => {
@@ -254,11 +213,9 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'recover-code-123',
       });
 
-      await waitFor(() => {
-        expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-123');
-        expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-123');
-        expect(mockAuthService.sendPasswordResetEmail).toHaveBeenCalledWith('restored@example.com');
-      });
+      expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-123');
+      expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-123');
+      expect(mockAuthService.sendPasswordResetEmail).toHaveBeenCalledWith('restored@example.com');
     });
 
     it('should handle email recovery without restored email', async () => {
@@ -268,11 +225,9 @@ describe('AuthActions - Unit Tests', () => {
         restoredEmail: '',
       });
 
-      await waitFor(() => {
-        expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-no-email');
-        expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-no-email');
-        expect(mockAuthService.sendPasswordResetEmail).not.toHaveBeenCalled();
-      });
+      expect(mockAuthService.checkActionCode).toHaveBeenCalledWith('recover-code-no-email');
+      expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('recover-code-no-email');
+      expect(mockAuthService.sendPasswordResetEmail).not.toHaveBeenCalled();
     });
 
     it('should respect continueUrl when provided', async () => {
@@ -282,10 +237,8 @@ describe('AuthActions - Unit Tests', () => {
         continueUrl: 'https://example.com/custom-page',
       });
 
-      await waitFor(() => {
-        expect(mockAuthService.checkActionCode).toHaveBeenCalled();
-        expect(mockAuthService.applyActionCode).toHaveBeenCalled();
-      });
+      expect(mockAuthService.checkActionCode).toHaveBeenCalled();
+      expect(mockAuthService.applyActionCode).toHaveBeenCalled();
 
       // Note: We can't easily test globalThis.location.href assignment in unit tests
       // This would be better tested in integration tests
@@ -299,10 +252,8 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Failed to recover email',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Failed to recover email')).toBeVisible();
-      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Failed to recover email')).toBeVisible();
     });
   });
 
@@ -313,10 +264,8 @@ describe('AuthActions - Unit Tests', () => {
         oobCode: 'some-code',
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('There was a problem')).toBeVisible();
-        expect(screen.getByText('Invalid or unsupported action.')).toBeVisible();
-      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Invalid or unsupported action.')).toBeVisible();
     });
   });
 

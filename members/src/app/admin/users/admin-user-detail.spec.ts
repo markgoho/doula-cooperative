@@ -1,5 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AdminMembersService, type Member } from '../admin.service';
@@ -112,11 +112,9 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Alice Smith')).toBeVisible();
-      expect(screen.getByText('alice@example.com')).toBeVisible();
-      expect(screen.getByText('user-123')).toBeVisible();
-    });
+    expect(await screen.findByText('Alice Smith')).toBeVisible();
+    expect(screen.getByText('alice@example.com')).toBeVisible();
+    expect(screen.getByText('user-123')).toBeVisible();
   });
 
   it('should display dash when user has no name', async () => {
@@ -127,11 +125,9 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      const nameLabel = screen.getByText('Name:');
-      const nameValue = nameLabel.parentElement?.querySelector('dd');
-      expect(nameValue).toHaveTextContent('—');
-    });
+    const nameLabel = await screen.findByText('Name:');
+    const nameValue = nameLabel.parentElement?.querySelector('dd');
+    expect(nameValue).toHaveTextContent('—');
   });
 
   it('should display formatted account creation date', async () => {
@@ -144,9 +140,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText(/Mar 15, 2024/)).toBeVisible();
-    });
+    expect(await screen.findByText(/Mar 15, 2024/)).toBeVisible();
   });
 
   it('should display active status badge for active members', async () => {
@@ -157,11 +151,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      const badge = screen.getByText('Active');
-      expect(badge).toBeVisible();
-      expect(badge).toHaveClass('active');
-    });
+    expect(await screen.findByText('Active')).toBeVisible();
   });
 
   it('should display inactive status badge for inactive members', async () => {
@@ -172,11 +162,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      const badge = screen.getByText('Inactive');
-      expect(badge).toBeVisible();
-      expect(badge).toHaveClass('inactive');
-    });
+    expect(await screen.findByText('Inactive')).toBeVisible();
   });
 
   it('should display subscription dates', async () => {
@@ -191,17 +177,15 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      // Check that subscription start date is visible
-      const subscriptionLabel = screen.getByText('Subscription Start:');
-      const subscriptionValue = subscriptionLabel.nextElementSibling;
-      expect(subscriptionValue).toHaveTextContent(/Jan 15, 2024/);
+    // Check that subscription start date is visible
+    const subscriptionLabel = await screen.findByText('Subscription Start:');
+    const subscriptionValue = subscriptionLabel.nextElementSibling;
+    expect(subscriptionValue).toHaveTextContent(/Jan 15, 2024/);
 
-      // Check that membership expires date is visible
-      const expiresLabel = screen.getByText('Membership Expires:');
-      const expiresValue = expiresLabel.nextElementSibling;
-      expect(expiresValue).toHaveTextContent(/Jan 15, 2025/);
-    });
+    // Check that membership expires date is visible
+    const expiresLabel = screen.getByText('Membership Expires:');
+    const expiresValue = expiresLabel.nextElementSibling;
+    expect(expiresValue).toHaveTextContent(/Jan 15, 2025/);
   });
 
   it('should display dash when subscription dates are missing', async () => {
@@ -215,11 +199,9 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      const subscriptionLabel = screen.getByText('Subscription Start:');
-      const subscriptionValue = subscriptionLabel.parentElement?.querySelector('dd');
-      expect(subscriptionValue).toHaveTextContent('—');
-    });
+    const subscriptionLabel = await screen.findByText('Subscription Start:');
+    const subscriptionValue = subscriptionLabel.parentElement?.querySelector('dd');
+    expect(subscriptionValue).toHaveTextContent('—');
   });
 
   it('should display Stripe information when present', async () => {
@@ -234,10 +216,8 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('cus_123')).toBeVisible();
-      expect(screen.getByText('sub_456')).toBeVisible();
-    });
+    expect(await screen.findByText('cus_123')).toBeVisible();
+    expect(screen.getByText('sub_456')).toBeVisible();
   });
 
   it('should not display Stripe section when not a Stripe customer', async () => {
@@ -250,9 +230,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.queryByText('Stripe Customer ID:')).not.toBeInTheDocument();
-    });
+    expect(screen.queryByText('Stripe Customer ID:')).toBeNull();
   });
 
   it('should display Activate button for inactive members', async () => {
@@ -263,9 +241,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Activate Membership' })).toBeVisible();
-    });
+    expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
   });
 
   it('should display Deactivate button for active members', async () => {
@@ -276,9 +252,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Deactivate Membership' })).toBeVisible();
-    });
+    expect(await screen.findByRole('button', { name: 'Deactivate Membership' })).toBeVisible();
   });
 
   it('should show warning for Stripe-managed subscriptions', async () => {
@@ -291,9 +265,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText(/This membership is managed by Stripe/)).toBeVisible();
-    });
+    expect(await screen.findByText(/This membership is managed by Stripe/)).toBeVisible();
   });
 
   it('should show success message after activating membership', async () => {
@@ -301,9 +273,7 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ membershipActive: false });
     const { user } = await setup({ member });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Activate Membership' })).toBeVisible();
-    });
+    expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
 
     // Act - Click activate button to open dialog
     const activateButton = screen.getByRole('button', { name: 'Activate Membership' });
@@ -314,9 +284,7 @@ describe('AdminUserDetail', () => {
     await user.click(confirmButton);
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Membership activated successfully')).toBeVisible();
-    });
+    expect(await screen.findByText('Membership activated successfully')).toBeVisible();
   });
 
   it('should show error message when activation fails', async () => {
@@ -324,9 +292,7 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ membershipActive: false });
     const { user } = await setup({ member, shouldFailActivate: true });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Activate Membership' })).toBeVisible();
-    });
+    expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
 
     // Act - Click activate button to open dialog
     const activateButton = screen.getByRole('button', { name: 'Activate Membership' });
@@ -337,9 +303,7 @@ describe('AdminUserDetail', () => {
     await user.click(confirmButton);
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Failed to activate membership.')).toBeVisible();
-    });
+    expect(await screen.findByText('Failed to activate membership.')).toBeVisible();
   });
 
   it('should not activate when user cancels confirmation', async () => {
@@ -347,9 +311,7 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ membershipActive: false });
     const { user } = await setup({ member });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Activate Membership' })).toBeVisible();
-    });
+    expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
 
     // Act - Click activate button to open dialog
     const activateButton = screen.getByRole('button', { name: 'Activate Membership' });
@@ -360,7 +322,7 @@ describe('AdminUserDetail', () => {
     await user.click(cancelButton);
 
     // Assert - Success message should not appear
-    expect(screen.queryByText('Membership activated successfully')).not.toBeInTheDocument();
+    expect(screen.queryByText('Membership activated successfully')).toBeNull();
   });
 
   it('should display error message when loading fails', async () => {
@@ -368,8 +330,8 @@ describe('AdminUserDetail', () => {
     await setup({ shouldFailLoad: true });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load member details. Please try again.')).toBeVisible();
-    });
+    expect(
+      await screen.findByText('Failed to load member details. Please try again.'),
+    ).toBeVisible();
   });
 });

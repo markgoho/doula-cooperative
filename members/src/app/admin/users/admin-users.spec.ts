@@ -1,5 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminMembersService, type Member } from '../admin.service';
@@ -77,10 +77,8 @@ describe('AdminUsers', () => {
     // Act
     await setup({ members, total: 5 });
 
-    // Assert - waitFor needed since service call must complete
-    await waitFor(() => {
-      expect(screen.getByText('Total Members: 5')).toBeVisible();
-    });
+    // Assert
+    expect(await screen.findByText('Total Members: 5')).toBeVisible();
   });
 
   it('should display member list in table', async () => {
@@ -104,12 +102,10 @@ describe('AdminUsers', () => {
     await setup({ members, total: 2 });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Alice Smith')).toBeVisible();
-      expect(screen.getByText('alice@example.com')).toBeVisible();
-      expect(screen.getByText('Bob Jones')).toBeVisible();
-      expect(screen.getByText('bob@example.com')).toBeVisible();
-    });
+    expect(await screen.findByText('Alice Smith')).toBeVisible();
+    expect(screen.getByText('alice@example.com')).toBeVisible();
+    expect(screen.getByText('Bob Jones')).toBeVisible();
+    expect(screen.getByText('bob@example.com')).toBeVisible();
   });
 
   it('should display active status badge for active members', async () => {
@@ -120,10 +116,7 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    await waitFor(() => {
-      const badge = screen.getByText('Active');
-      expect(badge).toBeVisible();
-    });
+    expect(await screen.findByText('Active')).toBeVisible();
   });
 
   it('should display inactive status badge for inactive members', async () => {
@@ -134,10 +127,7 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    await waitFor(() => {
-      const badge = screen.getByText('Inactive');
-      expect(badge).toBeVisible();
-    });
+    expect(await screen.findByText('Inactive')).toBeVisible();
   });
 
   it('should display dash when member has no name', async () => {
@@ -148,10 +138,7 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    await waitFor(() => {
-      const cells = screen.getAllByRole('cell');
-      expect(cells[0]).toHaveTextContent('—');
-    });
+    expect(screen.getAllByRole('cell')[0]).toHaveTextContent('—');
   });
 
   it('should display formatted creation date', async () => {
@@ -166,9 +153,7 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText(/Mar 15, 2024/)).toBeVisible();
-    });
+    expect(await screen.findByText(/Mar 15, 2024/)).toBeVisible();
   });
 
   it('should display View link for each member', async () => {
@@ -179,11 +164,9 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    await waitFor(() => {
-      const viewLink = screen.getByRole('link', { name: 'View' });
-      expect(viewLink).toBeVisible();
-      expect(viewLink).toHaveAttribute('href', '/admin/users/test-uid-123');
-    });
+    const viewLink = await screen.findByRole('link', { name: 'View' });
+    expect(viewLink).toBeVisible();
+    expect(viewLink).toHaveAttribute('href', '/admin/users/test-uid-123');
   });
 
   it('should display empty state when no members exist', async () => {
@@ -191,9 +174,7 @@ describe('AdminUsers', () => {
     await setup({ members: [], total: 0 });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('No members found')).toBeVisible();
-    });
+    expect(await screen.findByText('No members found')).toBeVisible();
   });
 
   it('should display error message when loading fails', async () => {
@@ -201,9 +182,7 @@ describe('AdminUsers', () => {
     await setup({ shouldFail: true });
 
     // Assert
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load members. Please try again.')).toBeVisible();
-    });
+    expect(await screen.findByText('Failed to load members. Please try again.')).toBeVisible();
   });
 
   it('should not display table when loading fails', async () => {
@@ -211,12 +190,10 @@ describe('AdminUsers', () => {
     await setup({ shouldFail: true });
 
     // Assert - members table should not be displayed, but unclaimed profiles table may still be present
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load members. Please try again.')).toBeVisible();
-      // Check that the "No members found" empty state is not shown (which would only appear if table was rendered)
-      expect(screen.queryByText('No members found')).not.toBeInTheDocument();
-      // Verify no member-specific content is shown (View links for members, etc.)
-      // The test verified that the error message is shown instead of the table
-    });
+    expect(await screen.findByText('Failed to load members. Please try again.')).toBeVisible();
+    // Check that the "No members found" empty state is not shown (which would only appear if table was rendered)
+    expect(screen.queryByText('No members found')).not.toBeInTheDocument();
+    // Verify no member-specific content is shown (View links for members, etc.)
+    // The test verified that the error message is shown instead of the table
   });
 });
