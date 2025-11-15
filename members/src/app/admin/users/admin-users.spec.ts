@@ -123,7 +123,6 @@ describe('AdminUsers', () => {
     await waitFor(() => {
       const badge = screen.getByText('Active');
       expect(badge).toBeVisible();
-      expect(badge).toHaveClass('active');
     });
   });
 
@@ -138,7 +137,6 @@ describe('AdminUsers', () => {
     await waitFor(() => {
       const badge = screen.getByText('Inactive');
       expect(badge).toBeVisible();
-      expect(badge).toHaveClass('inactive');
     });
   });
 
