@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Multi-platform doula cooperative website:
+
 - **Firebase Backend**: Cloud Functions (TypeScript), Firestore, Authentication
 - **Hugo Static Site**: Main public website with doula directory
 - **Angular Members App**: Member dashboard and management
@@ -37,13 +38,19 @@ bun run format                # Format with Prettier
 cd members && bun run test                              # Run all Angular tests
 cd members && bun run test --include path/to/spec.ts    # Run specific test
 cd functions && bun test                                # Run Firebase Functions tests
+
 ```
+
+## End-to-end testing
+
+Use Playwright MCP server for browser automation testing
 
 ## Architecture
 
 ### Firebase Functions (`/functions/`)
 
 **Lazy-Loading Pattern**: All functions use dynamic imports to reduce cold start times:
+
 ```typescript
 export const myFunction = onRequest(async (request, response) => {
   const { handleMyFunction } = await import("./my-function/handler.js");
@@ -52,18 +59,21 @@ export const myFunction = onRequest(async (request, response) => {
 ```
 
 **Function Types**:
+
 - **HTTP Functions** (`onRequest`): `contactUsForm`, `doulaMatchForm`, `stripeWebhook`
 - **Callable Functions** (`onCall`): `claimProfile`, `readProfile`
 - **Firestore Triggers** (`onDocumentCreated`): `emailContactForm`, `emailDoulaMatch`
 - **Auth Triggers**: `createMemberOnUserCreated`, `deleteMemberOnUserDeleted`
 
 **Key Patterns**:
+
 - Always use collection constants from `src/constants/collections.ts` (never hardcode collection names)
 - Use `getFirestore()` from `firebase-admin/firestore` for database access
 - Functions should be idempotent unless they involve timestamps
 - Handlers are in separate files (e.g., `contact-us-form/contact-us-form.ts`)
 
 **Testing**:
+
 - Use `initializeTest()` from `test-utils/test-setup.ts`
 - HTTP functions: Import from `index.ts`, call directly (no `test.wrap()`)
 - Callable functions: Import from `index.ts`, use `test.wrap()`
@@ -72,12 +82,14 @@ export const myFunction = onRequest(async (request, response) => {
 ### Angular Members App (`/members/`)
 
 **Modern Angular Features**:
+
 - Zoneless change detection (`provideZonelessChangeDetection()`)
 - Standalone components (default, no need to specify)
 - Signal-based APIs for reactive state
 - `ChangeDetection.OnPush` for all new components
 
 **Key Patterns**:
+
 - Use `inject()` for dependency injection (not constructor)
 - Use signals for component properties
 - Avoid subscribing to observables in classes; use async pipe in templates
@@ -86,6 +98,7 @@ export const myFunction = onRequest(async (request, response) => {
 - Router has `withComponentInputBinding()` enabled for query params
 
 **Testing**:
+
 - Test user behavior, not implementation details
 - Setup functions must destructure parameters in signature with defaults
 - Unit tests (`*.spec.ts`): Component behavior in isolation
@@ -102,6 +115,7 @@ export const myFunction = onRequest(async (request, response) => {
 ## Code Style
 
 **TypeScript**:
+
 - Use destructuring imports: `import { method } from 'package'`
 - Prefer object lookup maps over switch statements
 - Always check for and fix lint errors after adding new code
@@ -110,6 +124,18 @@ export const myFunction = onRequest(async (request, response) => {
 
 Hosting targets: `main-site` (Hugo), `members-site` (Angular)
 Emulator ports: Auth:9099, Functions:5001, Firestore:8080
+
+## Testing Accounts
+
+For local development with Firebase emulators (Auth, Firestore, Functions):
+
+- **webmaster@doulacooperative.com** / `test1234`
+  - Admin account for website management
+  - No doula profile
+
+- **markgoho@gmail.com** / `test1234`
+  - Regular user with doula profile
+  - Has not claimed existing subscription yet
 
 ## External Integrations
 
