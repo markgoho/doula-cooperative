@@ -1,3 +1,4 @@
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
@@ -9,13 +10,17 @@ export interface GetMemberRequest {
   uid: string;
 }
 
+export interface GetMemberResponse extends MemberDocument {
+  isAdmin?: boolean;
+}
+
 /**
  * Admin-only function to get a specific member by UID.
  */
 export async function handleGetMember(
   data: GetMemberRequest,
   context: CallableRequest,
-): Promise<MemberDocument> {
+): Promise<GetMemberResponse> {
   verifyAdmin(context);
 
   const { uid } = data;
@@ -26,6 +31,8 @@ export async function handleGetMember(
 
   try {
     const firestore = getFirestore();
+    const auth = getAuth();
+
     const memberDocument = await firestore
       .collection(MEMBERS_COLLECTION)
       .doc(uid)
@@ -35,9 +42,22 @@ export async function handleGetMember(
       throw new HttpsError("not-found", `Member with UID ${uid} not found.`);
     }
 
+    // Get user's custom claims to check admin status
+    let isAdmin = false;
+    try {
+      const userRecord = await auth.getUser(uid);
+      isAdmin = userRecord.customClaims?.admin === true;
+    } catch {
+      // User might not exist in Auth (orphaned member document)
+      // Default to non-admin
+    }
+
     logger.log(`Admin ${context.auth?.uid} retrieved member ${uid}`);
 
-    return memberDocument.data() as MemberDocument;
+    return {
+      ...(memberDocument.data() as MemberDocument),
+      isAdmin,
+    };
   } catch (error) {
     if (error instanceof HttpsError) {
       throw error;

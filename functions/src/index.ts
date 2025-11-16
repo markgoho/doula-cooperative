@@ -216,3 +216,9 @@ export const adminGetUnclaimedProfile = onCall(
     return handleGetUnclaimedProfile(request.data, request);
   },
 );
+
+export const adminDeleteUser = onCall({ invoker: "public" }, async request => {
+  const { handleDeleteUser } = await import("./admin/delete-user.js");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return handleDeleteUser(request.data, request);
+});

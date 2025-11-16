@@ -23,6 +23,7 @@ export interface Member {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
+  isAdmin?: boolean;
 }
 
 export interface UnclaimedProfile {
@@ -196,5 +197,15 @@ export class AdminMembersService {
         ? this.toTimestamp(profile.membershipExpiresAt)
         : undefined,
     };
+  }
+
+  async deleteUser(uid: string): Promise<{ success: boolean }> {
+    const deleteUserCallable = httpsCallable<{ uid: string }, { success: boolean }>(
+      this.functions,
+      'adminDeleteUser',
+    );
+
+    const result = await deleteUserCallable({ uid });
+    return result.data;
   }
 }

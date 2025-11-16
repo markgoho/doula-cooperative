@@ -220,4 +220,18 @@
       }
     }
   }
+
+  .danger-zone {
+    border: 2px solid #d93025;
+
+    h2 {
+      color: #d93025;
+    }
+
+    .warning {
+      background: #fef2f2;
+      border-inline-start-color: #d93025;
+      color: #7f1d1d;
+    }
+  }
 }

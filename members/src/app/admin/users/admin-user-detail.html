@@ -108,6 +108,37 @@
         </div>
       </section>
 
+      @if (!isTargetUserAdmin()) {
+        <section class="subscription-card danger-zone">
+          <h2>Danger Zone</h2>
+          <div class="actions">
+            <h3>Delete User</h3>
+            <p class="warning">
+              ⚠️ <strong>Warning:</strong> This action is irreversible. Deleting this user will
+              permanently remove their account and all associated data.
+            </p>
+            <div class="action-buttons">
+              <button
+                type="button"
+                class="button button-danger"
+                (click)="showDeleteConfirm()"
+                [disabled]="actionInProgress()"
+              >
+                {{ actionInProgress() ? 'Processing...' : 'Delete User Account' }}
+              </button>
+            </div>
+          </div>
+        </section>
+      } @else {
+        <section class="subscription-card">
+          <h2>Admin Account</h2>
+          <p class="info-notice">
+            This user has admin privileges. Admin accounts cannot be deleted. To delete this account,
+            first remove their admin privileges.
+          </p>
+        </section>
+      }
+
       @if (user.hasProfile && user.slug) {
         <section class="subscription-card">
           <h2>Profile</h2>
@@ -219,7 +250,7 @@
         <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>
         <button
           type="button"
-          [class]="pendingAction() === 'deactivate' ? 'button button-danger' : 'button'"
+          [class]="pendingAction() === 'deactivate' || pendingAction() === 'delete' ? 'button button-danger' : 'button'"
           (click)="confirmAction()"
         >
           Confirm

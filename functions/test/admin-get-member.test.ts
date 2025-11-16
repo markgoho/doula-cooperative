@@ -353,4 +353,27 @@ describe("adminGetMember", () => {
 
     await cleanupAdminGetMember();
   });
+
+  it("should include isAdmin field set to false for non-admin users", async () => {
+    // Arrange
+    const { adminUid, testUid, testEmail, firestore } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      name: "Regular User",
+    });
+
+    // Act
+    const result = await handleGetMember(
+      { uid: testUid },
+      createMockCallableRequest({ uid: adminUid, isAdmin: true }),
+    );
+
+    // Assert
+    expect(result.isAdmin).toBe(false);
+
+    await cleanupAdminGetMember();
+  });
 });

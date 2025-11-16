@@ -49,6 +49,12 @@ describe("handleSetAutoAdmin", () => {
       testEmail: ADMIN_EMAIL,
     });
 
+    // Create the actual user in Auth first
+    await auth.createUser({
+      uid: testUid,
+      email: ADMIN_EMAIL,
+    });
+
     // Act
     await wrappedSetAutoAdmin(user);
 
@@ -65,6 +71,12 @@ describe("handleSetAutoAdmin", () => {
       testEmail: "WEBMASTER@DOULACOOPERATIVE.COM",
     });
     const user = test.auth.makeUserRecord({
+      uid: testUid,
+      email: "WEBMASTER@DOULACOOPERATIVE.COM",
+    });
+
+    // Create the actual user in Auth first
+    await auth.createUser({
       uid: testUid,
       email: "WEBMASTER@DOULACOOPERATIVE.COM",
     });
@@ -89,6 +101,12 @@ describe("handleSetAutoAdmin", () => {
       email: "regularuser@example.com",
     });
 
+    // Create the actual user in Auth first
+    await auth.createUser({
+      uid: testUid,
+      email: "regularuser@example.com",
+    });
+
     // Act
     await wrappedSetAutoAdmin(user);
 
@@ -104,7 +122,11 @@ describe("handleSetAutoAdmin", () => {
     const { testUid, wrappedSetAutoAdmin, auth } = setup();
     const user = test.auth.makeUserRecord({
       uid: testUid,
-      email: undefined,
+    });
+
+    // Create the actual user in Auth first (without email)
+    await auth.createUser({
+      uid: testUid,
     });
 
     // Act

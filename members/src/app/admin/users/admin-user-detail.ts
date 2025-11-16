@@ -10,10 +10,10 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AdminMembersService, type Member, type UnclaimedProfile } from '../admin.service';
 
-type ConfirmAction = 'activate' | 'deactivate';
+type ConfirmAction = 'activate' | 'deactivate' | 'delete';
 type DataType = 'member' | 'unclaimed';
 
 @Component({
@@ -24,6 +24,7 @@ type DataType = 'member' | 'unclaimed';
 })
 export class AdminUserDetail {
   private adminMembersService = inject(AdminMembersService);
+  private router = inject(Router);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   uid = input.required<string>();
@@ -57,6 +58,8 @@ export class AdminUserDetail {
   });
 
   protected isUnclaimed = computed(() => this.dataType() === 'unclaimed');
+
+  protected isTargetUserAdmin = computed(() => this.member()?.isAdmin === true);
 
   constructor() {
     effect(() => {
@@ -119,6 +122,11 @@ export class AdminUserDetail {
     this.confirmDialog()?.nativeElement.showModal();
   }
 
+  protected showDeleteConfirm(): void {
+    this.pendingAction.set('delete');
+    this.confirmDialog()?.nativeElement.showModal();
+  }
+
   protected closeDialog(): void {
     this.confirmDialog()?.nativeElement.close();
     this.pendingAction.set(undefined);
@@ -128,10 +136,19 @@ export class AdminUserDetail {
     const action = this.pendingAction();
     this.closeDialog();
 
-    if (action === 'activate') {
-      await this.activateMembership();
-    } else if (action === 'deactivate') {
-      await this.deactivateMembership();
+    switch (action) {
+      case 'activate': {
+        await this.activateMembership();
+        break;
+      }
+      case 'deactivate': {
+        await this.deactivateMembership();
+        break;
+      }
+      case 'delete': {
+        await this.deleteUser();
+        break;
+      }
     }
   }
 
@@ -183,9 +200,20 @@ export class AdminUserDetail {
 
   protected getConfirmMessage(): string {
     const action = this.pendingAction();
-    return action === 'activate'
-      ? 'Are you sure you want to activate this membership?'
-      : 'Are you sure you want to deactivate this membership?';
+    switch (action) {
+      case 'activate': {
+        return 'Are you sure you want to activate this membership?';
+      }
+      case 'deactivate': {
+        return 'Are you sure you want to deactivate this membership?';
+      }
+      case 'delete': {
+        return 'Are you sure you want to permanently delete this user account? This action cannot be undone.';
+      }
+      default: {
+        return '';
+      }
+    }
   }
 
   protected async loadProfile(): Promise<void> {
@@ -205,6 +233,29 @@ export class AdminUserDetail {
       this.profileError.set('Failed to load profile content. Please try again.');
     } finally {
       this.loadingProfile.set(false);
+    }
+  }
+
+  private async deleteUser(): Promise<void> {
+    // Only available for members with uid
+    if (this.isUnclaimed()) {
+      this.error.set('Cannot delete unclaimed profiles.');
+      return;
+    }
+
+    this.actionInProgress.set(true);
+    this.error.set(undefined);
+    this.successMessage.set(undefined);
+
+    try {
+      await this.adminMembersService.deleteUser(this.uid());
+      this.successMessage.set('User deleted successfully');
+      // Navigate back to user list after successful deletion
+      await this.router.navigate(['/admin/users']);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      this.error.set('Failed to delete user.');
+      this.actionInProgress.set(false);
     }
   }
 }
