@@ -61,6 +61,11 @@ export class AdminUserDetail {
 
   protected isTargetUserAdmin = computed(() => this.member()?.isAdmin === true);
 
+  protected invitationAlreadySent = computed(() => {
+    const unclaimed = this.unclaimedProfile();
+    return unclaimed?.invitationEmailStatus === 'sent';
+  });
+
   constructor() {
     effect(() => {
       // When uid changes, detect type and load appropriate data
@@ -255,6 +260,31 @@ export class AdminUserDetail {
     } catch (error) {
       console.error('Error deleting user:', error);
       this.error.set('Failed to delete user.');
+      this.actionInProgress.set(false);
+    }
+  }
+
+  protected async sendInvitation(): Promise<void> {
+    // Only available for unclaimed profiles
+    if (!this.isUnclaimed()) {
+      this.error.set('Can only send invitations to unclaimed profiles.');
+      return;
+    }
+
+    const email = this.uid(); // For unclaimed profiles, uid() returns the email
+
+    this.actionInProgress.set(true);
+    this.error.set(undefined);
+    this.successMessage.set(undefined);
+
+    try {
+      await this.adminMembersService.sendInvitation(email);
+      this.successMessage.set('Invitation sent successfully');
+      await this.loadUnclaimedProfile(); // Reload to get updated invitation status
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      this.error.set('Failed to send invitation.');
+    } finally {
       this.actionInProgress.set(false);
     }
   }

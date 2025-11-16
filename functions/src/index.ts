@@ -225,3 +225,13 @@ export const adminDeleteUser = onCall({ invoker: "public" }, async request => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return handleDeleteUser(request.data, request);
 });
+
+export const adminSendInvitation = onCall(
+  { invoker: "public", secrets: ["MAILGUN_API_KEY"] },
+  async request => {
+    const apiKey = process.env["MAILGUN_API_KEY"];
+    const { handleSendInvitation } = await import("./admin/send-invitation.js");
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleSendInvitation(request.data, request, apiKey);
+  },
+);

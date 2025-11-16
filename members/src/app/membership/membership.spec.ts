@@ -5,9 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
 import {
-  type ClaimableMembershipData,
   type Member,
   MembershipService,
+  type UnclaimedProfile,
 } from '../services/membership.service';
 import { Membership } from './membership';
 
@@ -390,7 +390,7 @@ interface SetupOptions {
   userEmailVerified?: boolean;
   hasUserDocument?: boolean;
   userDocument?: Partial<Member>;
-  claimableProfileData?: ClaimableMembershipData;
+  claimableProfileData?: UnclaimedProfile;
   signOutImplementation?: () => Promise<void>;
   claimProfileImplementation?: () => Promise<void>;
 }

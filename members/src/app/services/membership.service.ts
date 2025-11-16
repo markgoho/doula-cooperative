@@ -15,12 +15,19 @@ interface MigratedUserData {
   name: string;
   subscriptionStart: Timestamp;
   hasProfile?: boolean;
+  slug?: string;
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
+  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
+  invitationEmailSentAt?: Timestamp;
+  invitationEmailError?: string;
 }
 
-export interface ClaimableMembershipData {
+export interface UnclaimedProfile {
   name: string;
   subscriptionStart: Date;
   hasProfile: boolean;
+  slug?: string;
 }
 
 export type SubscriptionStatus =
@@ -79,7 +86,7 @@ export class MembershipService {
 
   async getClaimableProfileData(
     user: User | null | undefined,
-  ): Promise<ClaimableMembershipData | undefined> {
+  ): Promise<UnclaimedProfile | undefined> {
     if (user?.email && user.emailVerified) {
       const userDocumentReference = doc(this.firestore, `migrated_users_import/${user.email}`);
       const userDocument = await getDoc(userDocumentReference);
@@ -90,6 +97,7 @@ export class MembershipService {
           name: data.name,
           subscriptionStart: data.subscriptionStart.toDate(),
           hasProfile: data.hasProfile ?? false,
+          ...(data.slug && { slug: data.slug }),
         };
       }
     }

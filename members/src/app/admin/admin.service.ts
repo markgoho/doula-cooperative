@@ -33,6 +33,9 @@ export interface UnclaimedProfile {
   hasProfile?: boolean;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
+  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
+  invitationEmailSentAt?: Timestamp;
+  invitationEmailError?: string;
 }
 
 export interface ListMembersResponse {
@@ -209,6 +212,9 @@ export class AdminMembersService {
     if (profile.membershipExpiresAt) {
       result.membershipExpiresAt = this.toTimestamp(profile.membershipExpiresAt);
     }
+    if (profile.invitationEmailSentAt) {
+      result.invitationEmailSentAt = this.toTimestamp(profile.invitationEmailSentAt);
+    }
     return result;
   }
 
@@ -219,6 +225,16 @@ export class AdminMembersService {
     );
 
     const result = await deleteUserCallable({ uid });
+    return result.data;
+  }
+
+  async sendInvitation(email: string): Promise<{ success: boolean }> {
+    const sendInvitationCallable = httpsCallable<{ email: string }, { success: boolean }>(
+      this.functions,
+      'adminSendInvitation',
+    );
+
+    const result = await sendInvitationCallable({ email });
     return result.data;
   }
 }

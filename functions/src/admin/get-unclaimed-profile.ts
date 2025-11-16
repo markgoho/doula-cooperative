@@ -38,17 +38,36 @@ export async function handleGetUnclaimedProfile(
       );
     }
 
-    const data = profileDocument.data() as UnclaimedProfileDocument;
+    const documentData = profileDocument.data();
+    if (!documentData) {
+      throw new HttpsError(
+        "not-found",
+        `Unclaimed profile with email ${email} has no data.`,
+      );
+    }
+
     const profile: UnclaimedProfileDocument = {
       email: profileDocument.id,
-      name: data.name,
-      subscriptionStart: data.subscriptionStart,
-      ...(data.hasProfile !== undefined && { hasProfile: data.hasProfile }),
-      ...(data.membershipActive !== undefined && {
-        membershipActive: data.membershipActive,
+      name: documentData["name"] as string,
+      subscriptionStart: documentData[
+        "subscriptionStart"
+      ] as FirebaseFirestore.Timestamp,
+      ...(documentData["hasProfile"] !== undefined && {
+        hasProfile: documentData["hasProfile"] as boolean,
       }),
-      ...(data.membershipExpiresAt !== undefined && {
-        membershipExpiresAt: data.membershipExpiresAt,
+      ...(documentData["invitationEmailStatus"] !== undefined && {
+        invitationEmailStatus: documentData["invitationEmailStatus"] as
+          | "sent"
+          | "failed"
+          | "pending",
+      }),
+      ...(documentData["invitationEmailSentAt"] !== undefined && {
+        invitationEmailSentAt: documentData[
+          "invitationEmailSentAt"
+        ] as FirebaseFirestore.Timestamp,
+      }),
+      ...(documentData["invitationEmailError"] !== undefined && {
+        invitationEmailError: documentData["invitationEmailError"] as string,
       }),
     };
 

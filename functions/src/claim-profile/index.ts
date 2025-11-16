@@ -10,6 +10,11 @@ export interface ProfileData {
   subscriptionStart: Timestamp;
   slug: string;
   hasProfile: boolean;
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
+  invitationEmailStatus?: "sent" | "failed" | "pending";
+  invitationEmailSentAt?: Timestamp;
+  invitationEmailError?: string;
 }
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {

@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { type ClaimableMembershipData, MembershipService } from '../services/membership.service';
+import { type UnclaimedProfile, MembershipService } from '../services/membership.service';
 
 @Component({
   imports: [DatePipe],
@@ -22,7 +22,7 @@ export class Membership {
 
   protected user = this.authService.user;
   protected claimInProgress = signal(false);
-  protected claimableProfileData = signal<ClaimableMembershipData | undefined>(undefined);
+  protected claimableProfileData = signal<UnclaimedProfile | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
 

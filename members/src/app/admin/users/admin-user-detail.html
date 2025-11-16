@@ -1,261 +1,295 @@
-<div class="admin-user-detail">
-  <header>
-    <h1>{{ isUnclaimed() ? 'Unclaimed Profile Details' : 'User Details' }}</h1>
-    <nav>
-      <a routerLink="/admin/users" class="back-link">← Back to User List</a>
-    </nav>
-  </header>
+<header>
+  <h1>{{ isUnclaimed() ? 'Unclaimed Profile Details' : 'User Details' }}</h1>
+  <nav>
+    <a routerLink="/admin/users" class="back-link">← Back to User List</a>
+  </nav>
+</header>
 
-  <main>
-    @if (loading()) {
-      <p class="loading">Loading details...</p>
-    } @else if (error(); as errorMessage) {
-      <p class="error">{{ errorMessage }}</p>
-    } @else if (member(); as user) {
-      @if (successMessage(); as message) {
-        <div class="success-message">{{ message }}</div>
+@if (loading()) {
+  <p class="loading">Loading details...</p>
+} @else if (error(); as errorMessage) {
+  <p class="error">{{ errorMessage }}</p>
+} @else if (member(); as user) {
+  <section class="user-info-card">
+    <h2>Account Information</h2>
+    <dl class="info-grid">
+      <dt>Name:</dt>
+      <dd>{{ user.name || '—' }}</dd>
+
+      <dt>Email:</dt>
+      <dd>{{ user.email }}</dd>
+
+      <dt>UID:</dt>
+      <dd class="monospace">{{ user.uid }}</dd>
+
+      <dt>Account Created:</dt>
+      <dd>{{ user.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
+
+      <dt>Membership:</dt>
+      <dd>
+        <span [class]="'status-badge ' + (user.membershipActive ? 'active' : 'inactive')">
+          {{ user.membershipActive ? 'Active' : 'Inactive' }}
+        </span>
+      </dd>
+    </dl>
+  </section>
+
+  <section class="subscription-card">
+    <h2>Membership Details</h2>
+    <dl class="info-grid">
+      <dt>Subscription Start:</dt>
+      <dd>
+        {{ user.subscriptionStart ? (user.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—' }}
+      </dd>
+
+      <dt>Membership Expires:</dt>
+      <dd>
+        {{
+          user.membershipExpiresAt ? (user.membershipExpiresAt.toDate() | date: 'MMM d, yyyy') : '—'
+        }}
+      </dd>
+
+      @if (user.stripeCustomerId) {
+        <dt>Stripe Customer ID:</dt>
+        <dd class="monospace">{{ user.stripeCustomerId }}</dd>
+
+        <dt>Stripe Subscription ID:</dt>
+        <dd class="monospace">{{ user.stripeSubscriptionId || '—' }}</dd>
+
+        <dt>Subscription Status:</dt>
+        <dd>{{ user.subscriptionStatus || '—' }}</dd>
       }
 
-      <section class="user-info-card">
-        <h2>Account Information</h2>
-        <dl class="info-grid">
-          <dt>Name:</dt>
-          <dd>{{ user.name || '—' }}</dd>
+      <dt>Has Profile:</dt>
+      <dd>{{ user.hasProfile ? 'Yes' : 'No' }}</dd>
 
-          <dt>Email:</dt>
-          <dd>{{ user.email }}</dd>
-
-          <dt>UID:</dt>
-          <dd class="monospace">{{ user.uid }}</dd>
-
-          <dt>Account Created:</dt>
-          <dd>{{ user.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
-
-          <dt>Membership:</dt>
-          <dd>
-            <span [class]="'status-badge ' + (user.membershipActive ? 'active' : 'inactive')">
-              {{ user.membershipActive ? 'Active' : 'Inactive' }}
-            </span>
-          </dd>
-        </dl>
-      </section>
-
-      <section class="subscription-card">
-        <h2>Membership Details</h2>
-        <dl class="info-grid">
-          <dt>Subscription Start:</dt>
-          <dd>
-            {{ user.subscriptionStart ? (user.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—' }}
-          </dd>
-
-          <dt>Membership Expires:</dt>
-          <dd>
-            {{
-              user.membershipExpiresAt ? (user.membershipExpiresAt.toDate() | date: 'MMM d, yyyy') : '—'
-            }}
-          </dd>
-
-          @if (user.stripeCustomerId) {
-            <dt>Stripe Customer ID:</dt>
-            <dd class="monospace">{{ user.stripeCustomerId }}</dd>
-
-            <dt>Stripe Subscription ID:</dt>
-            <dd class="monospace">{{ user.stripeSubscriptionId || '—' }}</dd>
-
-            <dt>Subscription Status:</dt>
-            <dd>{{ user.subscriptionStatus || '—' }}</dd>
-          }
-
-          <dt>Has Profile:</dt>
-          <dd>{{ user.hasProfile ? 'Yes' : 'No' }}</dd>
-
-          @if (user.slug) {
-            <dt>Profile Slug:</dt>
-            <dd class="monospace">{{ user.slug }}</dd>
-          }
-        </dl>
-
-        <div class="actions">
-          <h3>Membership Actions</h3>
-          @if (user.stripeCustomerId) {
-            <p class="warning">
-              ⚠️ This membership is managed by Stripe. Manual changes may conflict with Stripe
-              subscription updates.
-            </p>
-          }
-
-          <div class="action-buttons">
-            @if (user.membershipActive) {
-              <button
-                type="button"
-                class="button button-danger"
-                (click)="showDeactivateConfirm()"
-                [disabled]="actionInProgress()"
-              >
-                {{ actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
-              </button>
-            } @else {
-              <button
-                type="button"
-                class="button"
-                (click)="showActivateConfirm()"
-                [disabled]="actionInProgress()"
-              >
-                {{ actionInProgress() ? 'Processing...' : 'Activate Membership' }}
-              </button>
-            }
-          </div>
-        </div>
-      </section>
-
-      @if (!isTargetUserAdmin()) {
-        <section class="subscription-card danger-zone">
-          <h2>Danger Zone</h2>
-          <div class="actions">
-            <h3>Delete User</h3>
-            <p class="warning">
-              ⚠️ <strong>Warning:</strong> This action is irreversible. Deleting this user will
-              permanently remove their account and all associated data.
-            </p>
-            <div class="action-buttons">
-              <button
-                type="button"
-                class="button button-danger"
-                (click)="showDeleteConfirm()"
-                [disabled]="actionInProgress()"
-              >
-                {{ actionInProgress() ? 'Processing...' : 'Delete User Account' }}
-              </button>
-            </div>
-          </div>
-        </section>
-      } @else {
-        <section class="subscription-card">
-          <h2>Admin Account</h2>
-          <p class="info-notice">
-            This user has admin privileges. Admin accounts cannot be deleted. To delete this account,
-            first remove their admin privileges.
-          </p>
-        </section>
+      @if (user.slug) {
+        <dt>Profile Slug:</dt>
+        <dd class="monospace">{{ user.slug }}</dd>
       }
+    </dl>
 
-      @if (user.hasProfile && user.slug) {
-        <section class="subscription-card">
-          <h2>Profile</h2>
-          <dl class="info-grid">
-            <dt>Profile Slug:</dt>
-            <dd class="monospace">{{ user.slug }}</dd>
-
-            <dt>Has Profile:</dt>
-            <dd>Yes</dd>
-          </dl>
-
-          @if (!profileContent() && !profileError()) {
-            <button
-              type="button"
-              class="button"
-              (click)="loadProfile()"
-              [disabled]="loadingProfile()"
-            >
-              {{ loadingProfile() ? 'Loading...' : 'View Profile Content' }}
-            </button>
-          }
-
-          @if (profileError(); as error) {
-            <p class="error">{{ error }}</p>
-            <button type="button" class="button" (click)="loadProfile()">Retry</button>
-          }
-
-          @if (profileContent(); as profile) {
-            <div class="profile-preview">
-              <h3>Profile Content</h3>
-
-              @if (profile.image) {
-                <div class="profile-image">
-                  <img [src]="profile.image" [alt]="user.name || 'Profile image'" />
-                </div>
-              }
-
-              <div class="profile-raw">
-                <h4>Raw Markdown</h4>
-                <pre><code>{{ profile.content }}</code></pre>
-              </div>
-            </div>
-          }
-        </section>
-      }
-    } @else if (unclaimedProfile(); as profile) {
-      @if (successMessage(); as message) {
-        <div class="success-message">{{ message }}</div>
-      }
-
-      <section class="user-info-card">
-        <h2>Unclaimed Profile Information</h2>
-        <p class="info-notice">
-          This profile has not yet been claimed by the member. They will need to create an account
-          with this email address to claim it.
+    <div class="actions">
+      <h3>Membership Actions</h3>
+      @if (user.stripeCustomerId) {
+        <p class="warning">
+          ⚠️ This membership is managed by Stripe. Manual changes may conflict with Stripe
+          subscription updates.
         </p>
-        <dl class="info-grid">
-          <dt>Name:</dt>
-          <dd>{{ profile.name }}</dd>
+      }
 
-          <dt>Email:</dt>
-          <dd>{{ profile.email }}</dd>
+      <div class="action-buttons">
+        @if (user.membershipActive) {
+          <button
+            type="button"
+            class="button button-danger"
+            (click)="showDeactivateConfirm()"
+            [disabled]="actionInProgress()"
+          >
+            {{ actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="button"
+            (click)="showActivateConfirm()"
+            [disabled]="actionInProgress()"
+          >
+            {{ actionInProgress() ? 'Processing...' : 'Activate Membership' }}
+          </button>
+        }
+      </div>
+    </div>
+  </section>
 
-          <dt>Has Profile:</dt>
-          <dd>
-            <span [class]="'status-badge ' + (profile.hasProfile ? 'active' : 'inactive')">
-              {{ profile.hasProfile ? 'Yes' : 'No' }}
-            </span>
-          </dd>
-        </dl>
-      </section>
-
-      <section class="subscription-card">
-        <h2>Membership Details</h2>
-        <dl class="info-grid">
-          <dt>Subscription Start:</dt>
-          <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
-
-          @if (profile.membershipExpiresAt) {
-            <dt>Membership Expires:</dt>
-            <dd>{{ profile.membershipExpiresAt.toDate() | date: 'MMM d, yyyy' }}</dd>
-          }
-
-          @if (profile.membershipActive !== undefined) {
-            <dt>Membership Status:</dt>
-            <dd>
-              <span [class]="'status-badge ' + (profile.membershipActive ? 'active' : 'inactive')">
-                {{ profile.membershipActive ? 'Active' : 'Inactive' }}
-              </span>
-            </dd>
-          }
-        </dl>
-
-        <div class="info-notice">
-          <p>
-            <strong>Note:</strong> Membership actions are not available for unclaimed profiles.
-            The member must first create an account and claim this profile.
-          </p>
+  @if (!isTargetUserAdmin()) {
+    <section class="subscription-card danger-zone">
+      <h2>Danger Zone</h2>
+      <div class="actions">
+        <h3>Delete User</h3>
+        <p class="warning">
+          ⚠️ <strong>Warning:</strong> This action is irreversible. Deleting this user will
+          permanently remove their account and all associated data.
+        </p>
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="button button-danger"
+            (click)="showDeleteConfirm()"
+            [disabled]="actionInProgress()"
+          >
+            {{ actionInProgress() ? 'Processing...' : 'Delete User Account' }}
+          </button>
         </div>
-      </section>
-    }
-  </main>
+      </div>
+    </section>
+  } @else {
+    <section class="subscription-card">
+      <h2>Admin Account</h2>
+      <p class="info-notice">
+        This user has admin privileges. Admin accounts cannot be deleted. To delete this account,
+        first remove their admin privileges.
+      </p>
+    </section>
+  }
 
-  <dialog #confirmDialog class="confirm-dialog">
-    <div class="dialog-content">
-      <h3>Confirm Action</h3>
-      <p>{{ getConfirmMessage() }}</p>
-      <div class="dialog-actions">
-        <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>
+  @if (user.hasProfile && user.slug) {
+    <section class="subscription-card">
+      <h2>Profile</h2>
+      <dl class="info-grid">
+        <dt>Profile Slug:</dt>
+        <dd class="monospace">{{ user.slug }}</dd>
+
+        <dt>Has Profile:</dt>
+        <dd>Yes</dd>
+      </dl>
+
+      @if (!profileContent() && !profileError()) {
+        <button type="button" class="button" (click)="loadProfile()" [disabled]="loadingProfile()">
+          {{ loadingProfile() ? 'Loading...' : 'View Profile Content' }}
+        </button>
+      }
+
+      @if (profileError(); as error) {
+        <p class="error">{{ error }}</p>
+        <button type="button" class="button" (click)="loadProfile()">Retry</button>
+      }
+
+      @if (profileContent(); as profile) {
+        <div class="profile-preview">
+          <h3>Profile Content</h3>
+
+          @if (profile.image) {
+            <div class="profile-image">
+              <img [src]="profile.image" [alt]="user.name || 'Profile image'" />
+            </div>
+          }
+
+          <div class="profile-raw">
+            <h4>Raw Markdown</h4>
+            <pre><code>{{ profile.content }}</code></pre>
+          </div>
+        </div>
+      }
+    </section>
+  }
+} @else if (unclaimedProfile(); as profile) {
+  @if (successMessage(); as message) {
+    <div class="success-message">{{ message }}</div>
+  }
+
+  <section class="user-info-card">
+    <h2>Unclaimed Profile Information</h2>
+    <p class="info-notice">
+      This profile has not yet been claimed by the member. They will need to create an account with
+      this email address to claim it.
+    </p>
+    <dl class="info-grid">
+      <dt>Name:</dt>
+      <dd>{{ profile.name }}</dd>
+
+      <dt>Email:</dt>
+      <dd>{{ profile.email }}</dd>
+
+      <dt>Has Profile:</dt>
+      <dd>
+        <span [class]="'status-badge ' + (profile.hasProfile ? 'active' : 'inactive')">
+          {{ profile.hasProfile ? 'Yes' : 'No' }}
+        </span>
+      </dd>
+    </dl>
+  </section>
+
+  <section class="subscription-card">
+    <h2>Membership Details</h2>
+    <dl class="info-grid">
+      <dt>Subscription Start:</dt>
+      <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
+
+      @if (profile.membershipExpiresAt) {
+        <dt>Membership Expires:</dt>
+        <dd>{{ profile.membershipExpiresAt.toDate() | date: 'MMM d, yyyy' }}</dd>
+      }
+
+      @if (profile.membershipActive !== undefined) {
+        <dt>Membership Status:</dt>
+        <dd>
+          <span [class]="'status-badge ' + (profile.membershipActive ? 'active' : 'inactive')">
+            {{ profile.membershipActive ? 'Active' : 'Inactive' }}
+          </span>
+        </dd>
+      }
+
+      <dt>Invitation Email:</dt>
+      <dd>
+        @if (profile.invitationEmailStatus === 'sent') {
+          <span class="status-badge active">
+            Sent
+            {{
+              profile.invitationEmailSentAt
+                ? (profile.invitationEmailSentAt.toDate() | date: 'MMM d, yyyy')
+                : ''
+            }}
+          </span>
+        } @else if (profile.invitationEmailStatus === 'failed') {
+          <span class="status-badge inactive">Failed</span>
+          @if (profile.invitationEmailError) {
+            <span class="error-detail">{{ profile.invitationEmailError }}</span>
+          }
+        } @else {
+          <span class="status-badge">Not Sent</span>
+        }
+      </dd>
+    </dl>
+
+    <div class="actions">
+      <h3>Invitation Actions</h3>
+      <p class="info-notice">
+        Send an email invitation to this user to create an account and claim their membership.
+      </p>
+
+      <div class="action-buttons">
         <button
           type="button"
-          [class]="pendingAction() === 'deactivate' || pendingAction() === 'delete' ? 'button button-danger' : 'button'"
-          (click)="confirmAction()"
+          class="button"
+          (click)="sendInvitation()"
+          [disabled]="actionInProgress() || invitationAlreadySent()"
+          [title]="
+            invitationAlreadySent()
+              ? 'Invitation already sent'
+              : 'Send invitation email to claim subscription'
+          "
         >
-          Confirm
+          {{
+            actionInProgress()
+              ? 'Processing...'
+              : invitationAlreadySent()
+                ? 'Invitation Already Sent'
+                : 'Send Invitation'
+          }}
         </button>
       </div>
     </div>
-  </dialog>
-</div>
+  </section>
+}
+
+<dialog #confirmDialog class="confirm-dialog">
+  <div class="dialog-content">
+    <h3>Confirm Action</h3>
+    <p>{{ getConfirmMessage() }}</p>
+    <div class="dialog-actions">
+      <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>
+      <button
+        type="button"
+        [class]="
+          pendingAction() === 'deactivate' || pendingAction() === 'delete'
+            ? 'button button-danger'
+            : 'button'
+        "
+        (click)="confirmAction()"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</dialog>

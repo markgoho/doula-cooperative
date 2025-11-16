@@ -34,6 +34,12 @@ export const ERROR_IDS = {
   MAILGUN_RATE_LIMITED: "mailgun_rate_limited",
   MAILGUN_INVALID_RECIPIENT: "mailgun_invalid_recipient",
   MAILGUN_NETWORK_ERROR: "mailgun_network_error",
+
+  // Admin send invitation errors
+  ADMIN_SEND_INVITATION_INVALID_UID: "admin_send_invitation_invalid_uid",
+  ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND: "admin_send_invitation_member_not_found",
+  ADMIN_SEND_INVITATION_NO_SUBSCRIPTION: "admin_send_invitation_no_subscription",
+  ADMIN_SEND_INVITATION_EMAIL_FAILED: "admin_send_invitation_email_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

@@ -9,8 +9,10 @@ export interface UnclaimedProfileDocument {
   name: string;
   subscriptionStart: FirebaseFirestore.Timestamp;
   hasProfile?: boolean;
-  membershipActive?: boolean;
-  membershipExpiresAt?: FirebaseFirestore.Timestamp;
+  slug?: string;
+  invitationEmailStatus?: "sent" | "failed" | "pending";
+  invitationEmailSentAt?: FirebaseFirestore.Timestamp;
+  invitationEmailError?: string;
 }
 
 export interface ListUnclaimedProfilesRequest {
@@ -55,15 +57,25 @@ export async function handleListUnclaimedProfiles(
       const profile: UnclaimedProfileDocument = {
         email: document.id,
         name: data["name"] as string,
-        subscriptionStart: data["subscriptionStart"] as FirebaseFirestore.Timestamp,
+        subscriptionStart: data[
+          "subscriptionStart"
+        ] as FirebaseFirestore.Timestamp,
         ...(data["hasProfile"] !== undefined && {
           hasProfile: data["hasProfile"] as boolean,
         }),
-        ...(data["membershipActive"] !== undefined && {
-          membershipActive: data["membershipActive"] as boolean,
+        ...(data["invitationEmailStatus"] !== undefined && {
+          invitationEmailStatus: data["invitationEmailStatus"] as
+            | "sent"
+            | "failed"
+            | "pending",
         }),
-        ...(data["membershipExpiresAt"] !== undefined && {
-          membershipExpiresAt: data["membershipExpiresAt"] as FirebaseFirestore.Timestamp,
+        ...(data["invitationEmailSentAt"] !== undefined && {
+          invitationEmailSentAt: data[
+            "invitationEmailSentAt"
+          ] as FirebaseFirestore.Timestamp,
+        }),
+        ...(data["invitationEmailError"] !== undefined && {
+          invitationEmailError: data["invitationEmailError"] as string,
         }),
       };
       profiles.push(profile);
