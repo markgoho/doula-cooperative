@@ -46,7 +46,7 @@ export async function handleGetMember(
     let isAdmin = false;
     try {
       const userRecord = await auth.getUser(uid);
-      isAdmin = userRecord.customClaims?.admin === true;
+      isAdmin = userRecord.customClaims?.["admin"] === true;
     } catch {
       // User might not exist in Auth (orphaned member document)
       // Default to non-admin

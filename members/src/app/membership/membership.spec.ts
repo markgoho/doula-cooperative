@@ -4,7 +4,11 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
-import { ClaimableMembershipData, Member, MembershipService } from '../services/membership.service';
+import {
+  type ClaimableMembershipData,
+  type Member,
+  MembershipService,
+} from '../services/membership.service';
 import { Membership } from './membership';
 
 describe('Membership', () => {
@@ -201,7 +205,6 @@ describe('Membership', () => {
     it('should not show claim banner when no claimable profile exists', async () => {
       await setup({
         isAuthenticated: true,
-        claimableProfileData: undefined,
       });
 
       expect(screen.queryByText('Claim Your Existing Membership')).toBeNull();

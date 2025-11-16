@@ -41,7 +41,7 @@ export const doulaMatchForm = onRequest(
 export const emailContactForm = onDocumentCreated(
   { document: "messages/{messageId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
-    const apiKey = process.env.MAILGUN_API_KEY;
+    const apiKey = process.env["MAILGUN_API_KEY"];
     const { handleDocumentCreated } = await import(
       "./contact-us-form/email-contact-form.js"
     );
@@ -52,7 +52,7 @@ export const emailContactForm = onDocumentCreated(
 export const emailDoulaMatch = onDocumentCreated(
   { document: "matchRequests/{matchRequestId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
-    const apiKey = process.env.MAILGUN_API_KEY;
+    const apiKey = process.env["MAILGUN_API_KEY"];
     const { handleDocumentCreated } = await import(
       "./doula-match-form/email-doula-match.js"
     );
@@ -89,9 +89,9 @@ export const claimProfile = onCall({ invoker: "public" }, async request => {
 export const readProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
   async request => {
-    const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
-    const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
-    const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
+    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
+    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
+    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
 
     if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
       throw new HttpsError("internal", "Missing GitHub secrets.");
@@ -133,11 +133,14 @@ export const adminGetMember = onCall({ invoker: "public" }, async request => {
   return handleGetMember(request.data, request);
 });
 
-export const adminUpdateMember = onCall({ invoker: "public" }, async request => {
-  const { handleUpdateMember } = await import("./admin/update-member.js");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return handleUpdateMember(request.data, request);
-});
+export const adminUpdateMember = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleUpdateMember } = await import("./admin/update-member.js");
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleUpdateMember(request.data, request);
+  },
+);
 
 export const adminActivateMembership = onCall(
   { invoker: "public" },
@@ -175,9 +178,9 @@ export const adminExtendMembership = onCall(
 export const adminReadMemberProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
   async request => {
-    const GITHUB_APP_ID = process.env.GITHUB_APP_ID;
-    const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY;
-    const GITHUB_INSTALLATION_ID = process.env.GITHUB_INSTALLATION_ID;
+    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
+    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
+    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
 
     if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
       throw new HttpsError("internal", "Missing GitHub secrets.");

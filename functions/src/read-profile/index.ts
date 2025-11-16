@@ -9,6 +9,11 @@ export async function handleReadProfile(
   request: CallableRequest,
   [GITHUB_APP_ID, GITHUB_PRIVATE_KEY, GITHUB_INSTALLATION_ID]: string[],
 ) {
+  // Validate GitHub secrets
+  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+    throw new HttpsError("internal", "Missing GitHub secrets.");
+  }
+
   // 1. Check for Firebase authenticated user
   if (!request.auth) {
     throw new HttpsError(

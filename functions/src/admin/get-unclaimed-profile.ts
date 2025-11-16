@@ -43,9 +43,13 @@ export async function handleGetUnclaimedProfile(
       email: profileDocument.id,
       name: data.name,
       subscriptionStart: data.subscriptionStart,
-      hasProfile: data.hasProfile,
-      membershipActive: data.membershipActive,
-      membershipExpiresAt: data.membershipExpiresAt,
+      ...(data.hasProfile !== undefined && { hasProfile: data.hasProfile }),
+      ...(data.membershipActive !== undefined && {
+        membershipActive: data.membershipActive,
+      }),
+      ...(data.membershipExpiresAt !== undefined && {
+        membershipExpiresAt: data.membershipExpiresAt,
+      }),
     };
 
     logger.log(

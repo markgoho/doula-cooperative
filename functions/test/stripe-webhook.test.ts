@@ -1115,7 +1115,7 @@ describe("stripeWebhook handler", () => {
         firestore,
         originalEnvironment,
       } = setup({
-        testEmail: `preserve-profile@example.com`,
+        testEmail: `preserve-profile-${Date.now()}@example.com`,
       });
 
       // Create existing user with profile data
@@ -1163,7 +1163,7 @@ describe("stripeWebhook handler", () => {
         firestore,
         originalEnvironment,
       } = setup({
-        testEmail: `preserve-name@example.com`,
+        testEmail: `preserve-name-${Date.now()}@example.com`,
       });
 
       // Create existing user with profile data

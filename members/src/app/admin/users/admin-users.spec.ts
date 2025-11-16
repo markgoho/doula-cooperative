@@ -132,7 +132,9 @@ describe('AdminUsers', () => {
 
   it('should display dash when member has no name', async () => {
     // Arrange
-    const members = [createMockMember({ name: undefined })];
+    const member = createMockMember();
+    delete (member as Partial<Member>).name;
+    const members = [member];
 
     // Act
     await setup({ members, total: 1 });

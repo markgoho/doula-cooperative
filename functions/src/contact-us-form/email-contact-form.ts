@@ -4,7 +4,7 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
-import { MailgunMessageData } from "mailgun.js/definitions";
+import { type MailgunMessageData } from "mailgun.js/definitions";
 import {
   MARK_EMAIL,
   MESSAGES_COLLECTION,
@@ -42,7 +42,7 @@ export async function handleDocumentCreated(
   };
 
   try {
-    if (process.env.FUNCTIONS_EMULATOR) {
+    if (process.env["FUNCTIONS_EMULATOR"]) {
       logger.info("Emulator detected, skipping email dispatch.");
     } else {
       await sendEmail(emailMessage, apiKey ?? "");

@@ -15,7 +15,7 @@ export function verifyAdmin(context: CallableRequest): void {
     );
   }
 
-  if (!context.auth.token.admin) {
+  if (!context.auth.token["admin"]) {
     throw new HttpsError(
       "permission-denied",
       "This function requires admin privileges.",

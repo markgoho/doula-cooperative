@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { FactoryProvider, PLATFORM_ID } from '@angular/core';
+import { type FactoryProvider, PLATFORM_ID } from '@angular/core';
 
 export abstract class WindowReference {
   abstract get nativeWindow(): Window | Record<string, unknown>;

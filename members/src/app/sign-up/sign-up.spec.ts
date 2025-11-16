@@ -40,7 +40,9 @@ describe('SignUp', () => {
 
   it('should not show info message when email is not prefilled', async () => {
     await setup();
-    expect(screen.queryByText('This email was provided by your invitation')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('This email was provided by your invitation'),
+    ).not.toBeInTheDocument();
   });
 
   it('should render password input', async () => {
@@ -257,10 +259,12 @@ async function setup(options: SetupOptions = {}) {
       : vi.fn().mockResolvedValue(signUpResponse),
   };
 
-  await render(SignUp, {
+  const renderOptions = {
     providers: [{ provide: AuthService, useValue: mockAuthService }],
-    componentInputs: email ? { email } : undefined,
-  });
+    ...(email && { inputs: { email } }),
+  };
+
+  await render(SignUp, renderOptions);
 
   const user = userEvent.setup();
 

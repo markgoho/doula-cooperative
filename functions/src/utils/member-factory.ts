@@ -1,8 +1,8 @@
 import { Timestamp } from "firebase-admin/firestore";
 import {
-  MemberDocument,
-  StripeMemberDocument,
-  SubscriptionStatus,
+  type MemberDocument,
+  type StripeMemberDocument,
+  type SubscriptionStatus,
 } from "../types/member-document.js";
 
 /**
@@ -53,7 +53,9 @@ export function createStripeMemberDocument(parameters: {
 }): StripeMemberDocument {
   // Validate required Stripe fields
   if (!parameters.stripeCustomerId.startsWith("cus_")) {
-    throw new Error(`Invalid Stripe customer ID: ${parameters.stripeCustomerId}`);
+    throw new Error(
+      `Invalid Stripe customer ID: ${parameters.stripeCustomerId}`,
+    );
   }
 
   if (!parameters.stripeSubscriptionId.startsWith("sub_")) {
@@ -98,7 +100,9 @@ export function createStripeMemberUpdate(parameters: {
 }): Partial<MemberDocument> {
   // Validate required Stripe fields
   if (!parameters.stripeCustomerId.startsWith("cus_")) {
-    throw new Error(`Invalid Stripe customer ID: ${parameters.stripeCustomerId}`);
+    throw new Error(
+      `Invalid Stripe customer ID: ${parameters.stripeCustomerId}`,
+    );
   }
 
   if (!parameters.stripeSubscriptionId.startsWith("sub_")) {

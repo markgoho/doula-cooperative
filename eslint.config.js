@@ -77,12 +77,27 @@ export default defineConfig([
         exports: "readonly",
       },
     },
+    rules: {
+      // Allow bracket notation for index signature properties (e.g., process.env["KEY"])
+      "@typescript-eslint/dot-notation": [
+        "error",
+        { allowIndexSignaturePropertyAccess: true },
+      ],
+    },
   },
   {
     files: ["functions/test/**/*.ts"],
     languageOptions: {
       parserOptions: {
         project: "functions/tsconfig.test.json",
+      },
+    },
+  },
+  {
+    files: ["members/**/*.spec.ts", "members/**/*.integration.spec.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "members/tsconfig.spec.json",
       },
     },
   },

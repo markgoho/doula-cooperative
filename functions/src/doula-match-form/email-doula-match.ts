@@ -67,7 +67,7 @@ export async function handleDocumentCreated(
   };
 
   try {
-    if (process.env.FUNCTIONS_EMULATOR) {
+    if (process.env["FUNCTIONS_EMULATOR"]) {
       logger.info("Emulator detected, skipping email dispatch.");
     } else {
       await sendEmail(emailMessage, apiKey ?? "");

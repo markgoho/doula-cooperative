@@ -19,7 +19,7 @@ export async function handleRemoveAdminClaim(
   }
 
   // Ensure the caller has admin privileges
-  if (!context.auth.token.admin) {
+  if (!context.auth.token["admin"]) {
     throw new HttpsError(
       "permission-denied",
       "Only admins can revoke admin privileges.",

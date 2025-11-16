@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@angular/core';
-import { User } from '@angular/fire/auth';
+import { ChangeDetectionStrategy, Component, signal, type WritableSignal } from '@angular/core';
+import type { User } from '@angular/fire/auth';
 import { RouterOutlet } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -23,7 +23,7 @@ export class MockFooter {}
 
 describe('App', () => {
   it('should not show verification banner when user is null', async () => {
-    await setup({ user: undefined, emailVerified: false });
+    await setup({ emailVerified: false });
     const banner = screen.queryByText(/Your email address is not verified/);
     expect(banner).not.toBeInTheDocument();
   });

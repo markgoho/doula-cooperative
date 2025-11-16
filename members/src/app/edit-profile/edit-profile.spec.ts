@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfileData, ProfileService } from '../services/profile.service';
+import { type ProfileData, ProfileService } from '../services/profile.service';
 import { EditProfile } from './edit-profile';
 
 describe('EditProfile', () => {

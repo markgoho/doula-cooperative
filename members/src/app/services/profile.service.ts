@@ -156,6 +156,11 @@ export class ProfileService {
 
     const [, frontMatter, bodyContent] = frontMatterMatch;
 
+    if (!frontMatter || !bodyContent) {
+      console.warn('Invalid front matter format');
+      return undefined;
+    }
+
     // Simple YAML parser for the fields we need
     const data: ProfileData = {
       title: '',
@@ -220,16 +225,16 @@ export class ProfileService {
       const websiteMatch = /website:\s*(.+)/.exec(frontMatter);
       const businessNameMatch = /business_name:\s*(.+)/.exec(frontMatter);
 
-      if (phoneMatch) {
+      if (phoneMatch && phoneMatch[1]) {
         data.contact.phone = phoneMatch[1].replaceAll(/['"]/g, '');
       }
-      if (emailMatch) {
+      if (emailMatch && emailMatch[1]) {
         data.contact.email = emailMatch[1].replaceAll(/['"]/g, '');
       }
-      if (websiteMatch) {
+      if (websiteMatch && websiteMatch[1]) {
         data.contact.website = websiteMatch[1].replaceAll(/['"]/g, '');
       }
-      if (businessNameMatch) {
+      if (businessNameMatch && businessNameMatch[1]) {
         data.contact.business_name = businessNameMatch[1].replaceAll(/['"]/g, '');
       }
     }

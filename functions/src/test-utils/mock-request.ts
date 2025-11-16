@@ -16,20 +16,23 @@ export function createMockCallableRequest({
   emailVerified?: boolean;
   isAdmin?: boolean;
 } = {}): CallableRequest {
-  return {
+  const request = {
     data,
     auth: uid
       ? {
           uid,
           token: {
-            email,
+            ...(email !== undefined && { email }),
             email_verified: emailVerified,
             admin: isAdmin,
           },
+          rawToken: "",
         }
       : undefined,
     rawRequest: {} as CallableRequest["rawRequest"],
     acceptsStreaming: false,
-  } as CallableRequest;
+  };
+  // Use double assertion for test mocks - DecodedIdToken has many required properties
+  // we don't need for testing, so we only mock the parts we actually use
+  return request as unknown as CallableRequest;
 }
-

@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { ClaimableMembershipData, MembershipService } from '../services/membership.service';
+import { type ClaimableMembershipData, MembershipService } from '../services/membership.service';
 
 @Component({
   imports: [DatePipe],

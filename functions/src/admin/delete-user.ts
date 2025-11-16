@@ -54,7 +54,7 @@ export async function handleDeleteUser(
     }
 
     // Prevent deletion of admin users
-    if (targetUser.customClaims?.admin === true) {
+    if (targetUser.customClaims?.["admin"] === true) {
       throw new HttpsError(
         "permission-denied",
         "Cannot delete admin users. Remove admin privileges first.",

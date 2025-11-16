@@ -19,14 +19,14 @@ import { getAuth } from "firebase-admin/auth";
 
 const ADMIN_EMAIL = "webmaster@doulacooperative.com";
 // For local emulator, you can hardcode the UID from the emulator UI
-const ADMIN_UID = process.env.ADMIN_UID ?? "";
-const USE_EMULATOR = process.env.USE_EMULATOR !== "false";
+const ADMIN_UID = process.env["ADMIN_UID"] ?? "";
+const USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
 
 async function setInitialAdmin() {
   // Connect to Auth emulator BEFORE initializing (must set env var first)
   if (USE_EMULATOR) {
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = "localhost:9099";
-    process.env.GCLOUD_PROJECT = "doula-cooperative";
+    process.env["FIREBASE_AUTH_EMULATOR_HOST"] = "localhost:9099";
+    process.env["GCLOUD_PROJECT"] = "doula-cooperative";
     console.log("🔧 Using Firebase Auth Emulator at localhost:9099");
   }
 

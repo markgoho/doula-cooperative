@@ -52,14 +52,21 @@ export async function handleListUnclaimedProfiles(
     const profiles: UnclaimedProfileDocument[] = [];
     for (const document of snapshot.docs) {
       const data = document.data();
-      profiles.push({
+      const profile: UnclaimedProfileDocument = {
         email: document.id,
-        name: data.name as string,
-        subscriptionStart: data.subscriptionStart as FirebaseFirestore.Timestamp,
-        hasProfile: data.hasProfile as boolean | undefined,
-        membershipActive: data.membershipActive as boolean | undefined,
-        membershipExpiresAt: data.membershipExpiresAt as FirebaseFirestore.Timestamp | undefined,
-      });
+        name: data["name"] as string,
+        subscriptionStart: data["subscriptionStart"] as FirebaseFirestore.Timestamp,
+        ...(data["hasProfile"] !== undefined && {
+          hasProfile: data["hasProfile"] as boolean,
+        }),
+        ...(data["membershipActive"] !== undefined && {
+          membershipActive: data["membershipActive"] as boolean,
+        }),
+        ...(data["membershipExpiresAt"] !== undefined && {
+          membershipExpiresAt: data["membershipExpiresAt"] as FirebaseFirestore.Timestamp,
+        }),
+      };
+      profiles.push(profile);
     }
 
     logger.log(

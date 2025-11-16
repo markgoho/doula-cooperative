@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Auth, authState, User } from '@angular/fire/auth';
+import { Auth, authState, type User } from '@angular/fire/auth';
 import {
   doc,
   docData,

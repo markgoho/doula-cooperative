@@ -1,17 +1,14 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "esModuleInterop": true,
     "lib": ["es2023"],
     "module": "NodeNext",
-    "moduleResolution": "node16",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
     "outDir": "lib",
     "skipLibCheck": true,
     "sourceMap": true,
-    "strict": true,
     "target": "es2022"
   },
   "compileOnSave": true,
-  "include": ["src", "build.ts"]
+  "include": ["src"]
 }

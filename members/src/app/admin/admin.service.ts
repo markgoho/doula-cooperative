@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Timestamp } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 
 export type SubscriptionStatus =
   | 'active'
@@ -79,18 +79,24 @@ export class AdminMembersService {
   }
 
   private convertMemberTimestamps(member: Member): Member {
-    return {
+    const result: Member = {
       ...member,
       createdAt: this.toTimestamp(member.createdAt),
-      subscriptionStart: member.subscriptionStart ? this.toTimestamp(member.subscriptionStart) : undefined,
-      membershipExpiresAt: member.membershipExpiresAt
-        ? this.toTimestamp(member.membershipExpiresAt)
-        : undefined,
     };
+    if (member.subscriptionStart) {
+      result.subscriptionStart = this.toTimestamp(member.subscriptionStart);
+    }
+    if (member.membershipExpiresAt) {
+      result.membershipExpiresAt = this.toTimestamp(member.membershipExpiresAt);
+    }
+    return result;
   }
 
   private toTimestamp(
-    value: Timestamp | { seconds: number; nanoseconds: number } | { _seconds: number; _nanoseconds: number },
+    value:
+      | Timestamp
+      | { seconds: number; nanoseconds: number }
+      | { _seconds: number; _nanoseconds: number },
   ): Timestamp {
     if (value instanceof Timestamp) {
       return value;
@@ -123,7 +129,16 @@ export class AdminMembersService {
       { success: boolean }
     >(this.functions, 'adminActivateMembership');
 
-    const result = await activateCallable({ uid, subscriptionStart, membershipExpiresAt });
+    const parameters: { uid: string; subscriptionStart?: string; membershipExpiresAt?: string } = {
+      uid,
+    };
+    if (subscriptionStart !== undefined) {
+      parameters.subscriptionStart = subscriptionStart;
+    }
+    if (membershipExpiresAt !== undefined) {
+      parameters.membershipExpiresAt = membershipExpiresAt;
+    }
+    const result = await activateCallable(parameters);
     return result.data;
   }
 
@@ -157,10 +172,7 @@ export class AdminMembersService {
     return result.data;
   }
 
-  async listUnclaimedProfiles(
-    limit = 50,
-    offset = 0,
-  ): Promise<ListUnclaimedProfilesResponse> {
+  async listUnclaimedProfiles(limit = 50, offset = 0): Promise<ListUnclaimedProfilesResponse> {
     const listUnclaimedProfilesCallable = httpsCallable<
       { limit?: number; offset?: number },
       ListUnclaimedProfilesResponse
@@ -190,13 +202,14 @@ export class AdminMembersService {
   }
 
   private convertUnclaimedProfileTimestamps(profile: UnclaimedProfile): UnclaimedProfile {
-    return {
+    const result: UnclaimedProfile = {
       ...profile,
       subscriptionStart: this.toTimestamp(profile.subscriptionStart),
-      membershipExpiresAt: profile.membershipExpiresAt
-        ? this.toTimestamp(profile.membershipExpiresAt)
-        : undefined,
     };
+    if (profile.membershipExpiresAt) {
+      result.membershipExpiresAt = this.toTimestamp(profile.membershipExpiresAt);
+    }
+    return result;
   }
 
   async deleteUser(uid: string): Promise<{ success: boolean }> {

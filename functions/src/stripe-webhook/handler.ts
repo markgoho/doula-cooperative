@@ -87,7 +87,7 @@ async function sendWelcomeEmail(
     `,
   };
 
-  if (process.env.FUNCTIONS_EMULATOR) {
+  if (process.env["FUNCTIONS_EMULATOR"]) {
     logger.info("Emulator detected, skipping email dispatch.");
     logger.info(`Would have sent welcome email to: ${email}`);
     logger.info(`Password reset link: ${resetLink}`);
@@ -108,9 +108,9 @@ async function sendWelcomeEmail(
 }
 
 export async function handler(request: Request, response: Response) {
-  const stripeApiKey = process.env.STRIPE_API_KEY;
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  const mailgunApiKey = process.env.MAILGUN_API_KEY;
+  const stripeApiKey = process.env["STRIPE_API_KEY"];
+  const webhookSecret = process.env["STRIPE_WEBHOOK_SECRET"];
+  const mailgunApiKey = process.env["MAILGUN_API_KEY"];
 
   if (!stripeApiKey || !webhookSecret) {
     logger.error("Missing required Stripe secrets", {
@@ -185,7 +185,7 @@ export async function handler(request: Request, response: Response) {
       ) {
         const processedEventDocument = await processedEventReference.get();
         const data = processedEventDocument.data();
-        const processedAt = data?.processedAt as Timestamp | undefined;
+        const processedAt = data?.["processedAt"] as Timestamp | undefined;
         logger.info(`Event ${event.id} already processed, skipping`, {
           eventId: event.id,
           eventType: event.type,
@@ -304,7 +304,7 @@ export async function handler(request: Request, response: Response) {
           subscriptionStatus: "active",
           subscriptionStart,
           membershipExpiresAt,
-          name: session.customer_details?.name ?? undefined,
+          ...(session.customer_details?.name && { name: session.customer_details.name }),
         });
 
         await database
@@ -411,7 +411,7 @@ export async function handler(request: Request, response: Response) {
           }
           // Continue - account was created successfully, email can be resent manually
         }
-      } else if (process.env.FUNCTIONS_EMULATOR) {
+      } else if (process.env["FUNCTIONS_EMULATOR"]) {
         logger.warn(
           "MAILGUN_API_KEY not configured - emulator mode, skipping email",
         );

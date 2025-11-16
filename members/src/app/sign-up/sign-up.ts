@@ -3,7 +3,7 @@ import {
   AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
+  type ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';

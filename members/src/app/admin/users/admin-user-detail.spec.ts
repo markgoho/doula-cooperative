@@ -129,7 +129,8 @@ describe('AdminUserDetail', () => {
 
   it('should display dash when user has no name', async () => {
     // Arrange
-    const member = createMockMember({ name: undefined });
+    const member = createMockMember();
+    delete (member as Partial<Member>).name;
 
     // Act
     await setup({ member });
@@ -200,10 +201,9 @@ describe('AdminUserDetail', () => {
 
   it('should display dash when subscription dates are missing', async () => {
     // Arrange
-    const member = createMockMember({
-      subscriptionStart: undefined,
-      membershipExpiresAt: undefined,
-    });
+    const member = createMockMember();
+    delete (member as Partial<Member>).subscriptionStart;
+    delete (member as Partial<Member>).membershipExpiresAt;
 
     // Act
     await setup({ member });
@@ -232,9 +232,8 @@ describe('AdminUserDetail', () => {
 
   it('should not display Stripe section when not a Stripe customer', async () => {
     // Arrange
-    const member = createMockMember({
-      stripeCustomerId: undefined,
-    });
+    const member = createMockMember();
+    delete (member as Partial<Member>).stripeCustomerId;
 
     // Act
     await setup({ member });

@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
+import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { App } from "octokit";
 import { MEMBERS_COLLECTION } from "../constants/index.js";
 import { type MemberDocument } from "../types/member-document.js";
@@ -23,6 +23,11 @@ export async function handleAdminReadMemberProfile(
 ): Promise<AdminReadProfileResponse> {
   // 1. Verify admin privileges
   verifyAdmin(context);
+
+  // Validate GitHub secrets
+  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+    throw new HttpsError("internal", "Missing GitHub secrets.");
+  }
 
   const { uid } = data;
 
@@ -120,7 +125,11 @@ export async function handleAdminReadMemberProfile(
     }
 
     logger.info(`Admin successfully read profile ${filePath} for user ${uid}`);
-    return { content, image, slug };
+    return {
+      content,
+      slug,
+      ...(image !== undefined && { image }),
+    };
   } catch (error) {
     logger.error("Error interacting with GitHub API", error);
     throw new HttpsError(

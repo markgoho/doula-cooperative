@@ -1,10 +1,10 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
-  ActionCodeInfo,
+  type ActionCodeInfo,
   Auth,
-  User,
-  UserCredential,
+  type User,
+  type UserCredential,
   applyActionCode,
   checkActionCode,
   confirmPasswordReset,

@@ -3,8 +3,9 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "build": "bun run build.ts",
+    "build": "tsc",
     "build:watch": "bun --watch run build.ts",
+    "build:dev": "bun run build.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:tests": "tsc --project tsconfig.test.json --noEmit",
     "serve": "npm run build && firebase emulators:start --only functions",

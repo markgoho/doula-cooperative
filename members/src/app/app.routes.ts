@@ -1,5 +1,5 @@
 import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
-import { Routes } from '@angular/router';
+import { type Routes } from '@angular/router';
 import { redirectNonAdminToMembership } from './guards/admin.guard';
 
 // Guards for different authentication states
