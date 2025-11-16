@@ -35,7 +35,8 @@
       "Bash(sort:*)",
       "Bash(git checkout:*)",
       "Bash(bun:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "WebFetch(domain:bun.sh)"
     ],
     "deny": [],
     "ask": []
