@@ -15,6 +15,9 @@
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    // Use type for import/export
+    "verbatimModuleSyntax": true
   }
 }
