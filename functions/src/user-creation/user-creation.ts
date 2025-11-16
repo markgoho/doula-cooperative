@@ -1,8 +1,8 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type auth } from "firebase-functions/v1";
-import { MEMBERS_COLLECTION } from "../constants";
-import { type MemberDocument } from "../types/member-document";
+import { MEMBERS_COLLECTION } from "../constants/index.js";
+import { type MemberDocument } from "../types/member-document.js";
 
 export async function handleUserCreated(user: auth.UserRecord) {
   try {

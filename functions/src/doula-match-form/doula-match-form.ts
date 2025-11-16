@@ -1,8 +1,8 @@
 import { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
-import { MATCH_REQUESTS_COLLECTION } from "../constants";
-import { DoulaMatchFormRequest } from "./types";
+import { MATCH_REQUESTS_COLLECTION } from "../constants/index.js";
+import { DoulaMatchFormRequest } from "./types.js";
 
 export async function handleDoulaMatchForm(
   request: DoulaMatchFormRequest,

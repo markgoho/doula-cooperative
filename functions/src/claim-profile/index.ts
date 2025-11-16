@@ -2,8 +2,8 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../constants";
-import { MemberDocument } from "../types/member-document";
+import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../constants/index.js";
+import { MemberDocument } from "../types/member-document.js";
 
 export interface ProfileData {
   name: string;

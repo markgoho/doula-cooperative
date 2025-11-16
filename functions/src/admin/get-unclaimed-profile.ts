@@ -1,9 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { IMPORT_COLLECTION } from "../constants";
-import { type UnclaimedProfileDocument } from "./list-unclaimed-profiles";
-import { verifyAdmin } from "./verify-admin";
+import { IMPORT_COLLECTION } from "../constants/index.js";
+import { type UnclaimedProfileDocument } from "./list-unclaimed-profiles.js";
+import { verifyAdmin } from "./verify-admin.js";
 
 export interface GetUnclaimedProfileRequest {
   email: string;

@@ -10,9 +10,9 @@ import {
   MATCH_REQUESTS_COLLECTION,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
-} from "../constants";
-import { sendEmail } from "../utils/send-email";
-import { type DoulaMatchFormDocument } from "./types";
+} from "../constants/index.js";
+import { sendEmail } from "../utils/send-email.js";
+import { type DoulaMatchFormDocument } from "./types.js";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<

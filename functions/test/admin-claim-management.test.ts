@@ -1,9 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
-import { handleRemoveAdminClaim } from "../src/admin/remove-admin-claim";
-import { handleSetAdminClaim } from "../src/admin/set-admin-claim";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
+import { handleRemoveAdminClaim } from "../src/admin/remove-admin-claim.js";
+import { handleSetAdminClaim } from "../src/admin/set-admin-claim.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

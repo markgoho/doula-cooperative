@@ -13,8 +13,8 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { ERROR_IDS, IMPORT_COLLECTION } from "../constants";
-import { calculateExpirationDate } from "../utils/membership-dates";
+import { ERROR_IDS, IMPORT_COLLECTION } from "../constants/index.js";
+import { calculateExpirationDate } from "../utils/membership-dates.js";
 
 // Initialize Firebase Admin if not already initialized
 if (getApps().length === 0) {

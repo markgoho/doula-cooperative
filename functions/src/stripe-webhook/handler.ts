@@ -11,13 +11,13 @@ import {
   NO_REPLY_EMAIL,
   PROCESSED_STRIPE_EVENTS_COLLECTION,
   REFERRAL_EMAIL,
-} from "../constants";
+} from "../constants/index.js";
 import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
-} from "../utils/member-factory";
-import { calculateExpirationDate } from "../utils/membership-dates";
-import { sendEmail } from "../utils/send-email";
+} from "../utils/member-factory.js";
+import { calculateExpirationDate } from "../utils/membership-dates.js";
+import { sendEmail } from "../utils/send-email.js";
 
 function generateSecurePassword(): string {
   const characters =

@@ -8,13 +8,13 @@ import {
   it,
 } from "bun:test";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { MATCH_REQUESTS_COLLECTION } from "../src/constants";
-import { handleDocumentCreated } from "../src/doula-match-form/email-doula-match";
-import { type DoulaMatchFormDocument } from "../src/doula-match-form/types";
+import { MATCH_REQUESTS_COLLECTION } from "../src/constants/index.js";
+import { handleDocumentCreated } from "../src/doula-match-form/email-doula-match.js";
+import { type DoulaMatchFormDocument } from "../src/doula-match-form/types.js";
 import {
   cleanupFirestoreTriggerTest,
   initializeFirestoreTriggerTest,
-} from "../src/test-utils/test-setup";
+} from "../src/test-utils/test-setup.js";
 
 let testEnvironment: RulesTestEnvironment;
 

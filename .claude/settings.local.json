@@ -33,7 +33,9 @@
       "Bash(find:*)",
       "Bash(bun x source-map-explorer:*)",
       "Bash(sort:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(bun:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

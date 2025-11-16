@@ -1,5 +1,5 @@
 import { expect } from "bun:test";
-import type { MockResponse } from "./mock-response";
+import type { MockResponse } from "./mock-response.js";
 
 /**
  * Assert that CORS headers are set correctly on response

@@ -11,7 +11,7 @@ import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
-import { PROFILE_SECRETS } from "./constants/profile-secrets";
+import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {

@@ -1,8 +1,8 @@
 import { type Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
-import { MESSAGES_COLLECTION } from "../constants";
-import { type ContactUsFormRequest } from "./types";
+import { MESSAGES_COLLECTION } from "../constants/index.js";
+import { type ContactUsFormRequest } from "./types.js";
 
 export async function handleContactUsForm(
   request: ContactUsFormRequest,

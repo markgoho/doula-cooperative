@@ -8,13 +8,13 @@ import {
   it,
 } from "bun:test";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { MESSAGES_COLLECTION } from "../src/constants";
-import { handleDocumentCreated } from "../src/contact-us-form/email-contact-form";
-import { type ContactUsFormDocument } from "../src/contact-us-form/types";
+import { MESSAGES_COLLECTION } from "../src/constants/index.js";
+import { handleDocumentCreated } from "../src/contact-us-form/email-contact-form.js";
+import { type ContactUsFormDocument } from "../src/contact-us-form/types.js";
 import {
   cleanupFirestoreTriggerTest,
   initializeFirestoreTriggerTest,
-} from "../src/test-utils/test-setup";
+} from "../src/test-utils/test-setup.js";
 
 let testEnvironment: RulesTestEnvironment;
 

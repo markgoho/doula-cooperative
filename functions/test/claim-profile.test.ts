@@ -1,16 +1,16 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { claimProfile } from "../src";
-import { type ProfileData } from "../src/claim-profile";
-import { IMPORT_COLLECTION } from "../src/constants";
+import { claimProfile } from "../src/index.js";
+import { type ProfileData } from "../src/claim-profile.js";
+import { IMPORT_COLLECTION } from "../src/constants/index.js";
 import {
   cleanupTestMembers,
   getMemberData,
   getMemberDocument,
-} from "../src/test-utils/firestore-helpers";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
+} from "../src/test-utils/firestore-helpers.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

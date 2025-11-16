@@ -1,11 +1,11 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { handleActivateMembership } from "../src/admin/activate-membership";
-import { handleDeactivateMembership } from "../src/admin/deactivate-membership";
-import { MEMBERS_COLLECTION } from "../src/constants";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
-import { type MemberDocument } from "../src/types/member-document";
+import { handleActivateMembership } from "../src/admin/activate-membership.js";
+import { handleDeactivateMembership } from "../src/admin/deactivate-membership.js";
+import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
+import { type MemberDocument } from "../src/types/member-document.js";
 
 const test = initializeTest();
 

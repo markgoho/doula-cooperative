@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
-import { setAutoAdminOnUserCreated } from "../src";
-import { initializeTest } from "../src/test-utils/test-setup";
+import { setAutoAdminOnUserCreated } from "../src/index.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

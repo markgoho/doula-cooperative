@@ -3,11 +3,11 @@ import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import {
   AdminReadProfileRequest,
   handleAdminReadMemberProfile,
-} from "../src/admin/read-member-profile";
-import { MEMBERS_COLLECTION } from "../src/constants";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
-import { type MemberDocument } from "../src/types/member-document";
+} from "../src/admin/read-member-profile.js";
+import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
+import { type MemberDocument } from "../src/types/member-document.js";
 
 // Mock the octokit module
 const mockGetContent = mock();

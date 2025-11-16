@@ -1,12 +1,12 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getFirestore } from "firebase-admin/firestore";
-import { createMemberOnUserCreated } from "../src";
+import { createMemberOnUserCreated } from "../src/index.js";
 import {
   cleanupTestMembers,
   getMemberData,
   getMemberDocument,
-} from "../src/test-utils/firestore-helpers";
-import { initializeTest } from "../src/test-utils/test-setup";
+} from "../src/test-utils/firestore-helpers.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

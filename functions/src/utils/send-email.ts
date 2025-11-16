@@ -1,7 +1,7 @@
 import { logger } from "firebase-functions/v2";
 import Mailgun from "mailgun.js";
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import { EMAIL_DOMAIN, ERROR_IDS, type ErrorId } from "../constants";
+import { EMAIL_DOMAIN, ERROR_IDS, type ErrorId } from "../constants/index.js";
 
 export async function sendEmail(
   message: MailgunMessageData,

@@ -12,11 +12,11 @@ import type { Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import Stripe from "stripe";
-import { MEMBERS_COLLECTION } from "../src/constants/collections";
-import { handler } from "../src/stripe-webhook/handler";
-import { getMemberData } from "../src/test-utils/firestore-helpers";
-import { createMockResponse } from "../src/test-utils/mock-response";
-import { initializeTest } from "../src/test-utils/test-setup";
+import { MEMBERS_COLLECTION } from "../src/constants/collections.js";
+import { handler } from "../src/stripe-webhook/handler.js";
+import { getMemberData } from "../src/test-utils/firestore-helpers.js";
+import { createMockResponse } from "../src/test-utils/mock-response.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

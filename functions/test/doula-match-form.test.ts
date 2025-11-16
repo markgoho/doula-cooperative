@@ -1,23 +1,23 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import type { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
-import { doulaMatchForm } from "../src"; // Import from index.ts to test lazy-loading layer
-import { MATCH_REQUESTS_COLLECTION } from "../src/constants";
+import { doulaMatchForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
+import { MATCH_REQUESTS_COLLECTION } from "../src/constants/index.js";
 import {
   type DoulaMatchForm,
   type DoulaMatchFormDocument,
   type DoulaMatchFormRequest,
-} from "../src/doula-match-form/types";
+} from "../src/doula-match-form/types.js";
 import {
   cleanupTestDocumentsByEmail,
   getDocumentByEmail,
-} from "../src/test-utils/firestore-helpers";
-import { createMockResponse } from "../src/test-utils/mock-response";
+} from "../src/test-utils/firestore-helpers.js";
+import { createMockResponse } from "../src/test-utils/mock-response.js";
 import {
   assertCorsHeaders,
   assertSuccessStatus,
-} from "../src/test-utils/shared-assertions";
-import { initializeTest } from "../src/test-utils/test-setup";
+} from "../src/test-utils/shared-assertions.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { readProfile } from "../src";
-import { MEMBERS_COLLECTION } from "../src/constants";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
-import { type MemberDocument } from "../src/types/member-document";
+import { readProfile } from "../src/index.js";
+import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
+import { type MemberDocument } from "../src/types/member-document.js";
 
 // Mock the octokit module
 const mockGetContent = mock();

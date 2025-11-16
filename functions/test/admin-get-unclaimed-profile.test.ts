@@ -1,9 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { handleGetUnclaimedProfile } from "../src/admin/get-unclaimed-profile";
-import { IMPORT_COLLECTION } from "../src/constants";
-import { createMockCallableRequest } from "../src/test-utils/mock-request";
-import { initializeTest } from "../src/test-utils/test-setup";
+import { handleGetUnclaimedProfile } from "../src/admin/get-unclaimed-profile.js";
+import { IMPORT_COLLECTION } from "../src/constants/index.js";
+import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
+import { initializeTest } from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 
