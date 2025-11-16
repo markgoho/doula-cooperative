@@ -1,9 +1,9 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { claimProfile } from "../src/index.js";
-import { type ProfileData } from "../src/claim-profile.js";
+import { type ProfileData } from "../src/claim-profile/index.js";
 import { IMPORT_COLLECTION } from "../src/constants/index.js";
+import { claimProfile } from "../src/index.js";
 import {
   cleanupTestMembers,
   getMemberData,
