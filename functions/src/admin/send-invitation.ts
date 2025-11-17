@@ -6,11 +6,7 @@ import {
   IMPORT_COLLECTION,
   type UnclaimedProfileDocumentData,
 } from "../collections/index.js";
-import {
-  ERROR_IDS,
-  NO_REPLY_EMAIL,
-  REFERRAL_EMAIL,
-} from "../constants/index.js";
+import { ERROR_IDS, NO_REPLY_EMAIL } from "../constants/index.js";
 import { sendEmail } from "../utils/send-email.js";
 import { verifyAdmin } from "./verify-admin.js";
 
@@ -113,7 +109,6 @@ export async function handleSendInvitation(
     const emailMessage: MailgunMessageData = {
       from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
       to: member.email,
-      bcc: REFERRAL_EMAIL,
       subject: "Claim Your Rochester Doula Cooperative Membership",
       html: `
         <h2>Hello ${memberName},</h2>
