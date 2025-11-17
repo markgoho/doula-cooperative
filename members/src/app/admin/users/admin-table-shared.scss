@@ -87,6 +87,15 @@
     font-style: italic;
     padding: var(--space-l);
   }
+
+  .profile-link {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover app-tag {
+      outline: 2px solid var(--brown-400);
+    }
+  }
 }
 
 .button-small {

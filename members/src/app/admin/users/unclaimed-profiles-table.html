@@ -45,7 +45,18 @@
               <td>{{ profile.name }}</td>
               <td>{{ profile.email }}</td>
               <td>
-                <app-tag [label]="profile.slug ? 'Yes' : 'No'" size="small" />
+                @if (profile.slug) {
+                  <a
+                    [href]="'https://www.doulacooperative.com/doulas/' + profile.slug + '/'"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="profile-link"
+                  >
+                    <app-tag [label]="'Yes'" size="small" />
+                  </a>
+                } @else {
+                  <app-tag [label]="'No'" size="small" />
+                }
               </td>
               <td>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</td>
               <td>
