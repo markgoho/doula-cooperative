@@ -26,7 +26,6 @@ async function createMemberDocument({
   name,
   createdAt,
   membershipActive = true,
-  hasProfile = false,
   slug,
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -35,7 +34,7 @@ async function createMemberDocument({
   name?: string;
   createdAt: Timestamp;
   membershipActive?: boolean;
-  hasProfile?: boolean;
+  
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -45,7 +44,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
   };
 
   // Only add name and slug if they're provided
@@ -366,7 +364,7 @@ describe("adminListMembers", () => {
       name: "Fields Test",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: true,
-      hasProfile: true,
+      
       slug: "fields-test",
     });
 
@@ -382,7 +380,6 @@ describe("adminListMembers", () => {
     expect(member.email).toBe("fields@example.com");
     expect(member.name).toBe("Fields Test");
     expect(member.membershipActive).toBe(true);
-    expect(member.hasProfile).toBe(true);
     expect(member.slug).toBe("fields-test");
     expect(member.createdAt).toBeDefined();
 
@@ -399,7 +396,7 @@ describe("adminListMembers", () => {
       email: "minimal@example.com",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: false,
-      hasProfile: false,
+      
     });
 
     // Act

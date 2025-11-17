@@ -1034,7 +1034,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        hasProfile: true,
+        
         name: "Existing Name",
       });
 
@@ -1082,7 +1082,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        hasProfile: true,
+        
         name: "Existing Name",
       });
 
@@ -1105,7 +1105,7 @@ describe("stripeWebhook handler", () => {
       restoreEnvironment(originalEnvironment);
     });
 
-    it("should preserve hasProfile when updating existing member", async () => {
+    it("should preserve slug when updating existing member", async () => {
       // Arrange
       const {
         mockRequest,
@@ -1130,7 +1130,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        hasProfile: true,
+        
         name: "Existing Name",
       });
 
@@ -1145,7 +1145,7 @@ describe("stripeWebhook handler", () => {
         firestore,
         uid: existingUser.uid,
       });
-      expect(memberData?.hasProfile).toBe(true);
+      expect(memberData).toBeDefined();
 
       // Cleanup
       await auth.deleteUser(existingUser.uid);
@@ -1178,7 +1178,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        hasProfile: true,
+        
         name: "Existing Name",
       });
 

@@ -24,7 +24,7 @@ if (getApps().length === 0) {
 interface MigratedUserData {
   name: string;
   subscriptionStart: Timestamp;
-  hasProfile?: boolean;
+  slug?: string;
   email?: string;
 }
 

@@ -1,0 +1,117 @@
+<header>
+  <h1>Unclaimed Profile Details</h1>
+  <nav>
+    <a routerLink="/admin/users" class="back-link">← Back to User List</a>
+  </nav>
+</header>
+
+@if (successMessage(); as message) {
+  <div class="success-message">{{ message }}</div>
+}
+
+@if (loading()) {
+  <p class="loading">Loading details...</p>
+} @else if (error(); as errorMessage) {
+  <p class="error">{{ errorMessage }}</p>
+} @else if (unclaimedProfile(); as profile) {
+  <section class="user-info-card">
+    <h2>Unclaimed Profile Information</h2>
+    <p class="info-notice">
+      This profile has not yet been claimed by the member. They will need to create an account with
+      this email address to claim it.
+    </p>
+    <dl class="info-grid">
+      <dt>Name:</dt>
+      <dd>{{ profile.name }}</dd>
+
+      <dt>Email:</dt>
+      <dd>{{ profile.email }}</dd>
+
+      <dt>Has Profile:</dt>
+      <dd>
+        @if (profile.slug) {
+          <a
+            [href]="'https://doulacooperative.com/doulas/' + profile.slug"
+            target="_blank"
+            rel="noopener noreferrer"
+            >View Profile</a
+          >
+        } @else {
+          <span class="status-badge inactive">No</span>
+        }
+      </dd>
+    </dl>
+  </section>
+
+  <section class="subscription-card">
+    <h2>Membership Details</h2>
+    <dl class="info-grid">
+      <dt>Subscription Start:</dt>
+      <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
+
+      @if (profile.membershipExpiresAt) {
+        <dt>Membership Expires:</dt>
+        <dd>{{ profile.membershipExpiresAt.toDate() | date: 'MMM d, yyyy' }}</dd>
+      }
+
+      @if (profile.membershipActive !== undefined) {
+        <dt>Membership Status:</dt>
+        <dd>
+          <span [class]="'status-badge ' + (profile.membershipActive ? 'active' : 'inactive')">
+            {{ profile.membershipActive ? 'Active' : 'Inactive' }}
+          </span>
+        </dd>
+      }
+
+      <dt>Invitation Email:</dt>
+      <dd>
+        @if (profile.invitationEmailStatus === 'sent') {
+          <span class="status-badge active">
+            Sent
+            {{
+              profile.invitationEmailSentAt
+                ? (profile.invitationEmailSentAt.toDate() | date: 'MMM d, yyyy')
+                : ''
+            }}
+          </span>
+        } @else if (profile.invitationEmailStatus === 'failed') {
+          <span class="status-badge inactive">Failed</span>
+          @if (profile.invitationEmailError) {
+            <span class="error-detail">{{ profile.invitationEmailError }}</span>
+          }
+        } @else {
+          <span class="status-badge">Not Sent</span>
+        }
+      </dd>
+    </dl>
+
+    <div class="actions">
+      <h3>Invitation Actions</h3>
+      <p class="info-notice">
+        Send an email invitation to this user to create an account and claim their membership.
+      </p>
+
+      <div class="action-buttons">
+        <button
+          type="button"
+          class="button"
+          (click)="sendInvitation()"
+          [disabled]="actionInProgress() || invitationAlreadySent()"
+          [title]="
+            invitationAlreadySent()
+              ? 'Invitation already sent'
+              : 'Send invitation email to claim subscription'
+          "
+        >
+          {{
+            actionInProgress()
+              ? 'Processing...'
+              : invitationAlreadySent()
+                ? 'Invitation Already Sent'
+                : 'Send Invitation'
+          }}
+        </button>
+      </div>
+    </div>
+  </section>
+}

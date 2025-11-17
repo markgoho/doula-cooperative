@@ -23,7 +23,6 @@ async function createUnclaimedProfile({
   email,
   name,
   subscriptionStart,
-  hasProfile = false,
   membershipActive,
   membershipExpiresAt,
 }: {
@@ -31,20 +30,19 @@ async function createUnclaimedProfile({
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  hasProfile?: boolean;
+  
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
 }) {
   const profileData: {
     name: string;
     subscriptionStart: Timestamp;
-    hasProfile?: boolean;
+    
     membershipActive?: boolean;
     membershipExpiresAt?: Timestamp;
   } = {
     name,
     subscriptionStart,
-    hasProfile,
   };
 
   if (membershipActive !== undefined) {
@@ -350,7 +348,7 @@ describe("adminListUnclaimedProfiles", () => {
       email: "fields@example.com",
       name: "Fields Test",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: true,
+      
       membershipActive: true,
       membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-15")),
     });
@@ -365,7 +363,6 @@ describe("adminListUnclaimedProfiles", () => {
     const profile = result.profiles[0];
     expect(profile.email).toBe("fields@example.com");
     expect(profile.name).toBe("Fields Test");
-    expect(profile.hasProfile).toBe(true);
     expect(profile.membershipActive).toBe(true);
     expect(profile.subscriptionStart).toBeDefined();
     expect(profile.membershipExpiresAt).toBeDefined();
@@ -382,7 +379,7 @@ describe("adminListUnclaimedProfiles", () => {
       email: "minimal@example.com",
       name: "Minimal Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: false,
+      
     });
 
     // Act
@@ -395,7 +392,6 @@ describe("adminListUnclaimedProfiles", () => {
     const profile = result.profiles[0];
     expect(profile.email).toBe("minimal@example.com");
     expect(profile.name).toBe("Minimal Profile");
-    expect(profile.hasProfile).toBe(false);
     expect(profile.membershipActive).toBeUndefined();
     expect(profile.membershipExpiresAt).toBeUndefined();
 
@@ -435,7 +431,7 @@ describe("adminListUnclaimedProfiles", () => {
       email: "with-profile@example.com",
       name: "Has Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: true,
+      
     });
 
     await createUnclaimedProfile({
@@ -443,7 +439,7 @@ describe("adminListUnclaimedProfiles", () => {
       email: "without-profile@example.com",
       name: "No Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-10")),
-      hasProfile: false,
+      
     });
 
     // Act
@@ -455,9 +451,6 @@ describe("adminListUnclaimedProfiles", () => {
     // Assert
     expect(result.profiles.length).toBe(2);
     expect(result.total).toBe(2);
-    const hasProfileStatuses = result.profiles.map(p => p.hasProfile);
-    expect(hasProfileStatuses).toContain(true);
-    expect(hasProfileStatuses).toContain(false);
 
     await cleanupAdminListUnclaimedProfiles();
   });

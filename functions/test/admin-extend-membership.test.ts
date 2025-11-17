@@ -29,7 +29,6 @@ async function createMemberDocument({
   email,
   name,
   membershipActive = true,
-  hasProfile = false,
   slug,
   membershipExpiresAt,
 }: {
@@ -38,7 +37,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
+  
   slug?: string;
   membershipExpiresAt?: Timestamp;
 }) {
@@ -49,7 +48,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: membershipExpiresAt ?? Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
   };
 
   if (name) {
@@ -217,7 +215,7 @@ describe("adminExtendMembership", () => {
       email: testEmail,
       name: "Test Member",
       membershipActive: true,
-      hasProfile: true,
+      
       slug: "test-member",
     });
 
@@ -244,7 +242,6 @@ describe("adminExtendMembership", () => {
     expect(updatedData.name).toBe("Test Member");
     expect(updatedData.email).toBe(testEmail);
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.hasProfile).toBe(true);
     expect(updatedData.slug).toBe("test-member");
     expect(updatedData.subscriptionStart).toEqual(originalStart);
     expect(updatedData.createdAt).toEqual(originalCreatedAt);

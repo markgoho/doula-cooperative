@@ -30,7 +30,6 @@ async function createMemberDocument({
   email,
   name,
   membershipActive = true,
-  hasProfile = false,
   slug,
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -38,7 +37,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
+  
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -48,7 +47,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
   };
 
   if (name) {
@@ -492,7 +490,7 @@ describe("adminDeactivateMembership", () => {
       email: testEmail,
       name: "Test Member",
       membershipActive: true,
-      hasProfile: true,
+      
       slug: "test-member",
     });
 
@@ -516,7 +514,6 @@ describe("adminDeactivateMembership", () => {
     expect(updatedData.membershipActive).toBe(false);
     expect(updatedData.name).toBe("Test Member");
     expect(updatedData.email).toBe(testEmail);
-    expect(updatedData.hasProfile).toBe(true);
     expect(updatedData.slug).toBe("test-member");
     expect(updatedData.subscriptionStart).toEqual(originalStart);
     expect(updatedData.membershipExpiresAt).toEqual(originalExpires);

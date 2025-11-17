@@ -29,7 +29,6 @@ async function createMemberDocument({
   email,
   name,
   membershipActive = true,
-  hasProfile = false,
   slug,
   subscriptionStart,
   membershipExpiresAt,
@@ -39,7 +38,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
+  
   slug?: string;
   subscriptionStart?: Timestamp;
   membershipExpiresAt?: Timestamp;
@@ -51,7 +50,6 @@ async function createMemberDocument({
     subscriptionStart: subscriptionStart ?? Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: membershipExpiresAt ?? Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
   };
 
   if (name) {
@@ -267,7 +265,7 @@ describe("adminUpdateMember", () => {
     await cleanupAdminUpdateMember();
   });
 
-  it("should successfully update hasProfile and slug fields", async () => {
+  it("should successfully update slug field", async () => {
     // Arrange
     const { adminUid, testUid, testEmail, firestore } = setup();
 
@@ -275,12 +273,11 @@ describe("adminUpdateMember", () => {
       firestore,
       uid: testUid,
       email: testEmail,
-      hasProfile: false,
     });
 
     // Act
     const result = await handleUpdateMember(
-      { uid: testUid, updates: { hasProfile: true, slug: "new-slug" } },
+      { uid: testUid, updates: { slug: "new-slug" } },
       createMockCallableRequest({ uid: adminUid, isAdmin: true }),
     );
 
@@ -289,7 +286,6 @@ describe("adminUpdateMember", () => {
 
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
-    expect(updatedData.hasProfile).toBe(true);
     expect(updatedData.slug).toBe("new-slug");
 
     await cleanupAdminUpdateMember();
@@ -389,7 +385,7 @@ describe("adminUpdateMember", () => {
       email: testEmail,
       name: "Old Name",
       membershipActive: false,
-      hasProfile: false,
+      
     });
 
     // Act
@@ -399,7 +395,7 @@ describe("adminUpdateMember", () => {
         updates: {
           name: "New Name",
           membershipActive: true,
-          hasProfile: true,
+          
           slug: "new-member-slug",
         },
       },
@@ -413,7 +409,6 @@ describe("adminUpdateMember", () => {
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.name).toBe("New Name");
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.hasProfile).toBe(true);
     expect(updatedData.slug).toBe("new-member-slug");
 
     await cleanupAdminUpdateMember();
@@ -433,7 +428,7 @@ describe("adminUpdateMember", () => {
       email: testEmail,
       name: "Original Name",
       membershipActive: true,
-      hasProfile: true,
+      
       slug: "original-slug",
       subscriptionStart: originalSubscriptionStart,
       membershipExpiresAt: originalMembershipExpiresAt,
@@ -458,7 +453,6 @@ describe("adminUpdateMember", () => {
     expect(updatedData.name).toBe("Updated Name");
     expect(updatedData.email).toBe(testEmail);
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.hasProfile).toBe(true);
     expect(updatedData.slug).toBe("original-slug");
     expect(updatedData.createdAt).toEqual(originalCreatedAt);
     expect(updatedData.subscriptionStart).toEqual(originalSubscriptionStart);

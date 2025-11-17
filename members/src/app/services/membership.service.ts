@@ -14,7 +14,6 @@ import { map, of, switchMap } from 'rxjs';
 interface MigratedUserData {
   name: string;
   subscriptionStart: Timestamp;
-  hasProfile?: boolean;
   slug?: string;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
@@ -26,7 +25,6 @@ interface MigratedUserData {
 export interface UnclaimedProfile {
   name: string;
   subscriptionStart: Date;
-  hasProfile: boolean;
   slug?: string;
 }
 
@@ -46,7 +44,6 @@ export interface Member {
   subscriptionStart?: Timestamp;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
-  hasProfile?: boolean;
   slug?: string;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
@@ -82,7 +79,7 @@ export class MembershipService {
 
   // Computed properties for easy access to specific member document fields
   membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
-  hasProfile = computed(() => this.userDocument()?.hasProfile ?? false);
+  hasProfile = computed(() => !!this.userDocument()?.slug);
 
   async getClaimableProfileData(
     user: User | null | undefined,
@@ -96,7 +93,6 @@ export class MembershipService {
         return {
           name: data.name,
           subscriptionStart: data.subscriptionStart.toDate(),
-          hasProfile: data.hasProfile ?? false,
           ...(data.slug && { slug: data.slug }),
         };
       }

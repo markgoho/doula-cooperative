@@ -25,7 +25,6 @@ async function createUnclaimedProfile({
   email,
   name,
   subscriptionStart,
-  hasProfile = false,
   membershipActive,
   membershipExpiresAt,
 }: {
@@ -33,20 +32,19 @@ async function createUnclaimedProfile({
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  hasProfile?: boolean;
+  
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
 }) {
   const profileData: {
     name: string;
     subscriptionStart: Timestamp;
-    hasProfile?: boolean;
+    
     membershipActive?: boolean;
     membershipExpiresAt?: Timestamp;
   } = {
     name,
     subscriptionStart,
-    hasProfile,
   };
 
   if (membershipActive !== undefined) {
@@ -161,7 +159,7 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Test Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: false,
+      
     });
 
     // Act
@@ -173,7 +171,6 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Test Profile");
-    expect(result.hasProfile).toBe(false);
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -187,7 +184,7 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Full Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: true,
+      
       membershipActive: true,
       membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-15")),
     });
@@ -201,7 +198,6 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Full Profile");
-    expect(result.hasProfile).toBe(true);
     expect(result.membershipActive).toBe(true);
     expect(result.subscriptionStart).toBeDefined();
     expect(result.membershipExpiresAt).toBeDefined();
@@ -218,7 +214,7 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Minimal Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: false,
+      
     });
 
     // Act
@@ -230,33 +226,8 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Minimal Profile");
-    expect(result.hasProfile).toBe(false);
     expect(result.membershipActive).toBeUndefined();
     expect(result.membershipExpiresAt).toBeUndefined();
-
-    await cleanupAdminGetUnclaimedProfile();
-  });
-
-  it("should work with profiles that have hasProfile true", async () => {
-    // Arrange
-    const { adminUid, testEmail, firestore } = setup();
-
-    await createUnclaimedProfile({
-      firestore,
-      email: testEmail,
-      name: "Has Profile",
-      subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      hasProfile: true,
-    });
-
-    // Act
-    const result = await handleGetUnclaimedProfile(
-      { email: testEmail },
-      createMockCallableRequest({ uid: adminUid, isAdmin: true }),
-    );
-
-    // Assert
-    expect(result.hasProfile).toBe(true);
 
     await cleanupAdminGetUnclaimedProfile();
   });

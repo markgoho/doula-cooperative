@@ -168,7 +168,7 @@ describe('AdminUsers', () => {
     // Assert
     const viewLink = await screen.findByRole('link', { name: 'View' });
     expect(viewLink).toBeVisible();
-    expect(viewLink).toHaveAttribute('href', '/admin/users/test-uid-123');
+    expect(viewLink).toHaveAttribute('href', '/admin/users/member/test-uid-123');
   });
 
   it('should display empty state when no members exist', async () => {

@@ -216,7 +216,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-          hasProfile: true,
         },
       });
 
@@ -229,7 +228,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-          hasProfile: true,
         },
       });
 
@@ -242,7 +240,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-          hasProfile: true,
         },
       });
 
@@ -255,7 +252,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: true,
         },
       });
 
@@ -272,7 +268,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: false,
         },
       });
 
@@ -290,7 +285,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: true,
         },
         claimProfileImplementation: claimProfileMock,
       });
@@ -315,7 +309,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: true,
         },
         claimProfileImplementation: claimProfileMock,
       });
@@ -340,7 +333,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: true,
         },
         claimProfileImplementation: claimProfileMock,
       });
@@ -363,7 +355,6 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
-          hasProfile: true,
         },
         claimProfileImplementation: claimProfileMock,
       });

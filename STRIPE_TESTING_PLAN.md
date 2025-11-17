@@ -180,7 +180,7 @@ Look for:
   - `subscriptionStatus: "active"`
   - `subscriptionStart: <new timestamp>`
   - `membershipExpiresAt: <newly calculated date>`
-- [ ] Existing fields in member document are preserved (e.g., slug, hasProfile, etc.)
+- [ ] Existing fields in member document are preserved (e.g., slug, name, etc.)
 - [ ] Can still sign in with existing password
 - [ ] Member portal shows updated membership status
 

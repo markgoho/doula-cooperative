@@ -54,20 +54,12 @@ export async function handleAdminReadMemberProfile(
     throw new HttpsError("not-found", "Member document data is empty.");
   }
 
-  // Check if user has a profile
-  if (!memberData.hasProfile) {
-    throw new HttpsError(
-      "failed-precondition",
-      "User does not have a profile yet.",
-    );
-  }
-
+  // Check if user has a profile (indicated by presence of slug)
   const slug = memberData.slug;
-
   if (!slug) {
     throw new HttpsError(
       "failed-precondition",
-      "User has profile flag but no slug.",
+      "User does not have a profile yet.",
     );
   }
 

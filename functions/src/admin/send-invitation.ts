@@ -2,7 +2,7 @@ import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import type { ProfileData } from "../claim-profile/index.js";
+import type { UnclaimedProfileData } from "../claim-profile/index.js";
 import {
   ERROR_IDS,
   IMPORT_COLLECTION,
@@ -52,10 +52,12 @@ export async function handleSendInvitation(
 
     // Look up unclaimed profile in migrated_users_import collection
     // The email IS the document ID in this collection
-    const memberReference = firestore.collection(IMPORT_COLLECTION).doc(email);
-    const memberDocument = await memberReference.get();
+    const unclaimedProfileReference = firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(email);
+    const unclaimedProfileDocument = await unclaimedProfileReference.get();
 
-    if (!memberDocument.exists) {
+    if (!unclaimedProfileDocument.exists) {
       logger.error("Unclaimed profile not found for invitation", {
         errorId: ERROR_IDS.ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND,
         email,
@@ -67,16 +69,16 @@ export async function handleSendInvitation(
       );
     }
 
-    const memberData = memberDocument.data();
+    const unclaimedProfileData = unclaimedProfileDocument.data();
 
     // Validate member has required fields before type assertion
-    if (!memberData?.["subscriptionStart"]) {
+    if (!unclaimedProfileData?.["subscriptionStart"]) {
       logger.error("Unclaimed profile missing required data for invitation", {
         errorId: ERROR_IDS.ADMIN_SEND_INVITATION_NO_SUBSCRIPTION,
         email,
         adminUid: context.auth?.uid,
-        hasData: !!memberData,
-        hasSubscriptionStart: !!memberData?.["subscriptionStart"],
+        hasData: !!unclaimedProfileData,
+        hasSubscriptionStart: !!unclaimedProfileData?.["subscriptionStart"],
       });
       throw new HttpsError(
         "failed-precondition",
@@ -86,9 +88,9 @@ export async function handleSendInvitation(
 
     // For unclaimed profiles, the email is the document ID, not in the data
     const member = {
-      ...memberData,
+      ...unclaimedProfileData,
       email,
-    } as ProfileData & { email: string };
+    } as UnclaimedProfileData & { email: string };
 
     // Build invitation email
     const now = Timestamp.now();
@@ -104,22 +106,7 @@ export async function handleSendInvitation(
     const memberName = member.name || "Member";
 
     // Build membership details HTML (renewal info is optional)
-    let membershipDetailsHtml = `<li><strong>Subscription Started:</strong> ${subscriptionStartDate}</li>`;
-
-    if (member.membershipExpiresAt) {
-      const expiresAt = member.membershipExpiresAt as Timestamp;
-      const daysRemaining = Math.ceil(
-        (expiresAt.toMillis() - now.toMillis()) / (1000 * 60 * 60 * 24),
-      );
-      const renewalDate = expiresAt.toDate().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      membershipDetailsHtml += `
-          <li><strong>Renewal Date:</strong> ${renewalDate}</li>
-          <li><strong>Days Remaining:</strong> ${daysRemaining} days</li>`;
-    }
+    const membershipDetailsHtml = `<li><strong>Subscription Started:</strong> ${subscriptionStartDate}</li>`;
 
     const emailMessage: MailgunMessageData = {
       from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
@@ -199,7 +186,7 @@ export async function handleSendInvitation(
           adminUid: context.auth?.uid,
         });
         // Update member document with error
-        await memberReference.update({
+        await unclaimedProfileReference.update({
           invitationEmailStatus: "failed",
           invitationEmailError:
             error instanceof Error ? error.message : "Unknown error",
@@ -209,7 +196,7 @@ export async function handleSendInvitation(
     }
 
     // Update member document with invitation tracking
-    await memberReference.update({
+    await unclaimedProfileReference.update({
       invitationEmailStatus: "sent",
       invitationEmailSentAt: now,
       invitationEmailError: FieldValue.delete(),

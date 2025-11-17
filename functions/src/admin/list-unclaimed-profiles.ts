@@ -8,8 +8,9 @@ export interface UnclaimedProfileDocument {
   email: string;
   name: string;
   subscriptionStart: FirebaseFirestore.Timestamp;
-  hasProfile?: boolean;
   slug?: string;
+  membershipActive?: boolean;
+  membershipExpiresAt?: FirebaseFirestore.Timestamp;
   invitationEmailStatus?: "sent" | "failed" | "pending";
   invitationEmailSentAt?: FirebaseFirestore.Timestamp;
   invitationEmailError?: string;
@@ -60,8 +61,16 @@ export async function handleListUnclaimedProfiles(
         subscriptionStart: data[
           "subscriptionStart"
         ] as FirebaseFirestore.Timestamp,
-        ...(data["hasProfile"] !== undefined && {
-          hasProfile: data["hasProfile"] as boolean,
+        ...(data["slug"] !== undefined && {
+          slug: data["slug"] as string,
+        }),
+        ...(data["membershipActive"] !== undefined && {
+          membershipActive: data["membershipActive"] as boolean,
+        }),
+        ...(data["membershipExpiresAt"] !== undefined && {
+          membershipExpiresAt: data[
+            "membershipExpiresAt"
+          ] as FirebaseFirestore.Timestamp,
         }),
         ...(data["invitationEmailStatus"] !== undefined && {
           invitationEmailStatus: data["invitationEmailStatus"] as

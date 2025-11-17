@@ -26,7 +26,6 @@ function setup({
   testEmail = "testread001@example.com",
   slug = "test-doula-read",
   membershipActive = true,
-  hasProfile = true,
 } = {}) {
   const wrappedReadProfile = test.wrap(readProfile);
   const firestore = getFirestore();
@@ -41,7 +40,6 @@ function setup({
     testEmail,
     slug,
     membershipActive,
-    hasProfile,
     wrappedReadProfile,
     firestore,
   };
@@ -53,7 +51,6 @@ async function createMemberDocument({
   email,
   slug,
   membershipActive = true,
-  hasProfile = true,
   includeSlug = true,
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -61,7 +58,6 @@ async function createMemberDocument({
   email: string;
   slug?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
   includeSlug?: boolean;
 }) {
   const memberData: MemberDocument = {
@@ -72,7 +68,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
     ...(includeSlug && slug ? { slug } : {}),
   };
 
@@ -213,16 +208,14 @@ describe("readProfile", () => {
 
   it("should return failed-precondition error when user does not have a profile", async () => {
     // Arrange
-    const { testUid, testEmail, slug, wrappedReadProfile, firestore } = setup({
-      hasProfile: false,
-    });
+    const { testUid, testEmail, wrappedReadProfile, firestore } = setup();
 
     await createMemberDocument({
       firestore,
       uid: testUid,
       email: testEmail,
-      slug,
-      hasProfile: false,
+      slug: undefined,
+      includeSlug: false,
     });
 
     // Act & Assert
@@ -253,7 +246,7 @@ describe("readProfile", () => {
       await wrappedReadProfile(createMockCallableRequest({ uid: testUid }));
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Profile not found");
+      expect(String(error)).toContain("User does not have a profile yet");
     }
 
     await cleanupReadProfile();

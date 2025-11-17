@@ -34,7 +34,6 @@ export interface MemberDocument {
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   slug?: string;
-  hasProfile?: boolean;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;

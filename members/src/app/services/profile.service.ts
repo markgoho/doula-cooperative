@@ -50,7 +50,7 @@ export class ProfileService {
         return undefined;
       }
 
-      if (!userDocument.hasProfile) {
+      if (!userDocument.slug) {
         console.info('User does not have a profile yet - cannot load profile');
         return undefined;
       }
@@ -120,7 +120,7 @@ export class ProfileService {
         return undefined;
       }
 
-      if (!userDocument.hasProfile) {
+      if (!userDocument.slug) {
         console.info('User does not have a profile yet - skipping profile preload');
         return undefined;
       }

@@ -11,18 +11,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AdminMembersService, type Member, type UnclaimedProfile } from '../admin.service';
+import { AdminMembersService, type Member } from '../admin.service';
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete';
-type DataType = 'member' | 'unclaimed';
 
 @Component({
   imports: [RouterLink, DatePipe],
-  templateUrl: './admin-user-detail.html',
-  styleUrl: './admin-user-detail.scss',
+  templateUrl: './admin-member-detail.html',
+  styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminUserDetail {
+export class AdminMemberDetail {
   private adminMembersService = inject(AdminMembersService);
   private router = inject(Router);
 
@@ -30,8 +29,6 @@ export class AdminUserDetail {
   uid = input.required<string>();
 
   protected member = signal<Member | undefined>(undefined);
-  protected unclaimedProfile = signal<UnclaimedProfile | undefined>(undefined);
-  protected dataType = signal<DataType>('member');
   protected loading = signal(true);
   protected error = signal<string | undefined>(undefined);
   protected actionInProgress = signal(false);
@@ -44,41 +41,13 @@ export class AdminUserDetail {
   protected loadingProfile = signal(false);
   protected profileError = signal<string | undefined>(undefined);
 
-  // Computed signals for unified data access
-  protected displayName = computed(() => {
-    const member = this.member();
-    const unclaimed = this.unclaimedProfile();
-    return member?.name || unclaimed?.name || '—';
-  });
-
-  protected displayEmail = computed(() => {
-    const member = this.member();
-    const unclaimed = this.unclaimedProfile();
-    return member?.email || unclaimed?.email || '';
-  });
-
-  protected isUnclaimed = computed(() => this.dataType() === 'unclaimed');
-
   protected isTargetUserAdmin = computed(() => this.member()?.isAdmin === true);
-
-  protected invitationAlreadySent = computed(() => {
-    const unclaimed = this.unclaimedProfile();
-    return unclaimed?.invitationEmailStatus === 'sent';
-  });
 
   constructor() {
     effect(() => {
-      // When uid changes, detect type and load appropriate data
       const currentUid = this.uid();
       if (currentUid) {
-        // Check if it's an email (contains @) to determine if it's an unclaimed profile
-        if (currentUid.includes('@')) {
-          this.dataType.set('unclaimed');
-          void this.loadUnclaimedProfile();
-        } else {
-          this.dataType.set('member');
-          void this.loadMember();
-        }
+        void this.loadMember();
       }
     });
   }
@@ -87,7 +56,6 @@ export class AdminUserDetail {
     this.loading.set(true);
     this.error.set(undefined);
     this.member.set(undefined);
-    this.unclaimedProfile.set(undefined);
 
     try {
       const member = await this.adminMembersService.getMember(this.uid());
@@ -95,23 +63,6 @@ export class AdminUserDetail {
     } catch (error) {
       console.error('Error loading member:', error);
       this.error.set('Failed to load member details. Please try again.');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  private async loadUnclaimedProfile(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(undefined);
-    this.member.set(undefined);
-    this.unclaimedProfile.set(undefined);
-
-    try {
-      const profile = await this.adminMembersService.getUnclaimedProfile(this.uid());
-      this.unclaimedProfile.set(profile);
-    } catch (error) {
-      console.error('Error loading unclaimed profile:', error);
-      this.error.set('Failed to load unclaimed profile details. Please try again.');
     } finally {
       this.loading.set(false);
     }
@@ -158,12 +109,6 @@ export class AdminUserDetail {
   }
 
   private async activateMembership(): Promise<void> {
-    // Only available for members with uid
-    if (this.isUnclaimed()) {
-      this.error.set('Cannot activate membership for unclaimed profiles.');
-      return;
-    }
-
     this.actionInProgress.set(true);
     this.error.set(undefined);
     this.successMessage.set(undefined);
@@ -181,12 +126,6 @@ export class AdminUserDetail {
   }
 
   private async deactivateMembership(): Promise<void> {
-    // Only available for members with uid
-    if (this.isUnclaimed()) {
-      this.error.set('Cannot deactivate membership for unclaimed profiles.');
-      return;
-    }
-
     this.actionInProgress.set(true);
     this.error.set(undefined);
     this.successMessage.set(undefined);
@@ -223,7 +162,7 @@ export class AdminUserDetail {
 
   protected async loadProfile(): Promise<void> {
     const member = this.member();
-    if (!member?.hasProfile || !member.slug) {
+    if (!member?.slug) {
       return;
     }
 
@@ -242,12 +181,6 @@ export class AdminUserDetail {
   }
 
   private async deleteUser(): Promise<void> {
-    // Only available for members with uid
-    if (this.isUnclaimed()) {
-      this.error.set('Cannot delete unclaimed profiles.');
-      return;
-    }
-
     this.actionInProgress.set(true);
     this.error.set(undefined);
     this.successMessage.set(undefined);
@@ -260,31 +193,6 @@ export class AdminUserDetail {
     } catch (error) {
       console.error('Error deleting user:', error);
       this.error.set('Failed to delete user.');
-      this.actionInProgress.set(false);
-    }
-  }
-
-  protected async sendInvitation(): Promise<void> {
-    // Only available for unclaimed profiles
-    if (!this.isUnclaimed()) {
-      this.error.set('Can only send invitations to unclaimed profiles.');
-      return;
-    }
-
-    const email = this.uid(); // For unclaimed profiles, uid() returns the email
-
-    this.actionInProgress.set(true);
-    this.error.set(undefined);
-    this.successMessage.set(undefined);
-
-    try {
-      await this.adminMembersService.sendInvitation(email);
-      this.successMessage.set('Invitation sent successfully');
-      await this.loadUnclaimedProfile(); // Reload to get updated invitation status
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      this.error.set('Failed to send invitation.');
-    } finally {
       this.actionInProgress.set(false);
     }
   }

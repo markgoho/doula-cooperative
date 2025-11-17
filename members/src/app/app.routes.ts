@@ -32,8 +32,16 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/users/admin-users').then((m) => m.AdminUsers),
       },
       {
-        path: 'users/:uid',
-        loadComponent: () => import('./admin/users/admin-user-detail').then((m) => m.AdminUserDetail),
+        path: 'users/member/:uid',
+        loadComponent: () =>
+          import('./admin/users/admin-member-detail').then((m) => m.AdminMemberDetail),
+      },
+      {
+        path: 'users/unclaimed/:email',
+        loadComponent: () =>
+          import('./admin/users/admin-unclaimed-profile-detail').then(
+            (m) => m.AdminUnclaimedProfileDetail,
+          ),
       },
     ],
   },

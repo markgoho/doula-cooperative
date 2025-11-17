@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleSendInvitation } from "../src/admin/send-invitation.js";
-import type { ProfileData } from "../src/claim-profile/index.js";
+import type { UnclaimedProfileData } from "../src/claim-profile/index.js";
 import { IMPORT_COLLECTION } from "../src/constants/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
@@ -26,11 +26,8 @@ async function createUnclaimedProfile({
   email,
   name,
   subscriptionStart,
-  membershipActive,
-  membershipExpiresAt,
   invitationEmailStatus,
   invitationEmailSentAt,
-  hasProfile = false,
   slug = "",
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -41,22 +38,15 @@ async function createUnclaimedProfile({
   membershipExpiresAt?: Timestamp;
   invitationEmailStatus?: "sent" | "failed" | "pending";
   invitationEmailSentAt?: Timestamp;
-  hasProfile?: boolean;
+  
   slug?: string;
 }) {
-  const profileData: ProfileData = {
+  const profileData: UnclaimedProfileData = {
     name,
     subscriptionStart,
     slug,
-    hasProfile,
   };
 
-  if (membershipActive !== undefined) {
-    profileData.membershipActive = membershipActive;
-  }
-  if (membershipExpiresAt) {
-    profileData.membershipExpiresAt = membershipExpiresAt;
-  }
   if (invitationEmailStatus) {
     profileData.invitationEmailStatus = invitationEmailStatus;
   }
@@ -74,7 +64,9 @@ async function cleanupAdminSendInvitation() {
 
   const allDocuments = await firestore.collection(IMPORT_COLLECTION).get();
 
-  const deletePromises = allDocuments.docs.map((document) => document.ref.delete());
+  const deletePromises = allDocuments.docs.map(document =>
+    document.ref.delete(),
+  );
   await Promise.all(deletePromises);
 }
 
@@ -97,7 +89,9 @@ describe("adminSendInvitation", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Must be authenticated to call this function");
+      expect(String(error)).toContain(
+        "Must be authenticated to call this function",
+      );
     }
 
     await cleanupAdminSendInvitation();
@@ -166,7 +160,7 @@ describe("adminSendInvitation", () => {
     await firestore.collection(IMPORT_COLLECTION).doc(testEmail).set({
       name: "No Subscription Profile",
       slug: "",
-      hasProfile: false,
+      
       // Missing subscriptionStart
     });
 
@@ -209,8 +203,11 @@ describe("adminSendInvitation", () => {
     expect(result.success).toBe(true);
 
     // Verify profile document was updated with invitation tracking
-    const profileDocument = await firestore.collection(IMPORT_COLLECTION).doc(testEmail).get();
-    const profileData = profileDocument.data() as ProfileData;
+    const profileDocument = await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .get();
+    const profileData = profileDocument.data() as UnclaimedProfileData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailSentAt).toBeDefined();
@@ -241,8 +238,11 @@ describe("adminSendInvitation", () => {
     expect(result.success).toBe(true);
 
     // Verify profile document was updated
-    const profileDocument = await firestore.collection(IMPORT_COLLECTION).doc(testEmail).get();
-    const profileData = profileDocument.data() as ProfileData;
+    const profileDocument = await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .get();
+    const profileData = profileDocument.data() as UnclaimedProfileData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
 
@@ -301,8 +301,11 @@ describe("adminSendInvitation", () => {
     expect(result.success).toBe(true);
 
     // Verify the timestamp was updated
-    const profileDocument = await firestore.collection(IMPORT_COLLECTION).doc(testEmail).get();
-    const profileData = profileDocument.data() as ProfileData;
+    const profileDocument = await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .get();
+    const profileData = profileDocument.data() as UnclaimedProfileData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailSentAt).toBeDefined();
@@ -372,8 +375,11 @@ describe("adminSendInvitation", () => {
     expect(result.success).toBe(true);
 
     // Verify error was cleared
-    const profileDocument = await firestore.collection(IMPORT_COLLECTION).doc(testEmail).get();
-    const profileData = profileDocument.data() as ProfileData;
+    const profileDocument = await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .get();
+    const profileData = profileDocument.data() as UnclaimedProfileData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailError).toBeUndefined();
@@ -414,16 +420,17 @@ describe("adminSendInvitation", () => {
     // Arrange
     const { adminUid, testEmail, firestore } = setup();
 
-    const profileData: ProfileData = {
+    const profileData: UnclaimedProfileData = {
       name: "Complete Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: true,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-      hasProfile: true,
+      
       slug: "complete-profile",
     };
 
-    await firestore.collection(IMPORT_COLLECTION).doc(testEmail).set(profileData);
+    await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .set(profileData);
 
     // Act
     const result = await handleSendInvitation(
@@ -436,11 +443,14 @@ describe("adminSendInvitation", () => {
     expect(result.success).toBe(true);
 
     // Verify all other fields were preserved
-    const updatedProfileDocument = await firestore.collection(IMPORT_COLLECTION).doc(testEmail).get();
-    const updatedProfileData = updatedProfileDocument.data() as ProfileData;
+    const updatedProfileDocument = await firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(testEmail)
+      .get();
+    const updatedProfileData =
+      updatedProfileDocument.data() as UnclaimedProfileData;
 
     expect(updatedProfileData.name).toBe("Complete Profile");
-    expect(updatedProfileData.hasProfile).toBe(true);
     expect(updatedProfileData.slug).toBe("complete-profile");
     expect(updatedProfileData.invitationEmailStatus).toBe("sent");
 

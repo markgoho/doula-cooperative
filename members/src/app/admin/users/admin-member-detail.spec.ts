@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AdminMembersService, type Member } from '../admin.service';
-import { AdminUserDetail } from './admin-user-detail';
+import { AdminMemberDetail } from './admin-member-detail';
 
 describe('AdminUserDetail', () => {
   // Add dialog polyfill for jsdom
@@ -72,7 +72,7 @@ describe('AdminUserDetail', () => {
         : vi.fn().mockResolvedValue({ success: true }),
     };
 
-    const component = await render(AdminUserDetail, {
+    const component = await render(AdminMemberDetail, {
       providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
       componentInputs: { uid },
     });
@@ -94,7 +94,6 @@ describe('AdminUserDetail', () => {
       membershipActive: false,
       subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
       membershipExpiresAt: Timestamp.fromDate(new Date('2025-01-01')),
-      hasProfile: false,
       ...overrides,
     };
   }

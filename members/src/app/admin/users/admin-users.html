@@ -32,7 +32,7 @@
               </td>
               <td>{{ member.createdAt.toDate() | date: 'MMM d, yyyy' }}</td>
               <td>
-                <a [routerLink]="['/admin/users', member.uid]" class="button-small">View</a>
+                <a [routerLink]="['/admin/users/member', member.uid]" class="button-small">View</a>
               </td>
             </tr>
           } @empty {
@@ -73,11 +73,13 @@
               <td>{{ profile.name }}</td>
               <td>{{ profile.email }}</td>
               <td>
-                <app-tag [label]="profile.hasProfile ? 'Yes' : 'No'" size="small" />
+                <app-tag [label]="profile.slug ? 'Yes' : 'No'" size="small" />
               </td>
               <td>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</td>
               <td>
-                <a [routerLink]="['/admin/users', profile.email]" class="button-small">View</a>
+                <a [routerLink]="['/admin/users/unclaimed', profile.email]" class="button-small"
+                  >View</a
+                >
               </td>
             </tr>
           } @empty {

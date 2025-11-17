@@ -94,7 +94,7 @@ src/app/
 **MembershipService** (`src/app/services/membership.service.ts`):
 
 - Manages member document data from Firestore `members` collection
-- Provides reactive signals: `membershipActive()`, `hasProfile()`
+- Provides reactive signals: `membershipActive()`, `hasProfile()` (derived from `slug` presence)
 - Handles profile claiming flow from `migrated_users_import` collection
 
 **ProfileService** (`src/app/services/profile.service.ts`):

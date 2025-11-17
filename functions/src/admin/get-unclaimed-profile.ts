@@ -52,8 +52,16 @@ export async function handleGetUnclaimedProfile(
       subscriptionStart: documentData[
         "subscriptionStart"
       ] as FirebaseFirestore.Timestamp,
-      ...(documentData["hasProfile"] !== undefined && {
-        hasProfile: documentData["hasProfile"] as boolean,
+      ...(documentData["slug"] !== undefined && {
+        slug: documentData["slug"] as string,
+      }),
+      ...(documentData["membershipActive"] !== undefined && {
+        membershipActive: documentData["membershipActive"] as boolean,
+      }),
+      ...(documentData["membershipExpiresAt"] !== undefined && {
+        membershipExpiresAt: documentData[
+          "membershipExpiresAt"
+        ] as FirebaseFirestore.Timestamp,
       }),
       ...(documentData["invitationEmailStatus"] !== undefined && {
         invitationEmailStatus: documentData["invitationEmailStatus"] as

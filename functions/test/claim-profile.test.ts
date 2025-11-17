@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { type ProfileData } from "../src/claim-profile/index.js";
+import { type UnclaimedProfileData } from "../src/claim-profile/index.js";
 import { IMPORT_COLLECTION } from "../src/constants/index.js";
 import { claimProfile } from "../src/index.js";
 import {
@@ -40,13 +40,12 @@ async function createImportDocument({
 }: {
   firestore: ReturnType<typeof getFirestore>;
   email: string;
-  profileData?: Partial<ProfileData>;
+  profileData?: Partial<UnclaimedProfileData>;
 }) {
-  const defaultProfileData: ProfileData = {
+  const defaultProfileData: UnclaimedProfileData = {
     name: "Test Doula",
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     slug: "test-doula",
-    hasProfile: true,
   };
 
   const data = { ...defaultProfileData, ...profileData };
@@ -365,7 +364,7 @@ describe("claimProfile", () => {
     await cleanupClaimProfile();
   });
 
-  it("should return profile hasProfile in response data", async () => {
+  it("should return profile slug in response data", async () => {
     // Arrange
     const { testUid, testEmail, wrappedClaimProfile, firestore } = setup();
 
@@ -380,7 +379,7 @@ describe("claimProfile", () => {
     );
 
     // Assert
-    expect(result.data?.hasProfile).toBe(profileData.hasProfile);
+    expect(result.data?.slug).toBe(profileData.slug);
 
     await cleanupClaimProfile();
   });

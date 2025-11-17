@@ -32,7 +32,6 @@ function setup({
   testEmail = "testadminread001@example.com",
   slug = "test-admin-doula",
   membershipActive = true,
-  hasProfile = true,
   adminUid = "admin-user-001",
 } = {}) {
   const firestore = getFirestore();
@@ -42,7 +41,6 @@ function setup({
     testEmail,
     slug,
     membershipActive,
-    hasProfile,
     adminUid,
     firestore,
   };
@@ -54,7 +52,6 @@ async function createMemberDocument({
   email,
   slug,
   membershipActive = true,
-  hasProfile = true,
   includeSlug = true,
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -62,7 +59,6 @@ async function createMemberDocument({
   email: string;
   slug?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
   includeSlug?: boolean;
 }) {
   const memberData: MemberDocument = {
@@ -73,7 +69,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
     ...(includeSlug && slug ? { slug } : {}),
   };
 
@@ -227,35 +222,6 @@ describe("adminReadMemberProfile", () => {
 
   it("should return failed-precondition error when user does not have a profile", async () => {
     // Arrange
-    const { testUid, testEmail, slug, adminUid, firestore } = setup({
-      hasProfile: false,
-    });
-
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-      hasProfile: false,
-    });
-
-    // Act & Assert
-    try {
-      await handleAdminReadMemberProfile(
-        { uid: testUid },
-        createMockCallableRequest({ uid: adminUid, isAdmin: true }),
-        GITHUB_SECRETS,
-      );
-      expect.unreachable();
-    } catch (error) {
-      expect(String(error)).toContain("User does not have a profile yet");
-    }
-
-    await cleanupAdminReadProfile();
-  });
-
-  it("should return failed-precondition error when slug is missing", async () => {
-    // Arrange
     const { testUid, testEmail, adminUid, firestore } = setup();
 
     await createMemberDocument({
@@ -275,7 +241,7 @@ describe("adminReadMemberProfile", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("User has profile flag but no slug");
+      expect(String(error)).toContain("User does not have a profile yet");
     }
 
     await cleanupAdminReadProfile();

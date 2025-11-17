@@ -18,7 +18,6 @@ export interface Member {
   subscriptionStart?: Timestamp;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
-  hasProfile?: boolean;
   slug?: string;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
@@ -30,7 +29,7 @@ export interface UnclaimedProfile {
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  hasProfile?: boolean;
+  slug?: string;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   invitationEmailStatus?: 'sent' | 'failed' | 'pending';

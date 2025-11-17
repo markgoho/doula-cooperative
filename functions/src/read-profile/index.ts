@@ -48,21 +48,12 @@ export async function handleReadProfile(
     );
   }
 
-  // Check if user has a profile
-  if (!memberData.hasProfile) {
+  // Check if user has a profile (indicated by presence of slug)
+  const slug = memberData.slug;
+  if (!slug) {
     throw new HttpsError(
       "failed-precondition",
       "User does not have a profile yet.",
-    );
-  }
-
-  const slug = memberData.slug;
-
-  if (!slug) {
-    // User exists in members collection but doesn't have a slug yet (no GitHub profile)
-    throw new HttpsError(
-      "not-found",
-      "Profile not found. User may need to claim their existing membership first.",
     );
   }
 

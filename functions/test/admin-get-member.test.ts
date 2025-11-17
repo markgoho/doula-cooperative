@@ -29,7 +29,6 @@ async function createMemberDocument({
   email,
   name,
   membershipActive = true,
-  hasProfile = false,
   slug,
 }: {
   firestore: ReturnType<typeof getFirestore>;
@@ -37,7 +36,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  hasProfile?: boolean;
+  
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -47,7 +46,6 @@ async function createMemberDocument({
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
     membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
-    hasProfile,
   };
 
   if (name) {
@@ -163,7 +161,7 @@ describe("adminGetMember", () => {
       email: testEmail,
       name: "Test Member",
       membershipActive: true,
-      hasProfile: false,
+      
     });
 
     // Act
@@ -177,7 +175,6 @@ describe("adminGetMember", () => {
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Test Member");
     expect(result.membershipActive).toBe(true);
-    expect(result.hasProfile).toBe(false);
 
     await cleanupAdminGetMember();
   });
@@ -192,7 +189,7 @@ describe("adminGetMember", () => {
       email: testEmail,
       name: "Full Member",
       membershipActive: true,
-      hasProfile: true,
+      
       slug: "full-member",
     });
 
@@ -207,7 +204,6 @@ describe("adminGetMember", () => {
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Full Member");
     expect(result.membershipActive).toBe(true);
-    expect(result.hasProfile).toBe(true);
     expect(result.slug).toBe("full-member");
     expect(result.createdAt).toBeDefined();
     expect(result.subscriptionStart).toBeDefined();
@@ -225,7 +221,7 @@ describe("adminGetMember", () => {
       uid: testUid,
       email: testEmail,
       membershipActive: false,
-      hasProfile: false,
+      
     });
 
     // Act
@@ -240,7 +236,6 @@ describe("adminGetMember", () => {
     expect(result.name).toBeUndefined();
     expect(result.slug).toBeUndefined();
     expect(result.membershipActive).toBe(false);
-    expect(result.hasProfile).toBe(false);
 
     await cleanupAdminGetMember();
   });
@@ -279,7 +274,7 @@ describe("adminGetMember", () => {
       uid: testUid,
       email: testEmail,
       name: "Profile Member",
-      hasProfile: true,
+      
       slug: "profile-member",
     });
 
@@ -290,7 +285,6 @@ describe("adminGetMember", () => {
     );
 
     // Assert
-    expect(result.hasProfile).toBe(true);
     expect(result.slug).toBe("profile-member");
 
     await cleanupAdminGetMember();
@@ -335,7 +329,7 @@ describe("adminGetMember", () => {
       subscriptionStart,
       membershipActive: true,
       membershipExpiresAt,
-      hasProfile: false,
+      
     };
 
     await firestore.collection(MEMBERS_COLLECTION).doc(testUid).set(memberData);

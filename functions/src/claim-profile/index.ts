@@ -5,13 +5,10 @@ import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../constants/index.js";
 import { type MemberDocument } from "../types/member-document.js";
 
-export interface ProfileData {
+export interface UnclaimedProfileData {
   name: string;
   subscriptionStart: Timestamp;
   slug: string;
-  hasProfile: boolean;
-  membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
   invitationEmailStatus?: "sent" | "failed" | "pending";
   invitationEmailSentAt?: Timestamp;
   invitationEmailError?: string;
@@ -86,7 +83,7 @@ export const handleClaimProfile = async (
     return { status: "no_profile_to_claim" };
   }
 
-  const profileData = importDocument.data() as ProfileData | undefined;
+  const profileData = importDocument.data() as UnclaimedProfileData | undefined;
 
   // 4. Create the new profile in the 'members' collection.
   const memberDocumentReference = database
