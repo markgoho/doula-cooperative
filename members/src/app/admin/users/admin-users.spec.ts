@@ -180,14 +180,26 @@ describe('AdminUsers', () => {
   });
 
   it('should display error message when loading fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
     // Arrange & Act
     await setup({ shouldFail: true });
 
     // Assert
     expect(await screen.findByText('Failed to load members. Please try again.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should not display table when loading fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
     // Arrange & Act
     await setup({ shouldFail: true });
 
@@ -197,5 +209,7 @@ describe('AdminUsers', () => {
     expect(screen.queryByText('No members found')).not.toBeInTheDocument();
     // Verify no member-specific content is shown (View links for members, etc.)
     // The test verified that the error message is shown instead of the table
+
+    consoleErrorSpy.mockRestore();
   });
 });

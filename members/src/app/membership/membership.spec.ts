@@ -252,6 +252,7 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
+          slug: 'jane-smith',
         },
       });
 

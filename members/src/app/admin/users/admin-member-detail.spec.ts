@@ -296,6 +296,11 @@ describe('AdminUserDetail', () => {
   });
 
   it('should show error message when activation fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
     // Arrange
     const member = createMockMember({ membershipActive: false });
     const { user } = await setup({ member, shouldFailActivate: true });
@@ -312,6 +317,8 @@ describe('AdminUserDetail', () => {
 
     // Assert
     expect(await screen.findByText('Failed to activate membership.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should not activate when user cancels confirmation', async () => {
@@ -334,6 +341,11 @@ describe('AdminUserDetail', () => {
   });
 
   it('should display error message when loading fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
     // Arrange & Act
     await setup({ shouldFailLoad: true });
 
@@ -341,6 +353,8 @@ describe('AdminUserDetail', () => {
     expect(
       await screen.findByText('Failed to load member details. Please try again.'),
     ).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should display delete button for non-admin users', async () => {
