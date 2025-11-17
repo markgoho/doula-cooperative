@@ -2,8 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { App } from "octokit";
-import { MEMBERS_COLLECTION } from "../constants/index.js";
-import { type MemberDocument } from "../types/member-document.js";
+import { MEMBERS_COLLECTION, type MemberDocument } from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface AdminReadProfileRequest {

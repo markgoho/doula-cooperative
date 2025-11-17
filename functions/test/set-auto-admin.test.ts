@@ -60,7 +60,7 @@ describe("handleSetAutoAdmin", () => {
 
     // Assert
     const userRecord = await auth.getUser(testUid);
-    expect(userRecord.customClaims?.admin).toBe(true);
+    expect(userRecord.customClaims?.["admin"]).toBe(true);
 
     await cleanupTestUsers();
   });
@@ -86,7 +86,7 @@ describe("handleSetAutoAdmin", () => {
 
     // Assert
     const userRecord = await auth.getUser(testUid);
-    expect(userRecord.customClaims?.admin).toBe(true);
+    expect(userRecord.customClaims?.["admin"]).toBe(true);
 
     await cleanupTestUsers();
   });
@@ -112,7 +112,7 @@ describe("handleSetAutoAdmin", () => {
 
     // Assert
     const userRecord = await auth.getUser(testUid);
-    expect(userRecord.customClaims?.admin).toBeUndefined();
+    expect(userRecord.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupTestUsers();
   });
@@ -134,7 +134,7 @@ describe("handleSetAutoAdmin", () => {
 
     // Assert
     const userRecord = await auth.getUser(testUid);
-    expect(userRecord.customClaims?.admin).toBeUndefined();
+    expect(userRecord.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupTestUsers();
   });

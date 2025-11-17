@@ -1,9 +1,19 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleListUnclaimedProfiles } from "../src/admin/list-unclaimed-profiles.js";
-import { IMPORT_COLLECTION } from "../src/constants/index.js";
+import {
+  IMPORT_COLLECTION,
+  type UnclaimedProfileDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
+
+// Extended type for testing - includes fields that may exist at runtime
+// but aren't part of the official type definition
+type UnclaimedProfileWithMembership = UnclaimedProfileDocument & {
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
+};
 
 const test = initializeTest();
 
@@ -191,9 +201,17 @@ describe("adminListUnclaimedProfiles", () => {
     );
 
     // Assert - should be ordered alphabetically by email
-    expect(result.profiles[0].email).toBe("alice@example.com");
-    expect(result.profiles[1].email).toBe("bob@example.com");
-    expect(result.profiles[2].email).toBe("charlie@example.com");
+    const profile0 = result.profiles[0];
+    const profile1 = result.profiles[1];
+    const profile2 = result.profiles[2];
+    expect(profile0).toBeDefined();
+    expect(profile1).toBeDefined();
+    expect(profile2).toBeDefined();
+    if (profile0 && profile1 && profile2) {
+      expect(profile0.email).toBe("alice@example.com");
+      expect(profile1.email).toBe("bob@example.com");
+      expect(profile2.email).toBe("charlie@example.com");
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -247,7 +265,11 @@ describe("adminListUnclaimedProfiles", () => {
     expect(result.profiles.length).toBe(3);
     expect(result.total).toBe(5);
     // Should skip first 2 (user1, user2), so first result should be user3
-    expect(result.profiles[0].email).toBe("user3@example.com");
+    const offsetProfile0 = result.profiles[0];
+    expect(offsetProfile0).toBeDefined();
+    if (offsetProfile0) {
+      expect(offsetProfile0.email).toBe("user3@example.com");
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -275,9 +297,17 @@ describe("adminListUnclaimedProfiles", () => {
     expect(result.profiles.length).toBe(3);
     expect(result.total).toBe(10);
     // Should get items 4-6 (user04, user05, user06)
-    expect(result.profiles[0].email).toBe("user04@example.com");
-    expect(result.profiles[1].email).toBe("user05@example.com");
-    expect(result.profiles[2].email).toBe("user06@example.com");
+    const pageProfile0 = result.profiles[0];
+    const pageProfile1 = result.profiles[1];
+    const pageProfile2 = result.profiles[2];
+    expect(pageProfile0).toBeDefined();
+    expect(pageProfile1).toBeDefined();
+    expect(pageProfile2).toBeDefined();
+    if (pageProfile0 && pageProfile1 && pageProfile2) {
+      expect(pageProfile0.email).toBe("user04@example.com");
+      expect(pageProfile1.email).toBe("user05@example.com");
+      expect(pageProfile2.email).toBe("user06@example.com");
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -334,7 +364,11 @@ describe("adminListUnclaimedProfiles", () => {
     );
 
     // Assert - should start from beginning (first alphabetically)
-    expect(result.profiles[0].email).toBe("aaa@example.com");
+    const defaultProfile0 = result.profiles[0];
+    expect(defaultProfile0).toBeDefined();
+    if (defaultProfile0) {
+      expect(defaultProfile0.email).toBe("aaa@example.com");
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -361,11 +395,14 @@ describe("adminListUnclaimedProfiles", () => {
 
     // Assert
     const profile = result.profiles[0];
-    expect(profile.email).toBe("fields@example.com");
-    expect(profile.name).toBe("Fields Test");
-    expect(profile.membershipActive).toBe(true);
-    expect(profile.subscriptionStart).toBeDefined();
-    expect(profile.membershipExpiresAt).toBeDefined();
+    expect(profile).toBeDefined();
+    if (profile) {
+      expect(profile.email).toBe("fields@example.com");
+      expect(profile.name).toBe("Fields Test");
+      expect((profile as UnclaimedProfileWithMembership).membershipActive).toBe(true);
+      expect(profile.subscriptionStart).toBeDefined();
+      expect((profile as UnclaimedProfileWithMembership).membershipExpiresAt).toBeDefined();
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -390,10 +427,13 @@ describe("adminListUnclaimedProfiles", () => {
 
     // Assert
     const profile = result.profiles[0];
-    expect(profile.email).toBe("minimal@example.com");
-    expect(profile.name).toBe("Minimal Profile");
-    expect(profile.membershipActive).toBeUndefined();
-    expect(profile.membershipExpiresAt).toBeUndefined();
+    expect(profile).toBeDefined();
+    if (profile) {
+      expect(profile.email).toBe("minimal@example.com");
+      expect(profile.name).toBe("Minimal Profile");
+      expect((profile as UnclaimedProfileWithMembership).membershipActive).toBeUndefined();
+      expect((profile as UnclaimedProfileWithMembership).membershipExpiresAt).toBeUndefined();
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -474,7 +514,11 @@ describe("adminListUnclaimedProfiles", () => {
     );
 
     // Assert
-    expect(result.profiles[0].subscriptionStart).toEqual(subscriptionStart);
+    const timestampProfile0 = result.profiles[0];
+    expect(timestampProfile0).toBeDefined();
+    if (timestampProfile0) {
+      expect(timestampProfile0.subscriptionStart).toEqual(subscriptionStart);
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });
@@ -498,7 +542,11 @@ describe("adminListUnclaimedProfiles", () => {
     );
 
     // Assert
-    expect(result.profiles[0].email).toBe(specialEmail);
+    const specialProfile0 = result.profiles[0];
+    expect(specialProfile0).toBeDefined();
+    if (specialProfile0) {
+      expect(specialProfile0.email).toBe(specialEmail);
+    }
 
     await cleanupAdminListUnclaimedProfiles();
   });

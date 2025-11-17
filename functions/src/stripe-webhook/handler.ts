@@ -6,10 +6,12 @@ import type { Request } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
 import Stripe from "stripe";
 import {
-  ERROR_IDS,
   MEMBERS_COLLECTION,
-  NO_REPLY_EMAIL,
   PROCESSED_STRIPE_EVENTS_COLLECTION,
+} from "../collections/index.js";
+import {
+  ERROR_IDS,
+  NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
 import {

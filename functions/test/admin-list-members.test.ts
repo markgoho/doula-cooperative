@@ -1,16 +1,16 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleListMembers } from "../src/admin/list-members.js";
-import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/types/member-document.js";
 
 const test = initializeTest();
 
-function setup({
-  adminUid = "admin-user-001",
-} = {}) {
+function setup({ adminUid = "admin-user-001" } = {}) {
   const firestore = getFirestore();
 
   return {
@@ -34,7 +34,7 @@ async function createMemberDocument({
   name?: string;
   createdAt: Timestamp;
   membershipActive?: boolean;
-  
+
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -54,7 +54,10 @@ async function createMemberDocument({
     memberData.slug = slug;
   }
 
-  await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData as MemberDocument);
+  await firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(uid)
+    .set(memberData as MemberDocument);
 
   return memberData as MemberDocument;
 }
@@ -63,9 +66,7 @@ async function cleanupAdminListMembers() {
   const firestore = getFirestore();
 
   // Clean up ALL members to ensure clean state for each test
-  const allDocuments = await firestore
-    .collection(MEMBERS_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(MEMBERS_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -85,10 +86,7 @@ describe("adminListMembers", () => {
   it("should return unauthenticated error when user is not authenticated", async () => {
     // Arrange & Act & Assert
     try {
-      await handleListMembers(
-        {},
-        createMockCallableRequest(),
-      );
+      await handleListMembers({}, createMockCallableRequest());
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -199,9 +197,17 @@ describe("adminListMembers", () => {
     );
 
     // Assert
-    expect(result.members[0].email).toBe("newest@example.com");
-    expect(result.members[1].email).toBe("newer@example.com");
-    expect(result.members[2].email).toBe("older@example.com");
+    const member0 = result.members[0];
+    const member1 = result.members[1];
+    const member2 = result.members[2];
+    expect(member0).toBeDefined();
+    expect(member1).toBeDefined();
+    expect(member2).toBeDefined();
+    if (member0 && member1 && member2) {
+      expect(member0.email).toBe("newest@example.com");
+      expect(member1.email).toBe("newer@example.com");
+      expect(member2.email).toBe("older@example.com");
+    }
 
     await cleanupAdminListMembers();
   });
@@ -216,7 +222,9 @@ describe("adminListMembers", () => {
         uid: `test-limit-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
-        createdAt: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        createdAt: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -243,7 +251,9 @@ describe("adminListMembers", () => {
         uid: `test-offset-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
-        createdAt: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        createdAt: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -257,7 +267,11 @@ describe("adminListMembers", () => {
     expect(result.members.length).toBe(3);
     expect(result.total).toBe(5);
     // Should skip first 2 (newest), so first result should be 3rd newest
-    expect(result.members[0].uid).toBe("test-offset-003");
+    const member0 = result.members[0];
+    expect(member0).toBeDefined();
+    if (member0) {
+      expect(member0.uid).toBe("test-offset-003");
+    }
 
     await cleanupAdminListMembers();
   });
@@ -272,7 +286,9 @@ describe("adminListMembers", () => {
         uid: `test-page-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
-        createdAt: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        createdAt: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -286,9 +302,17 @@ describe("adminListMembers", () => {
     expect(result.members.length).toBe(3);
     expect(result.total).toBe(10);
     // Should get items 4-6 from newest (10,9,8 are first 3; 7,6,5 are second 3)
-    expect(result.members[0].uid).toBe("test-page-007");
-    expect(result.members[1].uid).toBe("test-page-006");
-    expect(result.members[2].uid).toBe("test-page-005");
+    const pageMember0 = result.members[0];
+    const pageMember1 = result.members[1];
+    const pageMember2 = result.members[2];
+    expect(pageMember0).toBeDefined();
+    expect(pageMember1).toBeDefined();
+    expect(pageMember2).toBeDefined();
+    if (pageMember0 && pageMember1 && pageMember2) {
+      expect(pageMember0.uid).toBe("test-page-007");
+      expect(pageMember1.uid).toBe("test-page-006");
+      expect(pageMember2.uid).toBe("test-page-005");
+    }
 
     await cleanupAdminListMembers();
   });
@@ -348,7 +372,11 @@ describe("adminListMembers", () => {
     );
 
     // Assert - should start from beginning (newest)
-    expect(result.members[0].email).toBe("newest@example.com");
+    const defaultMember0 = result.members[0];
+    expect(defaultMember0).toBeDefined();
+    if (defaultMember0) {
+      expect(defaultMember0.email).toBe("newest@example.com");
+    }
 
     await cleanupAdminListMembers();
   });
@@ -364,7 +392,7 @@ describe("adminListMembers", () => {
       name: "Fields Test",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: true,
-      
+
       slug: "fields-test",
     });
 
@@ -376,12 +404,15 @@ describe("adminListMembers", () => {
 
     // Assert
     const member = result.members[0];
-    expect(member.uid).toBe("test-fields-001");
-    expect(member.email).toBe("fields@example.com");
-    expect(member.name).toBe("Fields Test");
-    expect(member.membershipActive).toBe(true);
-    expect(member.slug).toBe("fields-test");
-    expect(member.createdAt).toBeDefined();
+    expect(member).toBeDefined();
+    if (member) {
+      expect(member.uid).toBe("test-fields-001");
+      expect(member.email).toBe("fields@example.com");
+      expect(member.name).toBe("Fields Test");
+      expect(member.membershipActive).toBe(true);
+      expect(member.slug).toBe("fields-test");
+      expect(member.createdAt).toBeDefined();
+    }
 
     await cleanupAdminListMembers();
   });
@@ -396,7 +427,6 @@ describe("adminListMembers", () => {
       email: "minimal@example.com",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: false,
-      
     });
 
     // Act
@@ -407,10 +437,13 @@ describe("adminListMembers", () => {
 
     // Assert
     const member = result.members[0];
-    expect(member.uid).toBe("test-minimal-001");
-    expect(member.email).toBe("minimal@example.com");
-    expect(member.name).toBeUndefined();
-    expect(member.slug).toBeUndefined();
+    expect(member).toBeDefined();
+    if (member) {
+      expect(member.uid).toBe("test-minimal-001");
+      expect(member.email).toBe("minimal@example.com");
+      expect(member.name).toBeUndefined();
+      expect(member.slug).toBeUndefined();
+    }
 
     await cleanupAdminListMembers();
   });

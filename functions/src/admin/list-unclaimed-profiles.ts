@@ -1,20 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type CallableRequest } from "firebase-functions/v2/https";
-import { IMPORT_COLLECTION } from "../constants/index.js";
+import { IMPORT_COLLECTION, type UnclaimedProfileDocument } from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
-
-export interface UnclaimedProfileDocument {
-  email: string;
-  name: string;
-  subscriptionStart: FirebaseFirestore.Timestamp;
-  slug?: string;
-  membershipActive?: boolean;
-  membershipExpiresAt?: FirebaseFirestore.Timestamp;
-  invitationEmailStatus?: "sent" | "failed" | "pending";
-  invitationEmailSentAt?: FirebaseFirestore.Timestamp;
-  invitationEmailError?: string;
-}
 
 export interface ListUnclaimedProfilesRequest {
   limit?: number;

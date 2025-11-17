@@ -2,7 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { MEMBERS_COLLECTION } from "../constants/index.js";
+import { MEMBERS_COLLECTION } from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface DeleteUserRequest {

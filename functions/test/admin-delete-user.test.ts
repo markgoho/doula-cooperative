@@ -2,10 +2,10 @@ import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleDeleteUser } from "../src/admin/delete-user.js";
-import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { MEMBERS_COLLECTION } from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/types/member-document.js";
+import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 

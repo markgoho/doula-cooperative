@@ -3,7 +3,7 @@ import {
   type MemberDocument,
   type StripeMemberDocument,
   type SubscriptionStatus,
-} from "../types/member-document.js";
+} from "../collections/index.js";
 
 /**
  * Factory function to create a new member document for a user who just signed up.

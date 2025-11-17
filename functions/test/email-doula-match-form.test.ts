@@ -8,7 +8,7 @@ import {
   it,
 } from "bun:test";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { MATCH_REQUESTS_COLLECTION } from "../src/constants/index.js";
+import { MATCH_REQUESTS_COLLECTION } from "../src/collections/index.js";
 import { handleDocumentCreated } from "../src/doula-match-form/email-doula-match.js";
 import { type DoulaMatchFormDocument } from "../src/doula-match-form/types.js";
 import {
@@ -57,7 +57,7 @@ function setup({
 
 describe("emailDoulaMatch", () => {
   beforeEach(() => {
-    process.env.FUNCTIONS_EMULATOR = "true";
+    process.env['FUNCTIONS_EMULATOR'] = "true";
   });
 
   it("should update sent field to true after processing", async () => {
@@ -105,7 +105,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -149,7 +149,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -192,7 +192,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -235,7 +235,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -278,7 +278,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -323,7 +323,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -366,7 +366,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -409,7 +409,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -452,7 +452,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -495,7 +495,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -538,7 +538,7 @@ describe("emailDoulaMatch", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -557,7 +557,7 @@ describe("emailDoulaMatch", () => {
     // Act & Assert - should not throw
     await handleDocumentCreated(
       event as unknown as Parameters<typeof handleDocumentCreated>[0],
-      process.env.MAILGUN_API_KEY,
+      process.env['MAILGUN_API_KEY'],
     );
   });
 });

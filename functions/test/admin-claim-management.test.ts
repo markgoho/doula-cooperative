@@ -50,7 +50,9 @@ async function createTestUser({
   } catch {
     // If user already exists, just update it
     const user = await auth.getUser(uid);
-    await (isAdmin ? auth.setCustomUserClaims(uid, { admin: true }) : auth.setCustomUserClaims(uid, {}));
+    await (isAdmin
+      ? auth.setCustomUserClaims(uid, { admin: true })
+      : auth.setCustomUserClaims(uid, {}));
     return user;
   }
 }
@@ -61,7 +63,8 @@ async function cleanupAdminClaims() {
   // Get all users and delete test users
   const listResult = await auth.listUsers();
   const testUsers = listResult.users.filter(
-    user => user.uid.startsWith("admin-user-") || user.uid.startsWith("target-user-"),
+    user =>
+      user.uid.startsWith("admin-user-") || user.uid.startsWith("target-user-"),
   );
 
   const deletePromises = testUsers.map(user => auth.deleteUser(user.uid));
@@ -139,7 +142,9 @@ describe("setAdminClaim", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("An error occurred while setting admin claim");
+      expect(String(error)).toContain(
+        "An error occurred while setting admin claim",
+      );
     }
 
     await cleanupAdminClaims();
@@ -158,7 +163,7 @@ describe("setAdminClaim", () => {
 
     // Verify user doesn't have admin claim initially
     let user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
+    expect(user.customClaims?.["admin"]).toBeUndefined();
 
     // Act
     const result = await handleSetAdminClaim(
@@ -170,7 +175,7 @@ describe("setAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
 
     await cleanupAdminClaims();
   });
@@ -188,7 +193,7 @@ describe("setAdminClaim", () => {
 
     // Verify user already has admin claim
     let user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
 
     // Act
     const result = await handleSetAdminClaim(
@@ -200,7 +205,7 @@ describe("setAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
 
     await cleanupAdminClaims();
   });
@@ -226,7 +231,7 @@ describe("setAdminClaim", () => {
     expect(result.success).toBe(true);
 
     const user = await auth.getUser(adminUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
 
     await cleanupAdminClaims();
   });
@@ -258,7 +263,7 @@ describe("setAdminClaim", () => {
     expect(result.success).toBe(true);
 
     const user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
     // Note: setCustomUserClaims replaces ALL claims, so other claims will be lost
     // This is expected Firebase behavior
 
@@ -301,7 +306,9 @@ describe("removeAdminClaim", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Only admins can revoke admin privileges");
+      expect(String(error)).toContain(
+        "Only admins can revoke admin privileges",
+      );
     }
 
     await cleanupAdminClaims();
@@ -344,7 +351,9 @@ describe("removeAdminClaim", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Cannot revoke your own admin privileges");
+      expect(String(error)).toContain(
+        "Cannot revoke your own admin privileges",
+      );
     }
 
     await cleanupAdminClaims();
@@ -362,7 +371,9 @@ describe("removeAdminClaim", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("An error occurred while removing admin claim");
+      expect(String(error)).toContain(
+        "An error occurred while removing admin claim",
+      );
     }
 
     await cleanupAdminClaims();
@@ -381,7 +392,7 @@ describe("removeAdminClaim", () => {
 
     // Verify user has admin claim initially
     let user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
 
     // Act
     const result = await handleRemoveAdminClaim(
@@ -393,7 +404,7 @@ describe("removeAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
+    expect(user.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupAdminClaims();
   });
@@ -411,7 +422,7 @@ describe("removeAdminClaim", () => {
 
     // Verify user doesn't have admin claim initially
     let user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
+    expect(user.customClaims?.["admin"]).toBeUndefined();
 
     // Act
     const result = await handleRemoveAdminClaim(
@@ -423,7 +434,7 @@ describe("removeAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
+    expect(user.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupAdminClaims();
   });
@@ -447,9 +458,9 @@ describe("removeAdminClaim", () => {
     });
 
     let user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBe(true);
-    expect(user.customClaims?.customClaim1).toBe("value1");
-    expect(user.customClaims?.customClaim2).toBe(true);
+    expect(user.customClaims?.["admin"]).toBe(true);
+    expect(user.customClaims?.["customClaim1"]).toBe("value1");
+    expect(user.customClaims?.["customClaim2"]).toBe(true);
 
     // Act
     const result = await handleRemoveAdminClaim(
@@ -461,9 +472,9 @@ describe("removeAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
-    expect(user.customClaims?.customClaim1).toBe("value1");
-    expect(user.customClaims?.customClaim2).toBe(true);
+    expect(user.customClaims?.["admin"]).toBeUndefined();
+    expect(user.customClaims?.["customClaim1"]).toBe("value1");
+    expect(user.customClaims?.["customClaim2"]).toBe(true);
 
     await cleanupAdminClaims();
   });
@@ -495,7 +506,7 @@ describe("removeAdminClaim", () => {
     expect(result.success).toBe(true);
 
     user = await auth.getUser(targetUid);
-    expect(user.customClaims?.admin).toBeUndefined();
+    expect(user.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupAdminClaims();
   });
@@ -523,8 +534,8 @@ describe("removeAdminClaim", () => {
     // Verify both have admin claims
     let user1 = await auth.getUser(adminUid1);
     let user2 = await auth.getUser(adminUid2);
-    expect(user1.customClaims?.admin).toBe(true);
-    expect(user2.customClaims?.admin).toBe(true);
+    expect(user1.customClaims?.["admin"]).toBe(true);
+    expect(user2.customClaims?.["admin"]).toBe(true);
 
     // Act - Admin 1 removes Admin 2's claim
     const result = await handleRemoveAdminClaim(
@@ -537,8 +548,8 @@ describe("removeAdminClaim", () => {
 
     user1 = await auth.getUser(adminUid1);
     user2 = await auth.getUser(adminUid2);
-    expect(user1.customClaims?.admin).toBe(true);
-    expect(user2.customClaims?.admin).toBeUndefined();
+    expect(user1.customClaims?.["admin"]).toBe(true);
+    expect(user2.customClaims?.["admin"]).toBeUndefined();
 
     await cleanupAdminClaims();
   });

@@ -8,7 +8,7 @@ import {
   it,
 } from "bun:test";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { MESSAGES_COLLECTION } from "../src/constants/index.js";
+import { MESSAGES_COLLECTION } from "../src/collections/index.js";
 import { handleDocumentCreated } from "../src/contact-us-form/email-contact-form.js";
 import { type ContactUsFormDocument } from "../src/contact-us-form/types.js";
 import {
@@ -42,7 +42,7 @@ function setup({
 describe("emailContactForm", () => {
   beforeEach(() => {
     // Ensure emulator flag is set so we don't try to send real emails
-    process.env.FUNCTIONS_EMULATOR = "true";
+    process.env['FUNCTIONS_EMULATOR'] = "true";
   });
 
   it("should update sent field to true after processing", async () => {
@@ -70,7 +70,7 @@ describe("emailContactForm", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -107,7 +107,7 @@ describe("emailContactForm", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -143,7 +143,7 @@ describe("emailContactForm", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -179,7 +179,7 @@ describe("emailContactForm", () => {
       // Act
       await handleDocumentCreated(
         event as unknown as Parameters<typeof handleDocumentCreated>[0],
-        process.env.MAILGUN_API_KEY,
+        process.env['MAILGUN_API_KEY'],
       );
 
       // Assert
@@ -198,7 +198,7 @@ describe("emailContactForm", () => {
     // Act & Assert - should not throw
     await handleDocumentCreated(
       event as unknown as Parameters<typeof handleDocumentCreated>[0],
-      process.env.MAILGUN_API_KEY,
+      process.env['MAILGUN_API_KEY'],
     );
   });
 });

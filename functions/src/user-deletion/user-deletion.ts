@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type auth } from "firebase-functions/v1";
-import { MEMBERS_COLLECTION } from "../constants/index.js";
+import { MEMBERS_COLLECTION } from "../collections/index.js";
 
 export async function handleUserDeleted(user: auth.UserRecord) {
   try {

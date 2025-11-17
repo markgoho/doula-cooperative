@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { readProfile } from "../src/index.js";
-import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { MEMBERS_COLLECTION } from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/types/member-document.js";
+import { type MemberDocument } from "../src/collections/index.js";
 
 // Mock the octokit module
 const mockGetContent = mock();
@@ -31,9 +31,9 @@ function setup({
   const firestore = getFirestore();
 
   // Set up environment variables for GitHub secrets
-  process.env.GITHUB_APP_ID = "123456";
-  process.env.GITHUB_PRIVATE_KEY = "fake-private-key";
-  process.env.GITHUB_INSTALLATION_ID = "78910";
+  process.env['GITHUB_APP_ID'] = "123456";
+  process.env['GITHUB_PRIVATE_KEY'] = "fake-private-key";
+  process.env['GITHUB_INSTALLATION_ID'] = "78910";
 
   return {
     testUid,
@@ -214,7 +214,6 @@ describe("readProfile", () => {
       firestore,
       uid: testUid,
       email: testEmail,
-      slug: undefined,
       includeSlug: false,
     });
 
@@ -237,7 +236,6 @@ describe("readProfile", () => {
       firestore,
       uid: testUid,
       email: testEmail,
-      slug: undefined,
       includeSlug: false,
     });
 

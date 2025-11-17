@@ -2,10 +2,12 @@ import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import type { UnclaimedProfileData } from "../claim-profile/index.js";
+import {
+  IMPORT_COLLECTION,
+  type UnclaimedProfileDocumentData,
+} from "../collections/index.js";
 import {
   ERROR_IDS,
-  IMPORT_COLLECTION,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
@@ -90,7 +92,7 @@ export async function handleSendInvitation(
     const member = {
       ...unclaimedProfileData,
       email,
-    } as UnclaimedProfileData & { email: string };
+    } as UnclaimedProfileDocumentData & { email: string };
 
     // Build invitation email
     const now = Timestamp.now();

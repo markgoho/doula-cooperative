@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleUpdateMember } from "../src/admin/update-member.js";
-import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { MEMBERS_COLLECTION } from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/types/member-document.js";
+import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 
@@ -341,7 +341,10 @@ describe("adminUpdateMember", () => {
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.subscriptionStart).toBeInstanceOf(Timestamp);
-    expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+    expect(updatedData.subscriptionStart).toBeDefined();
+    if (updatedData.subscriptionStart) {
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+    }
 
     await cleanupAdminUpdateMember();
   });
@@ -370,7 +373,10 @@ describe("adminUpdateMember", () => {
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipExpiresAt).toBeInstanceOf(Timestamp);
-    expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-12-31T23:59:59");
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (updatedData.membershipExpiresAt) {
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-12-31T23:59:59");
+    }
 
     await cleanupAdminUpdateMember();
   });

@@ -1,13 +1,13 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import type { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
-import { doulaMatchForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
-import { MATCH_REQUESTS_COLLECTION } from "../src/constants/index.js";
+import { MATCH_REQUESTS_COLLECTION } from "../src/collections/index.js";
 import {
   type DoulaMatchForm,
   type DoulaMatchFormDocument,
   type DoulaMatchFormRequest,
 } from "../src/doula-match-form/types.js";
+import { doulaMatchForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
 import {
   cleanupTestDocumentsByEmail,
   getDocumentByEmail,
@@ -91,7 +91,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
-    expect(matchRequestDocument.exists).toBe(true);
+    expect(matchRequestDocument).toBeDefined();
+    if (matchRequestDocument) {
+      expect(matchRequestDocument.exists).toBe(true);
+    }
 
     await cleanupDoulaMatchForm({ firestore });
   });
@@ -111,6 +114,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.name).toBe("Jane Smith");
 
@@ -133,6 +140,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.phone).toBe(testPhone);
 
@@ -153,6 +164,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: testEmail,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.email).toBe(testEmail);
 
@@ -175,6 +190,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.zipcode).toBe(testZipcode);
 
@@ -197,6 +216,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.estimatedDueDate).toEqual(testDueDate);
 
@@ -219,6 +242,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.services).toEqual(testServices);
 
@@ -241,6 +268,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.birthLocation).toBe(testLocation);
 
@@ -263,6 +294,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.otherInfo).toBe(testInfo);
 
@@ -285,6 +320,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.insurance).toEqual(testInsurance);
 
@@ -304,6 +343,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(data.submitted).toBeDefined();
 
@@ -323,6 +366,10 @@ describe("doulaMatchForm", () => {
       collection: MATCH_REQUESTS_COLLECTION,
       email: formData.email,
     });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
     expect(typeof data.submitted).toBe("string");
 

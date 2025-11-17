@@ -12,7 +12,7 @@ import type { Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import Stripe from "stripe";
-import { MEMBERS_COLLECTION } from "../src/constants/collections.js";
+import { MEMBERS_COLLECTION } from "../src/collections/index.js";
 import { handler } from "../src/stripe-webhook/handler.js";
 import { getMemberData } from "../src/test-utils/firestore-helpers.js";
 import { createMockResponse } from "../src/test-utils/mock-response.js";
@@ -100,21 +100,21 @@ function setup({
   const originalEnvironment = { ...process.env };
 
   if (includeStripeSecrets) {
-    process.env.STRIPE_API_KEY = "sk_test_mock_key";
-    process.env.STRIPE_WEBHOOK_SECRET = "whsec_test_mock_secret";
+    process.env['STRIPE_API_KEY'] = "sk_test_mock_key";
+    process.env['STRIPE_WEBHOOK_SECRET'] = "whsec_test_mock_secret";
   } else {
-    delete process.env.STRIPE_API_KEY;
-    delete process.env.STRIPE_WEBHOOK_SECRET;
+    delete process.env['STRIPE_API_KEY'];
+    delete process.env['STRIPE_WEBHOOK_SECRET'];
   }
 
   if (includeMailgunKey) {
-    process.env.MAILGUN_API_KEY = "test-mailgun-key";
+    process.env['MAILGUN_API_KEY'] = "test-mailgun-key";
   } else {
-    delete process.env.MAILGUN_API_KEY;
+    delete process.env['MAILGUN_API_KEY'];
   }
 
   // Enable emulator mode to skip actual email sending
-  process.env.FUNCTIONS_EMULATOR = "true";
+  process.env['FUNCTIONS_EMULATOR'] = "true";
 
   // Create a mock Stripe instance to capture the constructor
   const stripe = new Stripe("sk_test_mock");

@@ -2,17 +2,12 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../constants/index.js";
-import { type MemberDocument } from "../types/member-document.js";
-
-export interface UnclaimedProfileData {
-  name: string;
-  subscriptionStart: Timestamp;
-  slug: string;
-  invitationEmailStatus?: "sent" | "failed" | "pending";
-  invitationEmailSentAt?: Timestamp;
-  invitationEmailError?: string;
-}
+import {
+  IMPORT_COLLECTION,
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+  type UnclaimedProfileDocumentData,
+} from "../collections/index.js";
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
   const startDate = subscriptionStart.toDate();
@@ -83,7 +78,7 @@ export const handleClaimProfile = async (
     return { status: "no_profile_to_claim" };
   }
 
-  const profileData = importDocument.data() as UnclaimedProfileData | undefined;
+  const profileData = importDocument.data() as UnclaimedProfileDocumentData | undefined;
 
   // 4. Create the new profile in the 'members' collection.
   const memberDocumentReference = database

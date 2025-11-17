@@ -1,8 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleSendInvitation } from "../src/admin/send-invitation.js";
-import type { UnclaimedProfileData } from "../src/claim-profile/index.js";
-import { IMPORT_COLLECTION } from "../src/constants/index.js";
+import {
+  IMPORT_COLLECTION,
+  type UnclaimedProfileDocumentData,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
 
@@ -34,14 +36,11 @@ async function createUnclaimedProfile({
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
   invitationEmailStatus?: "sent" | "failed" | "pending";
   invitationEmailSentAt?: Timestamp;
-  
   slug?: string;
 }) {
-  const profileData: UnclaimedProfileData = {
+  const profileData: UnclaimedProfileDocumentData = {
     name,
     subscriptionStart,
     slug,
@@ -160,7 +159,7 @@ describe("adminSendInvitation", () => {
     await firestore.collection(IMPORT_COLLECTION).doc(testEmail).set({
       name: "No Subscription Profile",
       slug: "",
-      
+
       // Missing subscriptionStart
     });
 
@@ -188,8 +187,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Test Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: true,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
     });
 
     // Act
@@ -207,7 +204,7 @@ describe("adminSendInvitation", () => {
       .collection(IMPORT_COLLECTION)
       .doc(testEmail)
       .get();
-    const profileData = profileDocument.data() as UnclaimedProfileData;
+    const profileData = profileDocument.data() as UnclaimedProfileDocumentData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailSentAt).toBeDefined();
@@ -242,7 +239,7 @@ describe("adminSendInvitation", () => {
       .collection(IMPORT_COLLECTION)
       .doc(testEmail)
       .get();
-    const profileData = profileDocument.data() as UnclaimedProfileData;
+    const profileData = profileDocument.data() as UnclaimedProfileDocumentData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
 
@@ -258,8 +255,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Inactive Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: false,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
     });
 
     // Act
@@ -284,8 +279,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Previously Invited Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: true,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
       invitationEmailStatus: "sent",
       invitationEmailSentAt: Timestamp.fromDate(new Date("2024-01-20")),
     });
@@ -305,7 +298,7 @@ describe("adminSendInvitation", () => {
       .collection(IMPORT_COLLECTION)
       .doc(testEmail)
       .get();
-    const profileData = profileDocument.data() as UnclaimedProfileData;
+    const profileData = profileDocument.data() as UnclaimedProfileDocumentData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailSentAt).toBeDefined();
@@ -328,8 +321,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Expired Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2023-01-15")),
-      membershipActive: false,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2024-01-31")), // In the past
     });
 
     // Act
@@ -354,8 +345,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Previously Failed Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: true,
-      membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-31")),
     });
 
     // Set initial error state
@@ -379,7 +368,7 @@ describe("adminSendInvitation", () => {
       .collection(IMPORT_COLLECTION)
       .doc(testEmail)
       .get();
-    const profileData = profileDocument.data() as UnclaimedProfileData;
+    const profileData = profileDocument.data() as UnclaimedProfileDocumentData;
 
     expect(profileData.invitationEmailStatus).toBe("sent");
     expect(profileData.invitationEmailError).toBeUndefined();
@@ -399,8 +388,6 @@ describe("adminSendInvitation", () => {
       email: testEmail,
       name: "Future Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      membershipActive: true,
-      membershipExpiresAt: Timestamp.fromDate(futureDate),
     });
 
     // Act
@@ -420,10 +407,10 @@ describe("adminSendInvitation", () => {
     // Arrange
     const { adminUid, testEmail, firestore } = setup();
 
-    const profileData: UnclaimedProfileData = {
+    const profileData: UnclaimedProfileDocumentData = {
       name: "Complete Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
+
       slug: "complete-profile",
     };
 
@@ -448,7 +435,7 @@ describe("adminSendInvitation", () => {
       .doc(testEmail)
       .get();
     const updatedProfileData =
-      updatedProfileDocument.data() as UnclaimedProfileData;
+      updatedProfileDocument.data() as UnclaimedProfileDocumentData;
 
     expect(updatedProfileData.name).toBe("Complete Profile");
     expect(updatedProfileData.slug).toBe("complete-profile");

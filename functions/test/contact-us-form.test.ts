@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from "bun:test";
 import type { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 import { contactUsForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
-import { MESSAGES_COLLECTION } from "../src/constants/index.js";
+import { MESSAGES_COLLECTION } from "../src/collections/index.js";
 import {
   type ContactUsForm,
   type ContactUsFormDocument,
@@ -79,7 +79,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
-    expect(messageDocument.exists).toBe(true);
+    expect(messageDocument).toBeDefined();
+    if (messageDocument) {
+      expect(messageDocument.exists).toBe(true);
+    }
 
     await cleanupContactUsForm({ firestore });
   });
@@ -99,6 +102,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     expect(data.contactName).toBe("Jane Doe");
 
@@ -119,6 +126,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: testEmail,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     expect(data.email).toBe(testEmail);
 
@@ -141,6 +152,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     expect(data.message).toBe(testMessage);
 
@@ -160,6 +175,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     // The HTTP function writes sent:false, but emailContactForm trigger may fire
     // immediately in the emulator and update it to true, so we just verify it exists
@@ -181,6 +200,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     expect(data.submitted).toBeDefined();
 
@@ -200,6 +223,10 @@ describe("contactUsForm", () => {
       collection: MESSAGES_COLLECTION,
       email: formData.email,
     });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
     const data = messageDocument.data() as ContactUsFormDocument;
     expect(typeof data.submitted).toBe("string");
 

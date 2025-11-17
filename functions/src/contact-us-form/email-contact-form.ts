@@ -5,14 +5,13 @@ import {
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
 import { type MailgunMessageData } from "mailgun.js/definitions";
+import { MESSAGES_COLLECTION, type MessageDocument } from "../collections/index.js";
 import {
   MARK_EMAIL,
-  MESSAGES_COLLECTION,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
 import { sendEmail } from "../utils/send-email.js";
-import { type ContactUsFormDocument } from "./types.js";
 
 export async function handleDocumentCreated(
   event: FirestoreEvent<
@@ -27,7 +26,7 @@ export async function handleDocumentCreated(
   }
 
   const { contactName, email, message } =
-    snapshot.data() as ContactUsFormDocument;
+    snapshot.data() as MessageDocument;
 
   const emailMessage: MailgunMessageData = {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,

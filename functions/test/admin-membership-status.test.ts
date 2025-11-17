@@ -2,10 +2,10 @@ import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleActivateMembership } from "../src/admin/activate-membership.js";
 import { handleDeactivateMembership } from "../src/admin/deactivate-membership.js";
-import { MEMBERS_COLLECTION } from "../src/constants/index.js";
+import { MEMBERS_COLLECTION } from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/types/member-document.js";
+import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 
@@ -181,12 +181,20 @@ describe("adminActivateMembership", () => {
     expect(updatedData.membershipActive).toBe(true);
 
     // Verify subscriptionStart is around current time
+    expect(updatedData.subscriptionStart).toBeDefined();
+    if (!updatedData.subscriptionStart) {
+      throw new Error("subscriptionStart is undefined");
+    }
     const startMillis = updatedData.subscriptionStart.toMillis();
     expect(startMillis).toBeGreaterThanOrEqual(beforeActivation);
     expect(startMillis).toBeLessThanOrEqual(afterActivation);
 
     // Verify membershipExpiresAt is approximately one year from now
     const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000;
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (!updatedData.membershipExpiresAt) {
+      throw new Error("membershipExpiresAt is undefined");
+    }
     const expiresMillis = updatedData.membershipExpiresAt.toMillis();
     expect(expiresMillis).toBeGreaterThanOrEqual(oneYearFromNow - 5000); // 5 second tolerance
     expect(expiresMillis).toBeLessThanOrEqual(oneYearFromNow + 5000);
@@ -224,8 +232,14 @@ describe("adminActivateMembership", () => {
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-03-01T00:00:00");
-    expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-03-01T00:00:00");
+    expect(updatedData.subscriptionStart).toBeDefined();
+    if (updatedData.subscriptionStart) {
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-03-01T00:00:00");
+    }
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (updatedData.membershipExpiresAt) {
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-03-01T00:00:00");
+    }
 
     await cleanupMembershipStatus();
   });
@@ -258,10 +272,17 @@ describe("adminActivateMembership", () => {
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+    expect(updatedData.subscriptionStart).toBeDefined();
+    if (updatedData.subscriptionStart) {
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+    }
 
     // Expires should still be ~1 year from current time (not from custom start)
     const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000;
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (!updatedData.membershipExpiresAt) {
+      throw new Error("membershipExpiresAt is undefined");
+    }
     const expiresMillis = updatedData.membershipExpiresAt.toMillis();
     expect(expiresMillis).toBeGreaterThanOrEqual(oneYearFromNow - 5000);
     expect(expiresMillis).toBeLessThanOrEqual(oneYearFromNow + 5000);
@@ -302,11 +323,18 @@ describe("adminActivateMembership", () => {
     expect(updatedData.membershipActive).toBe(true);
 
     // Start should be current time
+    expect(updatedData.subscriptionStart).toBeDefined();
+    if (!updatedData.subscriptionStart) {
+      throw new Error("subscriptionStart is undefined");
+    }
     const startMillis = updatedData.subscriptionStart.toMillis();
     expect(startMillis).toBeGreaterThanOrEqual(beforeActivation);
     expect(startMillis).toBeLessThanOrEqual(afterActivation);
 
-    expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-12-31T23:59:59");
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (updatedData.membershipExpiresAt) {
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-12-31T23:59:59");
+    }
 
     await cleanupMembershipStatus();
   });
@@ -339,7 +367,10 @@ describe("adminActivateMembership", () => {
     const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
-    expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-01-01T00:00:00");
+    expect(updatedData.membershipExpiresAt).toBeDefined();
+    if (updatedData.membershipExpiresAt) {
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-01-01T00:00:00");
+    }
 
     await cleanupMembershipStatus();
   });

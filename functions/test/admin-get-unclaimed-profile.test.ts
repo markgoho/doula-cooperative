@@ -1,9 +1,19 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleGetUnclaimedProfile } from "../src/admin/get-unclaimed-profile.js";
-import { IMPORT_COLLECTION } from "../src/constants/index.js";
+import {
+  IMPORT_COLLECTION,
+  type UnclaimedProfileDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
+
+// Extended type for testing - includes fields that may exist at runtime
+// but aren't part of the official type definition
+type UnclaimedProfileWithMembership = UnclaimedProfileDocument & {
+  membershipActive?: boolean;
+  membershipExpiresAt?: Timestamp;
+};
 
 const test = initializeTest();
 
@@ -198,9 +208,9 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Full Profile");
-    expect(result.membershipActive).toBe(true);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(true);
     expect(result.subscriptionStart).toBeDefined();
-    expect(result.membershipExpiresAt).toBeDefined();
+    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toBeDefined();
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -226,8 +236,8 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Minimal Profile");
-    expect(result.membershipActive).toBeUndefined();
-    expect(result.membershipExpiresAt).toBeUndefined();
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBeUndefined();
+    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toBeUndefined();
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -278,7 +288,7 @@ describe("adminGetUnclaimedProfile", () => {
 
     // Assert
     expect(result.subscriptionStart).toEqual(subscriptionStart);
-    expect(result.membershipExpiresAt).toEqual(membershipExpiresAt);
+    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toEqual(membershipExpiresAt);
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -302,7 +312,7 @@ describe("adminGetUnclaimedProfile", () => {
     );
 
     // Assert
-    expect(result.membershipActive).toBe(false);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(false);
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -326,7 +336,7 @@ describe("adminGetUnclaimedProfile", () => {
     );
 
     // Assert
-    expect(result.membershipActive).toBe(true);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(true);
 
     await cleanupAdminGetUnclaimedProfile();
   });
