@@ -1,0 +1,106 @@
+// Shared styles for admin table components
+
+.members-section,
+.unclaimed-section {
+  background: var(--brown-000);
+  padding: var(--space-l);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--brown-300);
+  margin-block-end: var(--space-l);
+
+  h2 {
+    margin-block-start: 0;
+  }
+
+  .section-description {
+    color: var(--brown-450);
+    margin-block-end: var(--space-m);
+  }
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: var(--space-l);
+  font-size: var(--step-1);
+}
+
+.error {
+  color: var(--color-error, #d93025);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-xs) var(--space-s);
+    text-align: left;
+    border-block-end: 1px solid var(--brown-200);
+  }
+
+  thead {
+    background: var(--brown-100);
+
+    th {
+      font-weight: var(--font-weight-bold);
+      color: var(--brown-500);
+      font-size: var(--step--1);
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+
+        &:hover {
+          background: var(--brown-200);
+        }
+
+        .sort-indicator {
+          margin-inline-start: var(--space-3xs);
+          color: var(--brown-450);
+          font-size: var(--step-0);
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr:hover {
+      background: var(--brown-100);
+    }
+
+    td {
+      color: var(--brown-500);
+      font-size: var(--step--2);
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--brown-450);
+    font-style: italic;
+    padding: var(--space-l);
+  }
+}
+
+.button-small {
+  display: inline-block;
+  padding: var(--space-3xs) var(--space-xs);
+  background: var(--teal-500);
+  color: var(--brown-000);
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--teal-600);
+  }
+}

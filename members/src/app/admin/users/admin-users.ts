@@ -1,11 +1,10 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Tag } from '../../tag/tag';
+import { ActiveMembersTable } from './active-members-table';
+import { UnclaimedProfilesTable } from './unclaimed-profiles-table';
 import { AdminMembersService, type Member, type UnclaimedProfile } from '../admin.service';
 
 @Component({
-  imports: [RouterLink, DatePipe, Tag],
+  imports: [ActiveMembersTable, UnclaimedProfilesTable],
   templateUrl: './admin-users.html',
   styleUrl: './admin-users.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
