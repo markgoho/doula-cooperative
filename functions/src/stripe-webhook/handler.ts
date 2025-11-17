@@ -306,7 +306,9 @@ export async function handler(request: Request, response: Response) {
           subscriptionStatus: "active",
           subscriptionStart,
           membershipExpiresAt,
-          ...(session.customer_details?.name && { name: session.customer_details.name }),
+          ...(session.customer_details?.name && {
+            name: session.customer_details.name,
+          }),
         });
 
         await database
