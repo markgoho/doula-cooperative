@@ -10,13 +10,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AdminMembersService, type Member } from '../admin.service';
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete';
 
 @Component({
-  imports: [RouterLink, DatePipe],
+  imports: [DatePipe],
   templateUrl: './admin-member-detail.html',
   styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

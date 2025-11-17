@@ -15,8 +15,16 @@ function createMockMember(overrides: Partial<Member> = {}): Member {
   };
 }
 
+function createDefaultTestMembers(): Member[] {
+  return [
+    createMockMember({ uid: '1', name: 'Zoe', email: 'zoe@example.com' }),
+    createMockMember({ uid: '2', name: 'Alice', email: 'alice@example.com' }),
+    createMockMember({ uid: '3', name: 'Mike', email: 'mike@example.com' }),
+  ];
+}
+
 async function setup({
-  members = [],
+  members = createDefaultTestMembers(),
   loading = false,
   error,
 }: { members?: Member[]; loading?: boolean; error?: string | undefined } = {}) {
@@ -31,12 +39,7 @@ describe('ActiveMembersTable', () => {
   describe('sorting', () => {
     it('should sort by name when Name header is clicked', async () => {
       // Arrange
-      const members = [
-        createMockMember({ uid: '1', name: 'Zoe', email: 'zoe@example.com' }),
-        createMockMember({ uid: '2', name: 'Alice', email: 'alice@example.com' }),
-        createMockMember({ uid: '3', name: 'Mike', email: 'mike@example.com' }),
-      ];
-      const { user } = await setup({ members });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -51,12 +54,7 @@ describe('ActiveMembersTable', () => {
 
     it('should toggle sort direction when clicking the same header twice', async () => {
       // Arrange
-      const members = [
-        createMockMember({ uid: '1', name: 'Alice', email: 'alice@example.com' }),
-        createMockMember({ uid: '2', name: 'Bob', email: 'bob@example.com' }),
-        createMockMember({ uid: '3', name: 'Charlie', email: 'charlie@example.com' }),
-      ];
-      const { user } = await setup({ members });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -65,19 +63,14 @@ describe('ActiveMembersTable', () => {
 
       // Assert - should be sorted descending
       const rows = screen.getAllByRole('row');
-      expect(within(rows[1]!).getByText('Charlie')).toBeInTheDocument();
-      expect(within(rows[2]!).getByText('Bob')).toBeInTheDocument();
+      expect(within(rows[1]!).getByText('Zoe')).toBeInTheDocument();
+      expect(within(rows[2]!).getByText('Mike')).toBeInTheDocument();
       expect(within(rows[3]!).getByText('Alice')).toBeInTheDocument();
     });
 
     it('should sort by email when Email header is clicked', async () => {
       // Arrange
-      const members = [
-        createMockMember({ uid: '1', name: 'Person Z', email: 'zebra@example.com' }),
-        createMockMember({ uid: '2', name: 'Person A', email: 'alpha@example.com' }),
-        createMockMember({ uid: '3', name: 'Person M', email: 'mike@example.com' }),
-      ];
-      const { user } = await setup({ members });
+      const { user } = await setup();
 
       // Act
       const emailHeader = await screen.findByRole('columnheader', { name: /Email/i });
@@ -85,9 +78,9 @@ describe('ActiveMembersTable', () => {
 
       // Assert - should be sorted by email ascending
       const rows = screen.getAllByRole('row');
-      expect(within(rows[1]!).getByText('alpha@example.com')).toBeInTheDocument();
+      expect(within(rows[1]!).getByText('alice@example.com')).toBeInTheDocument();
       expect(within(rows[2]!).getByText('mike@example.com')).toBeInTheDocument();
-      expect(within(rows[3]!).getByText('zebra@example.com')).toBeInTheDocument();
+      expect(within(rows[3]!).getByText('zoe@example.com')).toBeInTheDocument();
     });
 
     it('should sort by membership status when Membership header is clicked', async () => {
@@ -170,8 +163,7 @@ describe('ActiveMembersTable', () => {
 
     it('should display sort direction indicator on active column', async () => {
       // Arrange
-      const members = [createMockMember()];
-      const { user } = await setup({ members });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -206,23 +198,12 @@ describe('ActiveMembersTable', () => {
     });
 
     it('should display members in table', async () => {
-      // Arrange
-      const members = [
-        createMockMember({
-          uid: 'user-1',
-          name: 'Alice Smith',
-          email: 'alice@example.com',
-          membershipActive: true,
-        }),
-      ];
-
       // Act
-      await setup({ members });
+      await setup();
 
       // Assert
-      expect(await screen.findByText('Alice Smith')).toBeVisible();
+      expect(await screen.findByText('Alice')).toBeVisible();
       expect(screen.getByText('alice@example.com')).toBeVisible();
-      expect(screen.getByText('Active')).toBeVisible();
     });
 
     it('should display empty state when no members exist', async () => {

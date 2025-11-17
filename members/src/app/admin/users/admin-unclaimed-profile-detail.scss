@@ -2,6 +2,10 @@ section + section {
   margin-block-start: var(--space-m);
 }
 
+section > h2 {
+  margin-block-start: 0;
+}
+
 .loading,
 .error {
   text-align: center;
@@ -28,20 +32,6 @@ section + section {
   padding: var(--space-l);
   border-radius: var(--border-radius-md);
   border: 1px solid var(--brown-300);
-
-  h2 {
-    margin-block-start: 0;
-    margin-block-end: var(--space-m);
-    font-size: var(--step-2);
-    color: var(--brown-500);
-  }
-
-  h3 {
-    margin-block-start: var(--space-l);
-    margin-block-end: var(--space-s);
-    font-size: var(--step-1);
-    color: var(--brown-500);
-  }
 }
 
 .info-grid {
@@ -83,13 +73,6 @@ section + section {
   display: flex;
   gap: var(--space-s);
   margin-block-start: var(--space-s);
-}
-
-.button {
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 }
 
 .status-badge {

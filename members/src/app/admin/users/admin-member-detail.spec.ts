@@ -15,88 +15,6 @@ describe('AdminUserDetail', () => {
       this.open = false;
     });
   });
-  interface SetupOptions {
-    uid?: string;
-    member?: Member;
-    shouldFailLoad?: boolean;
-    shouldFailActivate?: boolean;
-    shouldFailDeactivate?: boolean;
-    shouldFailDelete?: boolean;
-    shouldKeepLoading?: boolean;
-    errorMessage?: string;
-  }
-
-  async function setup({
-    uid = 'test-uid-123',
-    member,
-    shouldFailLoad = false,
-    shouldFailActivate = false,
-    shouldFailDeactivate = false,
-    shouldFailDelete = false,
-    shouldKeepLoading = false,
-    errorMessage = 'Failed to load member details. Please try again.',
-  }: SetupOptions = {}) {
-    const user = userEvent.setup();
-
-    const defaultMember = createMockMember({ uid });
-    const memberToUse = member ?? defaultMember;
-
-    let resolveMemberPromise: (value: Member) => void;
-    const pendingMemberPromise = new Promise<Member>((resolve) => {
-      resolveMemberPromise = resolve;
-    });
-
-    let getMemberCallCount = 0;
-    const mockAdminMembersService = {
-      getMember: vi.fn().mockImplementation(() => {
-        getMemberCallCount++;
-
-        if (shouldKeepLoading) {
-          return pendingMemberPromise;
-        }
-
-        if (shouldFailLoad && getMemberCallCount === 1) {
-          return Promise.reject(new Error(errorMessage));
-        }
-
-        return Promise.resolve(memberToUse);
-      }),
-      activateMembership: shouldFailActivate
-        ? vi.fn().mockRejectedValue(new Error('Failed'))
-        : vi.fn().mockResolvedValue({ success: true }),
-      deactivateMembership: shouldFailDeactivate
-        ? vi.fn().mockRejectedValue(new Error('Failed'))
-        : vi.fn().mockResolvedValue({ success: true }),
-      deleteUser: shouldFailDelete
-        ? vi.fn().mockRejectedValue(new Error('Failed'))
-        : vi.fn().mockResolvedValue({ success: true }),
-    };
-
-    const component = await render(AdminMemberDetail, {
-      providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
-      componentInputs: { uid },
-    });
-
-    return {
-      user,
-      component,
-      resolveMemberPromise: resolveMemberPromise!,
-      mockAdminMembersService,
-    };
-  }
-
-  function createMockMember(overrides: Partial<Member> = {}): Member {
-    return {
-      uid: 'test-uid-123',
-      email: 'test@example.com',
-      name: 'Test User',
-      createdAt: Timestamp.fromDate(new Date('2024-01-15T10:30:00')),
-      membershipActive: false,
-      subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
-      membershipExpiresAt: Timestamp.fromDate(new Date('2025-01-01')),
-      ...overrides,
-    };
-  }
 
   it.skip('should display loading state initially', async () => {
     // Arrange & Act
@@ -464,3 +382,86 @@ describe('AdminUserDetail', () => {
     ).toBeVisible();
   });
 });
+
+interface SetupOptions {
+  uid?: string;
+  member?: Member;
+  shouldFailLoad?: boolean;
+  shouldFailActivate?: boolean;
+  shouldFailDeactivate?: boolean;
+  shouldFailDelete?: boolean;
+  shouldKeepLoading?: boolean;
+  errorMessage?: string;
+}
+
+async function setup({
+  uid = 'test-uid-123',
+  member,
+  shouldFailLoad = false,
+  shouldFailActivate = false,
+  shouldFailDeactivate = false,
+  shouldFailDelete = false,
+  shouldKeepLoading = false,
+  errorMessage = 'Failed to load member details. Please try again.',
+}: SetupOptions = {}) {
+  const user = userEvent.setup();
+
+  const defaultMember = createMockMember({ uid });
+  const memberToUse = member ?? defaultMember;
+
+  let resolveMemberPromise: (value: Member) => void;
+  const pendingMemberPromise = new Promise<Member>((resolve) => {
+    resolveMemberPromise = resolve;
+  });
+
+  let getMemberCallCount = 0;
+  const mockAdminMembersService = {
+    getMember: vi.fn().mockImplementation(() => {
+      getMemberCallCount++;
+
+      if (shouldKeepLoading) {
+        return pendingMemberPromise;
+      }
+
+      if (shouldFailLoad && getMemberCallCount === 1) {
+        return Promise.reject(new Error(errorMessage));
+      }
+
+      return Promise.resolve(memberToUse);
+    }),
+    activateMembership: shouldFailActivate
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({ success: true }),
+    deactivateMembership: shouldFailDeactivate
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({ success: true }),
+    deleteUser: shouldFailDelete
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({ success: true }),
+  };
+
+  const component = await render(AdminMemberDetail, {
+    providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
+    componentInputs: { uid },
+  });
+
+  return {
+    user,
+    component,
+    resolveMemberPromise: resolveMemberPromise!,
+    mockAdminMembersService,
+  };
+}
+
+function createMockMember(overrides: Partial<Member> = {}): Member {
+  return {
+    uid: 'test-uid-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    createdAt: Timestamp.fromDate(new Date('2024-01-15T10:30:00')),
+    membershipActive: false,
+    subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
+    membershipExpiresAt: Timestamp.fromDate(new Date('2025-01-01')),
+    ...overrides,
+  };
+}

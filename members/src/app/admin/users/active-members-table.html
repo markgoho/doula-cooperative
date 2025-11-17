@@ -5,57 +5,55 @@
   } @else if (error(); as errorMessage) {
     <p class="error">{{ errorMessage }}</p>
   } @else {
-    <div class="table-container">
-      <table class="members-table">
-        <thead>
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="handleSort('name')">
+            Name
+            @if (sortColumn() === 'name') {
+              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </th>
+          <th class="sortable" (click)="handleSort('email')">
+            Email
+            @if (sortColumn() === 'email') {
+              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </th>
+          <th class="sortable" (click)="handleSort('membership')">
+            Membership
+            @if (sortColumn() === 'membership') {
+              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </th>
+          <th class="sortable" (click)="handleSort('created')">
+            Created
+            @if (sortColumn() === 'created') {
+              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (member of sortedMembers(); track member.uid) {
           <tr>
-            <th class="sortable" (click)="handleSort('name')">
-              Name
-              @if (sortColumn() === 'name') {
-                <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-              }
-            </th>
-            <th class="sortable" (click)="handleSort('email')">
-              Email
-              @if (sortColumn() === 'email') {
-                <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-              }
-            </th>
-            <th class="sortable" (click)="handleSort('membership')">
-              Membership
-              @if (sortColumn() === 'membership') {
-                <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-              }
-            </th>
-            <th class="sortable" (click)="handleSort('created')">
-              Created
-              @if (sortColumn() === 'created') {
-                <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-              }
-            </th>
-            <th>Actions</th>
+            <td>{{ member.name || '—' }}</td>
+            <td>{{ member.email }}</td>
+            <td>
+              <app-tag [label]="member.membershipActive ? 'Active' : 'Inactive'" size="small" />
+            </td>
+            <td>{{ member.createdAt.toDate() | date: 'MMM d, yyyy' }}</td>
+            <td>
+              <a [routerLink]="['/admin/users/member', member.uid]" class="button small">View</a>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          @for (member of sortedMembers(); track member.uid) {
-            <tr>
-              <td>{{ member.name || '—' }}</td>
-              <td>{{ member.email }}</td>
-              <td>
-                <app-tag [label]="member.membershipActive ? 'Active' : 'Inactive'" size="small" />
-              </td>
-              <td>{{ member.createdAt.toDate() | date: 'MMM d, yyyy' }}</td>
-              <td>
-                <a [routerLink]="['/admin/users/member', member.uid]" class="button-small">View</a>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="empty-state">No members found</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">No members found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
   }
 </section>

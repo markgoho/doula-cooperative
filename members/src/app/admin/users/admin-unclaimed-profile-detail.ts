@@ -8,11 +8,10 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AdminMembersService, type UnclaimedProfile } from '../admin.service';
 
 @Component({
-  imports: [RouterLink, DatePipe],
+  imports: [DatePipe],
   templateUrl: './admin-unclaimed-profile-detail.html',
   styleUrl: './admin-unclaimed-profile-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

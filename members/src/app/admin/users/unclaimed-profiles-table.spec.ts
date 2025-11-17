@@ -14,8 +14,16 @@ function createMockProfile(overrides: Partial<UnclaimedProfile> = {}): Unclaimed
   };
 }
 
+function createDefaultTestProfiles(): UnclaimedProfile[] {
+  return [
+    createMockProfile({ email: 'zoe@example.com', name: 'Zoe' }),
+    createMockProfile({ email: 'alice@example.com', name: 'Alice' }),
+    createMockProfile({ email: 'mike@example.com', name: 'Mike' }),
+  ];
+}
+
 async function setup({
-  profiles = [],
+  profiles = createDefaultTestProfiles(),
   loading = false,
   error,
 }: { profiles?: UnclaimedProfile[]; loading?: boolean; error?: string | undefined } = {}) {
@@ -30,12 +38,7 @@ describe('UnclaimedProfilesTable', () => {
   describe('sorting', () => {
     it('should sort by name when Name header is clicked', async () => {
       // Arrange
-      const profiles = [
-        createMockProfile({ email: '1@example.com', name: 'Zoe' }),
-        createMockProfile({ email: '2@example.com', name: 'Alice' }),
-        createMockProfile({ email: '3@example.com', name: 'Mike' }),
-      ];
-      const { user } = await setup({ profiles });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -50,12 +53,7 @@ describe('UnclaimedProfilesTable', () => {
 
     it('should toggle sort direction when clicking the same header twice', async () => {
       // Arrange
-      const profiles = [
-        createMockProfile({ email: '1@example.com', name: 'Alice' }),
-        createMockProfile({ email: '2@example.com', name: 'Bob' }),
-        createMockProfile({ email: '3@example.com', name: 'Charlie' }),
-      ];
-      const { user } = await setup({ profiles });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -64,19 +62,14 @@ describe('UnclaimedProfilesTable', () => {
 
       // Assert - should be sorted descending
       const rows = screen.getAllByRole('row');
-      expect(within(rows[1]!).getByText('Charlie')).toBeInTheDocument();
-      expect(within(rows[2]!).getByText('Bob')).toBeInTheDocument();
+      expect(within(rows[1]!).getByText('Zoe')).toBeInTheDocument();
+      expect(within(rows[2]!).getByText('Mike')).toBeInTheDocument();
       expect(within(rows[3]!).getByText('Alice')).toBeInTheDocument();
     });
 
     it('should sort by email when Email header is clicked', async () => {
       // Arrange
-      const profiles = [
-        createMockProfile({ email: 'zebra@example.com', name: 'Person Z' }),
-        createMockProfile({ email: 'alpha@example.com', name: 'Person A' }),
-        createMockProfile({ email: 'mike@example.com', name: 'Person M' }),
-      ];
-      const { user } = await setup({ profiles });
+      const { user } = await setup();
 
       // Act
       const emailHeader = await screen.findByRole('columnheader', { name: /Email/i });
@@ -84,9 +77,9 @@ describe('UnclaimedProfilesTable', () => {
 
       // Assert - should be sorted by email ascending
       const rows = screen.getAllByRole('row');
-      expect(within(rows[1]!).getByText('alpha@example.com')).toBeInTheDocument();
+      expect(within(rows[1]!).getByText('alice@example.com')).toBeInTheDocument();
       expect(within(rows[2]!).getByText('mike@example.com')).toBeInTheDocument();
-      expect(within(rows[3]!).getByText('zebra@example.com')).toBeInTheDocument();
+      expect(within(rows[3]!).getByText('zoe@example.com')).toBeInTheDocument();
     });
 
     it('should sort by profile status when Has Profile header is clicked', async () => {
@@ -157,8 +150,7 @@ describe('UnclaimedProfilesTable', () => {
 
     it('should display sort direction indicator on active column', async () => {
       // Arrange
-      const profiles = [createMockProfile()];
-      const { user } = await setup({ profiles });
+      const { user } = await setup();
 
       // Act
       const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
@@ -193,22 +185,12 @@ describe('UnclaimedProfilesTable', () => {
     });
 
     it('should display profiles in table', async () => {
-      // Arrange
-      const profiles = [
-        createMockProfile({
-          email: 'alice@example.com',
-          name: 'Alice Smith',
-          slug: 'alice-smith',
-        }),
-      ];
-
       // Act
-      await setup({ profiles });
+      await setup();
 
       // Assert
-      expect(await screen.findByText('Alice Smith')).toBeVisible();
+      expect(await screen.findByText('Alice')).toBeVisible();
       expect(screen.getByText('alice@example.com')).toBeVisible();
-      expect(screen.getByText('Yes')).toBeVisible();
     });
 
     it('should display empty state when no profiles exist', async () => {

@@ -301,6 +301,11 @@ main h1 {
   transition:
     background 0.2s,
     color 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 .button:hover,
 .button:focus {
@@ -308,6 +313,11 @@ main h1 {
 }
 .button-small {
   font-size: var(--step-0);
+}
+
+.button.small {
+  font-size: var(--step-0);
+  padding: var(--space-3xs) var(--space-xs);
 }
 
 /* Form Styles from Hugo App */
