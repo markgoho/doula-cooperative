@@ -30,7 +30,7 @@ export interface UnclaimedProfileDocumentData {
   /**
    * The last payment date of the user's subscription.
    */
-  lastPayment?: Timestamp;
+  lastPayment: Timestamp;
   /**
    * The next payment date of the user's subscription.
    */
