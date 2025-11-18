@@ -11,11 +11,41 @@ export const IMPORT_COLLECTION = "migrated_users_import";
  * Note: The email is stored as the document ID, not as a field in the document.
  */
 export interface UnclaimedProfileDocumentData {
+  /**
+   * The name of the user.
+   */
   name: string;
-  subscriptionStart: Timestamp;
+  /**
+   * The email of the user.
+   */
+  email: string;
+  /**
+   * The slug of the user.
+   */
   slug?: string;
+  /**
+   * The start date of the user's subscription.
+   */
+  subscriptionStart: Timestamp;
+  /**
+   * The last payment date of the user's subscription.
+   */
+  lastPayment?: Timestamp;
+  /**
+   * The next payment date of the user's subscription.
+   */
+  nextPayment: Timestamp;
+  /**
+   * The status of the user's invitation email.
+   */
   invitationEmailStatus?: "sent" | "failed" | "pending";
+  /**
+   * The date the user's invitation email was sent.
+   */
   invitationEmailSentAt?: Timestamp;
+  /**
+   * The error message from the user's invitation email.
+   */
   invitationEmailError?: string;
 }
 
