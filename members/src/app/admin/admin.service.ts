@@ -29,8 +29,8 @@ export interface UnclaimedProfile {
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  lastPayment: Timestamp;
-  nextPayment: Timestamp;
+  lastPayment?: Timestamp;
+  nextPayment?: Timestamp;
   slug?: string;
   invitationEmailStatus?: 'sent' | 'failed' | 'pending';
   invitationEmailSentAt?: Timestamp;
@@ -100,9 +100,23 @@ export class AdminMembersService {
       | { seconds: number; nanoseconds: number }
       | { _seconds: number; _nanoseconds: number },
   ): Timestamp {
+    if (value === null || value === undefined) {
+      throw new Error(
+        `Timestamp value is ${value === null ? 'null' : 'undefined'}. Expected a valid Timestamp object.`,
+      );
+    }
+
     if (value instanceof Timestamp) {
       return value;
     }
+
+    // Validate that value is an object
+    if (typeof value !== 'object') {
+      throw new TypeError(
+        `Expected Timestamp object but received ${typeof value}: ${JSON.stringify(value)}`,
+      );
+    }
+
     // Handle both formats that Firebase might return
     const seconds = 'seconds' in value ? value.seconds : (value as { _seconds: number })._seconds;
     const nanoseconds =
@@ -204,17 +218,34 @@ export class AdminMembersService {
   }
 
   private convertUnclaimedProfileTimestamps(profile: UnclaimedProfile): UnclaimedProfile {
-    const result: UnclaimedProfile = {
-      ...profile,
-      subscriptionStart: this.toTimestamp(profile.subscriptionStart),
-      lastPayment: this.toTimestamp(profile.lastPayment),
-      nextPayment: this.toTimestamp(profile.nextPayment),
-    };
+    try {
+      const result: UnclaimedProfile = {
+        ...profile,
+        subscriptionStart: this.toTimestamp(profile.subscriptionStart),
+      };
 
-    if (profile.invitationEmailSentAt) {
-      result.invitationEmailSentAt = this.toTimestamp(profile.invitationEmailSentAt);
+      if (profile.lastPayment) {
+        result.lastPayment = this.toTimestamp(profile.lastPayment);
+      }
+
+      if (profile.nextPayment) {
+        result.nextPayment = this.toTimestamp(profile.nextPayment);
+      }
+
+      if (profile.invitationEmailSentAt) {
+        result.invitationEmailSentAt = this.toTimestamp(profile.invitationEmailSentAt);
+      }
+      return result;
+    } catch (error) {
+      console.error(
+        `Error converting timestamps for unclaimed profile: ${profile.name} (${profile.email})`,
+        {
+          profile,
+          error,
+        },
+      );
+      throw error;
     }
-    return result;
   }
 
   async deleteUser(uid: string): Promise<{ success: boolean }> {
