@@ -29,9 +29,9 @@ export interface UnclaimedProfile {
   email: string;
   name: string;
   subscriptionStart: Timestamp;
+  lastPayment?: Timestamp;
+  nextPayment?: Timestamp;
   slug?: string;
-  membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
   invitationEmailStatus?: 'sent' | 'failed' | 'pending';
   invitationEmailSentAt?: Timestamp;
   invitationEmailError?: string;
@@ -208,8 +208,12 @@ export class AdminMembersService {
       ...profile,
       subscriptionStart: this.toTimestamp(profile.subscriptionStart),
     };
-    if (profile.membershipExpiresAt) {
-      result.membershipExpiresAt = this.toTimestamp(profile.membershipExpiresAt);
+
+    if (profile.lastPayment) {
+      result.lastPayment = this.toTimestamp(profile.lastPayment);
+    }
+    if (profile.nextPayment) {
+      result.nextPayment = this.toTimestamp(profile.nextPayment);
     }
     if (profile.invitationEmailSentAt) {
       result.invitationEmailSentAt = this.toTimestamp(profile.invitationEmailSentAt);

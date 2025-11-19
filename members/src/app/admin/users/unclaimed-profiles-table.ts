@@ -5,7 +5,13 @@ import { Tag } from '../../tag/tag';
 import type { UnclaimedProfile } from '../admin.service';
 
 type SortDirection = 'asc' | 'desc';
-type UnclaimedProfileSortColumn = 'name' | 'email' | 'hasProfile' | 'subscriptionStart';
+type UnclaimedProfileSortColumn =
+  | 'name'
+  | 'email'
+  | 'hasProfile'
+  | 'subscriptionStart'
+  | 'lastPayment'
+  | 'nextPayment';
 
 @Component({
   selector: 'app-unclaimed-profiles-table',
@@ -47,6 +53,18 @@ export class UnclaimedProfilesTable {
         }
         case 'subscriptionStart': {
           comparison = a.subscriptionStart.toMillis() - b.subscriptionStart.toMillis();
+          break;
+        }
+        case 'lastPayment': {
+          const aMillis = a.lastPayment?.toMillis() ?? 0;
+          const bMillis = b.lastPayment?.toMillis() ?? 0;
+          comparison = aMillis - bMillis;
+          break;
+        }
+        case 'nextPayment': {
+          const aMillis = a.nextPayment?.toMillis() ?? 0;
+          const bMillis = b.nextPayment?.toMillis() ?? 0;
+          comparison = aMillis - bMillis;
           break;
         }
       }

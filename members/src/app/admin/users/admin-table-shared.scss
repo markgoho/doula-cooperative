@@ -96,4 +96,48 @@
       outline: 2px solid var(--brown-400);
     }
   }
+
+  // Email column - truncate with ellipsis
+  .email-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Date columns - right align and prevent wrapping in body
+  .date-cell {
+    text-align: right;
+  }
+
+  tbody .date-cell {
+    white-space: nowrap;
+    width: max-content;
+  }
+
+  // Actions column - center the icon
+  .actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // View link styling
+  .view-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brown-500);
+    transition: color 0.2s;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    &:hover {
+      color: var(--teal-500);
+    }
+  }
 }

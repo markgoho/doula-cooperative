@@ -44,20 +44,6 @@
       <dt>Subscription Start:</dt>
       <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
 
-      @if (profile.membershipExpiresAt) {
-        <dt>Membership Expires:</dt>
-        <dd>{{ profile.membershipExpiresAt.toDate() | date: 'MMM d, yyyy' }}</dd>
-      }
-
-      @if (profile.membershipActive !== undefined) {
-        <dt>Membership Status:</dt>
-        <dd>
-          <span [class]="'status-badge ' + (profile.membershipActive ? 'active' : 'inactive')">
-            {{ profile.membershipActive ? 'Active' : 'Inactive' }}
-          </span>
-        </dd>
-      }
-
       <dt>Invitation Email:</dt>
       <dd>
         @if (profile.invitationEmailStatus === 'sent') {

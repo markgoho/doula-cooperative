@@ -49,6 +49,8 @@ export async function handleListUnclaimedProfiles(
         subscriptionStart: data[
           "subscriptionStart"
         ] as FirebaseFirestore.Timestamp,
+        lastPayment: data["lastPayment"] as FirebaseFirestore.Timestamp,
+        nextPayment: data["nextPayment"] as FirebaseFirestore.Timestamp,
         ...(data["slug"] !== undefined && {
           slug: data["slug"] as string,
         }),

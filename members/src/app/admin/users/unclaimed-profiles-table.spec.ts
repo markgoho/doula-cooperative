@@ -10,6 +10,8 @@ function createMockProfile(overrides: Partial<UnclaimedProfile> = {}): Unclaimed
     email: 'test@example.com',
     name: 'Test User',
     subscriptionStart: Timestamp.fromDate(new Date('2024-01-15')),
+    lastPayment: Timestamp.fromDate(new Date('2024-01-10')),
+    nextPayment: Timestamp.fromDate(new Date('2024-02-10')),
     ...overrides,
   };
 }
