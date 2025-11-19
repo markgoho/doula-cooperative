@@ -44,6 +44,12 @@
       <dt>Subscription Start:</dt>
       <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
 
+      <dt>Last Payment:</dt>
+      <dd>{{ profile.lastPayment.toDate() | date: 'MMM d, yyyy' }}</dd>
+
+      <dt>Next Payment:</dt>
+      <dd>{{ profile.nextPayment.toDate() | date: 'MMM d, yyyy' }}</dd>
+
       <dt>Invitation Email:</dt>
       <dd>
         @if (profile.invitationEmailStatus === 'sent') {
