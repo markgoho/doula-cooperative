@@ -75,7 +75,7 @@
             "runner": "vitest",
             "providersFile": "src/test-providers.ts",
             "setupFiles": ["src/test-setup.ts"],
-            "codeCoverage": false
+            "coverage": false
           }
         },
         "lint": {
