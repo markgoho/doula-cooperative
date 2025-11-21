@@ -1,0 +1,127 @@
+import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
+import { AdminMembersService, type Member } from '../admin.service';
+
+@Injectable()
+export class AdminMemberDetailService {
+  private adminMembersService = inject(AdminMembersService);
+
+  // Signal for the current member uid (set from component input)
+  private uidSignal!: Signal<string>;
+
+  // Resource automatically loads member based on uid
+  private memberResource = resource({
+    params: () => ({ uid: this.uidSignal() }),
+    loader: async ({ params }) => {
+      return await this.adminMembersService.getMember(params.uid);
+    },
+  });
+
+  // Expose resource signals for component
+  readonly member = this.memberResource.value;
+  readonly loading = this.memberResource.isLoading;
+  readonly error = computed(() => {
+    const error = this.memberResource.error();
+    return error ? 'Failed to load member details. Please try again.' : undefined;
+  });
+
+  // Action state signals
+  readonly actionInProgress = signal(false);
+  readonly successMessage = signal<string | undefined>(undefined);
+  readonly actionError = signal<string | undefined>(undefined);
+
+  // Profile loading state
+  readonly profileContent = signal<{ content: string; image?: string; slug: string } | undefined>(
+    undefined,
+  );
+  readonly loadingProfile = signal(false);
+  readonly profileError = signal<string | undefined>(undefined);
+
+  /**
+   * Initialize the service with the uid signal from component input
+   */
+  init(uidSignal: Signal<string>): void {
+    this.uidSignal = uidSignal;
+  }
+
+  /**
+   * Activate membership for the current member
+   */
+  async activateMembership(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.activateMembership(uid);
+      this.successMessage.set('Membership activated successfully');
+      this.memberResource.reload(); // Reload to get updated data
+    } catch (error) {
+      console.error('Error activating membership:', error);
+      this.actionError.set('Failed to activate membership.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Deactivate membership for the current member
+   */
+  async deactivateMembership(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.deactivateMembership(uid);
+      this.successMessage.set('Membership deactivated successfully');
+      this.memberResource.reload(); // Reload to get updated data
+    } catch (error) {
+      console.error('Error deactivating membership:', error);
+      this.actionError.set('Failed to deactivate membership.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Delete user account
+   */
+  async deleteUser(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.deleteUser(uid);
+      this.successMessage.set('User deleted successfully');
+      this.actionInProgress.set(false);
+      // Note: Component should handle navigation after successful deletion
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      this.actionError.set('Failed to delete user.');
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Load profile content for the current member
+   */
+  async loadProfile(member: Member): Promise<void> {
+    if (!member.slug) {
+      return;
+    }
+
+    this.loadingProfile.set(true);
+    this.profileError.set(undefined);
+
+    try {
+      const profile = await this.adminMembersService.readMemberProfile(member.uid);
+      this.profileContent.set(profile);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      this.profileError.set('Failed to load profile content. Please try again.');
+    } finally {
+      this.loadingProfile.set(false);
+    }
+  }
+}

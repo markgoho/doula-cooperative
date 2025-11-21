@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   ElementRef,
   inject,
   input,
@@ -11,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { AdminMembersService, type Member } from '../admin.service';
+import { AdminMemberDetailService } from './admin-member-detail.service';
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete';
 
@@ -20,52 +19,35 @@ type ConfirmAction = 'activate' | 'deactivate' | 'delete';
   templateUrl: './admin-member-detail.html',
   styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [AdminMemberDetailService], // Provide service at component level
 })
 export class AdminMemberDetail {
-  private adminMembersService = inject(AdminMembersService);
+  private service = inject(AdminMemberDetailService);
   private router = inject(Router);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   uid = input.required<string>();
 
-  protected member = signal<Member | undefined>(undefined);
-  protected loading = signal(true);
-  protected error = signal<string | undefined>(undefined);
-  protected actionInProgress = signal(false);
-  protected successMessage = signal<string | undefined>(undefined);
+  // Expose service signals for template
+  protected member = this.service.member;
+  protected loading = this.service.loading;
+  protected error = this.service.error;
+  protected actionInProgress = this.service.actionInProgress;
+  protected successMessage = this.service.successMessage;
+  protected actionError = this.service.actionError;
+  protected profileContent = this.service.profileContent;
+  protected loadingProfile = this.service.loadingProfile;
+  protected profileError = this.service.profileError;
+
+  // Component-specific UI state
   protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
-  protected profileContent = signal<{ content: string; image?: string; slug: string } | undefined>(
-    undefined,
-  );
-  protected loadingProfile = signal(false);
-  protected profileError = signal<string | undefined>(undefined);
 
   protected isTargetUserAdmin = computed(() => this.member()?.isAdmin === true);
 
   constructor() {
-    effect(() => {
-      const currentUid = this.uid();
-      if (currentUid) {
-        void this.loadMember();
-      }
-    });
-  }
-
-  private async loadMember(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(undefined);
-    this.member.set(undefined);
-
-    try {
-      const member = await this.adminMembersService.getMember(this.uid());
-      this.member.set(member);
-    } catch (error) {
-      console.error('Error loading member:', error);
-      this.error.set('Failed to load member details. Please try again.');
-    } finally {
-      this.loading.set(false);
-    }
+    // Initialize service with uid signal
+    this.service.init(this.uid);
   }
 
   protected showActivateConfirm(): void {
@@ -94,51 +76,17 @@ export class AdminMemberDetail {
 
     switch (action) {
       case 'activate': {
-        await this.activateMembership();
+        await this.service.activateMembership(this.uid());
         break;
       }
       case 'deactivate': {
-        await this.deactivateMembership();
+        await this.service.deactivateMembership(this.uid());
         break;
       }
       case 'delete': {
         await this.deleteUser();
         break;
       }
-    }
-  }
-
-  private async activateMembership(): Promise<void> {
-    this.actionInProgress.set(true);
-    this.error.set(undefined);
-    this.successMessage.set(undefined);
-
-    try {
-      await this.adminMembersService.activateMembership(this.uid());
-      this.successMessage.set('Membership activated successfully');
-      await this.loadMember(); // Reload to get updated data
-    } catch (error) {
-      console.error('Error activating membership:', error);
-      this.error.set('Failed to activate membership.');
-    } finally {
-      this.actionInProgress.set(false);
-    }
-  }
-
-  private async deactivateMembership(): Promise<void> {
-    this.actionInProgress.set(true);
-    this.error.set(undefined);
-    this.successMessage.set(undefined);
-
-    try {
-      await this.adminMembersService.deactivateMembership(this.uid());
-      this.successMessage.set('Membership deactivated successfully');
-      await this.loadMember(); // Reload to get updated data
-    } catch (error) {
-      console.error('Error deactivating membership:', error);
-      this.error.set('Failed to deactivate membership.');
-    } finally {
-      this.actionInProgress.set(false);
     }
   }
 
@@ -162,38 +110,17 @@ export class AdminMemberDetail {
 
   protected async loadProfile(): Promise<void> {
     const member = this.member();
-    if (!member?.slug) {
-      return;
-    }
-
-    this.loadingProfile.set(true);
-    this.profileError.set(undefined);
-
-    try {
-      const profile = await this.adminMembersService.readMemberProfile(this.uid());
-      this.profileContent.set(profile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      this.profileError.set('Failed to load profile content. Please try again.');
-    } finally {
-      this.loadingProfile.set(false);
+    if (member) {
+      await this.service.loadProfile(member);
     }
   }
 
   private async deleteUser(): Promise<void> {
-    this.actionInProgress.set(true);
-    this.error.set(undefined);
-    this.successMessage.set(undefined);
+    await this.service.deleteUser(this.uid());
 
-    try {
-      await this.adminMembersService.deleteUser(this.uid());
-      this.successMessage.set('User deleted successfully');
-      // Navigate back to user list after successful deletion
+    // Navigate back to user list after successful deletion
+    if (this.successMessage()) {
       await this.router.navigate(['/admin/users']);
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      this.error.set('Failed to delete user.');
-      this.actionInProgress.set(false);
     }
   }
 }

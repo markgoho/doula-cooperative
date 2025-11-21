@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { Timestamp } from '../../../test-utils/timestamp-mock';
 import { AdminMembersService, type Member } from '../admin.service';
 import { AdminMemberDetail } from './admin-member-detail';
+import { AdminMemberDetailService } from './admin-member-detail.service';
 
 describe('AdminUserDetail', () => {
   // Add dialog polyfill for jsdom
@@ -16,12 +17,12 @@ describe('AdminUserDetail', () => {
     });
   });
 
-  it.skip('should display loading state initially', async () => {
+  it('should display loading state initially', async () => {
     // Arrange & Act
     const { resolveMemberPromise } = await setup({ shouldKeepLoading: true });
 
     // Assert - loading state should be visible
-    expect(screen.getByText('Loading user details...')).toBeVisible();
+    expect(await screen.findByText('Loading details...')).toBeVisible();
 
     // Clean up - resolve the promise to avoid hanging test
     resolveMemberPromise(createMockMember());
@@ -441,7 +442,10 @@ async function setup({
   };
 
   const component = await render(AdminMemberDetail, {
-    providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
+    providers: [
+      { provide: AdminMembersService, useValue: mockAdminMembersService },
+      AdminMemberDetailService, // Provide real service, it will use mocked AdminMembersService
+    ],
     componentInputs: { uid },
   });
 
