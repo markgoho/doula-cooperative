@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Tag } from '../../tag/tag';
-import type { UnclaimedProfile } from '../admin.service';
+import { Tag } from '../../../tag/tag';
+import type { UnclaimedProfile } from '../../admin.service';
 
 type SortDirection = 'asc' | 'desc';
 type UnclaimedProfileSortColumn =
@@ -17,7 +17,7 @@ type UnclaimedProfileSortColumn =
   selector: 'app-unclaimed-profiles-table',
   imports: [RouterLink, DatePipe, Tag],
   templateUrl: './unclaimed-profiles-table.html',
-  styleUrl: './admin-table-shared.scss',
+  styleUrl: '../admin-table-shared.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UnclaimedProfilesTable {

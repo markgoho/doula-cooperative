@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Tag } from '../../tag/tag';
-import type { Member } from '../admin.service';
+import { Tag } from '../../../tag/tag';
+import type { Member } from '../../admin.service';
 
 type SortDirection = 'asc' | 'desc';
 type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
@@ -11,7 +11,7 @@ type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
   selector: 'app-active-members-table',
   imports: [RouterLink, DatePipe, Tag],
   templateUrl: './active-members-table.html',
-  styleUrl: './admin-table-shared.scss',
+  styleUrl: '../admin-table-shared.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActiveMembersTable {

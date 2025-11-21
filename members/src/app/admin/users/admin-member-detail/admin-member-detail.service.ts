@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
-import { AdminMembersService, type Member } from '../admin.service';
+import { AdminMembersService, type Member } from '../../admin.service';
 
 @Injectable()
 export class AdminMemberDetailService {

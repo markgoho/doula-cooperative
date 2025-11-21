@@ -29,17 +29,17 @@ export const routes: Routes = [
       { path: '', redirectTo: 'users', pathMatch: 'full' },
       {
         path: 'users',
-        loadComponent: () => import('./admin/users/admin-users').then((m) => m.AdminUsers),
+        loadComponent: () => import('./admin/users/admin-users/admin-users').then((m) => m.AdminUsers),
       },
       {
         path: 'users/member/:uid',
         loadComponent: () =>
-          import('./admin/users/admin-member-detail').then((m) => m.AdminMemberDetail),
+          import('./admin/users/admin-member-detail/admin-member-detail').then((m) => m.AdminMemberDetail),
       },
       {
         path: 'users/unclaimed/:email',
         loadComponent: () =>
-          import('./admin/users/admin-unclaimed-profile-detail').then(
+          import('./admin/users/admin-unclaimed-profile-detail/admin-unclaimed-profile-detail').then(
             (m) => m.AdminUnclaimedProfileDetail,
           ),
       },

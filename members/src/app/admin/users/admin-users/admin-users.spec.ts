@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../../test-utils/timestamp-mock';
-import { AdminMembersService, type Member } from '../admin.service';
+import { Timestamp } from '../../../../test-utils/timestamp-mock';
+import { AdminMembersService, type Member } from '../../admin.service';
 import { AdminUsers } from './admin-users';
 
 describe('AdminUsers', () => {

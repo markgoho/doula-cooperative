@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ActiveMembersTable } from './active-members-table';
-import { UnclaimedProfilesTable } from './unclaimed-profiles-table';
-import { AdminMembersService, type Member, type UnclaimedProfile } from '../admin.service';
+import { ActiveMembersTable } from '../active-members-table/active-members-table';
+import { UnclaimedProfilesTable } from '../unclaimed-profiles-table/unclaimed-profiles-table';
+import { AdminMembersService, type Member, type UnclaimedProfile } from '../../admin.service';
 
 @Component({
   imports: [ActiveMembersTable, UnclaimedProfilesTable],

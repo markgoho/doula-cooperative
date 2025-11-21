@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { Timestamp } from '../../../test-utils/timestamp-mock';
-import type { UnclaimedProfile } from '../admin.service';
+import { Timestamp } from '../../../../test-utils/timestamp-mock';
+import type { UnclaimedProfile } from '../../admin.service';
 import { UnclaimedProfilesTable } from './unclaimed-profiles-table';
 
 function createMockProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {
