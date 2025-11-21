@@ -1,7 +1,7 @@
-import { Timestamp } from '@angular/fire/firestore';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { Timestamp } from '../../../test-utils/timestamp-mock';
 import { AdminMembersService, type Member } from '../admin.service';
 import { AdminMemberDetail } from './admin-member-detail';
 

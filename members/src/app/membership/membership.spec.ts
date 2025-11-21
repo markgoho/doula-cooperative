@@ -1,8 +1,8 @@
 import { signal } from '@angular/core';
-import { Timestamp } from '@angular/fire/firestore';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { Timestamp } from '../../test-utils/timestamp-mock';
 import { AuthService } from '../services/auth.service';
 import {
   type Member,
@@ -400,8 +400,6 @@ async function setup(options: SetupOptions = {}) {
     claimProfileImplementation = vi.fn().mockResolvedValue(undefined),
   } = options;
 
-  const user = userEvent.setup();
-
   const mockUser = isAuthenticated
     ? {
         displayName: userDisplayName,
@@ -442,6 +440,9 @@ async function setup(options: SetupOptions = {}) {
       },
     ],
   });
+
+  // Create userEvent AFTER render so document is available
+  const user = userEvent.setup();
 
   return { user };
 }
