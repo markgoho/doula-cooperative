@@ -96,6 +96,10 @@ export const myFunction = onRequest(async (request, response) => {
 - Never import `CommonModule`; import only explicit modules needed
 - Components never access Firebase directly; always use services
 - Router has `withComponentInputBinding()` enabled for query params
+- **Use `resource` API for reactive async data loading** - See `members/RESOURCE_PATTERN.md` for detailed guide
+  - Replace manual loading/caching with declarative resource pattern
+  - Automatic reactivity when signal dependencies change
+  - Built-in loading/error state management
 
 **Testing**:
 
@@ -103,6 +107,9 @@ export const myFunction = onRequest(async (request, response) => {
 - Setup functions must destructure parameters in signature with defaults
 - Unit tests (`*.spec.ts`): Component behavior in isolation
 - Integration tests (`*.integration.spec.ts`): Routing flows only
+- **Firebase Timestamp in tests**: Always import from `test-utils/timestamp-mock.ts`, NEVER from `@angular/fire/firestore` (causes JIT compilation errors)
+- **userEvent timing**: Always call `userEvent.setup()` AFTER `render()` to avoid ApplicationRef destroyed warnings
+- **Shared test utilities**: Use `src/test-utils/` for shared mocks and test helpers to maintain DRY principles
 
 ### Hugo Static Site (`/hugo/`)
 
