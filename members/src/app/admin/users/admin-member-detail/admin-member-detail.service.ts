@@ -9,17 +9,15 @@ export class AdminMemberDetailService {
   private uidSignal!: Signal<string>;
 
   // Resource automatically loads member based on uid
-  private memberResource = resource({
+  readonly memberResource = resource({
     params: () => ({ uid: this.uidSignal() }),
     loader: async ({ params }) => {
       return await this.adminMembersService.getMember(params.uid);
     },
   });
 
-  // Expose resource signals for component
-  readonly member = this.memberResource.value;
-  readonly loading = this.memberResource.isLoading;
-  readonly error = computed(() => {
+  // Transform error to string for display
+  readonly errorMessage = computed(() => {
     const error = this.memberResource.error();
     return error ? 'Failed to load member details. Please try again.' : undefined;
   });

@@ -1,37 +1,40 @@
 <h1>Member Details</h1>
 
-@if (successMessage(); as message) {
+@let memberResource = service.memberResource;
+@let member = memberResource.value();
+
+@if (service.successMessage(); as message) {
   <div class="success-message">{{ message }}</div>
 }
 
-@if (actionError(); as message) {
+@if (service.actionError(); as message) {
   <div class="error">{{ message }}</div>
 }
 
-@if (loading()) {
+@if (memberResource.isLoading()) {
   <p class="loading">Loading details...</p>
-} @else if (error(); as errorMessage) {
+} @else if (service.errorMessage(); as errorMessage) {
   <p class="error">{{ errorMessage }}</p>
-} @else if (member(); as user) {
+} @else if (member) {
   <section class="user-info-card">
     <h2>Account Information</h2>
     <dl class="info-grid">
       <dt>Name:</dt>
-      <dd>{{ user.name || '—' }}</dd>
+      <dd>{{ member.name || '—' }}</dd>
 
       <dt>Email:</dt>
-      <dd>{{ user.email }}</dd>
+      <dd>{{ member.email }}</dd>
 
       <dt>UID:</dt>
-      <dd class="monospace">{{ user.uid }}</dd>
+      <dd class="monospace">{{ member.uid }}</dd>
 
       <dt>Account Created:</dt>
-      <dd>{{ user.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
+      <dd>{{ member.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
 
       <dt>Membership:</dt>
       <dd>
-        <span [class]="'status-badge ' + (user.membershipActive ? 'active' : 'inactive')">
-          {{ user.membershipActive ? 'Active' : 'Inactive' }}
+        <span [class]="'status-badge ' + (member.membershipActive ? 'active' : 'inactive')">
+          {{ member.membershipActive ? 'Active' : 'Inactive' }}
         </span>
       </dd>
     </dl>
@@ -42,32 +45,36 @@
     <dl class="info-grid">
       <dt>Subscription Start:</dt>
       <dd>
-        {{ user.subscriptionStart ? (user.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—' }}
+        {{
+          member.subscriptionStart ? (member.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—'
+        }}
       </dd>
 
       <dt>Membership Expires:</dt>
       <dd>
         {{
-          user.membershipExpiresAt ? (user.membershipExpiresAt.toDate() | date: 'MMM d, yyyy') : '—'
+          member.membershipExpiresAt
+            ? (member.membershipExpiresAt.toDate() | date: 'MMM d, yyyy')
+            : '—'
         }}
       </dd>
 
-      @if (user.stripeCustomerId) {
+      @if (member.stripeCustomerId) {
         <dt>Stripe Customer ID:</dt>
-        <dd class="monospace">{{ user.stripeCustomerId }}</dd>
+        <dd class="monospace">{{ member.stripeCustomerId }}</dd>
 
         <dt>Stripe Subscription ID:</dt>
-        <dd class="monospace">{{ user.stripeSubscriptionId || '—' }}</dd>
+        <dd class="monospace">{{ member.stripeSubscriptionId || '—' }}</dd>
 
         <dt>Subscription Status:</dt>
-        <dd>{{ user.subscriptionStatus || '—' }}</dd>
+        <dd>{{ member.subscriptionStatus || '—' }}</dd>
       }
 
       <dt>Has Profile:</dt>
       <dd>
-        @if (user.slug) {
+        @if (member.slug) {
           <a
-            [href]="'https://doulacooperative.com/doulas/' + user.slug"
+            [href]="'https://doulacooperative.com/doulas/' + member.slug"
             target="_blank"
             rel="noopener noreferrer"
             >View Profile</a
@@ -77,15 +84,15 @@
         }
       </dd>
 
-      @if (user.slug) {
+      @if (member.slug) {
         <dt>Profile Slug:</dt>
-        <dd class="monospace">{{ user.slug }}</dd>
+        <dd class="monospace">{{ member.slug }}</dd>
       }
     </dl>
 
     <div class="actions">
       <h3>Membership Actions</h3>
-      @if (user.stripeCustomerId) {
+      @if (member.stripeCustomerId) {
         <p class="warning">
           ⚠️ This membership is managed by Stripe. Manual changes may conflict with Stripe
           subscription updates.
@@ -93,23 +100,23 @@
       }
 
       <div class="action-buttons">
-        @if (user.membershipActive) {
+        @if (member.membershipActive) {
           <button
             type="button"
             class="button button-danger"
             (click)="showDeactivateConfirm()"
-            [disabled]="actionInProgress()"
+            [disabled]="service.actionInProgress()"
           >
-            {{ actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
+            {{ service.actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
           </button>
         } @else {
           <button
             type="button"
             class="button"
             (click)="showActivateConfirm()"
-            [disabled]="actionInProgress()"
+            [disabled]="service.actionInProgress()"
           >
-            {{ actionInProgress() ? 'Processing...' : 'Activate Membership' }}
+            {{ service.actionInProgress() ? 'Processing...' : 'Activate Membership' }}
           </button>
         }
       </div>
@@ -130,9 +137,9 @@
             type="button"
             class="button button-danger"
             (click)="showDeleteConfirm()"
-            [disabled]="actionInProgress()"
+            [disabled]="service.actionInProgress()"
           >
-            {{ actionInProgress() ? 'Processing...' : 'Delete User Account' }}
+            {{ service.actionInProgress() ? 'Processing...' : 'Delete User Account' }}
           </button>
         </div>
       </div>
@@ -147,35 +154,40 @@
     </section>
   }
 
-  @if (user.slug) {
+  @if (member.slug) {
     <section class="subscription-card">
       <h2>Profile</h2>
       <dl class="info-grid">
         <dt>Profile Slug:</dt>
-        <dd class="monospace">{{ user.slug }}</dd>
+        <dd class="monospace">{{ member.slug }}</dd>
 
         <dt>Has Profile:</dt>
         <dd>Yes</dd>
       </dl>
 
-      @if (!profileContent() && !profileError()) {
-        <button type="button" class="button" (click)="loadProfile()" [disabled]="loadingProfile()">
-          {{ loadingProfile() ? 'Loading...' : 'View Profile Content' }}
+      @if (!service.profileContent() && !service.profileError()) {
+        <button
+          type="button"
+          class="button"
+          (click)="loadProfile()"
+          [disabled]="service.loadingProfile()"
+        >
+          {{ service.loadingProfile() ? 'Loading...' : 'View Profile Content' }}
         </button>
       }
 
-      @if (profileError(); as error) {
+      @if (service.profileError(); as error) {
         <p class="error">{{ error }}</p>
         <button type="button" class="button" (click)="loadProfile()">Retry</button>
       }
 
-      @if (profileContent(); as profile) {
+      @if (service.profileContent(); as profile) {
         <div class="profile-preview">
           <h3>Profile Content</h3>
 
           @if (profile.image) {
             <div class="profile-image">
-              <img [src]="profile.image" [alt]="user.name || 'Profile image'" />
+              <img [src]="profile.image" [alt]="member.name || 'Profile image'" />
             </div>
           }
 

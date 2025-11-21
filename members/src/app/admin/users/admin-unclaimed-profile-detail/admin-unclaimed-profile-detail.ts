@@ -10,22 +10,15 @@ import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-de
   providers: [AdminUnclaimedProfileDetailService], // Provide service at component level
 })
 export class AdminUnclaimedProfileDetail {
-  private service = inject(AdminUnclaimedProfileDetailService);
+  protected service = inject(AdminUnclaimedProfileDetailService);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   email = input.required<string>();
 
-  // Expose service signals for template
-  protected unclaimedProfile = this.service.unclaimedProfile;
-  protected loading = this.service.loading;
-  protected error = this.service.error;
-  protected actionInProgress = this.service.actionInProgress;
-  protected successMessage = this.service.successMessage;
-  protected actionError = this.service.actionError;
-
   protected invitationAlreadySent = computed(() => {
-    const unclaimed = this.unclaimedProfile();
-    return unclaimed?.invitationEmailStatus === 'sent';
+    const resource = this.service.unclaimedProfileResource;
+    if (!resource.hasValue()) return false;
+    return resource.value().invitationEmailStatus === 'sent';
   });
 
   constructor() {

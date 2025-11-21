@@ -7,12 +7,7 @@ import { ProfileService } from '../services/profile.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfile {
-  private profileService = inject(ProfileService);
-
-  // Use the profile service's resource signals
-  readonly profileData = this.profileService.profile;
-  readonly isLoading = this.profileService.isLoadingProfile;
-  readonly error = this.profileService.profileError;
+  protected profileService = inject(ProfileService);
 
   getTagUrl(tag: string): string {
     return this.profileService.getTagUrl(tag);

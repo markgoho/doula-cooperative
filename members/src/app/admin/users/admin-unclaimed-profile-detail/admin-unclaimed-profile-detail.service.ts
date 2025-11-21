@@ -9,17 +9,15 @@ export class AdminUnclaimedProfileDetailService {
   private emailSignal!: Signal<string>;
 
   // Resource automatically loads unclaimed profile based on email
-  private unclaimedProfileResource = resource({
+  readonly unclaimedProfileResource = resource({
     params: () => ({ email: this.emailSignal() }),
     loader: async ({ params }) => {
       return await this.adminMembersService.getUnclaimedProfile(params.email);
     },
   });
 
-  // Expose resource signals for component
-  readonly unclaimedProfile = this.unclaimedProfileResource.value;
-  readonly loading = this.unclaimedProfileResource.isLoading;
-  readonly error = computed(() => {
+  // Transform error to string for display
+  readonly errorMessage = computed(() => {
     const error = this.unclaimedProfileResource.error();
     return error ? 'Failed to load unclaimed profile details. Please try again.' : undefined;
   });

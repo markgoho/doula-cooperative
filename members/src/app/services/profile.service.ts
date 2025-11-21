@@ -25,7 +25,7 @@ export class ProfileService {
   private membershipService = inject(MembershipService);
 
   // Resource automatically loads profile based on membership status
-  private profileResource = resource({
+  readonly profileResource = resource({
     params: () => {
       const user = this.membershipService.userDocument();
       // Only load if user has active membership and a slug
@@ -43,18 +43,6 @@ export class ProfileService {
       return profileData;
     },
   });
-
-  // Public readonly signal for components to access profile
-  readonly profile = this.profileResource.value;
-
-  // Expose resource status signals for components that need loading/error states
-  readonly isLoadingProfile = this.profileResource.isLoading;
-  readonly profileError = this.profileResource.error;
-
-  // Method to manually reload profile if needed
-  reload(): void {
-    this.profileResource.reload();
-  }
 
   private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
     const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(

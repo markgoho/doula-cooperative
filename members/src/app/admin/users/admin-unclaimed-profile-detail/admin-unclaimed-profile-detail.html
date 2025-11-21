@@ -1,18 +1,21 @@
 <h1>Unclaimed Profile Details</h1>
 
-@if (successMessage(); as message) {
+@let profileResource = service.unclaimedProfileResource;
+@let profile = profileResource.value();
+
+@if (service.successMessage(); as message) {
   <div class="success-message">{{ message }}</div>
 }
 
-@if (actionError(); as message) {
+@if (service.actionError(); as message) {
   <div class="error">{{ message }}</div>
 }
 
-@if (loading()) {
+@if (profileResource.isLoading()) {
   <p class="loading">Loading details...</p>
-} @else if (error(); as errorMessage) {
+} @else if (service.errorMessage(); as errorMessage) {
   <p class="error">{{ errorMessage }}</p>
-} @else if (unclaimedProfile(); as profile) {
+} @else if (profile) {
   <section class="user-info-card">
     <h2>Unclaimed Profile Information</h2>
     <p class="info-notice">
@@ -87,7 +90,7 @@
           type="button"
           class="button"
           (click)="sendInvitation()"
-          [disabled]="actionInProgress() || invitationAlreadySent()"
+          [disabled]="service.actionInProgress() || invitationAlreadySent()"
           [title]="
             invitationAlreadySent()
               ? 'Invitation already sent'
@@ -95,7 +98,7 @@
           "
         >
           {{
-            actionInProgress()
+            service.actionInProgress()
               ? 'Processing...'
               : invitationAlreadySent()
                 ? 'Invitation Already Sent'

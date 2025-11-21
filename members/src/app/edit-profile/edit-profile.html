@@ -1,32 +1,35 @@
 <h1>Edit Profile</h1>
 
-@if (isLoading()) {
+@let profileResource = profileService.profileResource;
+@let profile = profileResource.value();
+
+@if (profileResource.isLoading()) {
   <div class="loading-message">
     <p>Loading your profile...</p>
   </div>
-} @else if (error()) {
+} @else if (profileResource.error()) {
   <div class="error-message">
     <h2>Error Loading Profile</h2>
     <p>We encountered an error while loading your profile. Please try again later.</p>
   </div>
-} @else if (profileData()) {
+} @else if (profile) {
   <div class="profile-container">
     <!-- Title Section -->
     <section class="title">
-      <h1>{{ profileData()?.title }}</h1>
-      @if (profileData()?.credentials) {
-        <p class="credentials">{{ profileData()?.credentials }}</p>
+      <h1>{{ profile.title }}</h1>
+      @if (profile.credentials) {
+        <p class="credentials">{{ profile.credentials }}</p>
       }
     </section>
 
     <!-- Headshot Section -->
     <section class="headshot">
-      @if (profileData()?.image) {
+      @if (profile.image) {
         <img
-          [src]="profileData()?.image"
-          alt="Headshot of {{ profileData()?.title }}"
+          [src]="profile.image"
+          alt="Headshot of {{ profile.title }}"
           class="headshot__image"
-          style="view-transition-name: headshot-{{ profileData()?.title }}"
+          style="view-transition-name: headshot-{{ profile.title }}"
         />
       } @else {
         <div class="headshot-placeholder">
@@ -35,10 +38,10 @@
       }
 
       <!-- Tags -->
-      @if (profileData()?.tags && (profileData()?.tags)!.length > 0) {
+      @if (profile.tags && profile.tags.length > 0) {
         <div class="tags">
           <ul class="tag-group">
-            @for (tag of profileData()?.tags; track tag) {
+            @for (tag of profile.tags; track tag) {
               <li class="tag">
                 <a href="/doulas/tag/{{ getTagUrl(tag) }}">{{ tag }}</a>
               </li>
@@ -49,18 +52,18 @@
     </section>
 
     <!-- Bio Section -->
-    @if (profileData()?.bio) {
+    @if (profile.bio) {
       <section class="bio">
-        <p>{{ profileData()?.bio }}</p>
+        <p>{{ profile.bio }}</p>
       </section>
     }
 
     <!-- Contact Information Section -->
-    @if (profileData()?.contact) {
+    @if (profile.contact) {
       <section class="contact-info" data-pagefind-ignore>
-        <h3>{{ profileData()?.contact?.business_name || 'Contact Information' }}</h3>
+        <h3>{{ profile.contact.business_name || 'Contact Information' }}</h3>
         <ul>
-          @if (profileData()?.contact?.website) {
+          @if (profile.contact.website) {
             <li>
               <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -69,15 +72,15 @@
                 />
               </svg>
               <a
-                href="https://{{ profileData()?.contact?.website }}"
+                href="https://{{ profile.contact.website }}"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {{ profileData()?.contact?.website }}
+                {{ profile.contact.website }}
               </a>
             </li>
           }
-          @if (profileData()?.contact?.phone) {
+          @if (profile.contact.phone) {
             <li>
               <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -85,12 +88,10 @@
                   fill="var(--teal-500)"
                 />
               </svg>
-              <a href="tel:{{ profileData()?.contact?.phone }}">{{
-                profileData()?.contact?.phone
-              }}</a>
+              <a href="tel:{{ profile.contact.phone }}">{{ profile.contact.phone }}</a>
             </li>
           }
-          @if (profileData()?.contact?.email) {
+          @if (profile.contact.email) {
             <li>
               <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -99,11 +100,11 @@
                 />
               </svg>
               <a
-                href="mailto:{{ profileData()?.contact?.email }}"
+                href="mailto:{{ profile.contact.email }}"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {{ profileData()?.contact?.email }}
+                {{ profile.contact.email }}
               </a>
             </li>
           }

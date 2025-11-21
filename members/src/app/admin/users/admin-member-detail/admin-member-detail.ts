@@ -22,28 +22,21 @@ type ConfirmAction = 'activate' | 'deactivate' | 'delete';
   providers: [AdminMemberDetailService], // Provide service at component level
 })
 export class AdminMemberDetail {
-  private service = inject(AdminMemberDetailService);
+  protected service = inject(AdminMemberDetailService);
   private router = inject(Router);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   uid = input.required<string>();
 
-  // Expose service signals for template
-  protected member = this.service.member;
-  protected loading = this.service.loading;
-  protected error = this.service.error;
-  protected actionInProgress = this.service.actionInProgress;
-  protected successMessage = this.service.successMessage;
-  protected actionError = this.service.actionError;
-  protected profileContent = this.service.profileContent;
-  protected loadingProfile = this.service.loadingProfile;
-  protected profileError = this.service.profileError;
-
   // Component-specific UI state
   protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
 
-  protected isTargetUserAdmin = computed(() => this.member()?.isAdmin === true);
+  protected isTargetUserAdmin = computed(() => {
+    const resource = this.service.memberResource;
+    if (!resource.hasValue()) return false;
+    return resource.value().isAdmin === true;
+  });
 
   constructor() {
     // Initialize service with uid signal
@@ -109,9 +102,8 @@ export class AdminMemberDetail {
   }
 
   protected async loadProfile(): Promise<void> {
-    const member = this.member();
-    if (member) {
-      await this.service.loadProfile(member);
+    if (this.service.memberResource.hasValue()) {
+      await this.service.loadProfile(this.service.memberResource.value());
     }
   }
 
@@ -119,7 +111,7 @@ export class AdminMemberDetail {
     await this.service.deleteUser(this.uid());
 
     // Navigate back to user list after successful deletion
-    if (this.successMessage()) {
+    if (this.service.successMessage()) {
       await this.router.navigate(['/admin/users']);
     }
   }
