@@ -5,6 +5,25 @@ import { type ProfileData, ProfileService } from '../services/profile.service';
 import { EditProfile } from './edit-profile';
 
 describe('EditProfile', () => {
+  describe('loading state', () => {
+    it('should show loading message when profile is loading', async () => {
+      await setup({ isLoading: true });
+
+      expect(screen.getByText('Loading your profile...')).toBeVisible();
+    });
+  });
+
+  describe('error state', () => {
+    it('should show error message when profile fails to load', async () => {
+      await setup({ error: new Error('Failed to load') });
+
+      expect(screen.getByText('Error Loading Profile')).toBeVisible();
+      expect(
+        screen.getByText('We encountered an error while loading your profile. Please try again later.')
+      ).toBeVisible();
+    });
+  });
+
   describe('no profile state', () => {
     it('should show profile setup message when no profile exists', async () => {
       await setup({ hasProfile: false });
@@ -153,9 +172,11 @@ describe('EditProfile', () => {
 interface SetupOptions {
   profileData?: ProfileData;
   hasProfile?: boolean;
+  isLoading?: boolean;
+  error?: Error;
 }
 
-async function setup({ profileData, hasProfile = true }: SetupOptions = {}) {
+async function setup({ profileData, hasProfile = true, isLoading = false, error }: SetupOptions = {}) {
   const defaultProfile: ProfileData = {
     title: 'Jane Doe',
     credentials: 'CD(DONA), CPD',
@@ -172,6 +193,8 @@ async function setup({ profileData, hasProfile = true }: SetupOptions = {}) {
 
   const mockProfileService = {
     profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
+    isLoadingProfile: signal(isLoading),
+    profileError: signal(error),
     getTagUrl: vi.fn((tag: string) => tag.toLowerCase().replaceAll(/\s+/g, '-')),
   };
 
