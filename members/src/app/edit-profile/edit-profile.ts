@@ -9,8 +9,10 @@ import { ProfileService } from '../services/profile.service';
 export class EditProfile {
   private profileService = inject(ProfileService);
 
-  // Use the profile service's cached profile signal directly
+  // Use the profile service's resource signals
   readonly profileData = this.profileService.profile;
+  readonly isLoading = this.profileService.isLoadingProfile;
+  readonly error = this.profileService.profileError;
 
   getTagUrl(tag: string): string {
     return this.profileService.getTagUrl(tag);

@@ -1,6 +1,15 @@
 <h1>Edit Profile</h1>
 
-@if (profileData()) {
+@if (isLoading()) {
+  <div class="loading-message">
+    <p>Loading your profile...</p>
+  </div>
+} @else if (error()) {
+  <div class="error-message">
+    <h2>Error Loading Profile</h2>
+    <p>We encountered an error while loading your profile. Please try again later.</p>
+  </div>
+} @else if (profileData()) {
   <div class="profile-container">
     <!-- Title Section -->
     <section class="title">

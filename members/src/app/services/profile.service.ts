@@ -1,6 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { firstValueFrom } from 'rxjs';
 import { MembershipService } from './membership.service';
 
 export interface ProfileData {
@@ -24,37 +23,15 @@ export interface ProfileData {
 export class ProfileService {
   private functions = inject(Functions);
   private membershipService = inject(MembershipService);
-  private cachedProfile = signal<ProfileData | undefined>(undefined);
 
-  // Public readonly signal for components to subscribe to profile changes
-  readonly profile = this.cachedProfile.asReadonly();
-
-  async loadAndParseProfile(): Promise<ProfileData | undefined> {
-    // Return cached profile if available
-    const cached = this.cachedProfile();
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      // Check if user has active membership and a profile before attempting to fetch
-      const userDocument = await firstValueFrom(this.membershipService.userDocument$);
-
-      if (!userDocument) {
-        console.info('No user document found - cannot load profile');
-        return undefined;
-      }
-
-      if (!userDocument.membershipActive) {
-        console.info('User does not have active membership - cannot load profile');
-        return undefined;
-      }
-
-      if (!userDocument.slug) {
-        console.info('User does not have a profile yet - cannot load profile');
-        return undefined;
-      }
-
+  // Resource automatically loads profile based on membership status
+  private profileResource = resource({
+    params: () => {
+      const user = this.membershipService.userDocument();
+      // Only load if user has active membership and a slug
+      return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
+    },
+    loader: async () => {
       const result = await this.fetchProfileFromServer();
       const profileData = this.parseProfileContent(result.content);
 
@@ -63,86 +40,29 @@ export class ProfileService {
         profileData.image = result.image;
       }
 
-      // Cache the profile data
-      this.cachedProfile.set(profileData);
       return profileData;
-    } catch (error) {
-      // Check if this is a "profile not found" error which is normal for users without profiles
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (
-        errorMessage.includes('Profile not found') ||
-        errorMessage.includes('may need to claim')
-      ) {
-        console.info('Profile not found - user may need to claim their membership');
-      } else {
-        console.error('Error loading profile:', error);
-      }
-      return undefined;
-    }
+    },
+  });
+
+  // Public readonly signal for components to access profile
+  readonly profile = this.profileResource.value;
+
+  // Expose resource status signals for components that need loading/error states
+  readonly isLoadingProfile = this.profileResource.isLoading;
+  readonly profileError = this.profileResource.error;
+
+  // Method to manually reload profile if needed
+  reload(): void {
+    this.profileResource.reload();
   }
 
-  async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
+  private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
     const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(
       this.functions,
       'readProfile',
     );
-    try {
-      const { data } = await readProfileCallable();
-      return data;
-    } catch (error) {
-      // Check if this is a "profile not found" error which is normal for users without profiles
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (
-        errorMessage.includes('Profile not found') ||
-        errorMessage.includes('may need to claim')
-      ) {
-        console.info('Profile not found - user may need to claim their membership:', errorMessage);
-      } else {
-        console.error('Error calling readProfile function:', error);
-      }
-      // Re-throw the error so the component can handle it
-      throw error;
-    }
-  }
-
-  async preloadProfile(): Promise<ProfileData | undefined> {
-    try {
-      // Check if user has active membership and a profile before attempting to fetch
-      const userDocument = await firstValueFrom(this.membershipService.userDocument$);
-
-      if (!userDocument) {
-        console.info('No user document found - skipping profile preload');
-        return undefined;
-      }
-
-      if (!userDocument.membershipActive) {
-        console.info('User does not have active membership - skipping profile preload');
-        return undefined;
-      }
-
-      if (!userDocument.slug) {
-        console.info('User does not have a profile yet - skipping profile preload');
-        return undefined;
-      }
-
-      return await this.loadAndParseProfile();
-    } catch (error) {
-      // Check if this is a "profile not found" error which is normal for users without profiles
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (
-        errorMessage.includes('Profile not found') ||
-        errorMessage.includes('may need to claim')
-      ) {
-        console.info('Profile not found during preload - user may need to claim their membership');
-      } else {
-        console.error('Error preloading profile:', error);
-      }
-      return undefined;
-    }
-  }
-
-  clearProfileCache(): void {
-    this.cachedProfile.set(undefined);
+    const { data } = await readProfileCallable();
+    return data;
   }
 
   private parseProfileContent(content: string): ProfileData | undefined {

@@ -1,5 +1,5 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Injectable, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   type ActionCodeInfo,
   Auth,
@@ -19,7 +19,6 @@ import {
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
 import { from, map, switchMap } from 'rxjs';
-import { ProfileService } from './profile.service';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -41,10 +40,6 @@ export class AuthService {
   private auth = inject(Auth);
   private router = inject(Router);
   private functions = inject(Functions);
-  private profileService = inject(ProfileService);
-  private destroyRef = inject(DestroyRef);
-
-  private profilePreloaded = signal(false);
 
   // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
   readonly user$ = idToken(this.auth).pipe(map(() => this.auth.currentUser));
@@ -69,20 +64,6 @@ export class AuthService {
     ),
     { initialValue: false },
   );
-
-  constructor() {
-    // Preload profile when user logs in (ProfileService will check if they should have a profile)
-    this.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
-      if (user && !this.profilePreloaded()) {
-        this.profilePreloaded.set(true);
-        void this.profileService.preloadProfile();
-      } else if (!user) {
-        // Reset flag when user logs out
-        this.profilePreloaded.set(false);
-        this.profileService.clearProfileCache();
-      }
-    });
-  }
 
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
