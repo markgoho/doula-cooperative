@@ -40,7 +40,8 @@
       "Bash(USE_EMULATOR=false bun run:*)",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_take_screenshot"
+      "mcp__playwright__browser_take_screenshot",
+      "WebFetch(domain:blog.angular.dev)"
     ],
     "deny": [],
     "ask": []
