@@ -76,6 +76,32 @@
               <span class="detail-value">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
             </div>
           </div>
+
+          @if (lastPaymentDate() || nextPaymentDate() || membershipExpiresDate()) {
+            <h3>Payment Information</h3>
+            <div class="membership-details">
+              @if (lastPaymentDate(); as lastPayment) {
+                <div class="detail-item">
+                  <span class="detail-label">Last Payment:</span>
+                  <span class="detail-value">{{ lastPayment | date: 'MMMM d, yyyy' }}</span>
+                </div>
+              }
+
+              @if (nextPaymentDate(); as nextPayment) {
+                <div class="detail-item">
+                  <span class="detail-label">Next Payment:</span>
+                  <span class="detail-value">{{ nextPayment | date: 'MMMM d, yyyy' }}</span>
+                </div>
+              }
+
+              @if (membershipExpiresDate(); as expiresDate) {
+                <div class="detail-item">
+                  <span class="detail-label">Membership Expires:</span>
+                  <span class="detail-value">{{ expiresDate | date: 'MMMM d, yyyy' }}</span>
+                </div>
+              }
+            </div>
+          }
         </div>
       } @else {
         <div class="loading-info">

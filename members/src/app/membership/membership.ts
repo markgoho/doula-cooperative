@@ -53,6 +53,30 @@ export class Membership {
     return;
   });
 
+  protected lastPaymentDate = computed(() => {
+    const userDocument = this.userDocument();
+    if (userDocument?.lastPayment) {
+      return userDocument.lastPayment.toDate();
+    }
+    return;
+  });
+
+  protected nextPaymentDate = computed(() => {
+    const userDocument = this.userDocument();
+    if (userDocument?.nextPayment) {
+      return userDocument.nextPayment.toDate();
+    }
+    return;
+  });
+
+  protected membershipExpiresDate = computed(() => {
+    const userDocument = this.userDocument();
+    if (userDocument?.membershipExpiresAt) {
+      return userDocument.membershipExpiresAt.toDate();
+    }
+    return;
+  });
+
   constructor() {
     effect(() => {
       // When the user signal changes, trigger the check for a claimable profile.

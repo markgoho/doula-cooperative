@@ -48,6 +48,8 @@ export interface Member {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
+  lastPayment?: Timestamp;
+  nextPayment?: Timestamp;
 }
 
 @Injectable({
