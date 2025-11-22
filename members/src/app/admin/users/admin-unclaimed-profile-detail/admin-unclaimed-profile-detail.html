@@ -1,7 +1,6 @@
 <h1>Unclaimed Profile Details</h1>
 
 @let profileResource = service.unclaimedProfileResource;
-@let profile = profileResource.value();
 
 @if (service.successMessage(); as message) {
   <div class="success-message">{{ message }}</div>
@@ -15,7 +14,7 @@
   <p class="loading">Loading details...</p>
 } @else if (service.errorMessage(); as errorMessage) {
   <p class="error">{{ errorMessage }}</p>
-} @else if (profile) {
+} @else if (profileResource.value(); as profile) {
   <section class="user-info-card">
     <h2>Unclaimed Profile Information</h2>
     <p class="info-notice">

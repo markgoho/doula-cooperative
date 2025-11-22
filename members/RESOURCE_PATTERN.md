@@ -89,18 +89,34 @@ export class MemberDetailComponent {
 
 ### Template Usage
 
-#### Recommended: Using `@let` to Extract Resource and Value
+#### ⚠️ CRITICAL: Do NOT Extract Value Before Error Checking
 
+**WRONG - This will throw an error:**
 ```html
-<!-- Extract resource and value at top of template -->
+<!-- ❌ DON'T DO THIS - value() throws when resource is in error state -->
 @let memberResource = service.memberResource;
-@let member = memberResource.value();
+@let member = memberResource.value();  <!-- This throws if resource has error! -->
 
 @if (memberResource.isLoading()) {
   <p>Loading...</p>
 } @else if (errorMessage(); as err) {
   <p class="error">{{ err }}</p>
-} @else if (member) {
+}
+```
+
+**Calling `.value()` on a resource in an error state throws an error:** `Resource is currently in an error state`
+
+#### Recommended: Extract Resource Only, Then Value in Conditional
+
+```html
+<!-- ✅ CORRECT - Extract resource at top, call value() inside conditional -->
+@let memberResource = service.memberResource;
+
+@if (memberResource.isLoading()) {
+  <p>Loading...</p>
+} @else if (service.errorMessage(); as err) {
+  <p class="error">{{ err }}</p>
+} @else if (memberResource.value(); as member) {
   <!-- member is non-undefined here, fully type-safe -->
   <div>{{ member.name }}</div>
 }
@@ -109,8 +125,8 @@ export class MemberDetailComponent {
 #### Alternative: Using Status States
 
 ```html
+<!-- Extract resource only - value() called within cases where it's safe -->
 @let memberResource = service.memberResource;
-@let member = memberResource.value();
 
 @switch (memberResource.status()) {
   @case ('loading') {
@@ -118,21 +134,25 @@ export class MemberDetailComponent {
   }
   @case ('reloading') {
     <!-- Show content with loading overlay during reload -->
-    <div class="reloading-overlay">
-      <div>{{ member.name }}</div>
-      <spinner />
-    </div>
+    @if (memberResource.value(); as member) {
+      <div class="reloading-overlay">
+        <div>{{ member.name }}</div>
+        <spinner />
+      </div>
+    }
   }
   @case ('error') {
-    <p class="error">{{ errorMessage() }}</p>
+    <p class="error">{{ service.errorMessage() }}</p>
   }
   @case ('resolved') {
-    <div>{{ member.name }}</div>
+    @if (memberResource.value(); as member) {
+      <div>{{ member.name }}</div>
+    }
   }
 }
 ```
 
-> **Best Practice**: Extract both the resource and its value at the top of your template with `@let`. This provides the cleanest, most maintainable pattern with minimal repetition.
+> **Best Practice**: Only extract the resource with `@let` at the top of your template. Call `.value()` inside conditionals where you've confirmed the resource is not in an error state. This prevents runtime errors when the resource fails to load.
 
 ## Key Benefits
 
@@ -380,6 +400,33 @@ it('should optimistically update and revert on error', async () => {
 
 ## Anti-Patterns to Avoid
 
+### ❌ CRITICAL: Extracting value before error checking
+
+```html
+<!-- WRONG - This throws "Resource is currently in an error state" -->
+@let resource = service.memberResource;
+@let member = resource.value();  <!-- Throws if resource has error! -->
+
+@if (resource.isLoading()) {
+  <p>Loading...</p>
+}
+```
+
+### ✅ Call value() inside conditional
+
+```html
+<!-- CORRECT - Only call value() after checking error state -->
+@let resource = service.memberResource;
+
+@if (resource.isLoading()) {
+  <p>Loading...</p>
+} @else if (service.errorMessage(); as err) {
+  <p class="error">{{ err }}</p>
+} @else if (resource.value(); as member) {
+  <div>{{ member.name }}</div>
+}
+```
+
 ### ❌ Reading signals directly in loader
 
 ```typescript
@@ -526,27 +573,30 @@ The `'loading'` vs `'reloading'` status distinction allows different UX:
 
 ## Quick Reference
 
-| Feature | Purpose | Example |
-|---------|---------|---------|
-| `value()` | Get current data | `resource.value()?.name` |
-| `hasValue()` | Type-safe value check | `if (resource.hasValue())` |
-| `isLoading()` | Loading state check | `@if (resource.isLoading())` |
-| `error()` | Get error object | `resource.error()?.message` |
-| `status()` | Detailed state | `resource.status() === 'reloading'` |
-| `reload()` | Manual refresh | `resource.reload()` |
-| `set()` | Replace value | `resource.set(newValue)` |
-| `update()` | Transform value | `resource.update(v => ({...v, ...changes}))` |
+| Feature | Purpose | Example | ⚠️ Notes |
+|---------|---------|---------|----------|
+| `value()` | Get current data | `@if (resource.value(); as data)` | **Throws if error state!** Only call after checking loading/error |
+| `hasValue()` | Type-safe value check | `if (resource.hasValue())` | Safe to call anytime |
+| `isLoading()` | Loading state check | `@if (resource.isLoading())` | Safe to call anytime |
+| `error()` | Get error object | `resource.error()?.message` | Safe to call anytime |
+| `status()` | Detailed state | `resource.status() === 'reloading'` | Safe to call anytime |
+| `reload()` | Manual refresh | `resource.reload()` | - |
+| `set()` | Replace value | `resource.set(newValue)` | Changes status to 'local' |
+| `update()` | Transform value | `resource.update(v => ({...v, ...changes}))` | Changes status to 'local' |
 
 ## Best Practices Checklist
 
 - ✅ Use `@let` to extract resource at top of template (`@let resource = service.resource`)
-- ✅ Use second `@let` to extract value (`@let data = resource.value()`)
-- ✅ Check `resource.isLoading()`, `resource.error()`, or `data` for rendering logic
+- ✅ Call `.value()` only inside conditionals after checking loading/error state
+- ✅ Use `@if (resource.value(); as data)` to safely extract value
+- ✅ Check `resource.isLoading()` and `service.errorMessage()` before accessing value
 - ✅ Pass `abortSignal` to all async operations
 - ✅ Return `undefined` from `params` for conditional loading
 - ✅ Use `'reloading'` status for better UX during refreshes
 - ✅ Implement optimistic updates with `.update()` + `.reload()` on error
 - ✅ Expose resource directly to template (not individual signals)
+- ❌ **CRITICAL:** Don't call `.value()` at template top - it throws when resource has error
+- ❌ Don't extract value with `@let data = resource.value()` before error checking
 - ❌ Don't read signals directly in loader (use `params`)
 - ❌ Don't use `effect()` with resources (params handles reactivity)
 - ❌ Don't manually manage loading/error states

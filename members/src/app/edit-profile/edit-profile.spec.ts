@@ -191,10 +191,32 @@ async function setup({ profileData, hasProfile = true, isLoading = false, error 
     },
   };
 
+  // Create a mock resource that matches the resource API
+  const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
+
+  // Determine resource status based on state
+  let resourceStatus: 'idle' | 'loading' | 'error' | 'resolved' = 'idle';
+  if (isLoading) {
+    resourceStatus = 'loading';
+  } else if (error) {
+    resourceStatus = 'error';
+  } else if (profileValue) {
+    resourceStatus = 'resolved';
+  }
+
+  const mockProfileResource = {
+    value: signal(profileValue),
+    hasValue: signal(!!profileValue),
+    isLoading: signal(isLoading),
+    error: signal(error),
+    status: signal(resourceStatus),
+    reload: vi.fn(),
+    set: vi.fn(),
+    update: vi.fn(),
+  };
+
   const mockProfileService = {
-    profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
-    isLoadingProfile: signal(isLoading),
-    profileError: signal(error),
+    profileResource: mockProfileResource,
     getTagUrl: vi.fn((tag: string) => tag.toLowerCase().replaceAll(/\s+/g, '-')),
   };
 
