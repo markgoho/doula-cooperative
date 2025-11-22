@@ -304,7 +304,7 @@ async function setup(options: SetupOptions = {}) {
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       AdminUnclaimedProfileDetailService, // Provide real service, it will use mocked AdminMembersService
     ],
-    componentInputs: { email },
+    inputs: { email },
   });
 
   return {

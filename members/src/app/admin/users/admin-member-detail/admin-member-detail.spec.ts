@@ -446,7 +446,7 @@ async function setup({
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       AdminMemberDetailService, // Provide real service, it will use mocked AdminMembersService
     ],
-    componentInputs: { uid },
+    inputs: { uid },
   });
 
   return {
