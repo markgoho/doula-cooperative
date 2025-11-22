@@ -405,8 +405,6 @@ async function setup({
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
 }: SetupOptions = {}) {
-  const user = userEvent.setup();
-
   const defaultMember = createMockMember({ uid });
   const memberToUse = member ?? defaultMember;
 
@@ -415,16 +413,13 @@ async function setup({
     resolveMemberPromise = resolve;
   });
 
-  let getMemberCallCount = 0;
   const mockAdminMembersService = {
     getMember: vi.fn().mockImplementation(() => {
-      getMemberCallCount++;
-
       if (shouldKeepLoading) {
         return pendingMemberPromise;
       }
 
-      if (shouldFailLoad && getMemberCallCount === 1) {
+      if (shouldFailLoad) {
         return Promise.reject(new Error(errorMessage));
       }
 
@@ -439,6 +434,11 @@ async function setup({
     deleteUser: shouldFailDelete
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
+    readMemberProfile: vi.fn().mockResolvedValue({
+      content: 'Mock profile content',
+      image: 'https://example.com/image.jpg',
+      slug: 'test-slug',
+    }),
   };
 
   const component = await render(AdminMemberDetail, {
@@ -448,6 +448,9 @@ async function setup({
     ],
     inputs: { uid },
   });
+
+  // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
+  const user = userEvent.setup();
 
   return {
     user,

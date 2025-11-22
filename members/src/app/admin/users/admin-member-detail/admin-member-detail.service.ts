@@ -25,12 +25,21 @@ export class AdminMemberDetailService {
   readonly successMessage = signal<string | undefined>(undefined);
   readonly actionError = signal<string | undefined>(undefined);
 
-  // Profile loading state
-  readonly profileContent = signal<{ content: string; image?: string; slug: string } | undefined>(
-    undefined,
-  );
-  readonly loadingProfile = signal(false);
-  readonly profileError = signal<string | undefined>(undefined);
+  // Profile loading with resource API
+  private profileUidSignal = signal<string | undefined>(undefined);
+
+  readonly profileResource = resource({
+    params: () => {
+      const uid = this.profileUidSignal();
+      return uid ? { uid } : undefined;
+    },
+    loader: ({ params }) => this.adminMembersService.readMemberProfile(params.uid),
+  });
+
+  readonly profileErrorMessage = computed(() => {
+    const error = this.profileResource.error();
+    return error ? 'Failed to load profile content. Please try again.' : undefined;
+  });
 
   /**
    * Initialize the service with the uid signal from component input
@@ -102,22 +111,9 @@ export class AdminMemberDetailService {
   /**
    * Load profile content for the current member
    */
-  async loadProfile(member: Member): Promise<void> {
-    if (!member.slug) {
-      return;
-    }
-
-    this.loadingProfile.set(true);
-    this.profileError.set(undefined);
-
-    try {
-      const profile = await this.adminMembersService.readMemberProfile(member.uid);
-      this.profileContent.set(profile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      this.profileError.set('Failed to load profile content. Please try again.');
-    } finally {
-      this.loadingProfile.set(false);
+  loadProfile(member: Member): void {
+    if (member.slug) {
+      this.profileUidSignal.set(member.uid);
     }
   }
 }

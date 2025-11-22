@@ -165,23 +165,26 @@
         <dd>Yes</dd>
       </dl>
 
-      @if (!service.profileContent() && !service.profileError()) {
+      @let profileResource = service.profileResource;
+      @let profile = profileResource.value();
+
+      @if (!profile && !service.profileErrorMessage()) {
         <button
           type="button"
           class="button"
           (click)="loadProfile()"
-          [disabled]="service.loadingProfile()"
+          [disabled]="profileResource.isLoading()"
         >
-          {{ service.loadingProfile() ? 'Loading...' : 'View Profile Content' }}
+          {{ profileResource.isLoading() ? 'Loading...' : 'View Profile Content' }}
         </button>
       }
 
-      @if (service.profileError(); as error) {
+      @if (service.profileErrorMessage(); as error) {
         <p class="error">{{ error }}</p>
         <button type="button" class="button" (click)="loadProfile()">Retry</button>
       }
 
-      @if (service.profileContent(); as profile) {
+      @if (profile) {
         <div class="profile-preview">
           <h3>Profile Content</h3>
 

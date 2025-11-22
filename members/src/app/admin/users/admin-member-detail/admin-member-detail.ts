@@ -101,9 +101,9 @@ export class AdminMemberDetail {
     }
   }
 
-  protected async loadProfile(): Promise<void> {
+  protected loadProfile(): void {
     if (this.service.memberResource.hasValue()) {
-      await this.service.loadProfile(this.service.memberResource.value());
+      this.service.loadProfile(this.service.memberResource.value());
     }
   }
 
