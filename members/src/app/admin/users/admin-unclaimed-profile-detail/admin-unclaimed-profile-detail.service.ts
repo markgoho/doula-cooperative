@@ -11,9 +11,7 @@ export class AdminUnclaimedProfileDetailService {
   // Resource automatically loads unclaimed profile based on email
   readonly unclaimedProfileResource = resource({
     params: () => ({ email: this.emailSignal() }),
-    loader: async ({ params }) => {
-      return await this.adminMembersService.getUnclaimedProfile(params.email);
-    },
+    loader: ({ params }) => this.adminMembersService.getUnclaimedProfile(params.email),
   });
 
   // Transform error to string for display

@@ -3,12 +3,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
+  resource,
   signal,
 } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { type UnclaimedProfile, MembershipService } from '../services/membership.service';
+import { MembershipService } from '../services/membership.service';
 
 @Component({
   imports: [DatePipe],
@@ -22,9 +22,14 @@ export class Membership {
 
   protected user = this.authService.user;
   protected claimInProgress = signal(false);
-  protected claimableProfileData = signal<UnclaimedProfile | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
+
+  // Resource automatically loads when user changes
+  protected claimableProfileResource = resource({
+    params: () => ({ user: this.user() }),
+    loader: ({ params }) => this.membershipService.getClaimableProfileData(params.user),
+  });
 
   // Computed signals for formatted user data
   protected membershipCreated = computed(() => {
@@ -77,25 +82,12 @@ export class Membership {
     return;
   });
 
-  constructor() {
-    effect(() => {
-      // When the user signal changes, trigger the check for a claimable profile.
-      // We wrap the async logic in a void call to satisfy the effect's synchronous nature.
-      void this.checkForClaimableProfile();
-    });
-  }
-
-  private async checkForClaimableProfile(): Promise<void> {
-    const currentUser = this.user();
-    const profileData = await this.membershipService.getClaimableProfileData(currentUser);
-    this.claimableProfileData.set(profileData);
-  }
-
   protected async onClaimProfile() {
     this.claimInProgress.set(true);
     try {
       await this.authService.claimProfile();
-      this.claimableProfileData.set(undefined); // Hide the banner after claiming
+      // Clear the banner after claiming
+      this.claimableProfileResource.set(undefined);
     } catch (error) {
       console.error('Failed to claim profile:', error);
       // TODO: Add proper error handling (toast notification, etc.)

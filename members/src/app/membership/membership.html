@@ -3,7 +3,8 @@
 @if (user(); as user) {
   <!-- Authenticated User View -->
   <div class="authenticated-view">
-    @if (claimableProfileData(); as profileData) {
+    @let claimableProfileData = claimableProfileResource.value();
+    @if (claimableProfileData; as profileData) {
       <div class="claim-profile-banner">
         <h3>Claim Your Existing Membership</h3>
         <div><strong>Name:</strong> {{ profileData.name }}</div>

@@ -11,9 +11,7 @@ export class AdminMemberDetailService {
   // Resource automatically loads member based on uid
   readonly memberResource = resource({
     params: () => ({ uid: this.uidSignal() }),
-    loader: async ({ params }) => {
-      return await this.adminMembersService.getMember(params.uid);
-    },
+    loader: ({ params }) => this.adminMembersService.getMember(params.uid),
   });
 
   // Transform error to string for display
