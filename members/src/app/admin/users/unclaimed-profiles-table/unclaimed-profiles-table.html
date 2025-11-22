@@ -3,7 +3,7 @@
   <p class="section-description">
     These members have migrated profiles but haven't yet claimed them by creating an account.
   </p>
-  @if (loading()) {
+  @if (profilesResource().isLoading()) {
     <p class="loading">Loading unclaimed profiles...</p>
   } @else if (error(); as errorMessage) {
     <p class="error">{{ errorMessage }}</p>

@@ -1,13 +1,9 @@
 <h1>User Management</h1>
 <div class="header-stats">
   <span>Total Members: {{ totalMembers() }}</span>
-  <span>Unclaimed Profiles: {{ unclaimedTotal() }}</span>
+  <span>Unclaimed Profiles: {{ totalUnclaimed() }}</span>
 </div>
 
 <app-active-members-table [membersResource]="membersResource" />
 
-<app-unclaimed-profiles-table
-  [profiles]="unclaimedProfiles()"
-  [loading]="unclaimedLoading()"
-  [error]="unclaimedError()"
-/>
+<app-unclaimed-profiles-table [profilesResource]="unclaimedResource" />

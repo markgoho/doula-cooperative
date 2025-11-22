@@ -1,8 +1,9 @@
+import { signal, type ResourceRef } from '@angular/core';
 import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { Timestamp } from '../../../../test-utils/timestamp-mock';
-import type { UnclaimedProfile } from '../../admin.service';
+import type { ListUnclaimedProfilesResponse, UnclaimedProfile } from '../../admin.service';
 import { UnclaimedProfilesTable } from './unclaimed-profiles-table';
 
 function createMockProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {
@@ -29,10 +30,18 @@ async function setup({
   loading = false,
   error,
 }: { profiles?: UnclaimedProfile[]; loading?: boolean; error?: string | undefined } = {}) {
-  const user = userEvent.setup();
+  const mockResource = {
+    value: signal(profiles ? { profiles, total: profiles.length } : undefined),
+    isLoading: signal(loading),
+    error: signal(error ? new Error(error) : undefined),
+    hasValue: () => !!profiles,
+    reload: () => true,
+  } as unknown as ResourceRef<ListUnclaimedProfilesResponse | undefined>;
+
   await render(UnclaimedProfilesTable, {
-    componentInputs: { profiles, loading, error },
+    inputs: { profilesResource: mockResource },
   });
+  const user = userEvent.setup();
   return { user };
 }
 
@@ -183,7 +192,9 @@ describe('UnclaimedProfilesTable', () => {
       await setup({ error: 'Something went wrong' });
 
       // Assert
-      expect(screen.getByText('Something went wrong')).toBeVisible();
+      expect(
+        screen.getByText('Failed to load unclaimed profiles. Please try again.'),
+      ).toBeVisible();
     });
 
     it('should display profiles in table', async () => {

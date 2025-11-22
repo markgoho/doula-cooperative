@@ -1,8 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  type ResourceRef,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
-import type { UnclaimedProfile } from '../../admin.service';
+import type { ListUnclaimedProfilesResponse } from '../../admin.service';
 
 type SortDirection = 'asc' | 'desc';
 type UnclaimedProfileSortColumn =
@@ -21,15 +28,21 @@ type UnclaimedProfileSortColumn =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UnclaimedProfilesTable {
-  profiles = input.required<UnclaimedProfile[]>();
-  loading = input.required<boolean>();
-  error = input<string | undefined>();
+  profilesResource = input.required<ResourceRef<ListUnclaimedProfilesResponse | undefined>>();
 
   protected sortColumn = signal<UnclaimedProfileSortColumn>('subscriptionStart');
   protected sortDirection = signal<SortDirection>('desc');
 
+  protected error = computed(() => {
+    const error = this.profilesResource().error();
+    return error ? 'Failed to load unclaimed profiles. Please try again.' : undefined;
+  });
+
   protected sortedProfiles = computed(() => {
-    const data = [...this.profiles()];
+    const resource = this.profilesResource();
+    if (!resource.hasValue()) return [];
+
+    const data = [...(resource.value()?.profiles ?? [])];
     const column = this.sortColumn();
     const direction = this.sortDirection();
 
