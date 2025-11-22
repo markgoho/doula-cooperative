@@ -1,7 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  resource,
+  signal,
+} from '@angular/core';
+import { AdminMembersService, type UnclaimedProfile } from '../../admin.service';
 import { ActiveMembersTable } from '../active-members-table/active-members-table';
 import { UnclaimedProfilesTable } from '../unclaimed-profiles-table/unclaimed-profiles-table';
-import { AdminMembersService, type Member, type UnclaimedProfile } from '../../admin.service';
 
 @Component({
   imports: [ActiveMembersTable, UnclaimedProfilesTable],
@@ -12,10 +19,13 @@ import { AdminMembersService, type Member, type UnclaimedProfile } from '../../a
 export class AdminUsers {
   private adminMembersService = inject(AdminMembersService);
 
-  protected members = signal<Member[]>([]);
-  protected total = signal(0);
-  protected loading = signal(true);
-  protected error = signal<string | undefined>(undefined);
+  protected membersResource = resource({
+    loader: () => this.adminMembersService.listMembers(100, 0),
+  });
+
+  protected totalMembers = computed(() => {
+    return this.membersResource.hasValue() ? (this.membersResource.value()?.total ?? 0) : 0;
+  });
 
   protected unclaimedProfiles = signal<UnclaimedProfile[]>([]);
   protected unclaimedTotal = signal(0);
@@ -23,24 +33,7 @@ export class AdminUsers {
   protected unclaimedError = signal<string | undefined>(undefined);
 
   constructor() {
-    void this.loadMembers();
     void this.loadUnclaimedProfiles();
-  }
-
-  private async loadMembers(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(undefined);
-
-    try {
-      const response = await this.adminMembersService.listMembers(100, 0);
-      this.members.set(response.members);
-      this.total.set(response.total);
-    } catch (error) {
-      console.error('Error loading members:', error);
-      this.error.set('Failed to load members. Please try again.');
-    } finally {
-      this.loading.set(false);
-    }
   }
 
   private async loadUnclaimedProfiles(): Promise<void> {

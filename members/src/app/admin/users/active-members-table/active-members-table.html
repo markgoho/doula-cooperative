@@ -1,6 +1,6 @@
 <section class="members-section">
   <h2>Active Members</h2>
-  @if (loading()) {
+  @if (membersResource().isLoading()) {
     <p class="loading">Loading members...</p>
   } @else if (error(); as errorMessage) {
     <p class="error">{{ errorMessage }}</p>

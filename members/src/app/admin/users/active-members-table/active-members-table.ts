@@ -1,8 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  type ResourceRef,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
-import type { Member } from '../../admin.service';
+import type { ListMembersResponse } from '../../admin.service';
 
 type SortDirection = 'asc' | 'desc';
 type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
@@ -15,15 +22,21 @@ type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActiveMembersTable {
-  members = input.required<Member[]>();
-  loading = input.required<boolean>();
-  error = input<string | undefined>();
+  membersResource = input.required<ResourceRef<ListMembersResponse | undefined>>();
 
   protected sortColumn = signal<MemberSortColumn>('created');
   protected sortDirection = signal<SortDirection>('desc');
 
+  protected error = computed(() => {
+    const error = this.membersResource().error();
+    return error ? 'Failed to load members. Please try again.' : undefined;
+  });
+
   protected sortedMembers = computed(() => {
-    const data = [...this.members()];
+    const resource = this.membersResource();
+    if (!resource.hasValue()) return [];
+
+    const data = [...(resource.value()?.members ?? [])];
     const column = this.sortColumn();
     const direction = this.sortDirection();
 

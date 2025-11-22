@@ -65,7 +65,8 @@ describe('AdminUsers', () => {
     const { resolvePromise } = await setup({ shouldKeepLoading: true });
 
     // Assert - loading state should be visible
-    expect(screen.getByText('Loading members...')).toBeVisible();
+    // Wait for the loading text to appear, as resource loading is async
+    expect(await screen.findByText('Loading members...')).toBeVisible();
 
     // Clean up - resolve the promise to avoid hanging test
     resolvePromise({ members: [], total: 0 });
@@ -141,7 +142,11 @@ describe('AdminUsers', () => {
     await setup({ members, total: 1 });
 
     // Assert
-    expect(screen.getAllByRole('cell')[0]).toHaveTextContent('—');
+    // Wait for the row to appear by looking for the email
+    await screen.findByText('test@example.com');
+    
+    const cells = screen.getAllByRole('cell');
+    expect(cells[0]).toHaveTextContent('—');
   });
 
   it('should display formatted creation date', async () => {
