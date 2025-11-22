@@ -11,8 +11,9 @@ This document describes the correct pattern for using Angular's `resource` API f
 ```typescript
 const dataResource = resource({
   params: () => ({ /* reactive parameters */ }),
-  loader: async ({ params, abortSignal, previous }) => {
+  loader: ({ params, abortSignal, previous }) => {
     // Load and return data using params
+    // Return a Promise directly - async/await not required
   }
 });
 ```
@@ -20,7 +21,7 @@ const dataResource = resource({
 ### Key Properties
 
 - **`params`**: Function that returns reactive parameters. When any signal read inside changes, the resource automatically triggers a new load.
-- **`loader`**: Async function that loads data. Receives `ResourceLoaderParams` object with:
+- **`loader`**: Function that returns a Promise. Receives `ResourceLoaderParams` object with:
   - `params`: The value returned from the `params` function
   - `abortSignal`: For request cancellation (automatically aborts when params change)
   - `previous`: Object with `status` property containing the previous `ResourceStatus`
@@ -69,9 +70,8 @@ export class MemberDetailComponent {
   // Resource automatically loads when uid changes
   protected memberResource = resource({
     params: () => ({ uid: this.uid() }),
-    loader: async ({ params, abortSignal }) => {
-      return await this.memberService.getMember(params.uid, { signal: abortSignal });
-    },
+    loader: ({ params, abortSignal }) =>
+      this.memberService.getMember(params.uid, { signal: abortSignal }),
   });
 
   // Transform error to string for display
@@ -152,9 +152,7 @@ private profileResource = resource({
     // Only load if user has a profile
     return user?.hasProfile ? { profileId: user.profileId } : undefined;
   },
-  loader: async ({ params }) => {
-    return await this.profileService.getProfile(params.profileId);
-  },
+  loader: ({ params }) => this.profileService.getProfile(params.profileId),
 });
 ```
 
@@ -169,9 +167,7 @@ private dataResource = resource({
     filter: this.filterType(),
     page: this.currentPage(),
   }),
-  loader: async ({ params }) => {
-    return await this.api.fetchData(params);
-  },
+  loader: ({ params }) => this.api.fetchData(params),
 });
 ```
 
@@ -180,15 +176,41 @@ Resource reloads whenever ANY of the signals in `params` change.
 ### Request Cancellation
 
 ```typescript
-loader: async ({ params, abortSignal }) => {
-  const response = await fetch(`/api/users/${params.id}`, {
-    signal: abortSignal  // Browser will cancel pending request if params change
-  });
-  return response.json();
-}
+// Simple case - just return the Promise
+loader: ({ params, abortSignal }) =>
+  fetch(`/api/users/${params.id}`, { signal: abortSignal }).then(r => r.json())
 ```
 
 Resources automatically abort outstanding operations when params change. Always pass `abortSignal` to async operations that support it.
+
+### When to Use `async/await` in Loaders
+
+**Use `async/await` ONLY when you need synchronous work before/after the async call:**
+
+```typescript
+// ✅ Need async/await for synchronous logic
+loader: async ({ params, previous }) => {
+  // Synchronous conditional logic
+  if (previous.status === 'resolved') {
+    // Different behavior for refreshes
+  }
+
+  const result = await this.service.getData(params.id);
+
+  // Synchronous transformation
+  const transformed = this.parseData(result);
+
+  return transformed;
+}
+
+// ❌ Don't use async/await for simple cases
+loader: async ({ params }) => {
+  return await this.service.getData(params.id);  // Unnecessarily verbose
+}
+
+// ✅ Simple case - just return the Promise
+loader: ({ params }) => this.service.getData(params.id)
+```
 
 ### Optimistic Updates with Local Mutations
 
@@ -222,8 +244,9 @@ Using `.set()` or `.update()` changes the status to `'local'`, allowing you to d
 ### Using `previous` Status for Conditional Logic
 
 ```typescript
+// Need async/await here for synchronous logic
 loader: async ({ params, previous }) => {
-  // Only show loading spinner on initial load, not on refreshes
+  // Synchronous conditional logic
   if (previous.status === 'resolved') {
     // This is a refresh - can implement background refresh logic
   }
@@ -357,22 +380,18 @@ it('should optimistically update and revert on error', async () => {
 
 ## Anti-Patterns to Avoid
 
-### ❌ Calling loader function directly from class property
+### ❌ Reading signals directly in loader
 
 ```typescript
 // WRONG - Don't reference this.uid() in the loader
-loader: async () => {
-  return await this.service.getMember(this.uid());
-}
+loader: () => this.service.getMember(this.uid())
 ```
 
 ### ✅ Use params passed to loader
 
 ```typescript
 // CORRECT - Use params from loader argument
-loader: async ({ params }) => {
-  return await this.service.getMember(params.uid);
-}
+loader: ({ params }) => this.service.getMember(params.uid)
 ```
 
 ### ❌ Using `effect()` with resource
@@ -393,7 +412,7 @@ constructor() {
 // CORRECT - Just define params, resource auto-reloads
 private memberResource = resource({
   params: () => ({ uid: this.uid() }),  // Auto-reactive!
-  loader: async ({ params }) => { /* ... */ }
+  loader: ({ params }) => this.service.getMember(params.uid)
 });
 ```
 
@@ -444,14 +463,10 @@ export class NewComponent {
 
   private dataResource = resource({
     params: () => ({ id: this.id() }),
-    loader: async ({ params }) => {
-      return await this.service.getData(params.id);
-    },
+    loader: ({ params }) => this.service.getData(params.id),
   });
 
-  protected data = this.dataResource.value;
-  protected loading = this.dataResource.isLoading;
-  protected error = computed(() => {
+  protected errorMessage = computed(() => {
     const err = this.dataResource.error();
     return err ? 'Failed to load data.' : undefined;
   });
