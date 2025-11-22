@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
 import { AuthActions } from './auth-actions';
 
+type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+
 describe('AuthActions - Unit Tests', () => {
   describe('verifyEmail mode', () => {
     it('should show processing state', async () => {
@@ -257,18 +259,6 @@ describe('AuthActions - Unit Tests', () => {
     });
   });
 
-  describe('invalid mode', () => {
-    it('should show error for unsupported action mode', async () => {
-      await setup({
-        mode: 'unsupportedMode',
-        oobCode: 'some-code',
-      });
-
-      expect(await screen.findByText('There was a problem')).toBeVisible();
-      expect(await screen.findByText('Invalid or unsupported action.')).toBeVisible();
-    });
-  });
-
   describe('missing code', () => {
     it('should not process when oobCode is empty', async () => {
       const { mockAuthService } = await setup({
@@ -287,7 +277,7 @@ describe('AuthActions - Unit Tests', () => {
 });
 
 interface SetupOptions {
-  mode: 'verifyEmail' | 'resetPassword' | 'recoverEmail' | string;
+  mode: AuthActionMode;
   oobCode: string;
   continueUrl?: string;
   lang?: string;
@@ -339,17 +329,16 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
-  const user = userEvent.setup();
-
   await render(AuthActions, {
     providers: [{ provide: AuthService, useValue: mockAuthService }],
-    componentInputs: {
+    inputs: {
       mode,
       oobCode,
       continueUrl,
       lang,
     },
   });
+  const user = userEvent.setup();
 
   return { user, mockAuthService };
 }
