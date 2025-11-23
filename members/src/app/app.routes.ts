@@ -26,7 +26,10 @@ export const routes: Routes = [
     path: 'admin',
     ...canActivate(redirectNonAdminToMembership),
     children: [
-      { path: '', redirectTo: 'users', pathMatch: 'full' },
+      {
+        path: '',
+        loadComponent: () => import('./admin/admin-dashboard').then((m) => m.AdminDashboard),
+      },
       {
         path: 'users',
         loadComponent: () => import('./admin/users/admin-users/admin-users').then((m) => m.AdminUsers),
