@@ -48,7 +48,10 @@
       "mcp__playwright__browser_close",
       "Bash(timeout 120 bun run test:*)",
       "Bash(timeout 15 bun run:*)",
-      "Bash(bunx tsc:*)"
+      "Bash(bunx tsc:*)",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_snapshot"
     ],
     "deny": [],
     "ask": []
