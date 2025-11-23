@@ -43,7 +43,10 @@ async function createImportDocument({
 }) {
   const defaultProfileData: UnclaimedProfileDocumentData = {
     name: "Test Doula",
+    email,
     subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
+    lastPayment: Timestamp.fromDate(new Date("2024-01-15")),
+    nextPayment: Timestamp.fromDate(new Date("2024-02-15")),
     slug: "test-doula",
   };
 

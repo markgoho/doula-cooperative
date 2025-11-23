@@ -1,0 +1,17 @@
+<h1>Match Requests</h1>
+<div class="header-stats">
+  <div class="stat-card">
+    <span class="stat-label">Total Requests</span>
+    <span class="stat-value">{{ totalRequests() }}</span>
+  </div>
+  <div class="stat-card stat-card--pending">
+    <span class="stat-label">Pending</span>
+    <span class="stat-value">{{ pendingCount() }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Processed</span>
+    <span class="stat-value">{{ processedCount() }}</span>
+  </div>
+</div>
+
+<app-match-requests-table [requestsResource]="matchRequestsResource" />

@@ -235,3 +235,36 @@ export const adminSendInvitation = onCall(
     return handleSendInvitation(request.data, request, apiKey);
   },
 );
+
+export const adminListMatchRequests = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleListMatchRequests } = await import(
+      "./admin/list-match-requests.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleListMatchRequests(request.data, request);
+  },
+);
+
+export const adminGetMatchRequest = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleGetMatchRequest } = await import(
+      "./admin/get-match-request.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleGetMatchRequest(request.data, request);
+  },
+);
+
+export const adminUpdateMatchRequest = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleUpdateMatchRequest } = await import(
+      "./admin/update-match-request.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleUpdateMatchRequest(request.data, request);
+  },
+);

@@ -7,9 +7,11 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.small]': 'size() === "small"',
+    '[class.accent]': 'color() === "accent"',
   },
 })
 export class Tag {
   label = input.required<string>();
   size = input<'default' | 'small'>('default');
+  color = input<'default' | 'accent'>('default');
 }

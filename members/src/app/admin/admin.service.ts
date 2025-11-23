@@ -47,6 +47,32 @@ export interface ListUnclaimedProfilesResponse {
   total: number;
 }
 
+export interface MatchRequest {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  zipcode: string;
+  estimatedDueDate: {
+    month: string;
+    day: string;
+    year: string;
+  };
+  services: string[];
+  birthLocation: string;
+  otherInfo: string;
+  insurance: string[];
+  submitted: string;
+  sent: boolean;
+}
+
+export interface ListMatchRequestsResponse {
+  requests: MatchRequest[];
+  total: number;
+  pendingCount: number;
+  processedCount: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -265,6 +291,47 @@ export class AdminMembersService {
     );
 
     const result = await sendInvitationCallable({ email });
+    return result.data;
+  }
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AdminMatchRequestsService {
+  private functions = inject(Functions);
+
+  async listMatchRequests(
+    limit = 50,
+    offset = 0,
+    status: 'pending' | 'processed' | 'all' = 'all',
+  ): Promise<ListMatchRequestsResponse> {
+    const listMatchRequestsCallable = httpsCallable<
+      { limit?: number; offset?: number; status?: 'pending' | 'processed' | 'all' },
+      ListMatchRequestsResponse
+    >(this.functions, 'adminListMatchRequests');
+
+    const result = await listMatchRequestsCallable({ limit, offset, status });
+    return result.data;
+  }
+
+  async getMatchRequest(id: string): Promise<MatchRequest> {
+    const getMatchRequestCallable = httpsCallable<{ id: string }, MatchRequest>(
+      this.functions,
+      'adminGetMatchRequest',
+    );
+
+    const result = await getMatchRequestCallable({ id });
+    return result.data;
+  }
+
+  async updateMatchRequestStatus(id: string, sent: boolean): Promise<{ success: boolean }> {
+    const updateMatchRequestCallable = httpsCallable<
+      { id: string; sent: boolean },
+      { success: boolean }
+    >(this.functions, 'adminUpdateMatchRequest');
+
+    const result = await updateMatchRequestCallable({ id, sent });
     return result.data;
   }
 }

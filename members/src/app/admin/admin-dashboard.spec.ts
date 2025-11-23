@@ -1,26 +1,48 @@
 import { render, screen } from '@testing-library/angular';
 import { describe, it, expect, vi } from 'vitest';
 import { AdminDashboard } from './admin-dashboard';
-import { AdminMembersService } from './admin.service';
+import { AdminMembersService, AdminMatchRequestsService } from './admin.service';
 
 interface SetupOptions {
   membersTotal?: number;
   unclaimedTotal?: number;
+  matchRequestsTotal?: number;
+  matchRequestsPending?: number;
 }
 
-async function setup({ membersTotal = 0, unclaimedTotal = 0 }: SetupOptions = {}) {
+async function setup({
+  membersTotal = 0,
+  unclaimedTotal = 0,
+  matchRequestsTotal = 0,
+  matchRequestsPending = 0,
+}: SetupOptions = {}) {
   const mockAdminMembersService = {
     listMembers: vi.fn().mockResolvedValue({ members: [], total: membersTotal }),
     listUnclaimedProfiles: vi.fn().mockResolvedValue({ profiles: [], total: unclaimedTotal }),
   };
 
+  const mockAdminMatchRequestsService = {
+    listMatchRequests: vi
+      .fn()
+      .mockResolvedValue({
+        requests: [],
+        total: matchRequestsTotal,
+        pendingCount: matchRequestsPending,
+        processedCount: 0,
+      }),
+  };
+
   const view = await render(AdminDashboard, {
-    providers: [{ provide: AdminMembersService, useValue: mockAdminMembersService }],
+    providers: [
+      { provide: AdminMembersService, useValue: mockAdminMembersService },
+      { provide: AdminMatchRequestsService, useValue: mockAdminMatchRequestsService },
+    ],
   });
 
   return {
     ...view,
     mockAdminMembersService,
+    mockAdminMatchRequestsService,
   };
 }
 
@@ -62,7 +84,7 @@ describe('AdminDashboard', () => {
   it('displays placeholder cards for future features', async () => {
     await setup();
 
-    expect(screen.getByRole('heading', { name: 'Referrals', level: 2 })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Match Requests', level: 2 })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Messages', level: 2 })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Analytics', level: 2 })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Settings', level: 2 })).toBeVisible();
@@ -73,6 +95,6 @@ describe('AdminDashboard', () => {
     await setup();
 
     const comingSoonBadges = screen.getAllByText('Coming Soon');
-    expect(comingSoonBadges).toHaveLength(5);
+    expect(comingSoonBadges).toHaveLength(4);
   });
 });

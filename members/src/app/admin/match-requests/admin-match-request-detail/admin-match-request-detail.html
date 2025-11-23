@@ -1,0 +1,226 @@
+@if (service.matchRequestResource.isLoading()) {
+  <p class="loading">Loading match request...</p>
+} @else if (service.errorMessage(); as errorMessage) {
+  <p class="error">{{ errorMessage }}</p>
+} @else if (service.matchRequestResource.value(); as matchRequest) {
+  <div class="detail-header">
+    <h1>{{ matchRequest.name }}</h1>
+    <div class="header-actions">
+      <app-tag
+        [label]="matchRequest.sent ? 'Processed' : 'Pending'"
+        [color]="matchRequest.sent ? 'default' : 'accent'"
+      />
+      @if (!matchRequest.sent) {
+        <button class="button" (click)="showMarkProcessedConfirm()">Mark as Processed</button>
+      } @else {
+        <button class="button" (click)="showMarkPendingConfirm()">Mark as Pending</button>
+      }
+    </div>
+  </div>
+
+  <!-- Services Needed Row -->
+  <div class="services-row">
+    @for (service of matchRequest.services; track service) {
+      <app-tag [label]="getServiceLabel(service)" size="small" />
+    }
+  </div>
+
+  <!-- Success/Error Messages -->
+  @if (service.successMessage(); as message) {
+    <div class="success-message">{{ message }}</div>
+  }
+  @if (service.actionError(); as error) {
+    <div class="error-message">{{ error }}</div>
+  }
+
+  <!-- Top: Contact & Birth Details (conditional layout) -->
+  @if (isBirthSupport()) {
+    <!-- Birth Support Layout: Two Cards -->
+    <div class="detail-grid-top">
+      <section class="info-card">
+        <h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="currentColor"
+            viewBox="0 0 256 256"
+          >
+            <path
+              d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"
+            ></path>
+          </svg>
+          Contact Details
+        </h2>
+        <dl class="info-grid">
+          <dt>Email</dt>
+          <dd>
+            <a [href]="'mailto:' + matchRequest.email" class="contact-link">
+              {{ matchRequest.email }}
+            </a>
+          </dd>
+
+          <dt>Phone</dt>
+          <dd>
+            <a [href]="'tel:' + matchRequest.phone" class="contact-link">
+              {{ matchRequest.phone }}
+            </a>
+          </dd>
+
+          <dt>ZIP Code</dt>
+          <dd>
+            <a
+              [href]="'https://www.google.com/maps/search/' + matchRequest.zipcode"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="contact-link"
+            >
+              {{ matchRequest.zipcode }}
+            </a>
+          </dd>
+
+          <dt>Submitted</dt>
+          <dd>{{ matchRequest.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
+        </dl>
+      </section>
+
+      <section class="info-card birth-details-card">
+        <h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="currentColor"
+            viewBox="0 0 256 256"
+          >
+            <path
+              d="M248,208h-8V128a16,16,0,0,0-16-16H168V48a16,16,0,0,0-16-16H56A16,16,0,0,0,40,48V208H32a8,8,0,0,0,0,16H248a8,8,0,0,0,0-16Zm-24-80v80H168V128ZM56,48h96V208H136V160a8,8,0,0,0-8-8H80a8,8,0,0,0-8,8v48H56Zm64,160H88V168h32ZM72,96a8,8,0,0,1,8-8H96V72a8,8,0,0,1,16,0V88h16a8,8,0,0,1,0,16H112v16a8,8,0,0,1-16,0V104H80A8,8,0,0,1,72,96Z"
+            ></path>
+          </svg>
+          Birth Details
+        </h2>
+        <dl class="info-grid">
+          <dt>Due Date</dt>
+          <dd class="due-date-prominent">
+            @if (parseDueDate(matchRequest.estimatedDueDate); as dueDate) {
+              {{ dueDate | date: 'MMMM d, yyyy' }}
+            } @else {
+              <span class="no-info">Not provided</span>
+            }
+          </dd>
+
+          @if (matchRequest.birthLocation) {
+            <dt>Birth Location</dt>
+            <dd class="birth-location">{{ matchRequest.birthLocation }}</dd>
+          }
+        </dl>
+      </section>
+    </div>
+  } @else {
+    <!-- Non-Birth Support Layout: Single Card -->
+    <section class="info-card full-width">
+      <h2>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          viewBox="0 0 256 256"
+        >
+          <path
+            d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"
+          ></path>
+        </svg>
+        Contact & Timeline
+      </h2>
+      <dl class="info-grid">
+        <dt>Email</dt>
+        <dd>
+          <a [href]="'mailto:' + matchRequest.email" class="contact-link">
+            {{ matchRequest.email }}
+          </a>
+        </dd>
+
+        <dt>Phone</dt>
+        <dd>
+          <a [href]="'tel:' + matchRequest.phone" class="contact-link">
+            {{ matchRequest.phone }}
+          </a>
+        </dd>
+
+        <dt>ZIP Code</dt>
+        <dd>
+          <a
+            [href]="'https://www.google.com/maps/search/' + matchRequest.zipcode"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-link"
+          >
+            {{ matchRequest.zipcode }}
+          </a>
+        </dd>
+
+        <dt>Due Date</dt>
+        <dd class="due-date">
+          @if (parseDueDate(matchRequest.estimatedDueDate); as dueDate) {
+            {{ dueDate | date: 'MMMM d, yyyy' }}
+          } @else {
+            <span class="no-info">Not provided</span>
+          }
+        </dd>
+
+        <dt>Submitted</dt>
+        <dd>{{ matchRequest.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
+      </dl>
+    </section>
+  }
+
+  <!-- Client Notes -->
+  <section class="info-card full-width">
+    <h2>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="currentColor"
+        viewBox="0 0 256 256"
+      >
+        <path
+          d="M100,56H40A16,16,0,0,0,24,72v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,100,56Zm0,80H40V72h60ZM216,56H156a16,16,0,0,0-16,16v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,216,56Zm0,80H156V72h60Z"
+        ></path>
+      </svg>
+      Client Notes
+    </h2>
+    @if (matchRequest.otherInfo) {
+      <p class="client-notes">{{ matchRequest.otherInfo }}</p>
+    } @else {
+      <p class="no-info">No additional information provided</p>
+    }
+  </section>
+
+  <!-- Insurance/Payment -->
+  @if (matchRequest.insurance && matchRequest.insurance.length > 0) {
+    <section class="info-card">
+      <h2>[ICON] Insurance/Payment</h2>
+      <ul class="insurance-list">
+        @for (insurance of matchRequest.insurance; track insurance) {
+          <li>{{ insurance }}</li>
+        }
+      </ul>
+    </section>
+  }
+}
+
+<!-- Confirmation Dialog -->
+<dialog #confirmDialog class="confirm-dialog">
+  <div class="dialog-content">
+    <h3>{{ getActionTitle() }}</h3>
+    <p>{{ getActionMessage() }}</p>
+    <div class="dialog-actions">
+      <button class="button" (click)="cancelAction()">Cancel</button>
+      <button class="button" (click)="confirmAction()" [disabled]="service.actionInProgress()">
+        {{ service.actionInProgress() ? 'Processing...' : 'Confirm' }}
+      </button>
+    </div>
+  </div>
+</dialog>

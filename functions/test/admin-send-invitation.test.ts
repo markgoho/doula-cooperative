@@ -42,8 +42,11 @@ async function createUnclaimedProfile({
 }) {
   const profileData: UnclaimedProfileDocumentData = {
     name,
+    email,
     subscriptionStart,
     slug,
+    lastPayment: subscriptionStart,
+    nextPayment: subscriptionStart,
   };
 
   if (invitationEmailStatus) {
@@ -409,7 +412,10 @@ describe("adminSendInvitation", () => {
 
     const profileData: UnclaimedProfileDocumentData = {
       name: "Complete Profile",
+      email: testEmail,
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
+      lastPayment: Timestamp.fromDate(new Date("2024-01-15")),
+      nextPayment: Timestamp.fromDate(new Date("2024-02-15")),
 
       slug: "complete-profile",
     };

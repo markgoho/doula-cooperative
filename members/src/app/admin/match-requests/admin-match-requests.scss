@@ -1,0 +1,41 @@
+// Page-level styles for admin match requests page
+
+.header-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-m);
+  margin-block-end: var(--space-l);
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+.stat-card {
+  background: var(--brown-000);
+  padding: var(--space-m);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--brown-300);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+
+  &--pending {
+    border-color: var(--teal-400);
+    background: var(--brown-100);
+  }
+}
+
+.stat-label {
+  font-size: var(--step--1);
+  color: var(--brown-450);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: var(--step-3);
+  color: var(--brown-500);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}

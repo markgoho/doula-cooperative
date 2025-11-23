@@ -46,6 +46,18 @@ export const routes: Routes = [
             (m) => m.AdminUnclaimedProfileDetail,
           ),
       },
+      {
+        path: 'match-requests',
+        loadComponent: () =>
+          import('./admin/match-requests/admin-match-requests').then((m) => m.AdminMatchRequests),
+      },
+      {
+        path: 'match-requests/:id',
+        loadComponent: () =>
+          import('./admin/match-requests/admin-match-request-detail/admin-match-request-detail').then(
+            (m) => m.AdminMatchRequestDetail,
+          ),
+      },
     ],
   },
 
