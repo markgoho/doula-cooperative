@@ -51,7 +51,8 @@
       "Bash(bunx tsc:*)",
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_evaluate",
-      "mcp__playwright__browser_snapshot"
+      "mcp__playwright__browser_snapshot",
+      "Bash(npm run test)"
     ],
     "deny": [],
     "ask": []
