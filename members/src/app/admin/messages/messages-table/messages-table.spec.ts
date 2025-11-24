@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/angular';
-import { describe, it, expect } from 'vitest';
-import { MessagesTable } from './messages-table';
 import { signal, type ResourceRef } from '@angular/core';
-import type { ListMessagesResponse, Message } from '../../admin.types';
 import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular';
+import { describe, expect, it } from 'vitest';
+import type { ListMessagesResponse, Message } from '../../admin.types';
+import { MessagesTable } from './messages-table';
 
 interface SetupOptions {
   messages?: Message[];
@@ -11,7 +11,7 @@ interface SetupOptions {
   error?: unknown;
 }
 
-async function setup({ messages = [], isLoading = false, error = undefined }: SetupOptions = {}) {
+async function setup({ messages = [], isLoading = false, error }: SetupOptions = {}) {
   // Create a mock resource
   const mockResource = {
     value: signal(
