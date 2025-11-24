@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { PROFILE_TAGS } from '../constants/profile-tags';
 import { EditProfileService } from '../services/edit-profile.service';
+import { type ProfileData } from '../services/profile.service';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -93,16 +94,16 @@ export class EditProfile {
       const selectedTags = this.availableTags.filter((_, index) => tagsArray.at(index).value);
 
       // Build profile data object
-      const profileData = {
+      const profileData: ProfileData = {
         title: formValue.title!,
-        credentials: formValue.credentials || undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
         bio: formValue.bio!,
+        ...(formValue.credentials && { credentials: formValue.credentials }),
+        ...(selectedTags.length > 0 && { tags: selectedTags }),
         contact: {
-          business_name: formValue.businessName || undefined,
-          phone: formValue.phone || undefined,
-          email: formValue.email || undefined,
-          website: formValue.website || undefined,
+          ...(formValue.businessName && { business_name: formValue.businessName }),
+          ...(formValue.phone && { phone: formValue.phone }),
+          ...(formValue.email && { email: formValue.email }),
+          ...(formValue.website && { website: formValue.website }),
         },
       };
 

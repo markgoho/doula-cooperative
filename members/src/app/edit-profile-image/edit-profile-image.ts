@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ProfileService } from '../services/profile.service';
+import { EditProfileService } from '../services/edit-profile.service';
 
 @Component({
   imports: [RouterLink],
@@ -9,7 +9,7 @@ import { ProfileService } from '../services/profile.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfileImage {
-  private profileService = inject(ProfileService);
+  private editProfileService = inject(EditProfileService);
 
-  readonly profileData = this.profileService.profile;
+  readonly profileData = this.editProfileService.profile;
 }

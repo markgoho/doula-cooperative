@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/angular';
 import { signal } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import { EditProfileImage } from './edit-profile-image';
-import { ProfileService } from '../services/profile.service';
+import { EditProfileService } from '../services/edit-profile.service';
 import type { ProfileData } from '../types/profile-data';
 
 describe('EditProfileImage', () => {
@@ -74,14 +74,14 @@ describe('EditProfileImage', () => {
 
   describe('when no profile exists', () => {
     it('should display profile setup required message', async () => {
-      await setup({ profileData: undefined });
+      await setup();
 
       expect(screen.getByText(/profile setup required/i)).toBeVisible();
       expect(screen.getByText(/it looks like you don't have a doula profile set up yet/i)).toBeVisible();
     });
 
     it('should display contact support instructions', async () => {
-      await setup({ profileData: undefined });
+      await setup();
 
       expect(
         screen.getByText(/please contact us to set up your profile/i)
@@ -89,7 +89,7 @@ describe('EditProfileImage', () => {
     });
 
     it('should have link to membership page', async () => {
-      await setup({ profileData: undefined });
+      await setup();
 
       const membershipLink = screen.getByRole('link', { name: /membership page/i });
       expect(membershipLink).toBeVisible();
@@ -97,7 +97,7 @@ describe('EditProfileImage', () => {
     });
 
     it('should display message about editing after profile creation', async () => {
-      await setup({ profileData: undefined });
+      await setup();
 
       expect(
         screen.getByText(/once your profile is created, you'll be able to edit it here/i)
@@ -111,11 +111,11 @@ interface SetupOptions {
 }
 
 async function setup({ profileData }: SetupOptions = {}) {
-  const mockProfileService = {
+  const mockEditProfileService = {
     profile: signal(profileData),
-  } as unknown as ProfileService;
+  } as unknown as EditProfileService;
 
   return await render(EditProfileImage, {
-    providers: [{ provide: ProfileService, useValue: mockProfileService }],
+    providers: [{ provide: EditProfileService, useValue: mockEditProfileService }],
   });
 }
