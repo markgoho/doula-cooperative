@@ -59,7 +59,8 @@
       "Bash(functions/src/write-profile/validation.ts)",
       "Bash(functions/src/types/profile-data.ts)",
       "Bash(functions/test/write-profile.test.ts)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(members/*)"
     ],
     "deny": [],
     "ask": []
