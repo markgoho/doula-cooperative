@@ -40,6 +40,14 @@ export const ERROR_IDS = {
   ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND: "admin_send_invitation_member_not_found",
   ADMIN_SEND_INVITATION_NO_SUBSCRIPTION: "admin_send_invitation_no_subscription",
   ADMIN_SEND_INVITATION_EMAIL_FAILED: "admin_send_invitation_email_failed",
+
+  // Write profile errors
+  WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
+  WRITE_PROFILE_GITHUB_NOT_FOUND: "write_profile_github_not_found",
+  WRITE_PROFILE_GITHUB_CONFLICT: "write_profile_github_conflict",
+  WRITE_PROFILE_GITHUB_GENERIC: "write_profile_github_generic",
+  WRITE_PROFILE_METADATA_PARSE_FAILED: "write_profile_metadata_parse_failed",
+  WRITE_PROFILE_PROCESSING_ERROR: "write_profile_processing_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

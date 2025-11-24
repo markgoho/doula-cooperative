@@ -10,8 +10,14 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
+import {
+  type CallableRequest,
+  HttpsError,
+  onCall,
+  onRequest,
+} from "firebase-functions/v2/https";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
+import { type ProfileData } from "./types/profile-data.js";
 
 // Initialize only if not already initialized
 if (getApps().length === 0) {
@@ -99,6 +105,26 @@ export const readProfile = onCall(
 
     const { handleReadProfile } = await import("./read-profile/index.js");
     return handleReadProfile(request, [
+      GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID,
+    ]);
+  },
+);
+
+export const writeProfile = onCall(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async (request: CallableRequest<ProfileData>) => {
+    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
+    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
+    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      throw new HttpsError("internal", "Missing GitHub secrets.");
+    }
+
+    const { handleWriteProfile } = await import("./write-profile/index.js");
+    return handleWriteProfile(request, [
       GITHUB_APP_ID,
       GITHUB_PRIVATE_KEY,
       GITHUB_INSTALLATION_ID,
