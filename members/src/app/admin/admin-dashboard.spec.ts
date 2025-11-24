@@ -1,13 +1,17 @@
 import { render, screen } from '@testing-library/angular';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AdminDashboard } from './admin-dashboard';
-import { AdminMembersService, AdminMatchRequestsService } from './admin.service';
+import { AdminMatchRequestsService } from './services/admin-match-requests.service';
+import { AdminMembersService } from './services/admin-members.service';
+import { AdminMessagesService } from './services/admin-messages.service';
 
 interface SetupOptions {
   membersTotal?: number;
   unclaimedTotal?: number;
   matchRequestsTotal?: number;
   matchRequestsPending?: number;
+  messagesTotal?: number;
+  messagesPending?: number;
 }
 
 async function setup({
@@ -15,6 +19,8 @@ async function setup({
   unclaimedTotal = 0,
   matchRequestsTotal = 0,
   matchRequestsPending = 0,
+  messagesTotal = 0,
+  messagesPending = 0,
 }: SetupOptions = {}) {
   const mockAdminMembersService = {
     listMembers: vi.fn().mockResolvedValue({ members: [], total: membersTotal }),
@@ -22,20 +28,28 @@ async function setup({
   };
 
   const mockAdminMatchRequestsService = {
-    listMatchRequests: vi
-      .fn()
-      .mockResolvedValue({
-        requests: [],
-        total: matchRequestsTotal,
-        pendingCount: matchRequestsPending,
-        processedCount: 0,
-      }),
+    listMatchRequests: vi.fn().mockResolvedValue({
+      requests: [],
+      total: matchRequestsTotal,
+      pendingCount: matchRequestsPending,
+      processedCount: 0,
+    }),
+  };
+
+  const mockAdminMessagesService = {
+    listMessages: vi.fn().mockResolvedValue({
+      messages: [],
+      total: messagesTotal,
+      pendingCount: messagesPending,
+      processedCount: 0,
+    }),
   };
 
   const view = await render(AdminDashboard, {
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       { provide: AdminMatchRequestsService, useValue: mockAdminMatchRequestsService },
+      { provide: AdminMessagesService, useValue: mockAdminMessagesService },
     ],
   });
 
@@ -43,6 +57,7 @@ async function setup({
     ...view,
     mockAdminMembersService,
     mockAdminMatchRequestsService,
+    mockAdminMessagesService,
   };
 }
 
@@ -95,6 +110,6 @@ describe('AdminDashboard', () => {
     await setup();
 
     const comingSoonBadges = screen.getAllByText('Coming Soon');
-    expect(comingSoonBadges).toHaveLength(4);
+    expect(comingSoonBadges).toHaveLength(3);
   });
 });

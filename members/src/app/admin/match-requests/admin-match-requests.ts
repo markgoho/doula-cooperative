@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { AdminMatchRequestsService } from '../admin.service';
+import { AdminMatchRequestsService } from '../services/admin-match-requests.service';
 import { MatchRequestsTable } from './match-requests-table/match-requests-table';
 
 @Component({

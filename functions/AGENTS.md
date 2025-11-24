@@ -12,7 +12,7 @@ Monorepo with Hugo static site, Firebase Functions, and Angular members portal. 
 ## Firebase Functions Patterns
 
 - **Structure:** Functions exported from `src/index.ts` with lazy imports for cold start optimization
-- **Collections:** Use constants from `src/constants/collections.ts` (e.g., `MEMBERS_COLLECTION`)
+- **Collections:** Use constants from `src/collections/index.ts` (e.g., `MEMBERS_COLLECTION`)
 - **Idempotent:** Keep functions idempotent unless involving timestamps
 - **Secrets:** Declare in function config with `secrets: ["SECRET_NAME"]`, access via `process.env.SECRET_NAME`
 

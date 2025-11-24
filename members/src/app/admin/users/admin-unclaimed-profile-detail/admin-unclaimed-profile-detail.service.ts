@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
-import { AdminMembersService } from '../../admin.service';
+import { AdminMembersService } from '../../services/admin-members.service';
 
 @Injectable()
 export class AdminUnclaimedProfileDetailService {

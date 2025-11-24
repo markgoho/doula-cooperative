@@ -14,6 +14,9 @@ export interface ListMembersResponse {
   total: number;
 }
 
+const MAX_LIMIT = 100;
+const DEFAULT_LIMIT = 50;
+
 /**
  * Admin-only function to list all members with pagination.
  */
@@ -23,7 +26,10 @@ export async function handleListMembers(
 ): Promise<ListMembersResponse> {
   verifyAdmin(context);
 
-  const { limit = 50, offset = 0 } = data;
+  const { limit = DEFAULT_LIMIT, offset = 0 } = data;
+
+  // Cap limit to prevent performance issues
+  const effectiveLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
 
   try {
     const firestore = getFirestore();
@@ -36,13 +42,18 @@ export async function handleListMembers(
     // Get paginated members, ordered by creation date (newest first)
     const snapshot = await membersCollection
       .orderBy("createdAt", "desc")
-      .limit(limit)
+      .limit(effectiveLimit)
       .offset(offset)
       .get();
 
     const members: MemberDocument[] = [];
     for (const document of snapshot.docs) {
-      members.push(document.data() as MemberDocument);
+      const data = document.data() as MemberDocument;
+      // Ensure uid matches document ID (uid is the document ID in members collection)
+      members.push({
+        ...data,
+        uid: document.id,
+      });
     }
 
     logger.log(`Admin ${context.auth?.uid} listed ${members.length} members`);

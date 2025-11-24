@@ -1,0 +1,95 @@
+@let messageResource = service.messageResource;
+
+@if (messageResource.isLoading()) {
+  <p class="loading">Loading message details...</p>
+} @else if (service.errorMessage(); as errorMessage) {
+  <p class="error">{{ errorMessage }}</p>
+} @else if (messageResource.value(); as message) {
+  <div class="detail-header">
+    <h1>Message Details</h1>
+    <div class="header-actions">
+      <app-tag
+        [label]="message.sent ? 'Processed' : 'Pending'"
+        [color]="message.sent ? 'default' : 'accent'"
+      />
+      @if (!message.sent) {
+        <button class="button" (click)="showMarkProcessedConfirm()">Mark as Processed</button>
+      } @else {
+        <button class="button" (click)="showMarkPendingConfirm()">Mark as Pending</button>
+      }
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  @if (service.successMessage(); as successMsg) {
+    <div class="success-message">{{ successMsg }}</div>
+  }
+  @if (service.actionError(); as error) {
+    <div class="error-message">{{ error }}</div>
+  }
+
+  <!-- Contact Details -->
+  <section class="info-card">
+    <h2>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="currentColor"
+        viewBox="0 0 256 256"
+      >
+        <path
+          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"
+        ></path>
+      </svg>
+      Contact Details
+    </h2>
+    <dl class="info-grid">
+      <dt>Name</dt>
+      <dd>{{ message.contactName }}</dd>
+
+      <dt>Email</dt>
+      <dd>
+        <a [href]="'mailto:' + message.email" class="contact-link">
+          {{ message.email }}
+        </a>
+      </dd>
+
+      <dt>Submitted</dt>
+      <dd>{{ message.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
+    </dl>
+  </section>
+
+  <!-- Message Content -->
+  <section class="info-card full-width">
+    <h2>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="currentColor"
+        viewBox="0 0 256 256"
+      >
+        <path
+          d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"
+        ></path>
+      </svg>
+      Message
+    </h2>
+    <p class="message-content">{{ message.message }}</p>
+  </section>
+}
+
+<!-- Confirmation Dialog -->
+<dialog #confirmDialog class="confirm-dialog">
+  <div class="dialog-content">
+    <h3>{{ getActionTitle() }}</h3>
+    <p>{{ getActionMessage() }}</p>
+    <div class="dialog-actions">
+      <button class="button" (click)="cancelAction()">Cancel</button>
+      <button class="button" (click)="confirmAction()" [disabled]="service.actionInProgress()">
+        {{ service.actionInProgress() ? 'Processing...' : 'Confirm' }}
+      </button>
+    </div>
+  </div>
+</dialog>

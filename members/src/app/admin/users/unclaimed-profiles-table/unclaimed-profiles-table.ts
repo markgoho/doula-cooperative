@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
-import type { ListUnclaimedProfilesResponse } from '../../admin.service';
+import type { ListUnclaimedProfilesResponse } from '../../admin.types';
 
 type SortDirection = 'asc' | 'desc';
 type UnclaimedProfileSortColumn =

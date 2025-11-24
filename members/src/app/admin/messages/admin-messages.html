@@ -1,0 +1,17 @@
+<h1>Messages</h1>
+<div class="header-stats">
+  <div class="stat-card">
+    <span class="stat-label">Total Messages</span>
+    <span class="stat-value">{{ totalMessages() }}</span>
+  </div>
+  <div class="stat-card stat-card--pending">
+    <span class="stat-label">Pending</span>
+    <span class="stat-value">{{ pendingCount() }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Processed</span>
+    <span class="stat-value">{{ processedCount() }}</span>
+  </div>
+</div>
+
+<app-messages-table [messagesResource]="messagesResource" />

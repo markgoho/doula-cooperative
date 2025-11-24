@@ -268,3 +268,36 @@ export const adminUpdateMatchRequest = onCall(
     return handleUpdateMatchRequest(request.data, request);
   },
 );
+
+export const adminListMessages = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleListMessages } = await import(
+      "./admin/list-messages.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleListMessages(request.data, request);
+  },
+);
+
+export const adminGetMessage = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleGetMessage } = await import(
+      "./admin/get-message.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleGetMessage(request.data, request);
+  },
+);
+
+export const adminUpdateMessage = onCall(
+  { invoker: "public" },
+  async request => {
+    const { handleUpdateMessage } = await import(
+      "./admin/update-message.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return handleUpdateMessage(request.data, request);
+  },
+);

@@ -1,0 +1,148 @@
+// Shared table styles for messages
+.messages-section {
+  background: var(--brown-000);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--brown-300);
+  margin-block-end: var(--space-l);
+
+  h2 {
+    margin-block-start: 0;
+    margin-block-end: var(--space-m);
+    font-size: var(--step-2);
+    color: var(--brown-500);
+  }
+}
+
+.messages-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-xs) var(--space-s);
+    text-align: left;
+    border-block-end: 1px solid var(--brown-200);
+  }
+
+  thead {
+    background: var(--brown-100);
+
+    th {
+      font-weight: var(--font-weight-semibold);
+      color: var(--brown-500);
+      font-size: var(--step--2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+
+        &:hover {
+          background: var(--brown-200);
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background 0.2s;
+
+      &:hover {
+        background: var(--brown-100);
+      }
+
+      &.pending-row {
+        border-inline-start: 3px solid var(--teal-400);
+      }
+    }
+
+    td {
+      font-size: var(--step--2);
+      color: var(--brown-500);
+    }
+  }
+}
+
+// Specific cell styles
+.name-cell {
+  font-weight: var(--font-weight-semibold);
+}
+
+.email-cell {
+  .email-link {
+    color: var(--teal-500);
+    text-decoration: none;
+    font-size: var(--step--1);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.submitted-cell {
+  .relative-time {
+    font-size: var(--step--1);
+    color: var(--brown-450);
+  }
+}
+
+// Loading and error states
+.loading {
+  text-align: center;
+  color: var(--brown-450);
+  padding: var(--space-l);
+  font-style: italic;
+}
+
+.error {
+  text-align: center;
+  color: var(--color-error, #d93025);
+  padding: var(--space-l);
+  background: #fdecea;
+  border-radius: var(--border-radius-md);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--brown-450);
+  padding: var(--space-l);
+  font-style: italic;
+}
+
+.sort-indicator {
+  margin-inline-start: var(--space-3xs);
+  color: var(--teal-500);
+}
+
+// View link (eye icon)
+.view-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--teal-500);
+  transition: color 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--teal-600);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .messages-table {
+    font-size: var(--step--1);
+
+    th,
+    td {
+      padding: var(--space-3xs) var(--space-xs);
+    }
+  }
+}

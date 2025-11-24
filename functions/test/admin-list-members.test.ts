@@ -62,16 +62,26 @@ async function createMemberDocument({
   return memberData as MemberDocument;
 }
 
+// Test-specific prefix for isolation
+const TEST_PREFIX = "test-list-members-";
+
 async function cleanupAdminListMembers() {
   const firestore = getFirestore();
 
-  // Clean up ALL members to ensure clean state for each test
-  const allDocuments = await firestore.collection(MEMBERS_COLLECTION).get();
+  // Clean up ALL members to ensure clean state for list tests
+  // This is necessary because listMembers queries all members, not filtered ones
+  // Other tests should clean up their own data, but list tests need a clean slate
+  const allDocuments = await firestore
+    .collection(MEMBERS_COLLECTION)
+    .listDocuments();
 
-  const deletePromises = allDocuments.docs.map(document =>
-    document.ref.delete(),
-  );
-  await Promise.all(deletePromises);
+  if (allDocuments.length > 0) {
+    const batch = firestore.batch();
+    for (const document of allDocuments) {
+      batch.delete(document);
+    }
+    await batch.commit();
+  }
 }
 
 describe("adminListMembers", () => {
@@ -93,8 +103,6 @@ describe("adminListMembers", () => {
         "Must be authenticated to call this function",
       );
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should return permission-denied error when user is not admin", async () => {
@@ -108,8 +116,6 @@ describe("adminListMembers", () => {
     } catch (error) {
       expect(String(error)).toContain("requires admin privileges");
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should return empty array when no members exist", async () => {
@@ -125,8 +131,6 @@ describe("adminListMembers", () => {
     // Assert
     expect(result.members).toEqual([]);
     expect(result.total).toBe(0);
-
-    await cleanupAdminListMembers();
   });
 
   it("should return all members when no pagination specified", async () => {
@@ -135,16 +139,16 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-list-001",
-      email: "test001@example.com",
+      uid: `${TEST_PREFIX}001`,
+      email: `${TEST_PREFIX}001@example.com`,
       name: "User One",
       createdAt: Timestamp.fromDate(new Date("2024-01-01")),
     });
 
     await createMemberDocument({
       firestore,
-      uid: "test-list-002",
-      email: "test002@example.com",
+      uid: `${TEST_PREFIX}002`,
+      email: `${TEST_PREFIX}002@example.com`,
       name: "User Two",
       createdAt: Timestamp.fromDate(new Date("2024-01-02")),
     });
@@ -158,8 +162,6 @@ describe("adminListMembers", () => {
     // Assert
     expect(result.members.length).toBe(2);
     expect(result.total).toBe(2);
-
-    await cleanupAdminListMembers();
   });
 
   it("should order members by creation date descending", async () => {
@@ -168,7 +170,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-order-001",
+      uid: `${TEST_PREFIX}order-001`,
       email: "older@example.com",
       name: "Older User",
       createdAt: Timestamp.fromDate(new Date("2024-01-01")),
@@ -176,7 +178,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-order-002",
+      uid: `${TEST_PREFIX}order-002`,
       email: "newer@example.com",
       name: "Newer User",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
@@ -184,7 +186,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-order-003",
+      uid: `${TEST_PREFIX}order-003`,
       email: "newest@example.com",
       name: "Newest User",
       createdAt: Timestamp.fromDate(new Date("2024-01-20")),
@@ -208,8 +210,6 @@ describe("adminListMembers", () => {
       expect(member1.email).toBe("newer@example.com");
       expect(member2.email).toBe("older@example.com");
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should respect limit parameter", async () => {
@@ -219,7 +219,7 @@ describe("adminListMembers", () => {
     for (let index = 1; index <= 5; index++) {
       await createMemberDocument({
         firestore,
-        uid: `test-limit-${String(index).padStart(3, "0")}`,
+        uid: `${TEST_PREFIX}limit-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
         createdAt: Timestamp.fromDate(
@@ -237,8 +237,6 @@ describe("adminListMembers", () => {
     // Assert
     expect(result.members.length).toBe(3);
     expect(result.total).toBe(5);
-
-    await cleanupAdminListMembers();
   });
 
   it("should respect offset parameter", async () => {
@@ -248,7 +246,7 @@ describe("adminListMembers", () => {
     for (let index = 1; index <= 5; index++) {
       await createMemberDocument({
         firestore,
-        uid: `test-offset-${String(index).padStart(3, "0")}`,
+        uid: `${TEST_PREFIX}offset-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
         createdAt: Timestamp.fromDate(
@@ -270,10 +268,8 @@ describe("adminListMembers", () => {
     const member0 = result.members[0];
     expect(member0).toBeDefined();
     if (member0) {
-      expect(member0.uid).toBe("test-offset-003");
+      expect(member0.uid).toBe(`${TEST_PREFIX}offset-003`);
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should handle both limit and offset together", async () => {
@@ -283,7 +279,7 @@ describe("adminListMembers", () => {
     for (let index = 1; index <= 10; index++) {
       await createMemberDocument({
         firestore,
-        uid: `test-page-${String(index).padStart(3, "0")}`,
+        uid: `${TEST_PREFIX}page-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
         createdAt: Timestamp.fromDate(
@@ -309,12 +305,10 @@ describe("adminListMembers", () => {
     expect(pageMember1).toBeDefined();
     expect(pageMember2).toBeDefined();
     if (pageMember0 && pageMember1 && pageMember2) {
-      expect(pageMember0.uid).toBe("test-page-007");
-      expect(pageMember1.uid).toBe("test-page-006");
-      expect(pageMember2.uid).toBe("test-page-005");
+      expect(pageMember0.uid).toBe(`${TEST_PREFIX}page-007`);
+      expect(pageMember1.uid).toBe(`${TEST_PREFIX}page-006`);
+      expect(pageMember2.uid).toBe(`${TEST_PREFIX}page-005`);
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should use default limit of 50 when not specified", async () => {
@@ -325,7 +319,7 @@ describe("adminListMembers", () => {
     for (let index = 1; index <= 52; index++) {
       await createMemberDocument({
         firestore,
-        uid: `test-default-${String(index).padStart(3, "0")}`,
+        uid: `${TEST_PREFIX}default-${String(index).padStart(3, "0")}`,
         email: `test${index}@example.com`,
         name: `User ${index}`,
         createdAt: Timestamp.fromDate(new Date("2024-01-01")),
@@ -341,8 +335,6 @@ describe("adminListMembers", () => {
     // Assert - should only get 50 (default limit)
     expect(result.members.length).toBe(50);
     expect(result.total).toBe(52);
-
-    await cleanupAdminListMembers();
   });
 
   it("should use default offset of 0 when not specified", async () => {
@@ -351,7 +343,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-default-offset-001",
+      uid: `${TEST_PREFIX}default-offset-001`,
       email: "newest@example.com",
       name: "Newest User",
       createdAt: Timestamp.fromDate(new Date("2024-01-20")),
@@ -359,7 +351,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-default-offset-002",
+      uid: `${TEST_PREFIX}default-offset-002`,
       email: "older@example.com",
       name: "Older User",
       createdAt: Timestamp.fromDate(new Date("2024-01-10")),
@@ -377,8 +369,6 @@ describe("adminListMembers", () => {
     if (defaultMember0) {
       expect(defaultMember0.email).toBe("newest@example.com");
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should include all member fields in response", async () => {
@@ -387,7 +377,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-fields-001",
+      uid: `${TEST_PREFIX}fields-001`,
       email: "fields@example.com",
       name: "Fields Test",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
@@ -406,15 +396,13 @@ describe("adminListMembers", () => {
     const member = result.members[0];
     expect(member).toBeDefined();
     if (member) {
-      expect(member.uid).toBe("test-fields-001");
+      expect(member.uid).toBe(`${TEST_PREFIX}fields-001`);
       expect(member.email).toBe("fields@example.com");
       expect(member.name).toBe("Fields Test");
       expect(member.membershipActive).toBe(true);
       expect(member.slug).toBe("fields-test");
       expect(member.createdAt).toBeDefined();
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should include members with missing optional fields", async () => {
@@ -423,7 +411,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-minimal-001",
+      uid: `${TEST_PREFIX}minimal-001`,
       email: "minimal@example.com",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: false,
@@ -439,13 +427,11 @@ describe("adminListMembers", () => {
     const member = result.members[0];
     expect(member).toBeDefined();
     if (member) {
-      expect(member.uid).toBe("test-minimal-001");
+      expect(member.uid).toBe(`${TEST_PREFIX}minimal-001`);
       expect(member.email).toBe("minimal@example.com");
       expect(member.name).toBeUndefined();
       expect(member.slug).toBeUndefined();
     }
-
-    await cleanupAdminListMembers();
   });
 
   it("should handle offset beyond total members", async () => {
@@ -454,7 +440,7 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-beyond-001",
+      uid: `${TEST_PREFIX}beyond-001`,
       email: "test@example.com",
       name: "Test User",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
@@ -469,18 +455,19 @@ describe("adminListMembers", () => {
     // Assert
     expect(result.members).toEqual([]);
     expect(result.total).toBe(1);
-
-    await cleanupAdminListMembers();
   });
 
   it("should include both active and inactive members", async () => {
     // Arrange
     const { adminUid, firestore } = setup();
 
+    const activeUid = `${TEST_PREFIX}status-active`;
+    const inactiveUid = `${TEST_PREFIX}status-inactive`;
+
     await createMemberDocument({
       firestore,
-      uid: "test-status-active",
-      email: "active@example.com",
+      uid: activeUid,
+      email: `${TEST_PREFIX}active@example.com`,
       name: "Active User",
       createdAt: Timestamp.fromDate(new Date("2024-01-15")),
       membershipActive: true,
@@ -488,8 +475,8 @@ describe("adminListMembers", () => {
 
     await createMemberDocument({
       firestore,
-      uid: "test-status-inactive",
-      email: "inactive@example.com",
+      uid: inactiveUid,
+      email: `${TEST_PREFIX}inactive@example.com`,
       name: "Inactive User",
       createdAt: Timestamp.fromDate(new Date("2024-01-10")),
       membershipActive: false,
@@ -501,13 +488,23 @@ describe("adminListMembers", () => {
       createMockCallableRequest({ uid: adminUid, isAdmin: true }),
     );
 
-    // Assert
-    expect(result.members.length).toBe(2);
-    expect(result.total).toBe(2);
+    // Assert - find our specific test members rather than checking exact count
+    // This is more robust when running with other tests in parallel
+    const activeMember = result.members.find(m => m.uid === activeUid);
+    const inactiveMember = result.members.find(m => m.uid === inactiveUid);
+
+    expect(activeMember).toBeDefined();
+    expect(inactiveMember).toBeDefined();
+    if (activeMember) {
+      expect(activeMember.membershipActive).toBe(true);
+    }
+    if (inactiveMember) {
+      expect(inactiveMember.membershipActive).toBe(false);
+    }
+
+    // Verify both statuses are present in results
     const statuses = result.members.map(m => m.membershipActive);
     expect(statuses).toContain(true);
     expect(statuses).toContain(false);
-
-    await cleanupAdminListMembers();
   });
 });

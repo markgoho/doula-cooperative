@@ -58,6 +58,18 @@ export const routes: Routes = [
             (m) => m.AdminMatchRequestDetail,
           ),
       },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./admin/messages/admin-messages').then((m) => m.AdminMessages),
+      },
+      {
+        path: 'messages/:id',
+        loadComponent: () =>
+          import('./admin/messages/admin-message-detail/admin-message-detail').then(
+            (m) => m.AdminMessageDetail,
+          ),
+      },
     ],
   },
 

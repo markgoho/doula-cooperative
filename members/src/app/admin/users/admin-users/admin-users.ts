@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { AdminMembersService } from '../../admin.service';
+import { AdminMembersService } from '../../services/admin-members.service';
 import { ActiveMembersTable } from '../active-members-table/active-members-table';
 import { UnclaimedProfilesTable } from '../unclaimed-profiles-table/unclaimed-profiles-table';
 

@@ -2,7 +2,6 @@ import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   effect,
   ElementRef,
   inject,
@@ -11,21 +10,19 @@ import {
   viewChild,
 } from '@angular/core';
 import { Tag } from '../../../tag/tag';
-import { SERVICE_LABELS_LONG } from '../match-request.constants';
-import { isValidDueDate, parseDueDate, type DueDate } from '../match-request.utilities';
-import { AdminMatchRequestDetailService } from './admin-match-request-detail.service';
+import { AdminMessageDetailService } from './admin-message-detail.service';
 
 type ConfirmAction = 'mark-processed' | 'mark-pending';
 
 @Component({
   imports: [DatePipe, Tag],
-  templateUrl: './admin-match-request-detail.html',
-  styleUrl: './admin-match-request-detail.scss',
+  templateUrl: './admin-message-detail.html',
+  styleUrl: './admin-message-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminMatchRequestDetailService], // Provide service at component level
+  providers: [AdminMessageDetailService], // Provide service at component level
 })
-export class AdminMatchRequestDetail {
-  protected service = inject(AdminMatchRequestDetailService);
+export class AdminMessageDetail {
+  protected service = inject(AdminMessageDetailService);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   id = input.required<string>();
@@ -34,28 +31,11 @@ export class AdminMatchRequestDetail {
   protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
 
-  // Check if requesting birth support
-  protected isBirthSupport = computed(() => {
-    const matchRequest = this.service.matchRequestResource.value();
-    return matchRequest?.services.includes('birth-doula') ?? false;
-  });
-
   constructor() {
     // Sync route id parameter to service signal
     effect(() => {
       this.service.idSignal.set(this.id());
     });
-  }
-
-  protected parseDueDate(dueDate: DueDate): Date | undefined {
-    if (!isValidDueDate(dueDate)) {
-      return undefined;
-    }
-    return parseDueDate(dueDate);
-  }
-
-  protected getServiceLabel(service: string): string {
-    return SERVICE_LABELS_LONG[service] ?? service;
   }
 
   protected showMarkProcessedConfirm(): void {
@@ -72,16 +52,16 @@ export class AdminMatchRequestDetail {
     const action = this.pendingAction();
     if (!action) return;
 
-    const matchRequest = this.service.matchRequestResource.value();
-    if (!matchRequest) return;
+    const message = this.service.messageResource.value();
+    if (!message) return;
 
     switch (action) {
       case 'mark-processed': {
-        await this.service.updateStatus(matchRequest.id, true);
+        await this.service.updateStatus(message.id, true);
         break;
       }
       case 'mark-pending': {
-        await this.service.updateStatus(matchRequest.id, false);
+        await this.service.updateStatus(message.id, false);
         break;
       }
     }
@@ -107,7 +87,7 @@ export class AdminMatchRequestDetail {
     if (!action) return '';
 
     return action === 'mark-processed'
-      ? 'Are you sure you want to mark this match request as processed? This indicates that the request has been sent to doulas.'
-      : 'Are you sure you want to mark this match request as pending? This indicates that the request has not yet been sent to doulas.';
+      ? 'Are you sure you want to mark this message as processed? This indicates that the message has been handled.'
+      : 'Are you sure you want to mark this message as pending? This indicates that the message has not yet been handled.';
   }
 }

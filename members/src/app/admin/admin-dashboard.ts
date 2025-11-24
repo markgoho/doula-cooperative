@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AdminMembersService, AdminMatchRequestsService } from './admin.service';
+import { AdminMembersService } from './services/admin-members.service';
+import { AdminMatchRequestsService } from './services/admin-match-requests.service';
+import { AdminMessagesService } from './services/admin-messages.service';
 
 @Component({
   imports: [RouterLink],
@@ -11,6 +13,7 @@ import { AdminMembersService, AdminMatchRequestsService } from './admin.service'
 export class AdminDashboard {
   private adminMembersService = inject(AdminMembersService);
   private adminMatchRequestsService = inject(AdminMatchRequestsService);
+  private adminMessagesService = inject(AdminMessagesService);
 
   // Load stats for the dashboard cards
   protected membersResource = resource({
@@ -25,6 +28,10 @@ export class AdminDashboard {
     loader: () => this.adminMatchRequestsService.listMatchRequests(1, 0, 'all'),
   });
 
+  protected messagesResource = resource({
+    loader: () => this.adminMessagesService.listMessages(1, 0, 'all'),
+  });
+
   protected totalMembers = computed(() => {
     return this.membersResource.hasValue() ? (this.membersResource.value()?.total ?? 0) : 0;
   });
@@ -34,6 +41,12 @@ export class AdminDashboard {
   protected pendingMatchRequests = computed(() => {
     return this.matchRequestsResource.hasValue()
       ? (this.matchRequestsResource.value()?.pendingCount ?? 0)
+      : 0;
+  });
+
+  protected pendingMessages = computed(() => {
+    return this.messagesResource.hasValue()
+      ? (this.messagesResource.value()?.pendingCount ?? 0)
       : 0;
   });
 }

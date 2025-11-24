@@ -17,7 +17,7 @@ Monorepo with three apps: Hugo static site (`/hugo`), Firebase Functions (`/func
 - **Types:** Strict TypeScript enabled, resolve errors before completion
 - **Naming:** camelCase for variables/functions, PascalCase for classes/types
 - **Error handling:** Use object lookup maps over switch statements
-- **Firebase:** Use collection constants from `functions/src/constants/collections.ts`
+- **Firebase:** Use collection constants from `functions/src/collections/index.ts`
 - **Angular:** Use `inject()` for dependencies, signals for reactive properties, `ChangeDetection.OnPush`
 - **Testing:** One assertion per test, setup/cleanup functions, assert visibility with `toBeVisible()`
 

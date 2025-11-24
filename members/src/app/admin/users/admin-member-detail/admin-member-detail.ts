@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import type { Member } from '../../admin.types';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete';
@@ -35,7 +36,7 @@ export class AdminMemberDetail {
   protected isTargetUserAdmin = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) return false;
-    return resource.value().isAdmin === true;
+    return (resource.value() as Member).isAdmin === true;
   });
 
   constructor() {
@@ -103,7 +104,7 @@ export class AdminMemberDetail {
 
   protected loadProfile(): void {
     if (this.service.memberResource.hasValue()) {
-      this.service.loadProfile(this.service.memberResource.value());
+      this.service.loadProfile(this.service.memberResource.value() as Member);
     }
   }
 

@@ -26,21 +26,25 @@ function setup({
   return { request };
 }
 
+// Test-specific prefix for isolation
+const TEST_PREFIX = "test-list-match-requests-";
+
 describe("adminListMatchRequests", () => {
   beforeEach(async () => {
-    // Clean up any existing test data
+    // Clean up ALL match requests to ensure clean state for list tests
+    // This is necessary because listMatchRequests queries all requests, not filtered ones
     const firestore = getFirestore();
-    const snapshot = await firestore
+    const allDocuments = await firestore
       .collection(MATCH_REQUESTS_COLLECTION)
-      .where("email", ">=", "test-")
-      .where("email", "<=", "test-\uF8FF")
-      .get();
+      .listDocuments();
 
-    const batch = firestore.batch();
-    for (const document of snapshot.docs) {
-      batch.delete(document.ref);
+    if (allDocuments.length > 0) {
+      const batch = firestore.batch();
+      for (const document of allDocuments) {
+        batch.delete(document);
+      }
+      await batch.commit();
     }
-    await batch.commit();
   });
 
   afterAll(() => {
@@ -66,7 +70,7 @@ describe("adminListMatchRequests", () => {
     // Create test match request
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Client",
-      email: "test-client@example.com",
+      email: `${TEST_PREFIX}client@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: {
@@ -97,7 +101,7 @@ describe("adminListMatchRequests", () => {
     // Create test match requests
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Client 1",
-      email: "test-client1@example.com",
+      email: `${TEST_PREFIX}client1@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -108,7 +112,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Client 2",
-      email: "test-client2@example.com",
+      email: `${TEST_PREFIX}client2@example.com`,
       phone: "555-5678",
       zipcode: "54321",
       estimatedDueDate: { month: "1", day: "15", year: "2026" },
@@ -134,7 +138,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Pending",
-      email: "test-pending@example.com",
+      email: `${TEST_PREFIX}pending@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -160,7 +164,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Processed",
-      email: "test-processed@example.com",
+      email: `${TEST_PREFIX}processed@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -186,7 +190,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Pending",
-      email: "test-pending2@example.com",
+      email: `${TEST_PREFIX}pending2@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -197,7 +201,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Processed",
-      email: "test-processed2@example.com",
+      email: `${TEST_PREFIX}processed2@example.com`,
       phone: "555-5678",
       zipcode: "54321",
       estimatedDueDate: { month: "1", day: "15", year: "2026" },
@@ -223,7 +227,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Pending",
-      email: "test-pending3@example.com",
+      email: `${TEST_PREFIX}pending3@example.com`,
       phone: "555-1234",
       zipcode: "12345",
       estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -234,7 +238,7 @@ describe("adminListMatchRequests", () => {
 
     await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
       name: "Test Processed",
-      email: "test-processed3@example.com",
+      email: `${TEST_PREFIX}processed3@example.com`,
       phone: "555-5678",
       zipcode: "54321",
       estimatedDueDate: { month: "1", day: "15", year: "2026" },
@@ -262,7 +266,7 @@ describe("adminListMatchRequests", () => {
     for (let index = 0; index < 3; index++) {
       await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
         name: `Test Client ${index}`,
-        email: `test-limit-${index}@example.com`,
+        email: `${TEST_PREFIX}limit-${index}@example.com`,
         phone: "555-1234",
         zipcode: "12345",
         estimatedDueDate: { month: "12", day: "25", year: "2025" },
@@ -297,7 +301,7 @@ describe("adminListMatchRequests", () => {
 
       await firestore.collection(MATCH_REQUESTS_COLLECTION).add({
         name: `Test Client ${index}`,
-        email: `test-offset-${index}@example.com`,
+        email: `${TEST_PREFIX}offset-${index}@example.com`,
         phone: "555-1234",
         zipcode: "12345",
         estimatedDueDate: { month: "12", day: "25", year: "2025" },

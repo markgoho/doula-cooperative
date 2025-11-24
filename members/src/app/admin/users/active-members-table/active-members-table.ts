@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
-import type { ListMembersResponse } from '../../admin.service';
+import type { ListMembersResponse } from '../../admin.types';
 
 type SortDirection = 'asc' | 'desc';
 type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
-import type { ListMatchRequestsResponse } from '../../admin.service';
+import type { ListMatchRequestsResponse } from '../../admin.types';
 import { SERVICE_LABELS } from '../match-request.constants';
 import {
   getRelativeTime,
