@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
     ...canActivate(redirectUnauthorizedToSignIn),
   },
+  {
+    path: 'profile/image',
+    loadComponent: () => import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
 
   // Admin routes (require authentication and admin claim)
   {

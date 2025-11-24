@@ -1,29 +1,12 @@
 import { signal } from '@angular/core';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { type ProfileData, ProfileService } from '../services/profile.service';
+import { EditProfileService } from '../services/edit-profile.service';
+import { type ProfileData } from '../types/profile-data';
 import { EditProfile } from './edit-profile';
 
 describe('EditProfile', () => {
-  describe('loading state', () => {
-    it('should show loading message when profile is loading', async () => {
-      await setup({ isLoading: true });
-
-      expect(screen.getByText('Loading your profile...')).toBeVisible();
-    });
-  });
-
-  describe('error state', () => {
-    it('should show error message when profile fails to load', async () => {
-      await setup({ error: new Error('Failed to load') });
-
-      expect(screen.getByText('Error Loading Profile')).toBeVisible();
-      expect(
-        screen.getByText('We encountered an error while loading your profile. Please try again later.')
-      ).toBeVisible();
-    });
-  });
-
   describe('no profile state', () => {
     it('should show profile setup message when no profile exists', async () => {
       await setup({ hasProfile: false });
@@ -39,132 +22,212 @@ describe('EditProfile', () => {
     });
   });
 
-  describe('profile display', () => {
-    it('should display profile title', async () => {
+  describe('form initialization', () => {
+    it('should populate form with profile data', async () => {
       await setup();
 
-      expect(screen.getByRole('heading', { name: 'Jane Doe' })).toBeVisible();
+      const titleInput = screen.getByLabelText('Name *') as HTMLInputElement;
+      const credentialsInput = screen.getByLabelText('Credentials') as HTMLInputElement;
+      const bioInput = screen.getByLabelText('Bio *') as HTMLTextAreaElement;
+
+      expect(titleInput.value).toBe('Jane Doe');
+      expect(credentialsInput.value).toBe('CD(DONA), CPD');
+      expect(bioInput.value).toBe('Experienced doula serving families with compassion.');
     });
 
-    it('should display credentials when present', async () => {
+    it('should populate contact information fields', async () => {
       await setup();
 
-      expect(screen.getByText('CD(DONA), CPD')).toBeVisible();
+      const businessNameInput = screen.getByLabelText('Business Name') as HTMLInputElement;
+      const phoneInput = screen.getByLabelText('Phone') as HTMLInputElement;
+      const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+      const websiteInput = screen.getByLabelText('Website') as HTMLInputElement;
+
+      expect(businessNameInput.value).toBe('Gentle Birth Support');
+      expect(phoneInput.value).toBe('555-123-4567');
+      expect(emailInput.value).toBe('jane@example.com');
+      expect(websiteInput.value).toBe('example.com');
     });
 
-    it('should not display credentials when not present', async () => {
-      await setup({
-        profileData: {
-          title: 'Jane Doe',
-          bio: 'Experienced doula',
-        },
+    it('should check selected tags', async () => {
+      await setup();
+
+      const birthDoulaCheckbox = screen.getByRole('checkbox', { name: 'Birth Doula' }) as HTMLInputElement;
+      const postpartumDoulaCheckbox = screen.getByRole('checkbox', { name: 'Postpartum Doula' }) as HTMLInputElement;
+
+      expect(birthDoulaCheckbox.checked).toBe(true);
+      expect(postpartumDoulaCheckbox.checked).toBe(true);
+    });
+  });
+
+  describe('form validation', () => {
+    it('should show validation error when title is empty', async () => {
+      const { user } = await setup();
+
+      const titleInput = screen.getByLabelText('Name *');
+      await user.clear(titleInput);
+      await user.tab();
+
+      expect(await screen.findByText('Name is required')).toBeVisible();
+    });
+
+    it('should show validation error when bio is empty', async () => {
+      const { user } = await setup();
+
+      const bioInput = screen.getByLabelText('Bio *');
+      await user.clear(bioInput);
+      await user.tab();
+
+      expect(await screen.findByText('Bio is required')).toBeVisible();
+    });
+
+    it('should show validation error for invalid email', async () => {
+      const { user } = await setup();
+
+      const emailInput = screen.getByLabelText('Email');
+      await user.clear(emailInput);
+      await user.type(emailInput, 'invalid-email');
+      await user.tab();
+
+      expect(await screen.findByText('Please enter a valid email address')).toBeVisible();
+    });
+
+    it('should disable submit button when form is invalid', async () => {
+      const { user } = await setup();
+
+      const titleInput = screen.getByLabelText('Name *');
+      await user.clear(titleInput);
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      expect(submitButton).toBeDisabled();
+    });
+
+    it('should enable submit button when form is valid', async () => {
+      await setup();
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      expect(submitButton).not.toBeDisabled();
+    });
+  });
+
+  describe('form submission', () => {
+    it('should display error message when update fails', async () => {
+      const { user } = await setup({ updateShouldFail: true, errorMessage: 'Update failed' });
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/Update failed/i)).toBeVisible();
+    });
+
+    it('should display generic error message for unknown errors', async () => {
+      const { user } = await setup({ updateShouldFail: true });
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/failed to update profile/i)).toBeVisible();
+    });
+
+    it('should display success message after successful update', async () => {
+      const { user } = await setup();
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/profile updated successfully/i)).toBeVisible();
+    });
+
+    it('should show loading state during submission', async () => {
+      const { user } = await setup({ delayUpdate: true });
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      const clickPromise = user.click(submitButton);
+
+      // Wait for loading state to appear
+      await waitFor(() => {
+        expect(screen.getByText(/Saving/i)).toBeVisible();
       });
 
-      expect(screen.queryByText(/CD\(DONA\)/)).not.toBeInTheDocument();
+      await clickPromise;
     });
 
-    it('should display bio', async () => {
-      await setup();
+    it('should disable submit button during submission', async () => {
+      const { user } = await setup({ delayUpdate: true });
 
-      expect(screen.getByText('Experienced doula serving families with compassion.')).toBeVisible();
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      const clickPromise = user.click(submitButton);
+
+      // Wait for button to be disabled
+      await waitFor(() => {
+        expect(submitButton).toBeDisabled();
+      });
+
+      await clickPromise;
     });
 
+    it('should call updateProfile with correct data', async () => {
+      const { user, mockProfileService } = await setup();
+
+      const titleInput = screen.getByLabelText('Name *');
+      await user.clear(titleInput);
+      await user.type(titleInput, 'New Name');
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockProfileService.updateProfile).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'New Name',
+          })
+        );
+      });
+    });
+  });
+
+  describe('cancel functionality', () => {
+    it('should reset form to original values when cancel is clicked', async () => {
+      const { user } = await setup();
+
+      const titleInput = screen.getByLabelText('Name *') as HTMLInputElement;
+      await user.clear(titleInput);
+      await user.type(titleInput, 'Modified Name');
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      await user.click(cancelButton);
+
+      expect(titleInput.value).toBe('Jane Doe');
+    });
+
+    it('should clear error messages when cancel is clicked', async () => {
+      const { user } = await setup({ updateShouldFail: true });
+
+      const submitButton = screen.getByRole('button', { name: 'Save Profile' });
+      await user.click(submitButton);
+
+      expect(await screen.findByText(/failed to update profile/i)).toBeVisible();
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      await user.click(cancelButton);
+
+      expect(screen.queryByText(/failed to update profile/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('profile image', () => {
     it('should display profile image when present', async () => {
       await setup();
 
-      const image = screen.getByRole('img', { name: 'Headshot of Jane Doe' });
-      expect(image).toHaveAttribute('src', 'https://example.com/jane.jpg');
+      const image = screen.getByRole('img', { name: 'Profile image' }) as HTMLImageElement;
+      expect(image.src).toContain('jane.jpg');
     });
 
-    it('should display placeholder when no image present', async () => {
-      await setup({
-        profileData: {
-          title: 'Jane Doe',
-          bio: 'Experienced doula',
-        },
-      });
-
-      expect(screen.getByText('Profile image will be displayed here')).toBeVisible();
-    });
-  });
-
-  describe('tags', () => {
-    it('should display tags when present', async () => {
+    it('should show edit profile image link', async () => {
       await setup();
 
-      expect(screen.getByText('Birth Doula')).toBeVisible();
-    });
-
-    it('should create correct tag URL', async () => {
-      await setup();
-
-      const birthDoulaLink = screen.getByRole('link', { name: 'Birth Doula' });
-      expect(birthDoulaLink).toHaveAttribute('href', '/doulas/tag/birth-doula');
-    });
-
-    it('should not display tags when none present', async () => {
-      await setup({
-        profileData: {
-          title: 'Jane Doe',
-          bio: 'Experienced doula',
-        },
-      });
-
-      expect(screen.queryByRole('list')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('contact information', () => {
-    it('should display business name when present', async () => {
-      await setup();
-
-      expect(screen.getByText('Gentle Birth Support')).toBeVisible();
-    });
-
-    it('should display default heading when no business name', async () => {
-      await setup({
-        profileData: {
-          title: 'Jane Doe',
-          bio: 'Experienced doula',
-          contact: {
-            email: 'jane@example.com',
-          },
-        },
-      });
-
-      expect(screen.getByText('Contact Information')).toBeVisible();
-    });
-
-    it('should display website link with correct href', async () => {
-      await setup();
-
-      const websiteLink = screen.getByRole('link', { name: 'example.com' });
-      expect(websiteLink).toHaveAttribute('href', 'https://example.com');
-    });
-
-    it('should display phone link with correct href', async () => {
-      await setup();
-
-      const phoneLink = screen.getByRole('link', { name: '555-123-4567' });
-      expect(phoneLink).toHaveAttribute('href', 'tel:555-123-4567');
-    });
-
-    it('should display email link with correct href', async () => {
-      await setup();
-
-      const emailLink = screen.getByRole('link', { name: 'jane@example.com' });
-      expect(emailLink).toHaveAttribute('href', 'mailto:jane@example.com');
-    });
-
-    it('should not display contact section when no contact info present', async () => {
-      await setup({
-        profileData: {
-          title: 'Jane Doe',
-          bio: 'Experienced doula',
-        },
-      });
-
-      expect(screen.queryByText('Contact Information')).not.toBeInTheDocument();
+      const editImageLink = screen.getByRole('link', { name: 'Edit Profile Image' });
+      expect(editImageLink).toHaveAttribute('href', '/profile/image');
     });
   });
 });
@@ -172,11 +235,20 @@ describe('EditProfile', () => {
 interface SetupOptions {
   profileData?: ProfileData;
   hasProfile?: boolean;
-  isLoading?: boolean;
-  error?: Error;
+  updateShouldFail?: boolean;
+  errorMessage?: string;
+  delayUpdate?: boolean;
 }
 
-async function setup({ profileData, hasProfile = true, isLoading = false, error }: SetupOptions = {}) {
+async function setup({
+  profileData,
+  hasProfile = true,
+  updateShouldFail = false,
+  errorMessage,
+  delayUpdate = false,
+}: SetupOptions = {}) {
+  const user = userEvent.setup();
+
   const defaultProfile: ProfileData = {
     title: 'Jane Doe',
     credentials: 'CD(DONA), CPD',
@@ -191,41 +263,27 @@ async function setup({ profileData, hasProfile = true, isLoading = false, error 
     },
   };
 
-  // Create a mock resource that matches the resource API
-  const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
-
-  // Determine resource status based on state
-  let resourceStatus: 'idle' | 'loading' | 'error' | 'resolved' = 'idle';
-  if (isLoading) {
-    resourceStatus = 'loading';
-  } else if (error) {
-    resourceStatus = 'error';
-  } else if (profileValue) {
-    resourceStatus = 'resolved';
-  }
-
-  const mockProfileResource = {
-    value: signal(profileValue),
-    hasValue: signal(!!profileValue),
-    isLoading: signal(isLoading),
-    error: signal(error),
-    status: signal(resourceStatus),
-    reload: vi.fn(),
-    set: vi.fn(),
-    update: vi.fn(),
+  const mockEditProfileService = {
+    profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
+    getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),
+    updateProfile: vi.fn().mockImplementation(async () => {
+      if (delayUpdate) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      if (updateShouldFail) {
+        throw errorMessage ? new Error(errorMessage) : new Error('Unknown error');
+      }
+    }),
   };
 
-  const mockProfileService = {
-    profileResource: mockProfileResource,
-    getTagUrl: vi.fn((tag: string) => tag.toLowerCase().replaceAll(/\s+/g, '-')),
-  };
-
-  await render(EditProfile, {
+  const result = await render(EditProfile, {
     providers: [
       {
-        provide: ProfileService,
-        useValue: mockProfileService,
+        provide: EditProfileService,
+        useValue: mockEditProfileService,
       },
     ],
   });
+
+  return { ...result, user, mockProfileService: mockEditProfileService };
 }
