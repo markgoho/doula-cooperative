@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/angular';
 import { signal } from '@angular/core';
+import { render, screen } from '@testing-library/angular';
 import { describe, expect, it } from 'vitest';
-import { EditProfileImage } from './edit-profile-image';
 import { EditProfileService } from '../services/edit-profile.service';
 import type { ProfileData } from '../types/profile-data';
+import { EditProfileImage } from './edit-profile-image';
 
 describe('EditProfileImage', () => {
   describe('when profile exists', () => {
@@ -42,7 +42,9 @@ describe('EditProfileImage', () => {
 
       expect(screen.getByText(/image editing coming soon/i)).toBeVisible();
       expect(
-        screen.getByText(/the ability to upload and edit your profile image will be available soon/i)
+        screen.getByText(
+          /the ability to upload and edit your profile image will be available soon/i,
+        ),
       ).toBeVisible();
     });
 
@@ -77,15 +79,15 @@ describe('EditProfileImage', () => {
       await setup();
 
       expect(screen.getByText(/profile setup required/i)).toBeVisible();
-      expect(screen.getByText(/it looks like you don't have a doula profile set up yet/i)).toBeVisible();
+      expect(
+        screen.getByText(/it looks like you don't have a doula profile set up yet/i),
+      ).toBeVisible();
     });
 
     it('should display contact support instructions', async () => {
       await setup();
 
-      expect(
-        screen.getByText(/please contact us to set up your profile/i)
-      ).toBeVisible();
+      expect(screen.getByText(/please contact us to set up your profile/i)).toBeVisible();
     });
 
     it('should have link to membership page', async () => {
@@ -100,7 +102,7 @@ describe('EditProfileImage', () => {
       await setup();
 
       expect(
-        screen.getByText(/once your profile is created, you'll be able to edit it here/i)
+        screen.getByText(/once your profile is created, you'll be able to edit it here/i),
       ).toBeVisible();
     });
   });
