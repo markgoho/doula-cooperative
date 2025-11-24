@@ -52,7 +52,9 @@
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_snapshot",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "mcp__figma__get_figma_data",
+      "mcp__playwright__browser_type"
     ],
     "deny": [],
     "ask": []
