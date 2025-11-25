@@ -1,0 +1,240 @@
+$ ng test
+[33m❯[39m Building...
+[32m✔[39m Building...
+[1mInitial chunk files[22m                   [2m | [22m[1mNames[22m                              [2m | [22m [1mRaw size[22m
+[32mspec-admin-member-detail.js[39m           [2m | [22m[2mspec-admin-member-detail[22m           [2m | [22m [36m58.39 kB[39m[2m | [22m
+[32mspec-edit-profile.js[39m                  [2m | [22m[2mspec-edit-profile[22m                  [2m | [22m [36m48.36 kB[39m[2m | [22m
+[32mspec-membership.js[39m                    [2m | [22m[2mspec-membership[22m                    [2m | [22m [36m38.46 kB[39m[2m | [22m
+[32mspec-admin-unclaimed-profile-detail.js[39m[2m | [22m[2mspec-admin-unclaimed-profile-detail[22m[2m | [22m [36m32.62 kB[39m[2m | [22m
+[32mspec-admin-dashboard.js[39m               [2m | [22m[2mspec-admin-dashboard[22m               [2m | [22m [36m29.75 kB[39m[2m | [22m
+[32mspec-admin-message-detail.js[39m          [2m | [22m[2mspec-admin-message-detail[22m          [2m | [22m [36m29.58 kB[39m[2m | [22m
+[32mchunk-OLDEAVBX.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m [36m27.61 kB[39m[2m | [22m
+[32mspec-sign-up.js[39m                       [2m | [22m[2mspec-sign-up[22m                       [2m | [22m [36m26.11 kB[39m[2m | [22m
+[32mspec-app.js[39m                           [2m | [22m[2mspec-app[22m                           [2m | [22m [36m25.26 kB[39m[2m | [22m
+[32mchunk-VYGC5WX4.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m [36m19.95 kB[39m[2m | [22m
+[32mchunk-AS2F52L6.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m [36m19.53 kB[39m[2m | [22m
+[32mspec-sign-in.js[39m                       [2m | [22m[2mspec-sign-in[22m                       [2m | [22m [36m15.93 kB[39m[2m | [22m
+[32mchunk-Z4Y24TJ5.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m [36m15.08 kB[39m[2m | [22m
+[32mspec-edit-profile-image.js[39m            [2m | [22m[2mspec-edit-profile-image[22m            [2m | [22m [36m13.26 kB[39m[2m | [22m
+[32mspec-auth-actions.js[39m                  [2m | [22m[2mspec-auth-actions[22m                  [2m | [22m [36m11.36 kB[39m[2m | [22m
+[32mspec-auth-actions.integration.js[39m      [2m | [22m[2mspec-auth-actions.integration[22m      [2m | [22m [36m10.10 kB[39m[2m | [22m
+[32mspec-admin-users.js[39m                   [2m | [22m[2mspec-admin-users[22m                   [2m | [22m  [36m9.23 kB[39m[2m | [22m
+[32mstyles.css[39m                            [2m | [22m[2mstyles[22m                             [2m | [22m  [36m8.73 kB[39m[2m | [22m
+[32mchunk-V3GDUZRV.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m7.75 kB[39m[2m | [22m
+[32mspec-admin-messages.js[39m                [2m | [22m[2mspec-admin-messages[22m                [2m | [22m  [36m7.58 kB[39m[2m | [22m
+[32mchunk-4G7WYDL2.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m7.57 kB[39m[2m | [22m
+[32mspec-active-members-table.js[39m          [2m | [22m[2mspec-active-members-table[22m          [2m | [22m  [36m7.32 kB[39m[2m | [22m
+[32mspec-unclaimed-profiles-table.js[39m      [2m | [22m[2mspec-unclaimed-profiles-table[22m      [2m | [22m  [36m6.86 kB[39m[2m | [22m
+[32mchunk-3D5LWYKO.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m5.87 kB[39m[2m | [22m
+[32mchunk-A44TLS2P.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m4.74 kB[39m[2m | [22m
+[32mchunk-FNYRFJHG.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m4.72 kB[39m[2m | [22m
+[32mchunk-GPZTYNMC.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m2.90 kB[39m[2m | [22m
+[32mspec-header.js[39m                        [2m | [22m[2mspec-header[22m                        [2m | [22m  [36m2.60 kB[39m[2m | [22m
+[32mchunk-NCEFDQWY.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m2.56 kB[39m[2m | [22m
+[32mspec-messages-table.js[39m                [2m | [22m[2mspec-messages-table[22m                [2m | [22m  [36m2.42 kB[39m[2m | [22m
+[32mchunk-3WQF35H4.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m1.55 kB[39m[2m | [22m
+[32minit-testbed.js[39m                       [2m | [22m[2minit-testbed[22m                       [2m | [22m  [36m1.39 kB[39m[2m | [22m
+[32mchunk-KOSN7Z4D.js[39m                     [2m | [22m[2m-[22m                                  [2m | [22m  [36m1.02 kB[39m[2m | [22m
+
+[1m [22m                                     [2m | [22m[1mInitial total[22m                      [2m | [22m[1m506.18 kB[22m
+
+Application bundle generation complete. [4.159 seconds] - 2025-11-25T15:48:48.527Z
+
+
+[1m[46m RUN [49m[22m [36mv4.0.13 [39m[90mD:/GitHub/doula-cooperative/members[39m
+
+ [32m✓[39m [30m[43m members [49m[39m src/app/edit-profile-image/edit-profile-image.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1400[2mms[22m[39m
+       [33m[2m✓[22m[39m should display current image when imageUrl is provided [33m 509[2mms[22m[39m
+       [33m[2m✓[22m[39m should display coming soon message [33m 323[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/header/header.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1224[2mms[22m[39m
+     [33m[2m✓[22m[39m should render brand title [33m 580[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/messages/messages-table/messages-table.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 487[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/messages/admin-message-detail/admin-message-detail.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 2038[2mms[22m[39m
+     [33m[2m✓[22m[39m displays message details [33m 814[2mms[22m[39m
+     [33m[2m✓[22m[39m opens confirmation dialog and calls updateStatus on confirm [33m 464[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/admin-dashboard.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2224[2mms[22m[39m
+     [33m[2m✓[22m[39m displays the dashboard title [33m 532[2mms[22m[39m
+     [33m[2m✓[22m[39m displays total unclaimed profiles count [33m 326[2mms[22m[39m
+     [33m[2m✓[22m[39m has a link to user management page [33m 412[2mms[22m[39m
+     [33m[2m✓[22m[39m displays placeholder cards for future features [33m 373[2mms[22m[39m
+[90mstderr[2m | src/app/admin/messages/admin-messages.spec.ts
+[22m[39mNG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/messages/admin-messages.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 276[2mms[22m[39m
+[90mstderr[2m | warnIfDestroyed (file:\D:\GitHub\doula-cooperative\members\node_modules\@angular\core\fesm2022\_debug_node-chunk.mjs:11964:13)
+[22m[39mNG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+
+[90mstderr[2m | src/app/app.spec.ts[2m > [22m[2mApp[2m > [22m[2mshould call resendEmailVerification when resend button is clicked
+[22m[39mNG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+
+[90mstderr[2m | src/app/app.spec.ts[2m > [22m[2mApp[2m > [22m[2mshould call resendEmailVerification when resend button is clicked
+[22m[39mNG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+
+[90mstdout[2m | src/app/app.spec.ts[2m > [22m[2mApp[2m > [22m[2mshould call resendEmailVerification when resend button is clicked
+[22m[39mVerification email resent successfully.
+
+[90mstderr[2m | src/app/app.spec.ts[2m > [22m[2mApp[2m > [22m[2mshould call resendEmailVerification when resend button is clicked
+[22m[39mNG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+NG0406: This instance of the `ApplicationRef` has already been destroyed.
+
+ [32m✓[39m [30m[43m members [49m[39m src/app/app.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 393[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/users/admin-users/admin-users.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 2234[2mms[22m[39m
+     [33m[2m✓[22m[39m should display loading state initially [33m 526[2mms[22m[39m
+     [33m[2m✓[22m[39m should display member list in table [33m 523[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/users/active-members-table/active-members-table.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 3012[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by name when Name header is clicked [33m 712[2mms[22m[39m
+       [33m[2m✓[22m[39m should toggle sort direction when clicking the same header twice [33m 514[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by email when Email header is clicked [33m 362[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by creation date when Created header is clicked [33m 399[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/users/unclaimed-profiles-table/unclaimed-profiles-table.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 3248[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by name when Name header is clicked [33m 1029[2mms[22m[39m
+       [33m[2m✓[22m[39m should toggle sort direction when clicking the same header twice [33m 523[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by email when Email header is clicked [33m 393[2mms[22m[39m
+       [33m[2m✓[22m[39m should sort by subscription start when Subscription Start header is clicked [33m 503[2mms[22m[39m
+       [33m[2m✓[22m[39m should display sort direction indicator on active column [33m 351[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/users/admin-unclaimed-profile-detail/admin-unclaimed-profile-detail.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 2304[2mms[22m[39m
+     [33m[2m✓[22m[39m should display loading state initially [33m 546[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/membership/membership.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 2709[2mms[22m[39m
+       [33m[2m✓[22m[39m should display welcome message with user display name [33m 363[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/auth-actions/auth-actions.integration.spec.ts [2m([22m[2m8 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 3621[2mms[22m[39m
+       [33m[2m✓[22m[39m should navigate to membership page after successful email verification [33m 480[2mms[22m[39m
+       [33m[2m✓[22m[39m should navigate to sign-in page after successful password reset [33m 2226[2mms[22m[39m
+       [33m[2m✓[22m[39m should stay on auth-actions page when password reset fails [33m 772[2mms[22m[39m
+[90mstderr[2m | src/app/admin/users/admin-member-detail/admin-member-detail.spec.ts[2m > [22m[2mAdminUserDetail[2m > [22m[2mshould show error message when deletion fails
+[22m[39mError deleting user: Error: Failed
+    at setup (D:/GitHub/doula-cooperative/members/src/app/admin/users/admin-member-detail/admin-member-detail.spec.ts:436:35)
+    at D:/GitHub/doula-cooperative/members/src/app/admin/users/admin-member-detail/admin-member-detail.spec.ts:335:28
+    at [90mfile:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:912:26
+    at [90mfile:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1237:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1203:10[90m)[39m
+    at [90mfile:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1647:37
+    at Traces.$ [90m(file:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4mvitest[24m/dist/chunks/traces.U4xDYhzZ.js:115:27[90m)[39m
+    at trace [90m(file:///D:/GitHub/doula-cooperative/members/[39mnode_modules/[4mvitest[24m/dist/chunks/test.DqQZzsWf.js:234:21[90m)[39m
+
+ [32m✓[39m [30m[43m members [49m[39m src/app/admin/users/admin-member-detail/admin-member-detail.spec.ts [2m([22m[2m23 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 4249[2mms[22m[39m
+     [33m[2m✓[22m[39m should display loading state initially [33m 458[2mms[22m[39m
+     [33m[2m✓[22m[39m should display Activate button for inactive members [33m 397[2mms[22m[39m
+     [33m[2m✓[22m[39m should display Deactivate button for active members [33m 316[2mms[22m[39m
+     [33m[2m✓[22m[39m should show success message after activating membership [33m 512[2mms[22m[39m
+     [33m[2m✓[22m[39m should show error message when activation fails [33m 307[2mms[22m[39m
+Not implemented: navigation to another Document
+ [32m✓[39m [30m[43m members [49m[39m src/app/auth-actions/auth-actions.spec.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 4286[2mms[22m[39m
+       [33m[2m✓[22m[39m should show processing state [33m 355[2mms[22m[39m
+       [33m[2m✓[22m[39m should successfully reset password with valid inputs [33m 1312[2mms[22m[39m
+       [33m[2m✓[22m[39m should show validation error when password is too short [33m 406[2mms[22m[39m
+       [33m[2m✓[22m[39m should show error when passwords do not match [33m 613[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle password reset failure [33m 611[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/edit-profile/edit-profile.spec.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 4887[2mms[22m[39m
+       [33m[2m✓[22m[39m should show loading message while user document is loading [33m 530[2mms[22m[39m
+       [33m[2m✓[22m[39m should check selected tags [33m 1183[2mms[22m[39m
+       [33m[2m✓[22m[39m should show validation error for invalid email [33m 439[2mms[22m[39m
+       [33m[2m✓[22m[39m should reset form to original values when cancel is clicked [33m 355[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/sign-in/sign-in.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 5940[2mms[22m[39m
+     [33m[2m✓[22m[39m should render the sign in form [33m 800[2mms[22m[39m
+     [33m[2m✓[22m[39m should show validation errors when fields are touched but empty [33m 759[2mms[22m[39m
+     [33m[2m✓[22m[39m should show validation error for invalid email [33m 675[2mms[22m[39m
+     [33m[2m✓[22m[39m should disable submit button when form is invalid [33m 399[2mms[22m[39m
+     [33m[2m✓[22m[39m should enable submit button when form is valid [33m 606[2mms[22m[39m
+     [33m[2m✓[22m[39m should allow user to sign in with valid credentials [33m 527[2mms[22m[39m
+     [33m[2m✓[22m[39m should show loading state during sign in [33m 656[2mms[22m[39m
+     [33m[2m✓[22m[39m should display error message when sign in fails [33m 573[2mms[22m[39m
+     [33m[2m✓[22m[39m should clear error message when submitting form again [33m 943[2mms[22m[39m
+ [32m✓[39m [30m[43m members [49m[39m src/app/sign-up/sign-up.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 7485[2mms[22m[39m
+     [33m[2m✓[22m[39m should render heading [33m 476[2mms[22m[39m
+       [33m[2m✓[22m[39m should show invalid email error when email format is wrong [33m 487[2mms[22m[39m
+       [33m[2m✓[22m[39m should not show required error when valid email is entered [33m 366[2mms[22m[39m
+       [33m[2m✓[22m[39m should not show format error when valid email is entered [33m 331[2mms[22m[39m
+       [33m[2m✓[22m[39m should not show required error when passwords match [33m 312[2mms[22m[39m
+       [33m[2m✓[22m[39m should enable submit button when form is valid [33m 579[2mms[22m[39m
+       [33m[2m✓[22m[39m should call signUpWithEmail with correct credentials when form is submitted [33m 564[2mms[22m[39m
+       [33m[2m✓[22m[39m should show loading state during sign up [33m 641[2mms[22m[39m
+       [33m[2m✓[22m[39m should display error message when sign up fails [33m 578[2mms[22m[39m
+       [33m[2m✓[22m[39m should keep submit button disabled when form is invalid [33m 419[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m      Tests [22m [1m[32m220 passed[39m[22m[2m | [22m[33m2 skipped[39m[90m (222)[39m
+[2m   Start at [22m 10:48:48
+[2m   Duration [22m 12.28s[2m (transform 3.94s, setup 18.41s, collect 24.56s, tests 52.02s, environment 26.65s, prepare 1.97s)[22m
+

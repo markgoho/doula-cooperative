@@ -8,9 +8,10 @@ import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 describe('AdminUnclaimedProfileDetail', () => {
-  // Wait for any pending async operations before each test cleanup
+  // Wait for resource() operations to complete before test cleanup
+  // resource.reload() needs time to settle in CI environment
   afterEach(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   });
   it('should display loading state initially', async () => {
     // Arrange & Act
