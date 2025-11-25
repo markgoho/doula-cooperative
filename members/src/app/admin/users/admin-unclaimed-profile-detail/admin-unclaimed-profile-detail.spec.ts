@@ -242,8 +242,6 @@ async function setup(options: SetupOptions = {}) {
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
   } = options;
 
-  const user = userEvent.setup();
-
   // Build the profile with defaults and overrides
   const baseProfile = createMockUnclaimedProfile({ email });
   const finalProfile =
@@ -307,6 +305,9 @@ async function setup(options: SetupOptions = {}) {
     ],
     inputs: { email },
   });
+
+  // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
+  const user = userEvent.setup();
 
   return {
     user,

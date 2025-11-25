@@ -203,8 +203,6 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
-  const user = userEvent.setup();
-
   // Set up routes that match the real app structure
   const routes = [
     { path: '', redirectTo: '/sign-in', pathMatch: 'full' as const },
@@ -219,6 +217,9 @@ async function setup({
       { provide: AuthService, useValue: mockAuthService },
     ],
   });
+
+  // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
+  const user = userEvent.setup();
 
   const router = view.fixture.debugElement.injector.get(Router);
 

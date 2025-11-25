@@ -279,8 +279,6 @@ async function setup({
   userHasSlug = true,
   profileResourceLoading = false,
 }: SetupOptions = {}) {
-  const user = userEvent.setup();
-
   const defaultProfile: ProfileData = {
     title: 'Jane Doe',
     credentials: 'CD(DONA), CPD',
@@ -351,6 +349,9 @@ async function setup({
       },
     ],
   });
+
+  // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
+  const user = userEvent.setup();
 
   return { ...result, user, mockProfileService, mockMembershipService };
 }
