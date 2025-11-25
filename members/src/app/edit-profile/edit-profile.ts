@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { PROFILE_TAGS } from '../constants/profile-tags';
+import { MembershipService } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
 import { type ProfileData } from '../types/profile-data';
 
@@ -18,6 +19,7 @@ import { type ProfileData } from '../types/profile-data';
 })
 export class EditProfile {
   readonly profileService = inject(ProfileService);
+  readonly membershipService = inject(MembershipService);
   private fb = inject(FormBuilder);
 
   // Use the profile service's profile signal

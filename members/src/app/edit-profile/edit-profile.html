@@ -1,8 +1,23 @@
 <h1>Edit Profile</h1>
 
 @let profileResource = profileService.profileResource;
+@let user = membershipService.userDocument();
 
-@if (profileResource.isLoading()) {
+@if (!user) {
+  <div class="loading-message">
+    <p>Loading your profile...</p>
+  </div>
+} @else if (!user.slug) {
+  <div class="no-profile-message">
+    <h2>Profile Setup Required</h2>
+    <p>It looks like you don't have a doula profile set up yet.</p>
+    <p>
+      Please contact us to set up your profile, or visit the
+      <a href="/membership">Membership page</a> for more information.
+    </p>
+    <p>Once your profile is created, you'll be able to edit it here.</p>
+  </div>
+} @else if (profileResource.isLoading()) {
   <div class="loading-message">
     <p>Loading your profile...</p>
   </div>
@@ -206,12 +221,7 @@
   </div>
 } @else {
   <div class="no-profile-message">
-    <h2>Profile Setup Required</h2>
-    <p>It looks like you don't have a doula profile set up yet.</p>
-    <p>
-      Please contact us to set up your profile, or visit the
-      <a href="/membership">Membership page</a> for more information.
-    </p>
-    <p>Once your profile is created, you'll be able to edit it here.</p>
+    <h2>Profile Load Error</h2>
+    <p>We encountered an issue loading your profile. Please try refreshing the page.</p>
   </div>
 }

@@ -2,23 +2,45 @@ import { signal } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { Timestamp } from '../../test-utils/timestamp-mock';
+import { MembershipService, type Member } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
 import { type ProfileData } from '../types/profile-data';
 import { EditProfile } from './edit-profile';
 
 describe('EditProfile', () => {
+  describe('loading states', () => {
+    it('should show loading message while user document is loading', async () => {
+      await setup({ userDocumentLoading: true });
+
+      expect(screen.getByText('Loading your profile...')).toBeVisible();
+    });
+
+    it('should show loading message while profile resource is loading', async () => {
+      await setup({ profileResourceLoading: true });
+
+      expect(screen.getByText('Loading your profile...')).toBeVisible();
+    });
+  });
+
   describe('no profile state', () => {
-    it('should show profile setup message when no profile exists', async () => {
-      await setup({ hasProfile: false });
+    it('should show profile setup message when user has no slug', async () => {
+      await setup({ userHasSlug: false });
 
       expect(screen.getByText('Profile Setup Required')).toBeVisible();
     });
 
-    it('should show membership page link when no profile exists', async () => {
-      await setup({ hasProfile: false });
+    it('should show membership page link when user has no slug', async () => {
+      await setup({ userHasSlug: false });
 
       const membershipLink = screen.getByRole('link', { name: 'Membership page' });
       expect(membershipLink).toHaveAttribute('href', '/membership');
+    });
+
+    it('should show profile load error when profile fails to load', async () => {
+      await setup({ hasProfile: false, userHasSlug: true });
+
+      expect(screen.getByText('Profile Load Error')).toBeVisible();
     });
   });
 
@@ -52,8 +74,12 @@ describe('EditProfile', () => {
     it('should check selected tags', async () => {
       await setup();
 
-      const birthDoulaCheckbox = screen.getByRole('checkbox', { name: 'Birth Doula' }) as HTMLInputElement;
-      const postpartumDoulaCheckbox = screen.getByRole('checkbox', { name: 'Postpartum Doula' }) as HTMLInputElement;
+      const birthDoulaCheckbox = screen.getByRole('checkbox', {
+        name: 'Birth Doula',
+      }) as HTMLInputElement;
+      const postpartumDoulaCheckbox = screen.getByRole('checkbox', {
+        name: 'Postpartum Doula',
+      }) as HTMLInputElement;
 
       expect(birthDoulaCheckbox.checked).toBe(true);
       expect(postpartumDoulaCheckbox.checked).toBe(true);
@@ -180,7 +206,7 @@ describe('EditProfile', () => {
         expect(mockProfileService.updateProfile).toHaveBeenCalledWith(
           expect.objectContaining({
             title: 'New Name',
-          })
+          }),
         );
       });
     });
@@ -238,6 +264,9 @@ interface SetupOptions {
   updateShouldFail?: boolean;
   errorMessage?: string;
   delayUpdate?: boolean;
+  userDocumentLoading?: boolean;
+  userHasSlug?: boolean;
+  profileResourceLoading?: boolean;
 }
 
 async function setup({
@@ -246,6 +275,9 @@ async function setup({
   updateShouldFail = false,
   errorMessage,
   delayUpdate = false,
+  userDocumentLoading = false,
+  userHasSlug = true,
+  profileResourceLoading = false,
 }: SetupOptions = {}) {
   const user = userEvent.setup();
 
@@ -263,12 +295,43 @@ async function setup({
     },
   };
 
+  let mockMemberDocument: Member | undefined;
+  if (userDocumentLoading) {
+    mockMemberDocument = undefined;
+  } else if (userHasSlug) {
+    mockMemberDocument = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      createdAt: new Timestamp(0, 0),
+      slug: 'jane-doe',
+      membershipActive: true,
+    };
+  } else {
+    mockMemberDocument = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      createdAt: new Timestamp(0, 0),
+      membershipActive: true,
+    };
+  }
+
+  const mockMembershipService = {
+    userDocument: signal(mockMemberDocument),
+  };
+
+  const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
+
   const mockProfileService = {
-    profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
+    profile: signal(profileValue),
+    profileResource: {
+      isLoading: vi.fn(() => profileResourceLoading),
+      hasValue: vi.fn(() => !profileResourceLoading && profileValue !== undefined),
+      value: vi.fn(() => profileValue),
+    },
     getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),
     updateProfile: vi.fn().mockImplementation(async () => {
       if (delayUpdate) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
       if (updateShouldFail) {
         throw errorMessage ? new Error(errorMessage) : new Error('Unknown error');
@@ -282,8 +345,12 @@ async function setup({
         provide: ProfileService,
         useValue: mockProfileService,
       },
+      {
+        provide: MembershipService,
+        useValue: mockMembershipService,
+      },
     ],
   });
 
-  return { ...result, user, mockProfileService };
+  return { ...result, user, mockProfileService, mockMembershipService };
 }
