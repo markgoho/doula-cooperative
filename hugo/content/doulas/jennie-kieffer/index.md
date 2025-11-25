@@ -8,7 +8,7 @@ credentials: "CLC, CD(DONA), CVD(TVL)"
 headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
-  - "Birth Photographer"
+  - "Birth Photography"
   - "Lactation Support"
 contact:
   phone: 585-397-6805

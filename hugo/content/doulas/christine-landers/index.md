@@ -8,7 +8,7 @@ credentials: "BD, HCHD, PES"
 tags:
   - "Birth Doula"
   - "Hypno-Doula"
-  - "Placenta Specialist"
+  - "Placenta Services"
 contact:
   business_name: "Majestic Doula Care"
   website: "majesticdoulacare.com"

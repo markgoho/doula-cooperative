@@ -7,10 +7,9 @@ type: "doulas"
 credentials: "LAC, Doula, CBE, Placenta Specialist"
 tags:
   - "Birth Doula"
-  - "Labor Acupuncture"
-  - "Pregnancy Acupuncture"
+  - "Perinatal Acupuncture"
   - "Childbirth Educator"
-  - "Placenta Encapsulation"
+  - "Placenta Services"
 contact:
   business_name: "Osgood Family Acupuncture"
   website: "osgoodfamacu.com"

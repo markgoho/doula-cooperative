@@ -9,7 +9,7 @@ tags:
   - "Birth Doula"
   - "Postpartum Doula"
   - "Fertility Support"
-  - "Pre-Postnatal Yoga"
+  - "Prenatal and Postnatal Yoga Instructor"
   - "Reiki Healing"
 contact:
   email: "viamirabella585@gmail.com"

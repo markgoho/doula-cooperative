@@ -8,7 +8,7 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"
-  - "Placenta Encapsulation Services"
+  - "Placenta Services"
 contact:
   business_name: "Joy Begins Doula Support"
   website: "joy-begins.com"

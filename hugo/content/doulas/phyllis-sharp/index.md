@@ -9,7 +9,7 @@ headshot: "headshot.jpeg"
 tags:
   - "Birth Doula"
   - "Postpartum Doula"
-  - "Placenta Specialist"
+  - "Placenta Services"
   - "Lactation Support"
   - "Childbirth Educator"
 contact:
