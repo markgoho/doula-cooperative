@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import { AdminMembersService } from '../../services/admin-members.service';
 import type { UnclaimedProfile } from '../../admin.types';
@@ -8,6 +8,10 @@ import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 describe('AdminUnclaimedProfileDetail', () => {
+  // Wait for any pending async operations before each test cleanup
+  afterEach(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
   it('should display loading state initially', async () => {
     // Arrange & Act
     const { resolveProfilePromise } = await setup({ shouldKeepLoading: true });
