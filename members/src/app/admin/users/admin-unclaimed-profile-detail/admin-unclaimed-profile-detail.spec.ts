@@ -1,3 +1,4 @@
+import { computed, signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -303,10 +304,35 @@ async function setup(options: SetupOptions = {}) {
     sendInvitation,
   };
 
+  // Mock the service to avoid resource() lifecycle issues in CI
+  const mockService = {
+    unclaimedProfileResource: {
+      isLoading: vi.fn(() => shouldKeepLoading),
+      hasValue: vi.fn(() => !shouldKeepLoading && !shouldFailLoad),
+      value: vi.fn(() => finalProfile),
+      error: vi.fn(() => (shouldFailLoad ? new Error(errorMessage) : null)),
+      reload: vi.fn(),
+    },
+    errorMessage: computed(() => (shouldFailLoad ? errorMessage : undefined)),
+    actionInProgress: signal(false),
+    successMessage: signal<string | undefined>(undefined),
+    actionError: signal<string | undefined>(undefined),
+    init: vi.fn(),
+    sendInvitation: vi.fn().mockImplementation(async () => {
+      if (shouldKeepSendingInvitation) {
+        return pendingSendInvitationPromise;
+      }
+      if (shouldFailSendInvitation) {
+        throw new Error('Failed');
+      }
+      mockService.successMessage.set('Invitation sent successfully');
+    }),
+  };
+
   const component = await render(AdminUnclaimedProfileDetail, {
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
-      AdminUnclaimedProfileDetailService, // Provide real service, it will use mocked AdminMembersService
+      { provide: AdminUnclaimedProfileDetailService, useValue: mockService },
     ],
     inputs: { email },
   });
