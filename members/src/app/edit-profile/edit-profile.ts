@@ -7,8 +7,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { PROFILE_TAGS } from '../constants/profile-tags';
-import { EditProfileService } from '../services/edit-profile.service';
-import { type ProfileData } from '../services/profile.service';
+import { ProfileService } from '../services/profile.service';
+import { type ProfileData } from '../types/profile-data';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -17,11 +17,11 @@ import { type ProfileData } from '../services/profile.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfile {
-  readonly editProfileService = inject(EditProfileService);
+  readonly profileService = inject(ProfileService);
   private fb = inject(FormBuilder);
 
-  // Use the edit profile service's profile signal
-  readonly profileData = this.editProfileService.profile;
+  // Use the profile service's profile signal
+  readonly profile = this.profileService.profile;
 
   // Available tags for selection
   readonly availableTags = PROFILE_TAGS;
@@ -46,14 +46,14 @@ export class EditProfile {
   constructor() {
     // Initialize form when profile data loads
     effect(() => {
-      const profile = this.profileData();
+      const profile = this.profile();
       if (profile && !this.profileForm.dirty) {
         this.initializeForm(profile);
       }
     });
   }
 
-  private initializeForm(profile: ReturnType<typeof this.profileData>) {
+  private initializeForm(profile: ReturnType<typeof this.profile>) {
     if (!profile) return;
 
     this.profileForm.patchValue({
@@ -110,7 +110,7 @@ export class EditProfile {
         },
       };
 
-      await this.editProfileService.updateProfile(profileData);
+      await this.profileService.updateProfile(profileData);
 
       this.successMessage.set('Profile updated successfully!');
 
@@ -129,7 +129,7 @@ export class EditProfile {
 
   onCancel() {
     // Reset form to original profile data
-    const profile = this.profileData();
+    const profile = this.profile();
     if (profile) {
       this.initializeForm(profile);
     }
@@ -145,7 +145,7 @@ export class EditProfile {
   }
 
   getTagUrl(tag: string): string {
-    return this.editProfileService.getTagUrl(tag);
+    return this.profileService.getTagUrl(tag);
   }
 
   get titleControl() {

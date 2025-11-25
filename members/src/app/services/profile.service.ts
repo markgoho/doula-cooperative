@@ -1,22 +1,7 @@
-import { Injectable, inject, resource } from '@angular/core';
+import { Injectable, computed, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
-
-export interface ProfileData {
-  title: string;
-  pronouns?: string;
-  credentials?: string;
-  tags?: string[];
-  contact?: {
-    phone?: string;
-    email?: string;
-    website?: string;
-    business_name?: string;
-  };
-  bio: string;
-  draft?: boolean;
-  image?: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -44,6 +29,31 @@ export class ProfileService {
       return profileData;
     },
   });
+
+  readonly profile = computed(() => {
+    if (this.profileResource.hasValue()) {
+      return this.profileResource.value();
+    }
+
+    return;
+  });
+
+  async updateProfile(data: ProfileData): Promise<void> {
+    const writeProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
+      this.functions,
+      'writeProfile',
+    );
+
+    try {
+      await writeProfileCallable(data);
+
+      // Reload the profile resource to reflect the updated data
+      this.profileResource.reload();
+    } catch (error) {
+      console.error('Error calling writeProfile function:', error);
+      throw error;
+    }
+  }
 
   private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
     const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(

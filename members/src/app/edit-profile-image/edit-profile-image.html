@@ -1,13 +1,20 @@
 <h1>Edit Profile Image</h1>
 
-@if (profileData()) {
+@let profileResource = profileService.profileResource;
+
+@if (profileResource.isLoading()) {
+  <div class="loading-message">
+    <p>Loading your profile...</p>
+  </div>
+} @else if (profileResource.hasValue()) {
+  @let profile = profileResource.value();
   <div class="image-editor-container">
-    @if (profileData()?.image) {
+    @if (profile.image) {
       <div class="current-image">
         <h2>Current Profile Image</h2>
         <img
-          [src]="profileData()?.image"
-          alt="Profile image of {{ profileData()?.title }}"
+          [src]="profile.image"
+          alt="Profile image of {{ profile.title }}"
           class="profile-image-large"
         />
       </div>

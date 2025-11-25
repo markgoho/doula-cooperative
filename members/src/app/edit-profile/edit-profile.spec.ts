@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { EditProfileService } from '../services/edit-profile.service';
+import { ProfileService } from '../services/profile.service';
 import { type ProfileData } from '../types/profile-data';
 import { EditProfile } from './edit-profile';
 
@@ -263,7 +263,7 @@ async function setup({
     },
   };
 
-  const mockEditProfileService = {
+  const mockProfileService = {
     profile: signal(hasProfile ? (profileData ?? defaultProfile) : undefined),
     getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),
     updateProfile: vi.fn().mockImplementation(async () => {
@@ -279,11 +279,11 @@ async function setup({
   const result = await render(EditProfile, {
     providers: [
       {
-        provide: EditProfileService,
-        useValue: mockEditProfileService,
+        provide: ProfileService,
+        useValue: mockProfileService,
       },
     ],
   });
 
-  return { ...result, user, mockProfileService: mockEditProfileService };
+  return { ...result, user, mockProfileService };
 }

@@ -1,213 +1,208 @@
 <h1>Edit Profile</h1>
 
-@if (editProfileService.profileResource.isLoading()) {
+@let profileResource = profileService.profileResource;
+
+@if (profileResource.isLoading()) {
   <div class="loading-message">
     <p>Loading your profile...</p>
   </div>
-} @else if (profileData()) {
+} @else if (profileResource.hasValue()) {
+  @let profile = profileResource.value();
   <div class="form-container">
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-    <!-- Success Message -->
-    @if (successMessage()) {
-      <div class="form__success-message">
-        {{ successMessage() }}
-      </div>
-    }
-
-    <!-- Error Message -->
-    @if (errorMessage()) {
-      <div class="form__error-message">
-        {{ errorMessage() }}
-      </div>
-    }
-
-    <!-- Title Field -->
-    <div class="form-group">
-      <label for="title" class="form__label">Name *</label>
-      <input
-        id="title"
-        type="text"
-        formControlName="title"
-        placeholder="Enter your full name"
-        class="form__input"
-        [class.error]="titleControl?.invalid && titleControl?.touched"
-      />
-      @if (titleControl?.invalid && titleControl?.touched) {
-        <div class="form__error-message">
-          @if (titleControl?.errors?.['required']) {
-            <span>Name is required</span>
-          }
+      <!-- Success Message -->
+      @if (successMessage()) {
+        <div class="form__success-message">
+          {{ successMessage() }}
         </div>
       }
-    </div>
 
-    <!-- Pronouns Field (optional) -->
-    <div class="form-group">
-      <label for="pronouns" class="form__label">Pronouns (optional)</label>
-      <input
-        id="pronouns"
-        type="text"
-        formControlName="pronouns"
-        placeholder="e.g., she/her, he/him, they/them"
-        class="form__input"
-      />
-    </div>
-
-    <!-- Credentials Field -->
-    <div class="form-group">
-      <label for="credentials" class="form__label">Credentials</label>
-      <input
-        id="credentials"
-        type="text"
-        formControlName="credentials"
-        placeholder="e.g., CD(DONA), CLC, IBCLC"
-        class="form__input"
-      />
-    </div>
-
-    <!-- Tags Selection -->
-    <div class="form-group">
-      <div class="form__label" role="group" aria-labelledby="services-label">
-        <span id="services-label">Professional Category *</span>
-      </div>
-      <p class="form__help-text">Select all that apply</p>
-      <div class="tags-container">
-        @for (tag of availableTags; track tag; let i = $index) {
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [formControl]="getTagControl(i)"
-              class="checkbox-input"
-            />
-            <span class="checkbox-text">{{ tag }}</span>
-          </label>
-        }
-      </div>
-      @if (tagsArray.invalid && tagsArray.touched) {
+      <!-- Error Message -->
+      @if (errorMessage()) {
         <div class="form__error-message">
-          <span>Please select at least one service or specialty</span>
+          {{ errorMessage() }}
         </div>
       }
-    </div>
 
-    <!-- Bio Field -->
-    <div class="form-group">
-      <label for="bio" class="form__label">Bio *</label>
-      <textarea
-        id="bio"
-        formControlName="bio"
-        placeholder="Tell us about yourself, your experience, and your approach to doula work..."
-        class="form__textarea"
-        rows="10"
-        [class.error]="bioControl?.invalid && bioControl?.touched"
-      ></textarea>
-      @if (bioControl?.invalid && bioControl?.touched) {
-        <div class="form__error-message">
-          @if (bioControl?.errors?.['required']) {
-            <span>Bio is required</span>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Contact Information Section -->
-    <fieldset class="form-fieldset">
-      <legend class="form__legend">Contact Information</legend>
-
-      <!-- Business Name -->
+      <!-- Title Field -->
       <div class="form-group">
-        <label for="businessName" class="form__label">Business Name</label>
+        <label for="title" class="form__label">Name *</label>
         <input
-          id="businessName"
+          id="title"
           type="text"
-          formControlName="businessName"
-          placeholder="Your business name"
+          formControlName="title"
+          placeholder="Enter your full name"
           class="form__input"
+          [class.error]="titleControl?.invalid && titleControl?.touched"
         />
-      </div>
-
-      <!-- Phone -->
-      <div class="form-group">
-        <label for="phone" class="form__label">Phone</label>
-        <input
-          id="phone"
-          type="tel"
-          formControlName="phone"
-          placeholder="585-123-4567"
-          class="form__input"
-        />
-      </div>
-
-      <!-- Email -->
-      <div class="form-group">
-        <label for="email" class="form__label">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="your@email.com"
-          class="form__input"
-          [class.error]="emailControl?.invalid && emailControl?.touched"
-        />
-        @if (emailControl?.invalid && emailControl?.touched) {
+        @if (titleControl?.invalid && titleControl?.touched) {
           <div class="form__error-message">
-            @if (emailControl?.errors?.['email']) {
-              <span>Please enter a valid email address</span>
+            @if (titleControl?.errors?.['required']) {
+              <span>Name is required</span>
             }
           </div>
         }
       </div>
 
-      <!-- Website -->
+      <!-- Pronouns Field (optional) -->
       <div class="form-group">
-        <label for="website" class="form__label">Website</label>
+        <label for="pronouns" class="form__label">Pronouns (optional)</label>
         <input
-          id="website"
+          id="pronouns"
           type="text"
-          formControlName="website"
-          placeholder="yourwebsite.com or https://yourwebsite.com"
+          formControlName="pronouns"
+          placeholder="e.g., she/her, he/him, they/them"
           class="form__input"
         />
-        <p class="form__help-text">You can include https:// or just enter the domain</p>
       </div>
-    </fieldset>
 
-    <!-- Profile Image Link -->
-    <div class="form-group">
-      <span class="form__label">Profile Image</span>
-      @if (profileData()?.image) {
-        <img
-          [src]="profileData()?.image"
-          alt="Profile image"
-          class="profile-image-preview"
+      <!-- Credentials Field -->
+      <div class="form-group">
+        <label for="credentials" class="form__label">Credentials</label>
+        <input
+          id="credentials"
+          type="text"
+          formControlName="credentials"
+          placeholder="e.g., CD(DONA), CLC, IBCLC"
+          class="form__input"
         />
-      }
-      <a href="/profile/image" class="button button--secondary">Edit Profile Image</a>
-    </div>
+      </div>
 
-    <!-- Form Actions -->
-    <div class="form-actions">
-      <button
-        type="button"
-        class="button button--secondary"
-        (click)="onCancel()"
-        [disabled]="loading()"
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        class="button button--primary"
-        [disabled]="loading() || profileForm.invalid"
-      >
-        @if (loading()) {
-          <span>Saving...</span>
-        } @else {
-          <span>Save Profile</span>
+      <!-- Tags Selection -->
+      <div class="form-group">
+        <div class="form__label" role="group" aria-labelledby="services-label">
+          <span id="services-label">Professional Category *</span>
+        </div>
+        <p class="form__help-text">Select all that apply</p>
+        <div class="tags-container">
+          @for (tag of availableTags; track tag; let i = $index) {
+            <label class="checkbox-label">
+              <input type="checkbox" [formControl]="getTagControl(i)" class="checkbox-input" />
+              <span class="checkbox-text">{{ tag }}</span>
+            </label>
+          }
+        </div>
+        @if (tagsArray.invalid && tagsArray.touched) {
+          <div class="form__error-message">
+            <span>Please select at least one service or specialty</span>
+          </div>
         }
-      </button>
-    </div>
-  </form>
+      </div>
+
+      <!-- Bio Field -->
+      <div class="form-group">
+        <label for="bio" class="form__label">Bio *</label>
+        <textarea
+          id="bio"
+          formControlName="bio"
+          placeholder="Tell us about yourself, your experience, and your approach to doula work..."
+          class="form__textarea"
+          rows="10"
+          [class.error]="bioControl?.invalid && bioControl?.touched"
+        ></textarea>
+        @if (bioControl?.invalid && bioControl?.touched) {
+          <div class="form__error-message">
+            @if (bioControl?.errors?.['required']) {
+              <span>Bio is required</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Contact Information Section -->
+      <fieldset class="form-fieldset">
+        <legend class="form__legend">Contact Information</legend>
+
+        <!-- Business Name -->
+        <div class="form-group">
+          <label for="businessName" class="form__label">Business Name</label>
+          <input
+            id="businessName"
+            type="text"
+            formControlName="businessName"
+            placeholder="Your business name"
+            class="form__input"
+          />
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label for="phone" class="form__label">Phone</label>
+          <input
+            id="phone"
+            type="tel"
+            formControlName="phone"
+            placeholder="585-123-4567"
+            class="form__input"
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email" class="form__label">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="your@email.com"
+            class="form__input"
+            [class.error]="emailControl?.invalid && emailControl?.touched"
+          />
+          @if (emailControl?.invalid && emailControl?.touched) {
+            <div class="form__error-message">
+              @if (emailControl?.errors?.['email']) {
+                <span>Please enter a valid email address</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Website -->
+        <div class="form-group">
+          <label for="website" class="form__label">Website</label>
+          <input
+            id="website"
+            type="text"
+            formControlName="website"
+            placeholder="yourwebsite.com or https://yourwebsite.com"
+            class="form__input"
+          />
+          <p class="form__help-text">You can include https:// or just enter the domain</p>
+        </div>
+      </fieldset>
+
+      <!-- Profile Image Link -->
+      <div class="form-group">
+        <span class="form__label">Profile Image</span>
+        @if (profile.image) {
+          <img [src]="profile.image" alt="Profile image" class="profile-image-preview" />
+        }
+        <a href="/profile/image" class="button button--secondary">Edit Profile Image</a>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="button button--secondary"
+          (click)="onCancel()"
+          [disabled]="loading()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="button button--primary"
+          [disabled]="loading() || profileForm.invalid"
+        >
+          @if (loading()) {
+            <span>Saving...</span>
+          } @else {
+            <span>Save Profile</span>
+          }
+        </button>
+      </div>
+    </form>
   </div>
 } @else {
   <div class="no-profile-message">

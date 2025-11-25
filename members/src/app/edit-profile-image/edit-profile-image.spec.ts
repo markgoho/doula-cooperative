@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import { describe, expect, it } from 'vitest';
-import { EditProfileService } from '../services/edit-profile.service';
+import { ProfileService } from '../services/profile.service';
 import type { ProfileData } from '../types/profile-data';
 import { EditProfileImage } from './edit-profile-image';
 
@@ -113,11 +113,11 @@ interface SetupOptions {
 }
 
 async function setup({ profileData }: SetupOptions = {}) {
-  const mockEditProfileService = {
+  const mockProfileService = {
     profile: signal(profileData),
-  } as unknown as EditProfileService;
+  } as unknown as ProfileService;
 
   return await render(EditProfileImage, {
-    providers: [{ provide: EditProfileService, useValue: mockEditProfileService }],
+    providers: [{ provide: ProfileService, useValue: mockProfileService }],
   });
 }
