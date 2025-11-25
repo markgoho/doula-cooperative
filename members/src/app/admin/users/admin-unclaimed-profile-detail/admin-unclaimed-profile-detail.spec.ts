@@ -310,7 +310,7 @@ async function setup(options: SetupOptions = {}) {
       isLoading: vi.fn(() => shouldKeepLoading),
       hasValue: vi.fn(() => !shouldKeepLoading && !shouldFailLoad),
       value: vi.fn(() => finalProfile),
-      error: vi.fn(() => (shouldFailLoad ? new Error(errorMessage) : null)),
+      error: vi.fn(() => (shouldFailLoad ? new Error(errorMessage) : undefined)),
       reload: vi.fn(),
     },
     errorMessage: computed(() => (shouldFailLoad ? errorMessage : undefined)),
