@@ -17,7 +17,7 @@ import { type ProfileData } from '../services/profile.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfile {
-  private editProfileService = inject(EditProfileService);
+  readonly editProfileService = inject(EditProfileService);
   private fb = inject(FormBuilder);
 
   // Use the edit profile service's profile signal
@@ -29,6 +29,7 @@ export class EditProfile {
   // Form state
   profileForm = this.fb.group({
     title: ['', Validators.required],
+    pronouns: [''],
     credentials: [''],
     tags: this.fb.array([], Validators.required),
     bio: ['', Validators.required],
@@ -57,6 +58,7 @@ export class EditProfile {
 
     this.profileForm.patchValue({
       title: profile.title,
+      pronouns: profile.pronouns || '',
       credentials: profile.credentials || '',
       bio: profile.bio,
       businessName: profile.contact?.business_name || '',
@@ -97,6 +99,7 @@ export class EditProfile {
       const profileData: ProfileData = {
         title: formValue.title!,
         bio: formValue.bio!,
+        ...(formValue.pronouns && { pronouns: formValue.pronouns }),
         ...(formValue.credentials && { credentials: formValue.credentials }),
         ...(selectedTags.length > 0 && { tags: selectedTags }),
         contact: {

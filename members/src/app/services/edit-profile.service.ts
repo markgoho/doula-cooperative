@@ -10,8 +10,9 @@ export class EditProfileService {
   private functions = inject(Functions);
   private profileService = inject(ProfileService);
 
-  // Expose profile from ProfileService for easy access in edit components
+  // Expose profile and profileResource from ProfileService for easy access in edit components
   readonly profile = computed(() => this.profileService.profileResource.value());
+  readonly profileResource = this.profileService.profileResource;
 
   async updateProfile(data: ProfileData): Promise<void> {
     const writeProfileCallable = httpsCallable<ProfileData, { success: boolean }>(

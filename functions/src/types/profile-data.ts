@@ -6,6 +6,9 @@ export interface ProfileData {
   /** Required: The doula's display name */
   title: string;
 
+  /** Optional: Pronouns (e.g., "she/her", "he/him", "they/them") */
+  pronouns?: string;
+
   /** Optional: Professional credentials (e.g., "CD(DONA), CPD") */
   credentials?: string;
 

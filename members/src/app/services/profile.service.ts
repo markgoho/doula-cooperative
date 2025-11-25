@@ -4,6 +4,7 @@ import { MembershipService } from './membership.service';
 
 export interface ProfileData {
   title: string;
+  pronouns?: string;
   credentials?: string;
   tags?: string[];
   contact?: {

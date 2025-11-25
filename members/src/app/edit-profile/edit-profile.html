@@ -1,7 +1,12 @@
 <h1>Edit Profile</h1>
 
-@if (profileData()) {
-  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+@if (editProfileService.profileResource.isLoading()) {
+  <div class="loading-message">
+    <p>Loading your profile...</p>
+  </div>
+} @else if (profileData()) {
+  <div class="form-container">
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->
     @if (successMessage()) {
       <div class="form__success-message">
@@ -36,6 +41,18 @@
       }
     </div>
 
+    <!-- Pronouns Field (optional) -->
+    <div class="form-group">
+      <label for="pronouns" class="form__label">Pronouns (optional)</label>
+      <input
+        id="pronouns"
+        type="text"
+        formControlName="pronouns"
+        placeholder="e.g., she/her, he/him, they/them"
+        class="form__input"
+      />
+    </div>
+
     <!-- Credentials Field -->
     <div class="form-group">
       <label for="credentials" class="form__label">Credentials</label>
@@ -51,7 +68,7 @@
     <!-- Tags Selection -->
     <div class="form-group">
       <div class="form__label" role="group" aria-labelledby="services-label">
-        <span id="services-label">Services & Specialties *</span>
+        <span id="services-label">Professional Category *</span>
       </div>
       <p class="form__help-text">Select all that apply</p>
       <div class="tags-container">
@@ -191,6 +208,7 @@
       </button>
     </div>
   </form>
+  </div>
 } @else {
   <div class="no-profile-message">
     <h2>Profile Setup Required</h2>
