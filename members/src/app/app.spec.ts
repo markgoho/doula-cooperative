@@ -71,7 +71,6 @@ interface SetupOptions {
 async function setup(options: SetupOptions = {}) {
   const { user: userValue, emailVerified = false } = options;
 
-  const userEventInstance = userEvent.setup();
   const userSignal: WritableSignal<User | null | undefined> = signal(userValue);
   const emailVerifiedSignal: WritableSignal<boolean> = signal(emailVerified);
 
@@ -90,6 +89,8 @@ async function setup(options: SetupOptions = {}) {
       },
     ],
   });
+
+  const userEventInstance = userEvent.setup();
 
   return { user: userEventInstance, mockAuthService };
 }

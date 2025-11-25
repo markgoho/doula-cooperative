@@ -114,7 +114,12 @@ interface SetupOptions {
 
 async function setup({ profileData }: SetupOptions = {}) {
   const mockProfileService = {
-    profile: signal(profileData),
+    profileResource: {
+      isLoading: signal(false),
+      hasValue: signal(profileData !== undefined),
+      value: signal(profileData),
+      error: signal(undefined),
+    },
   } as unknown as ProfileService;
 
   return await render(EditProfileImage, {
