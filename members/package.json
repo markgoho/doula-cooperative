@@ -43,13 +43,13 @@
     "@testing-library/angular": "^18.1.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/user-event": "^14.6.1",
-    "@vitest/coverage-v8": "^4.0.13",
+    "@vitest/coverage-v8": "^4.0.14",
     "angular-eslint": "^21.0.1",
     "eslint": "^9.39.1",
     "eslint-plugin-unicorn": "^62.0.0",
     "jsdom": "^27.2.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vitest": "^4.0.13"
+    "vitest": "^4.0.14"
   }
 }
