@@ -1,13 +1,13 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import type { Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
-import { contactUsForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
 import { MESSAGES_COLLECTION } from "../src/collections/index.js";
 import {
   type ContactUsForm,
   type ContactUsFormDocument,
   type ContactUsFormRequest,
 } from "../src/contact-us-form/types.js";
+import { contactUsForm } from "../src/index.js"; // Import from index.ts to test lazy-loading layer
 import {
   cleanupTestDocumentsByEmail,
   getDocumentByEmail,

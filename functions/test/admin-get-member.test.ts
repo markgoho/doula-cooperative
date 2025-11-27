@@ -1,10 +1,12 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleGetMember } from "../src/admin/get-member.js";
-import { MEMBERS_COLLECTION } from "../src/collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 
@@ -36,7 +38,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  
+
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -55,7 +57,10 @@ async function createMemberDocument({
     memberData.slug = slug;
   }
 
-  await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData as MemberDocument);
+  await firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(uid)
+    .set(memberData as MemberDocument);
 
   return memberData as MemberDocument;
 }
@@ -63,9 +68,7 @@ async function createMemberDocument({
 async function cleanupAdminGetMember() {
   const firestore = getFirestore();
 
-  const allDocuments = await firestore
-    .collection(MEMBERS_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(MEMBERS_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -85,10 +88,7 @@ describe("adminGetMember", () => {
   it("should return unauthenticated error when user is not authenticated", async () => {
     // Arrange & Act & Assert
     try {
-      await handleGetMember(
-        { uid: "some-uid" },
-        createMockCallableRequest(),
-      );
+      await handleGetMember({ uid: "some-uid" }, createMockCallableRequest());
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -161,7 +161,6 @@ describe("adminGetMember", () => {
       email: testEmail,
       name: "Test Member",
       membershipActive: true,
-      
     });
 
     // Act
@@ -189,7 +188,7 @@ describe("adminGetMember", () => {
       email: testEmail,
       name: "Full Member",
       membershipActive: true,
-      
+
       slug: "full-member",
     });
 
@@ -221,7 +220,6 @@ describe("adminGetMember", () => {
       uid: testUid,
       email: testEmail,
       membershipActive: false,
-      
     });
 
     // Act
@@ -274,7 +272,7 @@ describe("adminGetMember", () => {
       uid: testUid,
       email: testEmail,
       name: "Profile Member",
-      
+
       slug: "profile-member",
     });
 
@@ -319,8 +317,12 @@ describe("adminGetMember", () => {
     // Arrange
     const { adminUid, testUid, testEmail, firestore } = setup();
     const createdAt = Timestamp.fromDate(new Date("2024-01-15T10:30:00Z"));
-    const subscriptionStart = Timestamp.fromDate(new Date("2024-02-01T00:00:00Z"));
-    const membershipExpiresAt = Timestamp.fromDate(new Date("2025-02-01T00:00:00Z"));
+    const subscriptionStart = Timestamp.fromDate(
+      new Date("2024-02-01T00:00:00Z"),
+    );
+    const membershipExpiresAt = Timestamp.fromDate(
+      new Date("2025-02-01T00:00:00Z"),
+    );
 
     const memberData: MemberDocument = {
       createdAt,
@@ -329,7 +331,6 @@ describe("adminGetMember", () => {
       subscriptionStart,
       membershipActive: true,
       membershipExpiresAt,
-      
     };
 
     await firestore.collection(MEMBERS_COLLECTION).doc(testUid).set(memberData);

@@ -37,7 +37,14 @@ export function calculateExpirationDate(
   const expirationYear = now.getFullYear() + (isNextYear ? 1 : 0);
 
   // Set to last day of the expiration month at 23:59:59
-  const expirationDate = new Date(expirationYear, monthIndex + 1, 0, 23, 59, 59);
+  const expirationDate = new Date(
+    expirationYear,
+    monthIndex + 1,
+    0,
+    23,
+    59,
+    59,
+  );
 
   return Timestamp.fromDate(expirationDate);
 }

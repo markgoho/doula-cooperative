@@ -56,9 +56,7 @@ export async function handleRemoveAdminClaim(
     // Set the updated claims
     await auth.setCustomUserClaims(uid, remainingClaims);
 
-    logger.log(
-      `Admin claim removed from user: ${uid} by ${context.auth.uid}`,
-    );
+    logger.log(`Admin claim removed from user: ${uid} by ${context.auth.uid}`);
 
     return { success: true };
   } catch (error) {

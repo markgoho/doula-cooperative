@@ -30,7 +30,10 @@ export async function handleUpdateMatchRequest(
   }
 
   if (typeof sent !== "boolean") {
-    throw new HttpsError("invalid-argument", "Status (sent) must be a boolean.");
+    throw new HttpsError(
+      "invalid-argument",
+      "Status (sent) must be a boolean.",
+    );
   }
 
   try {
@@ -42,7 +45,10 @@ export async function handleUpdateMatchRequest(
     // Verify match request exists
     const matchRequestDocument = await matchRequestReference.get();
     if (!matchRequestDocument.exists) {
-      throw new HttpsError("not-found", `Match request with ID ${id} not found.`);
+      throw new HttpsError(
+        "not-found",
+        `Match request with ID ${id} not found.`,
+      );
     }
 
     // Update the sent status

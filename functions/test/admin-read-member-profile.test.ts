@@ -4,10 +4,12 @@ import {
   type AdminReadProfileRequest,
   handleAdminReadMemberProfile,
 } from "../src/admin/read-member-profile.js";
-import { MEMBERS_COLLECTION } from "../src/collections/index.js";
+import {
+  type MemberDocument,
+  MEMBERS_COLLECTION,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/collections/index.js";
 
 // Mock the octokit module
 const mockGetContent = mock();

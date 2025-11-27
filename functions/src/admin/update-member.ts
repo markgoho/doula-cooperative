@@ -1,7 +1,10 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { MEMBERS_COLLECTION, type MemberDocument } from "../collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface UpdateMemberRequest {
@@ -46,12 +49,18 @@ export async function handleUpdateMember(
 
   // Convert date strings to Timestamps if provided
   const processedUpdates: Partial<MemberDocument> = { ...updates };
-  if (updates.subscriptionStart && typeof updates.subscriptionStart === "string") {
+  if (
+    updates.subscriptionStart &&
+    typeof updates.subscriptionStart === "string"
+  ) {
     processedUpdates.subscriptionStart = Timestamp.fromDate(
       new Date(updates.subscriptionStart),
     );
   }
-  if (updates.membershipExpiresAt && typeof updates.membershipExpiresAt === "string") {
+  if (
+    updates.membershipExpiresAt &&
+    typeof updates.membershipExpiresAt === "string"
+  ) {
     processedUpdates.membershipExpiresAt = Timestamp.fromDate(
       new Date(updates.membershipExpiresAt),
     );

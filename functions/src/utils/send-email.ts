@@ -26,14 +26,23 @@ export async function sendEmail(
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
 
-      if (errorMessage.includes("unauthorized") || errorMessage.includes("forbidden")) {
+      if (
+        errorMessage.includes("unauthorized") ||
+        errorMessage.includes("forbidden")
+      ) {
         specificErrorId = ERROR_IDS.MAILGUN_AUTH_FAILED;
-      } else if (errorMessage.includes("not found") || errorMessage.includes("domain")) {
+      } else if (
+        errorMessage.includes("not found") ||
+        errorMessage.includes("domain")
+      ) {
         specificErrorId = ERROR_IDS.MAILGUN_DOMAIN_NOT_CONFIGURED;
       } else if (errorMessage.includes("rate limit")) {
         specificErrorId = ERROR_IDS.MAILGUN_RATE_LIMITED;
         retryable = true;
-      } else if (errorMessage.includes("invalid") || errorMessage.includes("recipient")) {
+      } else if (
+        errorMessage.includes("invalid") ||
+        errorMessage.includes("recipient")
+      ) {
         specificErrorId = ERROR_IDS.MAILGUN_INVALID_RECIPIENT;
       } else if (
         errorMessage.includes("timeout") ||

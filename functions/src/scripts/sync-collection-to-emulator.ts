@@ -28,31 +28,42 @@ import {
 // Available collections with friendly names
 const AVAILABLE_COLLECTIONS = [
   { name: "Members", value: MEMBERS_COLLECTION },
-  { name: "Migrated Users Import (Unclaimed Profiles)", value: IMPORT_COLLECTION },
+  {
+    name: "Migrated Users Import (Unclaimed Profiles)",
+    value: IMPORT_COLLECTION,
+  },
   { name: "Match Requests", value: MATCH_REQUESTS_COLLECTION },
   { name: "Messages (Contact Form)", value: MESSAGES_COLLECTION },
-  { name: "Processed Stripe Events", value: PROCESSED_STRIPE_EVENTS_COLLECTION },
+  {
+    name: "Processed Stripe Events",
+    value: PROCESSED_STRIPE_EVENTS_COLLECTION,
+  },
 ] as const;
 
 async function promptForCollection(): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
 
     console.log("\n📚 Available Collections:\n");
-    const collectionList = AVAILABLE_COLLECTIONS
-      .map((collection, index) => `  ${index + 1}. ${collection.name} (${collection.value})`)
-      .join("\n");
+    const collectionList = AVAILABLE_COLLECTIONS.map(
+      (collection, index) =>
+        `  ${index + 1}. ${collection.name} (${collection.value})`,
+    ).join("\n");
     console.log(collectionList);
     console.log("");
 
-    rl.question("Select a collection (1-5): ", (answer) => {
+    rl.question("Select a collection (1-5): ", answer => {
       rl.close();
       const index = Number.parseInt(answer.trim(), 10) - 1;
 
-      if (Number.isNaN(index) || index < 0 || index >= AVAILABLE_COLLECTIONS.length) {
+      if (
+        Number.isNaN(index) ||
+        index < 0 ||
+        index >= AVAILABLE_COLLECTIONS.length
+      ) {
         console.error("❌ Invalid selection");
         process.exit(1);
       }
@@ -74,10 +85,14 @@ async function getCollectionName(): Promise<string> {
 
   if (collectionArgument) {
     // Validate it's a known collection
-    const isValid = AVAILABLE_COLLECTIONS.some((c) => c.value === collectionArgument);
+    const isValid = AVAILABLE_COLLECTIONS.some(
+      c => c.value === collectionArgument,
+    );
     if (!isValid) {
       console.error(`❌ Unknown collection: ${collectionArgument}`);
-      console.error(`Available collections: ${AVAILABLE_COLLECTIONS.map((c) => c.value).join(", ")}`);
+      console.error(
+        `Available collections: ${AVAILABLE_COLLECTIONS.map(c => c.value).join(", ")}`,
+      );
       process.exit(1);
     }
     return collectionArgument;
@@ -101,7 +116,7 @@ async function syncCollectionToEmulator() {
     {
       projectId: "doula-cooperative",
     },
-    "production"
+    "production",
   );
   const productionDatabase = getFirestore(productionApp);
 
@@ -117,7 +132,9 @@ async function syncCollectionToEmulator() {
 
   try {
     // Read all documents from production
-    console.log(`\n📖 Reading documents from production collection "${COLLECTION_NAME}"...`);
+    console.log(
+      `\n📖 Reading documents from production collection "${COLLECTION_NAME}"...`,
+    );
     const snapshot = await productionDatabase.collection(COLLECTION_NAME).get();
 
     if (snapshot.empty) {
@@ -135,7 +152,10 @@ async function syncCollectionToEmulator() {
     for (const document of snapshot.docs) {
       try {
         const data = document.data();
-        await emulatorDatabase.collection(COLLECTION_NAME).doc(document.id).set(data);
+        await emulatorDatabase
+          .collection(COLLECTION_NAME)
+          .doc(document.id)
+          .set(data);
         process.stdout.write(".");
         successCount++;
       } catch (error) {

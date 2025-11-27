@@ -78,7 +78,9 @@ export const handleClaimProfile = async (
     return { status: "no_profile_to_claim" };
   }
 
-  const profileData = importDocument.data() as UnclaimedProfileDocumentData | undefined;
+  const profileData = importDocument.data() as
+    | UnclaimedProfileDocumentData
+    | undefined;
 
   // 4. Create the new profile in the 'members' collection.
   const memberDocumentReference = database

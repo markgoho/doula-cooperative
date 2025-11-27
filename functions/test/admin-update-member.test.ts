@@ -1,10 +1,12 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleUpdateMember } from "../src/admin/update-member.js";
-import { MEMBERS_COLLECTION } from "../src/collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 
@@ -38,7 +40,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  
+
   slug?: string;
   subscriptionStart?: Timestamp;
   membershipExpiresAt?: Timestamp;
@@ -47,9 +49,11 @@ async function createMemberDocument({
     createdAt: Timestamp.now(),
     email,
     uid,
-    subscriptionStart: subscriptionStart ?? Timestamp.fromDate(new Date("2024-01-15")),
+    subscriptionStart:
+      subscriptionStart ?? Timestamp.fromDate(new Date("2024-01-15")),
     membershipActive,
-    membershipExpiresAt: membershipExpiresAt ?? Timestamp.fromDate(new Date("2025-01-31")),
+    membershipExpiresAt:
+      membershipExpiresAt ?? Timestamp.fromDate(new Date("2025-01-31")),
   };
 
   if (name) {
@@ -59,7 +63,10 @@ async function createMemberDocument({
     memberData.slug = slug;
   }
 
-  await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData as MemberDocument);
+  await firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(uid)
+    .set(memberData as MemberDocument);
 
   return memberData as MemberDocument;
 }
@@ -67,9 +74,7 @@ async function createMemberDocument({
 async function cleanupAdminUpdateMember() {
   const firestore = getFirestore();
 
-  const allDocuments = await firestore
-    .collection(MEMBERS_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(MEMBERS_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -231,7 +236,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.name).toBe("New Name");
 
@@ -258,7 +266,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(false);
 
@@ -284,7 +295,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.slug).toBe("new-slug");
 
@@ -310,7 +324,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.email).toBe("newemail@example.com");
 
@@ -331,19 +348,27 @@ describe("adminUpdateMember", () => {
 
     // Act
     const result = await handleUpdateMember(
-      { uid: testUid, updates: { subscriptionStart: newDate as unknown as Timestamp } },
+      {
+        uid: testUid,
+        updates: { subscriptionStart: newDate as unknown as Timestamp },
+      },
       createMockCallableRequest({ uid: adminUid, isAdmin: true }),
     );
 
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.subscriptionStart).toBeInstanceOf(Timestamp);
     expect(updatedData.subscriptionStart).toBeDefined();
     if (updatedData.subscriptionStart) {
-      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain(
+        "2024-06-15T00:00:00",
+      );
     }
 
     await cleanupAdminUpdateMember();
@@ -363,19 +388,27 @@ describe("adminUpdateMember", () => {
 
     // Act
     const result = await handleUpdateMember(
-      { uid: testUid, updates: { membershipExpiresAt: newDate as unknown as Timestamp } },
+      {
+        uid: testUid,
+        updates: { membershipExpiresAt: newDate as unknown as Timestamp },
+      },
       createMockCallableRequest({ uid: adminUid, isAdmin: true }),
     );
 
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipExpiresAt).toBeInstanceOf(Timestamp);
     expect(updatedData.membershipExpiresAt).toBeDefined();
     if (updatedData.membershipExpiresAt) {
-      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-12-31T23:59:59");
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain(
+        "2025-12-31T23:59:59",
+      );
     }
 
     await cleanupAdminUpdateMember();
@@ -391,7 +424,6 @@ describe("adminUpdateMember", () => {
       email: testEmail,
       name: "Old Name",
       membershipActive: false,
-      
     });
 
     // Act
@@ -401,7 +433,7 @@ describe("adminUpdateMember", () => {
         updates: {
           name: "New Name",
           membershipActive: true,
-          
+
           slug: "new-member-slug",
         },
       },
@@ -411,7 +443,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.name).toBe("New Name");
     expect(updatedData.membershipActive).toBe(true);
@@ -425,8 +460,12 @@ describe("adminUpdateMember", () => {
     const { adminUid, testUid, testEmail, firestore } = setup();
 
     const originalCreatedAt = Timestamp.fromDate(new Date("2024-01-01"));
-    const originalSubscriptionStart = Timestamp.fromDate(new Date("2024-02-01"));
-    const originalMembershipExpiresAt = Timestamp.fromDate(new Date("2025-02-01"));
+    const originalSubscriptionStart = Timestamp.fromDate(
+      new Date("2024-02-01"),
+    );
+    const originalMembershipExpiresAt = Timestamp.fromDate(
+      new Date("2025-02-01"),
+    );
 
     await createMemberDocument({
       firestore,
@@ -434,7 +473,7 @@ describe("adminUpdateMember", () => {
       email: testEmail,
       name: "Original Name",
       membershipActive: true,
-      
+
       slug: "original-slug",
       subscriptionStart: originalSubscriptionStart,
       membershipExpiresAt: originalMembershipExpiresAt,
@@ -454,7 +493,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.name).toBe("Updated Name");
     expect(updatedData.email).toBe(testEmail);
@@ -462,7 +504,9 @@ describe("adminUpdateMember", () => {
     expect(updatedData.slug).toBe("original-slug");
     expect(updatedData.createdAt).toEqual(originalCreatedAt);
     expect(updatedData.subscriptionStart).toEqual(originalSubscriptionStart);
-    expect(updatedData.membershipExpiresAt).toEqual(originalMembershipExpiresAt);
+    expect(updatedData.membershipExpiresAt).toEqual(
+      originalMembershipExpiresAt,
+    );
 
     await cleanupAdminUpdateMember();
   });
@@ -488,7 +532,10 @@ describe("adminUpdateMember", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.subscriptionStart).toEqual(newTimestamp);
 

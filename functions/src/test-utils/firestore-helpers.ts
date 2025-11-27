@@ -1,6 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { MEMBERS_COLLECTION, type MemberDocument } from "../collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../collections/index.js";
 
 /**
  * Get a member document reference from Firestore

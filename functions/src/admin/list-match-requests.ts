@@ -1,7 +1,10 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { type CallableRequest } from "firebase-functions/v2/https";
-import { MATCH_REQUESTS_COLLECTION, type MatchRequestDocument } from "../collections/index.js";
+import {
+  MATCH_REQUESTS_COLLECTION,
+  type MatchRequestDocument,
+} from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface ListMatchRequestsRequest {
@@ -34,7 +37,9 @@ export async function handleListMatchRequests(
 
   try {
     const firestore = getFirestore();
-    const matchRequestsCollection = firestore.collection(MATCH_REQUESTS_COLLECTION);
+    const matchRequestsCollection = firestore.collection(
+      MATCH_REQUESTS_COLLECTION,
+    );
 
     // Get total count
     const totalSnapshot = await matchRequestsCollection.count().get();
@@ -54,9 +59,13 @@ export async function handleListMatchRequests(
     let query;
 
     if (status === "pending") {
-      query = matchRequestsCollection.where("sent", "==", false).orderBy("submitted", "desc");
+      query = matchRequestsCollection
+        .where("sent", "==", false)
+        .orderBy("submitted", "desc");
     } else if (status === "processed") {
-      query = matchRequestsCollection.where("sent", "==", true).orderBy("submitted", "desc");
+      query = matchRequestsCollection
+        .where("sent", "==", true)
+        .orderBy("submitted", "desc");
     } else {
       query = matchRequestsCollection.orderBy("submitted", "desc");
     }

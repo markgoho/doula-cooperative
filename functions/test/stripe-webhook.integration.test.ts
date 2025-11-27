@@ -24,7 +24,10 @@ import {
   cleanupTestMembers,
   getMemberData,
 } from "../src/test-utils/firestore-helpers.js";
-import { initializeTest, TEST_PROJECT_ID } from "../src/test-utils/test-setup.js";
+import {
+  initializeTest,
+  TEST_PROJECT_ID,
+} from "../src/test-utils/test-setup.js";
 
 const test = initializeTest();
 

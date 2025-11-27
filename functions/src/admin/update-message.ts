@@ -30,14 +30,15 @@ export async function handleUpdateMessage(
   }
 
   if (typeof sent !== "boolean") {
-    throw new HttpsError("invalid-argument", "Status (sent) must be a boolean.");
+    throw new HttpsError(
+      "invalid-argument",
+      "Status (sent) must be a boolean.",
+    );
   }
 
   try {
     const firestore = getFirestore();
-    const messageReference = firestore
-      .collection(MESSAGES_COLLECTION)
-      .doc(id);
+    const messageReference = firestore.collection(MESSAGES_COLLECTION).doc(id);
 
     // Verify message exists
     const messageDocument = await messageReference.get();

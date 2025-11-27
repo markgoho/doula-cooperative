@@ -18,4 +18,3 @@ export function assertCorsHeaders(mockResponse: MockResponse) {
 export function assertSuccessStatus(mockResponse: MockResponse) {
   expect(mockResponse.statusCode).toBe(200);
 }
-

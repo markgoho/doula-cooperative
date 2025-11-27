@@ -5,7 +5,10 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-functions/v2/firestore";
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import { MATCH_REQUESTS_COLLECTION, type MatchRequestDocument } from "../collections/index.js";
+import {
+  MATCH_REQUESTS_COLLECTION,
+  type MatchRequestDocument,
+} from "../collections/index.js";
 import {
   MARK_EMAIL,
   NO_REPLY_EMAIL,

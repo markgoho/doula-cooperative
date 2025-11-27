@@ -1,8 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
-import type { CallableRequest } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import { adminGetMessage } from "../src/index.js";
+import type { CallableRequest } from "firebase-functions/v2/https";
 import { MESSAGES_COLLECTION } from "../src/collections/messages.js";
+import { adminGetMessage } from "../src/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
 

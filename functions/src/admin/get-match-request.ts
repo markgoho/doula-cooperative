@@ -1,7 +1,10 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import { MATCH_REQUESTS_COLLECTION, type MatchRequestDocument } from "../collections/index.js";
+import {
+  MATCH_REQUESTS_COLLECTION,
+  type MatchRequestDocument,
+} from "../collections/index.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface GetMatchRequestRequest {
@@ -35,7 +38,10 @@ export async function handleGetMatchRequest(
       .get();
 
     if (!matchRequestDocument.exists) {
-      throw new HttpsError("not-found", `Match request with ID ${id} not found.`);
+      throw new HttpsError(
+        "not-found",
+        `Match request with ID ${id} not found.`,
+      );
     }
 
     logger.log(`Admin ${context.auth?.uid} retrieved match request ${id}`);

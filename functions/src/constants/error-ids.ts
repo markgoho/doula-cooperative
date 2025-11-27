@@ -37,8 +37,10 @@ export const ERROR_IDS = {
 
   // Admin send invitation errors
   ADMIN_SEND_INVITATION_INVALID_UID: "admin_send_invitation_invalid_uid",
-  ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND: "admin_send_invitation_member_not_found",
-  ADMIN_SEND_INVITATION_NO_SUBSCRIPTION: "admin_send_invitation_no_subscription",
+  ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND:
+    "admin_send_invitation_member_not_found",
+  ADMIN_SEND_INVITATION_NO_SUBSCRIPTION:
+    "admin_send_invitation_no_subscription",
   ADMIN_SEND_INVITATION_EMAIL_FAILED: "admin_send_invitation_email_failed",
 
   // Write profile errors

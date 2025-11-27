@@ -27,9 +27,8 @@ if (getApps().length === 0) {
 export const contactUsForm = onRequest(
   { invoker: "public" },
   async (request, response) => {
-    const { handleContactUsForm } = await import(
-      "./contact-us-form/contact-us-form.js"
-    );
+    const { handleContactUsForm } =
+      await import("./contact-us-form/contact-us-form.js");
     await handleContactUsForm(request, response);
   },
 );
@@ -37,9 +36,8 @@ export const contactUsForm = onRequest(
 export const doulaMatchForm = onRequest(
   { invoker: "public" },
   async (request, response) => {
-    const { handleDoulaMatchForm } = await import(
-      "./doula-match-form/doula-match-form.js"
-    );
+    const { handleDoulaMatchForm } =
+      await import("./doula-match-form/doula-match-form.js");
     await handleDoulaMatchForm(request, response);
   },
 );
@@ -48,9 +46,8 @@ export const emailContactForm = onDocumentCreated(
   { document: "messages/{messageId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
     const apiKey = process.env["MAILGUN_API_KEY"];
-    const { handleDocumentCreated } = await import(
-      "./contact-us-form/email-contact-form.js"
-    );
+    const { handleDocumentCreated } =
+      await import("./contact-us-form/email-contact-form.js");
     await handleDocumentCreated(event, apiKey);
   },
 );
@@ -59,31 +56,27 @@ export const emailDoulaMatch = onDocumentCreated(
   { document: "matchRequests/{matchRequestId}", secrets: ["MAILGUN_API_KEY"] },
   async event => {
     const apiKey = process.env["MAILGUN_API_KEY"];
-    const { handleDocumentCreated } = await import(
-      "./doula-match-form/email-doula-match.js"
-    );
+    const { handleDocumentCreated } =
+      await import("./doula-match-form/email-doula-match.js");
     await handleDocumentCreated(event, apiKey);
   },
 );
 
 export const createMemberOnUserCreated = auth.user().onCreate(async user => {
-  const { handleUserCreated } = await import(
-    "./user-creation/user-creation.js"
-  );
+  const { handleUserCreated } =
+    await import("./user-creation/user-creation.js");
   await handleUserCreated(user);
 });
 
 export const deleteMemberOnUserDeleted = auth.user().onDelete(async user => {
-  const { handleUserDeleted } = await import(
-    "./user-deletion/user-deletion.js"
-  );
+  const { handleUserDeleted } =
+    await import("./user-deletion/user-deletion.js");
   await handleUserDeleted(user);
 });
 
 export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
-  const { handleSetAutoAdmin } = await import(
-    "./user-creation/set-auto-admin.js"
-  );
+  const { handleSetAutoAdmin } =
+    await import("./user-creation/set-auto-admin.js");
   await handleSetAutoAdmin(user);
 });
 
@@ -141,9 +134,8 @@ export const setAdminClaim = onCall({ invoker: "public" }, async request => {
 });
 
 export const removeAdminClaim = onCall({ invoker: "public" }, async request => {
-  const { handleRemoveAdminClaim } = await import(
-    "./admin/remove-admin-claim.js"
-  );
+  const { handleRemoveAdminClaim } =
+    await import("./admin/remove-admin-claim.js");
   return handleRemoveAdminClaim(request.data as { uid: string }, request);
 });
 
@@ -171,9 +163,8 @@ export const adminUpdateMember = onCall(
 export const adminActivateMembership = onCall(
   { invoker: "public" },
   async request => {
-    const { handleActivateMembership } = await import(
-      "./admin/activate-membership.js"
-    );
+    const { handleActivateMembership } =
+      await import("./admin/activate-membership.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleActivateMembership(request.data, request);
   },
@@ -182,9 +173,8 @@ export const adminActivateMembership = onCall(
 export const adminDeactivateMembership = onCall(
   { invoker: "public" },
   async request => {
-    const { handleDeactivateMembership } = await import(
-      "./admin/deactivate-membership.js"
-    );
+    const { handleDeactivateMembership } =
+      await import("./admin/deactivate-membership.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleDeactivateMembership(request.data, request);
   },
@@ -193,9 +183,8 @@ export const adminDeactivateMembership = onCall(
 export const adminExtendMembership = onCall(
   { invoker: "public" },
   async request => {
-    const { handleExtendMembership } = await import(
-      "./admin/extend-membership.js"
-    );
+    const { handleExtendMembership } =
+      await import("./admin/extend-membership.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleExtendMembership(request.data, request);
   },
@@ -212,9 +201,8 @@ export const adminReadMemberProfile = onCall(
       throw new HttpsError("internal", "Missing GitHub secrets.");
     }
 
-    const { handleAdminReadMemberProfile } = await import(
-      "./admin/read-member-profile.js"
-    );
+    const { handleAdminReadMemberProfile } =
+      await import("./admin/read-member-profile.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleAdminReadMemberProfile(request.data, request, [
       GITHUB_APP_ID,
@@ -227,9 +215,8 @@ export const adminReadMemberProfile = onCall(
 export const adminListUnclaimedProfiles = onCall(
   { invoker: "public" },
   async request => {
-    const { handleListUnclaimedProfiles } = await import(
-      "./admin/list-unclaimed-profiles.js"
-    );
+    const { handleListUnclaimedProfiles } =
+      await import("./admin/list-unclaimed-profiles.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleListUnclaimedProfiles(request.data, request);
   },
@@ -238,9 +225,8 @@ export const adminListUnclaimedProfiles = onCall(
 export const adminGetUnclaimedProfile = onCall(
   { invoker: "public" },
   async request => {
-    const { handleGetUnclaimedProfile } = await import(
-      "./admin/get-unclaimed-profile.js"
-    );
+    const { handleGetUnclaimedProfile } =
+      await import("./admin/get-unclaimed-profile.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleGetUnclaimedProfile(request.data, request);
   },
@@ -265,9 +251,8 @@ export const adminSendInvitation = onCall(
 export const adminListMatchRequests = onCall(
   { invoker: "public" },
   async request => {
-    const { handleListMatchRequests } = await import(
-      "./admin/list-match-requests.js"
-    );
+    const { handleListMatchRequests } =
+      await import("./admin/list-match-requests.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleListMatchRequests(request.data, request);
   },
@@ -276,9 +261,8 @@ export const adminListMatchRequests = onCall(
 export const adminGetMatchRequest = onCall(
   { invoker: "public" },
   async request => {
-    const { handleGetMatchRequest } = await import(
-      "./admin/get-match-request.js"
-    );
+    const { handleGetMatchRequest } =
+      await import("./admin/get-match-request.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleGetMatchRequest(request.data, request);
   },
@@ -287,9 +271,8 @@ export const adminGetMatchRequest = onCall(
 export const adminUpdateMatchRequest = onCall(
   { invoker: "public" },
   async request => {
-    const { handleUpdateMatchRequest } = await import(
-      "./admin/update-match-request.js"
-    );
+    const { handleUpdateMatchRequest } =
+      await import("./admin/update-match-request.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleUpdateMatchRequest(request.data, request);
   },
@@ -298,31 +281,22 @@ export const adminUpdateMatchRequest = onCall(
 export const adminListMessages = onCall(
   { invoker: "public" },
   async request => {
-    const { handleListMessages } = await import(
-      "./admin/list-messages.js"
-    );
+    const { handleListMessages } = await import("./admin/list-messages.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleListMessages(request.data, request);
   },
 );
 
-export const adminGetMessage = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleGetMessage } = await import(
-      "./admin/get-message.js"
-    );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleGetMessage(request.data, request);
-  },
-);
+export const adminGetMessage = onCall({ invoker: "public" }, async request => {
+  const { handleGetMessage } = await import("./admin/get-message.js");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return handleGetMessage(request.data, request);
+});
 
 export const adminUpdateMessage = onCall(
   { invoker: "public" },
   async request => {
-    const { handleUpdateMessage } = await import(
-      "./admin/update-message.js"
-    );
+    const { handleUpdateMessage } = await import("./admin/update-message.js");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return handleUpdateMessage(request.data, request);
   },

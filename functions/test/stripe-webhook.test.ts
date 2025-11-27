@@ -100,21 +100,21 @@ function setup({
   const originalEnvironment = { ...process.env };
 
   if (includeStripeSecrets) {
-    process.env['STRIPE_API_KEY'] = "sk_test_mock_key";
-    process.env['STRIPE_WEBHOOK_SECRET'] = "whsec_test_mock_secret";
+    process.env["STRIPE_API_KEY"] = "sk_test_mock_key";
+    process.env["STRIPE_WEBHOOK_SECRET"] = "whsec_test_mock_secret";
   } else {
-    delete process.env['STRIPE_API_KEY'];
-    delete process.env['STRIPE_WEBHOOK_SECRET'];
+    delete process.env["STRIPE_API_KEY"];
+    delete process.env["STRIPE_WEBHOOK_SECRET"];
   }
 
   if (includeMailgunKey) {
-    process.env['MAILGUN_API_KEY'] = "test-mailgun-key";
+    process.env["MAILGUN_API_KEY"] = "test-mailgun-key";
   } else {
-    delete process.env['MAILGUN_API_KEY'];
+    delete process.env["MAILGUN_API_KEY"];
   }
 
   // Enable emulator mode to skip actual email sending
-  process.env['FUNCTIONS_EMULATOR'] = "true";
+  process.env["FUNCTIONS_EMULATOR"] = "true";
 
   // Create a mock Stripe instance to capture the constructor
   const stripe = new Stripe("sk_test_mock");
@@ -1034,7 +1034,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        
+
         name: "Existing Name",
       });
 
@@ -1082,7 +1082,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        
+
         name: "Existing Name",
       });
 
@@ -1130,7 +1130,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        
+
         name: "Existing Name",
       });
 
@@ -1178,7 +1178,7 @@ describe("stripeWebhook handler", () => {
         membershipActive: false,
         createdAt: Timestamp.now(),
         slug: "existing-slug",
-        
+
         name: "Existing Name",
       });
 

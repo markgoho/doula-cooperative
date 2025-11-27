@@ -62,7 +62,9 @@ export interface StripeMemberDocument extends MemberDocument {
 /**
  * Checks if a member document has Stripe subscription fields.
  */
-export function isStripeMember(document: MemberDocument): document is StripeMemberDocument {
+export function isStripeMember(
+  document: MemberDocument,
+): document is StripeMemberDocument {
   return !!(
     document.stripeCustomerId &&
     document.stripeSubscriptionId &&
@@ -95,6 +97,7 @@ export function hasValidStripeData(document: MemberDocument): boolean {
 export function isActiveStripeMember(document: MemberDocument): boolean {
   return (
     isStripeMember(document) &&
-    (document.subscriptionStatus === "active" || document.subscriptionStatus === "trialing")
+    (document.subscriptionStatus === "active" ||
+      document.subscriptionStatus === "trialing")
   );
 }

@@ -42,14 +42,14 @@ async function createUnclaimedProfile({
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  
+
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
 }) {
   const profileData: {
     name: string;
     subscriptionStart: Timestamp;
-    
+
     membershipActive?: boolean;
     membershipExpiresAt?: Timestamp;
   } = {
@@ -72,9 +72,7 @@ async function createUnclaimedProfile({
 async function cleanupAdminGetUnclaimedProfile() {
   const firestore = getFirestore();
 
-  const allDocuments = await firestore
-    .collection(IMPORT_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(IMPORT_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -169,7 +167,6 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Test Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
     });
 
     // Act
@@ -194,7 +191,7 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Full Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
+
       membershipActive: true,
       membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-15")),
     });
@@ -208,9 +205,13 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Full Profile");
-    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(true);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(
+      true,
+    );
     expect(result.subscriptionStart).toBeDefined();
-    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toBeDefined();
+    expect(
+      (result as UnclaimedProfileWithMembership).membershipExpiresAt,
+    ).toBeDefined();
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -224,7 +225,6 @@ describe("adminGetUnclaimedProfile", () => {
       email: testEmail,
       name: "Minimal Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
     });
 
     // Act
@@ -236,8 +236,12 @@ describe("adminGetUnclaimedProfile", () => {
     // Assert
     expect(result.email).toBe(testEmail);
     expect(result.name).toBe("Minimal Profile");
-    expect((result as UnclaimedProfileWithMembership).membershipActive).toBeUndefined();
-    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toBeUndefined();
+    expect(
+      (result as UnclaimedProfileWithMembership).membershipActive,
+    ).toBeUndefined();
+    expect(
+      (result as UnclaimedProfileWithMembership).membershipExpiresAt,
+    ).toBeUndefined();
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -269,8 +273,12 @@ describe("adminGetUnclaimedProfile", () => {
   it("should preserve all timestamp fields", async () => {
     // Arrange
     const { adminUid, testEmail, firestore } = setup();
-    const subscriptionStart = Timestamp.fromDate(new Date("2024-01-15T10:30:00Z"));
-    const membershipExpiresAt = Timestamp.fromDate(new Date("2025-01-15T10:30:00Z"));
+    const subscriptionStart = Timestamp.fromDate(
+      new Date("2024-01-15T10:30:00Z"),
+    );
+    const membershipExpiresAt = Timestamp.fromDate(
+      new Date("2025-01-15T10:30:00Z"),
+    );
 
     await createUnclaimedProfile({
       firestore,
@@ -288,7 +296,9 @@ describe("adminGetUnclaimedProfile", () => {
 
     // Assert
     expect(result.subscriptionStart).toEqual(subscriptionStart);
-    expect((result as UnclaimedProfileWithMembership).membershipExpiresAt).toEqual(membershipExpiresAt);
+    expect(
+      (result as UnclaimedProfileWithMembership).membershipExpiresAt,
+    ).toEqual(membershipExpiresAt);
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -312,7 +322,9 @@ describe("adminGetUnclaimedProfile", () => {
     );
 
     // Assert
-    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(false);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(
+      false,
+    );
 
     await cleanupAdminGetUnclaimedProfile();
   });
@@ -336,7 +348,9 @@ describe("adminGetUnclaimedProfile", () => {
     );
 
     // Assert
-    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(true);
+    expect((result as UnclaimedProfileWithMembership).membershipActive).toBe(
+      true,
+    );
 
     await cleanupAdminGetUnclaimedProfile();
   });

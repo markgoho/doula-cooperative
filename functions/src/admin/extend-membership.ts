@@ -29,7 +29,10 @@ export async function handleExtendMembership(
   }
 
   if (!newExpirationDate) {
-    throw new HttpsError("invalid-argument", "New expiration date is required.");
+    throw new HttpsError(
+      "invalid-argument",
+      "New expiration date is required.",
+    );
   }
 
   try {

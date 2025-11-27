@@ -2,7 +2,10 @@ import { getFirestore } from "firebase-admin/firestore";
 import { type CallableRequest, HttpsError } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
 import { App } from "octokit";
-import { MEMBERS_COLLECTION, type MemberDocument } from "../collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../collections/index.js";
 
 export async function handleReadProfile(
   request: CallableRequest,

@@ -2,10 +2,12 @@ import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { handleActivateMembership } from "../src/admin/activate-membership.js";
 import { handleDeactivateMembership } from "../src/admin/deactivate-membership.js";
-import { MEMBERS_COLLECTION } from "../src/collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  type MemberDocument,
+} from "../src/collections/index.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
-import { type MemberDocument } from "../src/collections/index.js";
 
 const test = initializeTest();
 
@@ -37,7 +39,7 @@ async function createMemberDocument({
   email: string;
   name?: string;
   membershipActive?: boolean;
-  
+
   slug?: string;
 }) {
   const memberData: Partial<MemberDocument> = {
@@ -56,7 +58,10 @@ async function createMemberDocument({
     memberData.slug = slug;
   }
 
-  await firestore.collection(MEMBERS_COLLECTION).doc(uid).set(memberData as MemberDocument);
+  await firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(uid)
+    .set(memberData as MemberDocument);
 
   return memberData as MemberDocument;
 }
@@ -64,9 +69,7 @@ async function createMemberDocument({
 async function cleanupMembershipStatus() {
   const firestore = getFirestore();
 
-  const allDocuments = await firestore
-    .collection(MEMBERS_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(MEMBERS_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -176,7 +179,10 @@ describe("adminActivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
 
@@ -229,16 +235,23 @@ describe("adminActivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
     expect(updatedData.subscriptionStart).toBeDefined();
     if (updatedData.subscriptionStart) {
-      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-03-01T00:00:00");
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain(
+        "2024-03-01T00:00:00",
+      );
     }
     expect(updatedData.membershipExpiresAt).toBeDefined();
     if (updatedData.membershipExpiresAt) {
-      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2025-03-01T00:00:00");
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain(
+        "2025-03-01T00:00:00",
+      );
     }
 
     await cleanupMembershipStatus();
@@ -269,12 +282,17 @@ describe("adminActivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
     expect(updatedData.subscriptionStart).toBeDefined();
     if (updatedData.subscriptionStart) {
-      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain("2024-06-15T00:00:00");
+      expect(updatedData.subscriptionStart.toDate().toISOString()).toContain(
+        "2024-06-15T00:00:00",
+      );
     }
 
     // Expires should still be ~1 year from current time (not from custom start)
@@ -318,7 +336,10 @@ describe("adminActivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
 
@@ -333,7 +354,9 @@ describe("adminActivateMembership", () => {
 
     expect(updatedData.membershipExpiresAt).toBeDefined();
     if (updatedData.membershipExpiresAt) {
-      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-12-31T23:59:59");
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain(
+        "2026-12-31T23:59:59",
+      );
     }
 
     await cleanupMembershipStatus();
@@ -364,12 +387,17 @@ describe("adminActivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(true);
     expect(updatedData.membershipExpiresAt).toBeDefined();
     if (updatedData.membershipExpiresAt) {
-      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain("2026-01-01T00:00:00");
+      expect(updatedData.membershipExpiresAt.toDate().toISOString()).toContain(
+        "2026-01-01T00:00:00",
+      );
     }
 
     await cleanupMembershipStatus();
@@ -474,7 +502,10 @@ describe("adminDeactivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(false);
 
@@ -501,7 +532,10 @@ describe("adminDeactivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(false);
 
@@ -521,7 +555,7 @@ describe("adminDeactivateMembership", () => {
       email: testEmail,
       name: "Test Member",
       membershipActive: true,
-      
+
       slug: "test-member",
     });
 
@@ -540,7 +574,10 @@ describe("adminDeactivateMembership", () => {
     // Assert
     expect(result.success).toBe(true);
 
-    const updatedDocument = await firestore.collection(MEMBERS_COLLECTION).doc(testUid).get();
+    const updatedDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
     const updatedData = updatedDocument.data() as MemberDocument;
     expect(updatedData.membershipActive).toBe(false);
     expect(updatedData.name).toBe("Test Member");

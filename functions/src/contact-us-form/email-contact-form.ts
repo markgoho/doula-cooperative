@@ -5,7 +5,10 @@ import {
 } from "firebase-functions/firestore";
 import { logger } from "firebase-functions/v2";
 import { type MailgunMessageData } from "mailgun.js/definitions";
-import { MESSAGES_COLLECTION, type MessageDocument } from "../collections/index.js";
+import {
+  MESSAGES_COLLECTION,
+  type MessageDocument,
+} from "../collections/index.js";
 import {
   MARK_EMAIL,
   NO_REPLY_EMAIL,
@@ -25,8 +28,7 @@ export async function handleDocumentCreated(
     return;
   }
 
-  const { contactName, email, message } =
-    snapshot.data() as MessageDocument;
+  const { contactName, email, message } = snapshot.data() as MessageDocument;
 
   const emailMessage: MailgunMessageData = {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,

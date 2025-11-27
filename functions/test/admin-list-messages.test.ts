@@ -1,9 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { getFirestore } from "firebase-admin/firestore";
 import type { CallableRequest } from "firebase-functions/v2/https";
+import { type MessageStatus } from "../src/admin/list-messages.js";
 import { MESSAGES_COLLECTION } from "../src/collections/messages.js";
 import { adminListMessages } from "../src/index.js";
-import { type MessageStatus } from "../src/admin/list-messages.js";
 import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
 
@@ -31,7 +31,7 @@ describe("adminListMessages", () => {
   beforeEach(async () => {
     // Clean up any existing test data
     const firestore = getFirestore();
-    
+
     // Get ALL documents in the collection
     const snapshot = await firestore
       .collection(MESSAGES_COLLECTION)
@@ -260,7 +260,7 @@ describe("adminListMessages", () => {
     // But we can verify the function doesn't error with a large limit
     // and if we had more than 100 docs, it would return 100
     // For this test, we'll just verify it works with limit > 100
-    
+
     const { request } = setup({ limit: 150 });
     const result = await wrapped(
       request as unknown as CallableRequest<{
@@ -269,7 +269,7 @@ describe("adminListMessages", () => {
         status?: MessageStatus;
       }>,
     );
-    
+
     expect(result.messages).toBeDefined();
   });
 

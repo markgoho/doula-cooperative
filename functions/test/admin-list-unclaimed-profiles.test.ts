@@ -17,9 +17,7 @@ type UnclaimedProfileWithMembership = UnclaimedProfileDocument & {
 
 const test = initializeTest();
 
-function setup({
-  adminUid = "admin-user-001",
-} = {}) {
+function setup({ adminUid = "admin-user-001" } = {}) {
   const firestore = getFirestore();
 
   return {
@@ -40,14 +38,14 @@ async function createUnclaimedProfile({
   email: string;
   name: string;
   subscriptionStart: Timestamp;
-  
+
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
 }) {
   const profileData: {
     name: string;
     subscriptionStart: Timestamp;
-    
+
     membershipActive?: boolean;
     membershipExpiresAt?: Timestamp;
   } = {
@@ -70,9 +68,7 @@ async function createUnclaimedProfile({
 async function cleanupAdminListUnclaimedProfiles() {
   const firestore = getFirestore();
 
-  const allDocuments = await firestore
-    .collection(IMPORT_COLLECTION)
-    .get();
+  const allDocuments = await firestore.collection(IMPORT_COLLECTION).get();
 
   const deletePromises = allDocuments.docs.map(document =>
     document.ref.delete(),
@@ -92,10 +88,7 @@ describe("adminListUnclaimedProfiles", () => {
   it("should return unauthenticated error when user is not authenticated", async () => {
     // Arrange & Act & Assert
     try {
-      await handleListUnclaimedProfiles(
-        {},
-        createMockCallableRequest(),
-      );
+      await handleListUnclaimedProfiles({}, createMockCallableRequest());
       expect.unreachable();
     } catch (error) {
       expect(String(error)).toContain(
@@ -225,7 +218,9 @@ describe("adminListUnclaimedProfiles", () => {
         firestore,
         email: `test${index}@example.com`,
         name: `User ${index}`,
-        subscriptionStart: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        subscriptionStart: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -251,7 +246,9 @@ describe("adminListUnclaimedProfiles", () => {
         firestore,
         email: `user${index}@example.com`,
         name: `User ${index}`,
-        subscriptionStart: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        subscriptionStart: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -283,7 +280,9 @@ describe("adminListUnclaimedProfiles", () => {
         firestore,
         email: `user${String(index).padStart(2, "0")}@example.com`,
         name: `User ${index}`,
-        subscriptionStart: Timestamp.fromDate(new Date(`2024-01-${String(index).padStart(2, "0")}`)),
+        subscriptionStart: Timestamp.fromDate(
+          new Date(`2024-01-${String(index).padStart(2, "0")}`),
+        ),
       });
     }
 
@@ -382,7 +381,7 @@ describe("adminListUnclaimedProfiles", () => {
       email: "fields@example.com",
       name: "Fields Test",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
+
       membershipActive: true,
       membershipExpiresAt: Timestamp.fromDate(new Date("2025-01-15")),
     });
@@ -399,9 +398,13 @@ describe("adminListUnclaimedProfiles", () => {
     if (profile) {
       expect(profile.email).toBe("fields@example.com");
       expect(profile.name).toBe("Fields Test");
-      expect((profile as UnclaimedProfileWithMembership).membershipActive).toBe(true);
+      expect((profile as UnclaimedProfileWithMembership).membershipActive).toBe(
+        true,
+      );
       expect(profile.subscriptionStart).toBeDefined();
-      expect((profile as UnclaimedProfileWithMembership).membershipExpiresAt).toBeDefined();
+      expect(
+        (profile as UnclaimedProfileWithMembership).membershipExpiresAt,
+      ).toBeDefined();
     }
 
     await cleanupAdminListUnclaimedProfiles();
@@ -416,7 +419,6 @@ describe("adminListUnclaimedProfiles", () => {
       email: "minimal@example.com",
       name: "Minimal Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
     });
 
     // Act
@@ -431,8 +433,12 @@ describe("adminListUnclaimedProfiles", () => {
     if (profile) {
       expect(profile.email).toBe("minimal@example.com");
       expect(profile.name).toBe("Minimal Profile");
-      expect((profile as UnclaimedProfileWithMembership).membershipActive).toBeUndefined();
-      expect((profile as UnclaimedProfileWithMembership).membershipExpiresAt).toBeUndefined();
+      expect(
+        (profile as UnclaimedProfileWithMembership).membershipActive,
+      ).toBeUndefined();
+      expect(
+        (profile as UnclaimedProfileWithMembership).membershipExpiresAt,
+      ).toBeUndefined();
     }
 
     await cleanupAdminListUnclaimedProfiles();
@@ -471,7 +477,6 @@ describe("adminListUnclaimedProfiles", () => {
       email: "with-profile@example.com",
       name: "Has Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-15")),
-      
     });
 
     await createUnclaimedProfile({
@@ -479,7 +484,6 @@ describe("adminListUnclaimedProfiles", () => {
       email: "without-profile@example.com",
       name: "No Profile",
       subscriptionStart: Timestamp.fromDate(new Date("2024-01-10")),
-      
     });
 
     // Act
@@ -498,7 +502,9 @@ describe("adminListUnclaimedProfiles", () => {
   it("should preserve subscription start timestamp", async () => {
     // Arrange
     const { adminUid, firestore } = setup();
-    const subscriptionStart = Timestamp.fromDate(new Date("2024-01-15T10:30:00Z"));
+    const subscriptionStart = Timestamp.fromDate(
+      new Date("2024-01-15T10:30:00Z"),
+    );
 
     await createUnclaimedProfile({
       firestore,

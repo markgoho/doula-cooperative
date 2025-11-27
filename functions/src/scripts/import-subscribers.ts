@@ -68,7 +68,9 @@ async function importSubscribers() {
       const toTimestamp = (dateString: string): Timestamp | undefined => {
         if (!dateString) return undefined;
         const date = new Date(dateString);
-        return Number.isNaN(date.getTime()) ? undefined : Timestamp.fromDate(date);
+        return Number.isNaN(date.getTime())
+          ? undefined
+          : Timestamp.fromDate(date);
       };
 
       // Parse dates
