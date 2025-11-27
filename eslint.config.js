@@ -29,13 +29,13 @@ export default defineConfig([
     rules: {
       ...unicorn.configs.recommended.rules,
       // Allow arrow functions in computed signals and similar reactive contexts
-      'unicorn/consistent-function-scoping': [
-        'error',
+      "unicorn/consistent-function-scoping": [
+        "error",
         {
           checkArrowFunctions: false,
         },
       ],
-      "unicorn/no-useless-undefined": ['error', {checkArguments: false}],
+      "unicorn/no-useless-undefined": ["error", { checkArguments: false }],
       "@typescript-eslint/restrict-template-expressions": [
         "error",
         {

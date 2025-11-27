@@ -11,6 +11,7 @@ The system now supports a payment-first membership flow where users pay via Stri
 ### Files Created/Modified
 
 **New Files:**
+
 - `functions/src/stripe-webhook/index.ts` - Webhook function export
 - `functions/src/stripe-webhook/handler.ts` - Webhook business logic
 - `functions/src/stripe-webhook/types.ts` - TypeScript types for Stripe events
@@ -18,6 +19,7 @@ The system now supports a payment-first membership flow where users pay via Stri
 - `functions/src/scripts/activate-legacy-members.ts` - One-time script to grandfather existing members
 
 **Modified Files:**
+
 - `functions/src/index.ts` - Added stripeWebhook export
 - `functions/src/types/member-document.ts` - Added Stripe fields (stripeCustomerId, stripeSubscriptionId, subscriptionStatus)
 - `members/src/app/services/membership.service.ts` - Updated Member interface with Stripe fields
@@ -40,14 +42,17 @@ npm install stripe  # Already completed
 The Hugo site uses a **Stripe Pricing Table** widget (not a payment link) that is already integrated in `hugo/layouts/join-cooperative/single.html`.
 
 **Current Implementation:**
+
 ```html
 <stripe-pricing-table
   pricing-table-id="prctbl_1SJdC0JnElCHrlM6MYmo3xVd"
-  publishable-key="pk_live_51SJca8JnElCHrlM6AUzlWNeJHh05jb3j0YqdeNR73AHgFruGmeA3BALuAnRAO1ccbo7DYqH474X4wGjnp6HsGUf600VWHGFDjS">
+  publishable-key="pk_live_51SJca8JnElCHrlM6AUzlWNeJHh05jb3j0YqdeNR73AHgFruGmeA3BALuAnRAO1ccbo7DYqH474X4wGjnp6HsGUf600VWHGFDjS"
+>
 </stripe-pricing-table>
 ```
 
 **To Update Pricing Table (if needed):**
+
 1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com/)
 2. Go to **Products** → Select your product → **Pricing tables**
 3. Create or edit a pricing table with your membership product
@@ -151,6 +156,7 @@ npx ts-node src/scripts/activate-legacy-members.ts
 ```
 
 This script will:
+
 - Query all documents in `migrated_users_import`
 - Set `membershipActive: true` for each
 - Calculate and set `membershipExpiresAt` based on their `subscriptionStart` date
@@ -228,6 +234,7 @@ The current implementation handles initial purchase. Future enhancements could i
 ### Testing Locally
 
 Use Stripe CLI to forward webhooks:
+
 ```bash
 stripe listen --forward-to http://localhost:5001/your-project/us-central1/stripeWebhook
 ```
@@ -244,6 +251,7 @@ stripe listen --forward-to http://localhost:5001/your-project/us-central1/stripe
 ## Support
 
 For issues or questions:
+
 - Stripe Documentation: https://stripe.com/docs
 - Firebase Functions: https://firebase.google.com/docs/functions
 - Firebase Auth: https://firebase.google.com/docs/auth
