@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set versions for our tools as arguments
 ARG HUGO_VERSION=0.152.2
 ARG DART_SASS_VERSION=1.93.2
-ARG BUN_VERSION=1.3.2
+ARG BUN_VERSION=1.3.3
 
 # 1. Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
