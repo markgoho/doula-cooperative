@@ -13,4 +13,3 @@ export const SERVICE_LABELS_LONG: Record<string, string> = {
   'childbirth-classes': 'Childbirth classes',
   'other-info-looking-for': 'Other information',
 };
-

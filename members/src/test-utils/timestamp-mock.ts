@@ -11,10 +11,7 @@ export class Timestamp {
 
   static fromDate(date: Date): Timestamp {
     const milliseconds = date.getTime();
-    return new Timestamp(
-      Math.floor(milliseconds / 1000),
-      (milliseconds % 1000) * 1_000_000,
-    );
+    return new Timestamp(Math.floor(milliseconds / 1000), (milliseconds % 1000) * 1_000_000);
   }
 
   static now(): Timestamp {

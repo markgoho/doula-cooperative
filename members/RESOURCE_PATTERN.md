@@ -10,11 +10,13 @@ This document describes the correct pattern for using Angular's `resource` API f
 
 ```typescript
 const dataResource = resource({
-  params: () => ({ /* reactive parameters */ }),
+  params: () => ({
+    /* reactive parameters */
+  }),
   loader: ({ params, abortSignal, previous }) => {
     // Load and return data using params
     // Return a Promise directly - async/await not required
-  }
+  },
 });
 ```
 
@@ -29,6 +31,7 @@ const dataResource = resource({
 ### Exposed Resource Signals and Methods
 
 #### Read Signals
+
 - `resource.value()`: The loaded data (or `undefined` if not loaded/error)
 - `resource.hasValue()`: Boolean indicating if resource has a value (also acts as type guard)
 - `resource.isLoading()`: Boolean loading state
@@ -36,20 +39,21 @@ const dataResource = resource({
 - `resource.status()`: Current `ResourceStatus` (see status states below)
 
 #### Write Methods
+
 - `resource.reload()`: Manually trigger a reload with current params
 - `resource.set(value)`: Locally set the resource value (status becomes `'local'`)
 - `resource.update(fn)`: Update the resource value using a function (status becomes `'local'`)
 
 ### Resource Status States
 
-| Status | value() | Meaning |
-|--------|---------|---------|
-| `'idle'` | `undefined` | No valid request; loader hasn't run yet |
-| `'error'` | `undefined` | Loader encountered an error |
-| `'loading'` | `undefined` | Loader running from params change |
-| `'reloading'` | Previous value | Loader running from `reload()` call |
-| `'resolved'` | Resolved value | Loader completed successfully |
-| `'local'` | Locally set value | Value set via `.set()` or `.update()` |
+| Status        | value()           | Meaning                                 |
+| ------------- | ----------------- | --------------------------------------- |
+| `'idle'`      | `undefined`       | No valid request; loader hasn't run yet |
+| `'error'`     | `undefined`       | Loader encountered an error             |
+| `'loading'`   | `undefined`       | Loader running from params change       |
+| `'reloading'` | Previous value    | Loader running from `reload()` call     |
+| `'resolved'`  | Resolved value    | Loader completed successfully           |
+| `'local'`     | Locally set value | Value set via `.set()` or `.update()`   |
 
 ## Complete Example
 
@@ -92,15 +96,16 @@ export class MemberDetailComponent {
 #### ⚠️ CRITICAL: Do NOT Extract Value Before Error Checking
 
 **WRONG - This will throw an error:**
+
 ```html
 <!-- ❌ DON'T DO THIS - value() throws when resource is in error state -->
-@let memberResource = service.memberResource;
-@let member = memberResource.value();  <!-- This throws if resource has error! -->
+@let memberResource = service.memberResource; @let member = memberResource.value();
+<!-- This throws if resource has error! -->
 
 @if (memberResource.isLoading()) {
-  <p>Loading...</p>
+<p>Loading...</p>
 } @else if (errorMessage(); as err) {
-  <p class="error">{{ err }}</p>
+<p class="error">{{ err }}</p>
 }
 ```
 
@@ -110,15 +115,13 @@ export class MemberDetailComponent {
 
 ```html
 <!-- ✅ CORRECT - Extract resource at top, call value() inside conditional -->
-@let memberResource = service.memberResource;
-
-@if (memberResource.isLoading()) {
-  <p>Loading...</p>
+@let memberResource = service.memberResource; @if (memberResource.isLoading()) {
+<p>Loading...</p>
 } @else if (service.errorMessage(); as err) {
-  <p class="error">{{ err }}</p>
+<p class="error">{{ err }}</p>
 } @else if (memberResource.value(); as member) {
-  <!-- member is non-undefined here, fully type-safe -->
-  <div>{{ member.name }}</div>
+<!-- member is non-undefined here, fully type-safe -->
+<div>{{ member.name }}</div>
 }
 ```
 
@@ -126,30 +129,21 @@ export class MemberDetailComponent {
 
 ```html
 <!-- Extract resource only - value() called within cases where it's safe -->
-@let memberResource = service.memberResource;
-
-@switch (memberResource.status()) {
-  @case ('loading') {
-    <p>Loading...</p>
-  }
-  @case ('reloading') {
-    <!-- Show content with loading overlay during reload -->
-    @if (memberResource.value(); as member) {
-      <div class="reloading-overlay">
-        <div>{{ member.name }}</div>
-        <spinner />
-      </div>
-    }
-  }
-  @case ('error') {
-    <p class="error">{{ service.errorMessage() }}</p>
-  }
-  @case ('resolved') {
-    @if (memberResource.value(); as member) {
-      <div>{{ member.name }}</div>
-    }
-  }
-}
+@let memberResource = service.memberResource; @switch (memberResource.status()) { @case ('loading')
+{
+<p>Loading...</p>
+} @case ('reloading') {
+<!-- Show content with loading overlay during reload -->
+@if (memberResource.value(); as member) {
+<div class="reloading-overlay">
+  <div>{{ member.name }}</div>
+  <spinner />
+</div>
+} } @case ('error') {
+<p class="error">{{ service.errorMessage() }}</p>
+} @case ('resolved') { @if (memberResource.value(); as member) {
+<div>{{ member.name }}</div>
+} } }
 ```
 
 > **Best Practice**: Only extract the resource with `@let` at the top of your template. Call `.value()` inside conditionals where you've confirmed the resource is not in an error state. This prevents runtime errors when the resource fails to load.
@@ -198,7 +192,7 @@ Resource reloads whenever ANY of the signals in `params` change.
 ```typescript
 // Simple case - just return the Promise
 loader: ({ params, abortSignal }) =>
-  fetch(`/api/users/${params.id}`, { signal: abortSignal }).then(r => r.json())
+  fetch(`/api/users/${params.id}`, { signal: abortSignal }).then((r) => r.json());
 ```
 
 Resources automatically abort outstanding operations when params change. Always pass `abortSignal` to async operations that support it.
@@ -221,15 +215,15 @@ loader: async ({ params, previous }) => {
   const transformed = this.parseData(result);
 
   return transformed;
-}
+};
 
 // ❌ Don't use async/await for simple cases
 loader: async ({ params }) => {
-  return await this.service.getData(params.id);  // Unnecessarily verbose
-}
+  return await this.service.getData(params.id); // Unnecessarily verbose
+};
 
 // ✅ Simple case - just return the Promise
-loader: ({ params }) => this.service.getData(params.id)
+loader: ({ params }) => this.service.getData(params.id);
 ```
 
 ### Optimistic Updates with Local Mutations
@@ -245,7 +239,7 @@ export class ProfileComponent {
 
   async updateProfile(updates: Partial<Profile>): Promise<void> {
     // Optimistically update the UI immediately
-    this.profileResource.update(current => ({ ...current, ...updates }));
+    this.profileResource.update((current) => ({ ...current, ...updates }));
 
     try {
       await this.profileService.updateProfile(this.userId(), updates);
@@ -272,7 +266,7 @@ loader: async ({ params, previous }) => {
   }
 
   return await this.service.getData(params.id);
-}
+};
 ```
 
 ## Testing Considerations
@@ -283,7 +277,7 @@ Resources trigger loading after component initialization. For most tests, the mo
 
 ```typescript
 const mockService = {
-  getMember: vi.fn().mockResolvedValue(mockMember)
+  getMember: vi.fn().mockResolvedValue(mockMember),
 };
 ```
 
@@ -298,7 +292,7 @@ const pendingPromise = new Promise<Member>((resolve) => {
 });
 
 const mockService = {
-  getMember: vi.fn().mockReturnValue(pendingPromise)
+  getMember: vi.fn().mockReturnValue(pendingPromise),
 };
 
 // Render component - it will be in loading state
@@ -316,11 +310,11 @@ resolveMember(mockMember);
 ```typescript
 it('should display content when resource has value', async () => {
   const mockService = {
-    getMember: vi.fn().mockResolvedValue(mockMember)
+    getMember: vi.fn().mockResolvedValue(mockMember),
   };
 
   await render(Component, {
-    providers: [{ provide: MemberService, useValue: mockService }]
+    providers: [{ provide: MemberService, useValue: mockService }],
   });
 
   // Wait for resource to resolve
@@ -333,11 +327,11 @@ it('should display content when resource has value', async () => {
 ```typescript
 it('should show reloading state during manual reload', async () => {
   const mockService = {
-    getMember: vi.fn().mockResolvedValue(mockMember)
+    getMember: vi.fn().mockResolvedValue(mockMember),
   };
 
   const { rerender } = await render(Component, {
-    providers: [{ provide: MemberService, useValue: mockService }]
+    providers: [{ provide: MemberService, useValue: mockService }],
   });
 
   // Wait for initial load
@@ -369,11 +363,11 @@ it('should show reloading state during manual reload', async () => {
 it('should optimistically update and revert on error', async () => {
   const mockService = {
     getProfile: vi.fn().mockResolvedValue(mockProfile),
-    updateProfile: vi.fn().mockRejectedValue(new Error('Update failed'))
+    updateProfile: vi.fn().mockRejectedValue(new Error('Update failed')),
   };
 
   await render(Component, {
-    providers: [{ provide: ProfileService, useValue: mockService }]
+    providers: [{ provide: ProfileService, useValue: mockService }],
   });
 
   // Wait for initial load
@@ -404,11 +398,11 @@ it('should optimistically update and revert on error', async () => {
 
 ```html
 <!-- WRONG - This throws "Resource is currently in an error state" -->
-@let resource = service.memberResource;
-@let member = resource.value();  <!-- Throws if resource has error! -->
+@let resource = service.memberResource; @let member = resource.value();
+<!-- Throws if resource has error! -->
 
 @if (resource.isLoading()) {
-  <p>Loading...</p>
+<p>Loading...</p>
 }
 ```
 
@@ -416,14 +410,12 @@ it('should optimistically update and revert on error', async () => {
 
 ```html
 <!-- CORRECT - Only call value() after checking error state -->
-@let resource = service.memberResource;
-
-@if (resource.isLoading()) {
-  <p>Loading...</p>
+@let resource = service.memberResource; @if (resource.isLoading()) {
+<p>Loading...</p>
 } @else if (service.errorMessage(); as err) {
-  <p class="error">{{ err }}</p>
+<p class="error">{{ err }}</p>
 } @else if (resource.value(); as member) {
-  <div>{{ member.name }}</div>
+<div>{{ member.name }}</div>
 }
 ```
 
@@ -431,14 +423,14 @@ it('should optimistically update and revert on error', async () => {
 
 ```typescript
 // WRONG - Don't reference this.uid() in the loader
-loader: () => this.service.getMember(this.uid())
+loader: () => this.service.getMember(this.uid());
 ```
 
 ### ✅ Use params passed to loader
 
 ```typescript
 // CORRECT - Use params from loader argument
-loader: ({ params }) => this.service.getMember(params.uid)
+loader: ({ params }) => this.service.getMember(params.uid);
 ```
 
 ### ❌ Using `effect()` with resource
@@ -551,7 +543,7 @@ Use `.set()` and `.update()` for immediate UI feedback before server confirmatio
 this.resource.set(newValue);
 
 // Transform current value
-this.resource.update(current => ({ ...current, ...changes }));
+this.resource.update((current) => ({ ...current, ...changes }));
 
 // Status becomes 'local' to distinguish from server data
 if (this.resource.status() === 'local') {
@@ -573,16 +565,16 @@ The `'loading'` vs `'reloading'` status distinction allows different UX:
 
 ## Quick Reference
 
-| Feature | Purpose | Example | ⚠️ Notes |
-|---------|---------|---------|----------|
-| `value()` | Get current data | `@if (resource.value(); as data)` | **Throws if error state!** Only call after checking loading/error |
-| `hasValue()` | Type-safe value check | `if (resource.hasValue())` | Safe to call anytime |
-| `isLoading()` | Loading state check | `@if (resource.isLoading())` | Safe to call anytime |
-| `error()` | Get error object | `resource.error()?.message` | Safe to call anytime |
-| `status()` | Detailed state | `resource.status() === 'reloading'` | Safe to call anytime |
-| `reload()` | Manual refresh | `resource.reload()` | - |
-| `set()` | Replace value | `resource.set(newValue)` | Changes status to 'local' |
-| `update()` | Transform value | `resource.update(v => ({...v, ...changes}))` | Changes status to 'local' |
+| Feature       | Purpose               | Example                                      | ⚠️ Notes                                                          |
+| ------------- | --------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| `value()`     | Get current data      | `@if (resource.value(); as data)`            | **Throws if error state!** Only call after checking loading/error |
+| `hasValue()`  | Type-safe value check | `if (resource.hasValue())`                   | Safe to call anytime                                              |
+| `isLoading()` | Loading state check   | `@if (resource.isLoading())`                 | Safe to call anytime                                              |
+| `error()`     | Get error object      | `resource.error()?.message`                  | Safe to call anytime                                              |
+| `status()`    | Detailed state        | `resource.status() === 'reloading'`          | Safe to call anytime                                              |
+| `reload()`    | Manual refresh        | `resource.reload()`                          | -                                                                 |
+| `set()`       | Replace value         | `resource.set(newValue)`                     | Changes status to 'local'                                         |
+| `update()`    | Transform value       | `resource.update(v => ({...v, ...changes}))` | Changes status to 'local'                                         |
 
 ## Best Practices Checklist
 

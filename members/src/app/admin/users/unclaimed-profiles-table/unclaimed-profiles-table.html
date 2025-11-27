@@ -69,9 +69,15 @@
                 <app-tag [label]="'No'" size="small" />
               }
             </td>
-            <td class="date-cell">{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</td>
-            <td class="date-cell">{{ profile.lastPayment ? (profile.lastPayment.toDate() | date: 'MMM d, yyyy') : '—' }}</td>
-            <td class="date-cell">{{ profile.nextPayment ? (profile.nextPayment.toDate() | date: 'MMM d, yyyy') : '—' }}</td>
+            <td class="date-cell">
+              {{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}
+            </td>
+            <td class="date-cell">
+              {{ profile.lastPayment ? (profile.lastPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+            </td>
+            <td class="date-cell">
+              {{ profile.nextPayment ? (profile.nextPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+            </td>
             <td>
               <div class="actions-cell">
                 <a

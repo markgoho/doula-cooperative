@@ -42,4 +42,3 @@ export class AdminMatchRequestsService {
     return result.data;
   }
 }
-

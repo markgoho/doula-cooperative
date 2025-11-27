@@ -145,7 +145,7 @@ describe('AdminUsers', () => {
     // Assert
     // Wait for the row to appear by looking for the email
     await screen.findByText('test@example.com');
-    
+
     const cells = screen.getAllByRole('cell');
     expect(cells[0]).toHaveTextContent('—');
   });

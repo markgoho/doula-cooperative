@@ -35,4 +35,3 @@ export function getRelativeTime(dateString: string): string {
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
   return `${Math.floor(diffDays / 365)} years ago`;
 }
-

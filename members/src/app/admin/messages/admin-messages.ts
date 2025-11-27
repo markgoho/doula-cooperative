@@ -16,9 +16,7 @@ export class AdminMessages {
   });
 
   protected totalMessages = computed(() => {
-    return this.messagesResource.hasValue()
-      ? (this.messagesResource.value()?.total ?? 0)
-      : 0;
+    return this.messagesResource.hasValue() ? (this.messagesResource.value()?.total ?? 0) : 0;
   });
 
   protected pendingCount = computed(() => {

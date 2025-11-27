@@ -64,7 +64,7 @@ export interface MatchRequest {
   sent: boolean;
 }
 
-export interface  ListMatchRequestsResponse {
+export interface ListMatchRequestsResponse {
   requests: MatchRequest[];
   total: number;
   pendingCount: number;

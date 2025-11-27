@@ -22,7 +22,8 @@ export const routes: Routes = [
   },
   {
     path: 'profile/image',
-    loadComponent: () => import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
+    loadComponent: () =>
+      import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
     ...canActivate(redirectUnauthorizedToSignIn),
   },
 
@@ -37,12 +38,15 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        loadComponent: () => import('./admin/users/admin-users/admin-users').then((m) => m.AdminUsers),
+        loadComponent: () =>
+          import('./admin/users/admin-users/admin-users').then((m) => m.AdminUsers),
       },
       {
         path: 'users/member/:uid',
         loadComponent: () =>
-          import('./admin/users/admin-member-detail/admin-member-detail').then((m) => m.AdminMemberDetail),
+          import('./admin/users/admin-member-detail/admin-member-detail').then(
+            (m) => m.AdminMemberDetail,
+          ),
       },
       {
         path: 'users/unclaimed/:email',
@@ -65,8 +69,7 @@ export const routes: Routes = [
       },
       {
         path: 'messages',
-        loadComponent: () =>
-          import('./admin/messages/admin-messages').then((m) => m.AdminMessages),
+        loadComponent: () => import('./admin/messages/admin-messages').then((m) => m.AdminMessages),
       },
       {
         path: 'messages/:id',

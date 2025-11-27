@@ -32,9 +32,7 @@ async function setup({
   };
 
   const view = await render(AdminMessages, {
-    providers: [
-      { provide: AdminMessagesService, useValue: mockAdminMessagesService },
-    ],
+    providers: [{ provide: AdminMessagesService, useValue: mockAdminMessagesService }],
   });
 
   return {
