@@ -11,7 +11,9 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "cleanup-test-data": "bun run src/scripts/cleanup-test-data.ts",
+    "test-webhook": "bun run src/scripts/test-stripe-webhook.ts"
   },
   "engines": {
     "node": "20"

@@ -1,5 +1,18 @@
 # Stripe Integration Setup Guide
 
+Complete setup and deployment guide for the Stripe-based membership subscription system.
+
+## Navigation
+
+- [← Back to Stripe Docs](./README.md)
+- [Local Development Guide](./LOCAL_DEVELOPMENT.md) - Quick start for developers ⭐
+- [Testing Guide](./TESTING_GUIDE.md) - Manual testing scenarios
+- [Troubleshooting](./TROUBLESHOOTING.md) - Debug issues
+- [Production Monitoring](./PRODUCTION_MONITORING.md) - Observability
+- [Quick Reference](./QUICK_REFERENCE.md) - Cheat sheet
+
+---
+
 This guide explains how to complete the Stripe-based membership sign-up flow that was implemented.
 
 ## Overview

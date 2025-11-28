@@ -1,4 +1,18 @@
-# Stripe Integration Testing Plan - Deployed Environment
+# Stripe Integration Testing Guide
+
+**Complete manual testing scenarios for deployed environments**
+
+## Navigation
+
+- [← Back to Stripe Docs](./README.md)
+- [Local Development Guide](./LOCAL_DEVELOPMENT.md) - Quick start for developers
+- [Setup Guide](./SETUP.md) - Initial configuration
+- [Troubleshooting](./TROUBLESHOOTING.md) - Debug common issues
+- [Quick Reference](./QUICK_REFERENCE.md) - Cheat sheet
+
+---
+
+# Manual Testing Scenarios - Deployed Environment
 
 ## Understanding Stripe Sandboxes
 
