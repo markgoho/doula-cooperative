@@ -1,0 +1,94 @@
+name: Deploy Hugo site to Firebase Hosting on PR
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "hugo/**"
+      - "firebase.json"
+      - ".github/workflows/hugo-hosting-pull-request.yml"
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:trunk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Hugo site with test Stripe configuration
+        run: bun run build
+        env:
+          # Test mode Stripe keys for preview deployments
+          HUGO_PARAMS_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+          HUGO_PARAMS_STRIPE_PRICING_TABLE_ID: ${{ secrets.STRIPE_TEST_PRICING_TABLE_ID }}
+          HUGO_PARAMS_STRIPE_MODE: "test"
+
+      - name: Deploy to Firebase preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
+          projectId: doula-cooperative
+          target: main-site
+          expires: 7d
+        id: firebase_hosting_preview
+
+      - name: Comment on PR with preview URL
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.firebase_hosting_preview.outputs.details_url }}
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🔍 Hugo Preview Deployment')
+            );
+
+            const commentBody = [
+              '## 🔍 Hugo Preview Deployment',
+              '',
+              '**Preview URL**: ' + process.env.PREVIEW_URL,
+              '',
+              '⚠️ **Testing Stripe**: This preview uses **test mode** Stripe keys.',
+              '- Use test card: 4242 4242 4242 4242',
+              '- Test data won\'t affect production',
+              '- Webhooks will still fire to the configured test endpoint',
+              '',
+              '📚 [See Testing Guide](/docs/stripe/TESTING_GUIDE.md) for full test scenarios.'
+            ].join('\n');
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
