@@ -14,6 +14,4 @@ You'll receive a welcome email shortly with instructions for setting up your pas
 
 **Didn't receive it?** Check your spam folder or contact us at [webmaster@doulacooperative.com](mailto:webmaster@doulacooperative.com).
 
----
-
 We're excited to have you as part of our community!

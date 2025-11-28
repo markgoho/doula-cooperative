@@ -8,6 +8,10 @@ enableGitInfo = true
   description = "The Rochester Doula Cooperative connects families with professional birth and postpartum doulas in the Rochester, NY area. Find compassionate support for your pregnancy, birth, and new-parent journey."
   recaptchaSiteKey = "6LedeRosAAAAADT1qXw9GSsAVjUNSJSIWICQZXyN"
 
+[security.funcs]
+  # Allow templates to read STRIPE_* environment variables
+  getenv = ['^HUGO_', '^CI$', '^STRIPE_']
+
 
 [frontmatter]
   lastmod = [':git', 'lastmod', ':fileModTime', 'date', 'publishDate']
