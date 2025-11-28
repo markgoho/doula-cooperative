@@ -25,20 +25,34 @@ if (getApps().length === 0) {
 }
 
 export const contactUsForm = onRequest(
-  { invoker: "public" },
+  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
   async (request, response) => {
+    const RECAPTCHA_SECRET_KEY = process.env["RECAPTCHA_SECRET_KEY"];
+
+    if (!RECAPTCHA_SECRET_KEY) {
+      response.status(500).send({ error: "Server configuration error" });
+      return;
+    }
+
     const { handleContactUsForm } =
       await import("./contact-us-form/contact-us-form.js");
-    await handleContactUsForm(request, response);
+    await handleContactUsForm(request, response, RECAPTCHA_SECRET_KEY);
   },
 );
 
 export const doulaMatchForm = onRequest(
-  { invoker: "public" },
+  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
   async (request, response) => {
+    const RECAPTCHA_SECRET_KEY = process.env["RECAPTCHA_SECRET_KEY"];
+
+    if (!RECAPTCHA_SECRET_KEY) {
+      response.status(500).send({ error: "Server configuration error" });
+      return;
+    }
+
     const { handleDoulaMatchForm } =
       await import("./doula-match-form/doula-match-form.js");
-    await handleDoulaMatchForm(request, response);
+    await handleDoulaMatchForm(request, response, RECAPTCHA_SECRET_KEY);
   },
 );
 

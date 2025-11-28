@@ -31,6 +31,7 @@ function setup({
   birthLocation = "Hospital",
   otherInfo = "Looking for experienced doula",
   insurance = ["Blue Cross", "Medicaid"],
+  includeRecaptcha = true,
 } = {}) {
   const formData: DoulaMatchForm = {
     name,
@@ -42,8 +43,28 @@ function setup({
     birthLocation,
     otherInfo,
     insurance,
+    ...(includeRecaptcha ? { recaptchaToken: "test_token" } : {}),
   };
   const firestore = getFirestore();
+
+  // Set up mock environment for reCAPTCHA
+  if (includeRecaptcha) {
+    process.env["RECAPTCHA_SECRET_KEY"] = "test_secret_key";
+    // Mock successful reCAPTCHA verification
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() => {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            success: true,
+            score: 0.9,
+          }),
+      });
+    }) as unknown as typeof fetch;
+    // Store original fetch to restore later
+    (globalThis as { _originalFetch?: typeof fetch })._originalFetch =
+      originalFetch;
+  }
 
   // Create mock request and response objects
   const request: DoulaMatchFormRequest = {
@@ -66,6 +87,14 @@ async function cleanupDoulaMatchForm({
 }: {
   firestore: ReturnType<typeof getFirestore>;
 }) {
+  // Restore original fetch if it was mocked
+  const original = (globalThis as { _originalFetch?: typeof fetch })
+    ._originalFetch;
+  if (original) {
+    globalThis.fetch = original;
+    delete (globalThis as { _originalFetch?: typeof fetch })._originalFetch;
+  }
+
   await cleanupTestDocumentsByEmail({
     firestore,
     collection: MATCH_REQUESTS_COLLECTION,
@@ -398,6 +427,69 @@ describe("doulaMatchForm", () => {
 
     // Assert
     assertCorsHeaders(mockResponse);
+
+    await cleanupDoulaMatchForm({ firestore });
+  });
+
+  it("should return 400 when recaptchaToken is missing", async () => {
+    // Arrange
+    const { firestore, request, response, mockResponse } = setup({
+      includeRecaptcha: false,
+    });
+
+    // Act
+    await doulaMatchForm(request, response);
+
+    // Assert
+    expect(mockResponse.statusCode).toBe(400);
+
+    await cleanupDoulaMatchForm({ firestore });
+  });
+
+  it("should return 403 when reCAPTCHA verification fails", async () => {
+    // Arrange
+    const { firestore, request, response, mockResponse } = setup();
+    process.env["RECAPTCHA_SECRET_KEY"] = "test_secret_key";
+
+    // Mock failed reCAPTCHA verification
+    globalThis.fetch = (() => {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            success: false,
+            score: 0.1,
+          }),
+      });
+    }) as unknown as typeof fetch;
+
+    // Act
+    await doulaMatchForm(request, response);
+
+    // Assert
+    expect(mockResponse.statusCode).toBe(403);
+
+    await cleanupDoulaMatchForm({ firestore });
+  });
+
+  it("should not store recaptchaToken in Firestore", async () => {
+    // Arrange
+    const { formData, firestore, request, response } = setup();
+
+    // Act
+    await doulaMatchForm(request, response);
+
+    // Assert - check that recaptchaToken is not in Firestore
+    const matchRequestDocument = await getDocumentByEmail({
+      firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
+      email: formData.email,
+    });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
+    const data = matchRequestDocument.data() as DoulaMatchFormDocument;
+    expect((data as { recaptchaToken?: string }).recaptchaToken).toBeUndefined();
 
     await cleanupDoulaMatchForm({ firestore });
   });

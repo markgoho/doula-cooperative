@@ -10,10 +10,12 @@ async function sendContactForm({
   contactName,
   email,
   message,
+  recaptchaToken,
 }: {
   contactName: string;
   email: string;
   message: string;
+  recaptchaToken: string;
 }): Promise<void> {
   const url = contactForm?.dataset["apiUrl"];
   if (!url) {
@@ -22,7 +24,7 @@ async function sendContactForm({
 
   const response = await fetch(url, {
     method: "POST",
-    body: JSON.stringify({ contactName, email, message }),
+    body: JSON.stringify({ contactName, email, message, recaptchaToken }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -38,16 +40,30 @@ async function sendContactForm({
 const doSubmit = async () => {
   if (contactName?.value && email?.value && message?.value && submitButton) {
     submitButton.disabled = true;
-    submitButton.textContent = "Sending...";
+    submitButton.textContent = "Verifying...";
     if (formError) {
       formError.textContent = "";
     }
 
     try {
+      // Get reCAPTCHA site key from form data attribute
+      const siteKey = contactForm?.dataset["recaptchaSiteKey"];
+      if (!siteKey) {
+        throw new Error("reCAPTCHA site key not found");
+      }
+
+      // Get reCAPTCHA token
+      const recaptchaToken = await globalThis.grecaptcha.execute(siteKey, {
+        action: "contact_form_submit",
+      });
+
+      submitButton.textContent = "Sending...";
+
       await sendContactForm({
         contactName: contactName.value,
         email: email.value,
         message: message.value,
+        recaptchaToken,
       });
     } catch (error) {
       console.error("Failed to send contact form:", error);

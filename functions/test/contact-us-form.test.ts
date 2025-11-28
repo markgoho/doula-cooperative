@@ -25,13 +25,34 @@ function setup({
   contactName = "Test User",
   email = "testcontact@example.com",
   message = "This is a test message",
+  includeRecaptcha = true,
 } = {}) {
   const formData: ContactUsForm = {
     contactName,
     email,
     message,
+    ...(includeRecaptcha ? { recaptchaToken: "test_token" } : {}),
   };
   const firestore = getFirestore();
+
+  // Set up mock environment for reCAPTCHA
+  if (includeRecaptcha) {
+    process.env["RECAPTCHA_SECRET_KEY"] = "test_secret_key";
+    // Mock successful reCAPTCHA verification
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() => {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            success: true,
+            score: 0.9,
+          }),
+      });
+    }) as unknown as typeof fetch;
+    // Store original fetch to restore later
+    (globalThis as { _originalFetch?: typeof fetch })._originalFetch =
+      originalFetch;
+  }
 
   // Create mock request and response objects
   const request: ContactUsFormRequest = {
@@ -54,6 +75,14 @@ async function cleanupContactUsForm({
 }: {
   firestore: ReturnType<typeof getFirestore>;
 }) {
+  // Restore original fetch if it was mocked
+  const original = (globalThis as { _originalFetch?: typeof fetch })
+    ._originalFetch;
+  if (original) {
+    globalThis.fetch = original;
+    delete (globalThis as { _originalFetch?: typeof fetch })._originalFetch;
+  }
+
   await cleanupTestDocumentsByEmail({
     firestore,
     collection: MESSAGES_COLLECTION,
@@ -255,6 +284,69 @@ describe("contactUsForm", () => {
 
     // Assert
     assertCorsHeaders(mockResponse);
+
+    await cleanupContactUsForm({ firestore });
+  });
+
+  it("should return 400 when recaptchaToken is missing", async () => {
+    // Arrange
+    const { firestore, request, response, mockResponse } = setup({
+      includeRecaptcha: false,
+    });
+
+    // Act
+    await contactUsForm(request, response);
+
+    // Assert
+    expect(mockResponse.statusCode).toBe(400);
+
+    await cleanupContactUsForm({ firestore });
+  });
+
+  it("should return 403 when reCAPTCHA verification fails", async () => {
+    // Arrange
+    const { firestore, request, response, mockResponse } = setup();
+    process.env["RECAPTCHA_SECRET_KEY"] = "test_secret_key";
+
+    // Mock failed reCAPTCHA verification
+    globalThis.fetch = (() => {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            success: false,
+            score: 0.1,
+          }),
+      });
+    }) as unknown as typeof fetch;
+
+    // Act
+    await contactUsForm(request, response);
+
+    // Assert
+    expect(mockResponse.statusCode).toBe(403);
+
+    await cleanupContactUsForm({ firestore });
+  });
+
+  it("should not store recaptchaToken in Firestore", async () => {
+    // Arrange
+    const { formData, firestore, request, response } = setup();
+
+    // Act
+    await contactUsForm(request, response);
+
+    // Assert - check that recaptchaToken is not in Firestore
+    const messageDocument = await getDocumentByEmail({
+      firestore,
+      collection: MESSAGES_COLLECTION,
+      email: formData.email,
+    });
+    expect(messageDocument).toBeDefined();
+    if (!messageDocument) {
+      throw new Error("messageDocument is undefined");
+    }
+    const data = messageDocument.data() as ContactUsFormDocument;
+    expect((data as { recaptchaToken?: string }).recaptchaToken).toBeUndefined();
 
     await cleanupContactUsForm({ firestore });
   });

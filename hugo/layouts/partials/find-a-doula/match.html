@@ -9,7 +9,8 @@
       /api/doula-match-form
     {{ else }}
       http://127.0.0.1:5001/doula-cooperative/us-central1/doulaMatchForm
-    {{ end }}">
+    {{ end }}"
+    data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}">
     <div class="form-group single-column">
       <label class="form__label " for="name">Name (first and last)</label>
       <input

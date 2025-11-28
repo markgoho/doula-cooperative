@@ -14,6 +14,7 @@ export interface DoulaMatchForm {
   birthLocation: string;
   otherInfo: string;
   insurance: string[];
+  recaptchaToken?: string;
 }
 
 export interface DoulaMatchFormRequest extends Request {

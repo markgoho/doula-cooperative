@@ -5,6 +5,10 @@
   <style>{{ $inlineCSS.Content | safeCSS }}</style>
 {{ end }}
 
+{{ define "head-scripts" }}
+  <script src="https://www.google.com/recaptcha/api.js?render={{ .Site.Params.recaptchaSiteKey }}" async defer></script>
+{{ end }}
+
 {{ define "main" }}
   <h1 class="contact-us-page__title">{{ .Title }}</h1>
 
@@ -32,7 +36,8 @@
         /api/contact-us-form
       {{ else }}
         http://127.0.0.1:5001/doula-cooperative/us-central1/contactUsForm
-      {{ end }}">
+      {{ end }}"
+      data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}">
       <div class="form-group full-width">
         <label for="name" class="form__label">Name (first and last)</label>
         <input type="text" id="name" class="form__input" required />

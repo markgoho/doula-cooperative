@@ -28,6 +28,7 @@ interface DoulaMatchFormRequest {
   otherInfo: string;
   insurance: string[];
   otherHospitalName?: string;
+  recaptchaToken: string;
 }
 
 async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
@@ -54,62 +55,81 @@ async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
 const doSubmit = async () => {
   if (submitButton) {
     submitButton.disabled = true;
-    submitButton.textContent = "Sending...";
+    submitButton.textContent = "Verifying...";
   }
   if (formError) {
     formError.textContent = "";
   }
 
-  // eslint-disable-next-line unicorn/prefer-spread
-  const services: string[] = Array.from(
-    document.querySelectorAll<HTMLInputElement>(
-      'input[type="checkbox"]:checked:not(#medicaid):not(#carrot)',
-    ),
-  ).map((checkbox: HTMLInputElement) => checkbox.id);
-
-  const selectedBirthLocationRadio = document.querySelector<HTMLInputElement>(
-    'input[name="birth-location"]:checked',
-  );
-
-  let birthLocation = "n/a";
-  if (selectedBirthLocationRadio) {
-    if (selectedBirthLocationRadio.id === "other-hospital") {
-      const otherHospitalInput = document.querySelector<HTMLInputElement>(
-        "#other-hospital-input",
-      );
-      birthLocation = otherHospitalInput?.value ?? "Other Hospital";
-    } else {
-      const label = document.querySelector<HTMLLabelElement>(
-        `label[for="${selectedBirthLocationRadio.id}"]`,
-      );
-      birthLocation = label?.textContent ?? selectedBirthLocationRadio.id;
-    }
-  }
-
-  // eslint-disable-next-line unicorn/prefer-spread
-  const insurance: string[] = Array.from(
-    document.querySelectorAll<HTMLInputElement>(
-      'input[type="checkbox"][id="medicaid"]:checked, input[type="checkbox"][id="carrot"]:checked',
-    ),
-  ).map((checkbox: HTMLInputElement) => checkbox.id);
-
-  const formData: DoulaMatchFormRequest = {
-    name: contactName?.value ?? "",
-    phone: phone?.value ?? "",
-    email: email?.value ?? "",
-    zipcode: zipcode?.value ?? "",
-    estimatedDueDate: {
-      month: month?.value ?? "",
-      day: day?.value ?? "",
-      year: year?.value ?? "",
-    },
-    services,
-    birthLocation,
-    otherInfo: otherInfo?.value ?? "",
-    insurance,
-  };
-
   try {
+    // Get reCAPTCHA site key from form data attribute
+    const siteKey = matchForm?.dataset["recaptchaSiteKey"];
+    if (!siteKey) {
+      throw new Error("reCAPTCHA site key not found");
+    }
+
+    // Get reCAPTCHA token
+    const recaptchaToken = await globalThis.grecaptcha.execute(siteKey, {
+      action: "doula_match_form_submit",
+    });
+
+    if (submitButton) {
+      submitButton.textContent = "Sending...";
+    }
+
+    // eslint-disable-next-line unicorn/prefer-spread
+    const services: string[] = Array.from(
+      document.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"]:checked:not(#medicaid):not(#carrot)',
+      ),
+    ).map((checkbox: HTMLInputElement) => checkbox.id);
+
+    const selectedBirthLocationRadio = document.querySelector<HTMLInputElement>(
+      'input[name="birth-location"]:checked',
+    );
+
+    let birthLocation = "n/a";
+    if (selectedBirthLocationRadio) {
+      if (selectedBirthLocationRadio.id === "other-hospital") {
+        const otherHospitalInput = document.querySelector<HTMLInputElement>(
+          "#other-hospital-input",
+        );
+        birthLocation = otherHospitalInput?.value ?? "Other Hospital";
+      } else {
+        const label = document.querySelector<HTMLLabelElement>(
+          `label[for="${selectedBirthLocationRadio.id}"]`,
+        );
+        const labelText = label?.textContent;
+        birthLocation = labelText
+          ? labelText.trim()
+          : selectedBirthLocationRadio.id;
+      }
+    }
+
+    // eslint-disable-next-line unicorn/prefer-spread
+    const insurance: string[] = Array.from(
+      document.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"][id="medicaid"]:checked, input[type="checkbox"][id="carrot"]:checked',
+      ),
+    ).map((checkbox: HTMLInputElement) => checkbox.id);
+
+    const formData: DoulaMatchFormRequest = {
+      name: contactName?.value ?? "",
+      phone: phone?.value ?? "",
+      email: email?.value ?? "",
+      zipcode: zipcode?.value ?? "",
+      estimatedDueDate: {
+        month: month?.value ?? "",
+        day: day?.value ?? "",
+        year: year?.value ?? "",
+      },
+      services,
+      birthLocation,
+      otherInfo: otherInfo?.value ?? "",
+      insurance,
+      recaptchaToken,
+    };
+
     // console.log(formData);
     await sendMatchForm(formData);
   } catch (error) {

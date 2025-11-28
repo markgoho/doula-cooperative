@@ -6,6 +6,9 @@
 {{ end }}
 
 {{ define "head-scripts" }}
+  {{ if in .Permalink "/match/" }}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ .Site.Params.recaptchaSiteKey }}" async defer></script>
+  {{ end }}
   {{ if in .Permalink "/search/" }}
     <script src="/pagefind/pagefind-ui.js"></script>
   {{ end }}

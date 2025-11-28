@@ -4,6 +4,7 @@ export interface ContactUsForm {
   contactName: string;
   email: string;
   message: string;
+  recaptchaToken?: string;
 }
 
 export interface ContactUsFormRequest extends Request {
