@@ -90,22 +90,22 @@ function parseExistingMetadata(content: string): {
 
   const dateMatch = /^date:\s*(.+)$/m.exec(frontMatter);
   if (dateMatch?.[1]) {
-    metadata.date = dateMatch[1]!.trim();
+    metadata.date = dateMatch[1].trim();
   }
 
   const createdOnMatch = /^createdOn:\s*(.+)$/m.exec(frontMatter);
   if (createdOnMatch?.[1]) {
-    metadata.createdOn = createdOnMatch[1]!.trim();
+    metadata.createdOn = createdOnMatch[1].trim();
   }
 
   const updatedOnMatch = /^updatedOn:\s*(.+)$/m.exec(frontMatter);
   if (updatedOnMatch?.[1]) {
-    metadata.updatedOn = updatedOnMatch[1]!.trim();
+    metadata.updatedOn = updatedOnMatch[1].trim();
   }
 
   const draftMatch = /^draft:\s*(.+)$/m.exec(frontMatter);
   if (draftMatch?.[1]) {
-    metadata.draft = draftMatch[1]!.trim() === "true";
+    metadata.draft = draftMatch[1].trim() === "true";
   }
 
   return metadata;
