@@ -118,6 +118,7 @@ export const myFunction = onRequest(async (request, response) => {
 - Doula profiles managed via GitHub App integration
 - Pagefind search index built with `bun run index`
 - Runs on localhost:1313 during development
+- **See [HUGO_GUIDE.md](/HUGO_GUIDE.md)** for environment variables and configuration details
 
 ## Code Style
 
