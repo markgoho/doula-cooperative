@@ -50,32 +50,80 @@ cd functions
 npm install stripe  # Already completed
 ```
 
-### 2. Stripe Pricing Table Configuration
+### 2. Create Stripe Pricing Table
 
-The Hugo site uses a **Stripe Pricing Table** widget (not a payment link) that is already integrated in `hugo/layouts/join-cooperative/single.html`.
+The Hugo site uses a **Stripe Pricing Table** widget (not a payment link) for membership checkout.
 
-**Current Implementation:**
+**Step-by-Step Setup:**
+
+#### A. Switch to Test Mode
+
+1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com/)
+2. **Toggle to Test Mode** (top-right corner - look for "Test mode" badge)
+3. You're now in your test environment
+
+#### B. Create Product
+
+1. Go to **Products** → Click **+ Add product**
+2. Fill in details:
+   - **Name**: "Doula Cooperative Membership"
+   - **Description**: "Annual membership to Rochester Doula Cooperative"
+3. Set **Pricing**:
+   - **Pricing model**: Standard pricing
+   - **Price**: $50.00 USD
+   - **Billing period**: Yearly
+4. Click **Add product**
+
+#### C. Create Pricing Table (Test Mode)
+
+1. From your product page, click **Pricing tables** tab
+2. Click **Create pricing table**
+3. **Select products**: Check your "Doula Cooperative Membership" product
+4. **Configure settings**:
+   - ✅ Enable **Collect customer email** (required for account creation)
+   - ✅ Enable **Collect customer name** (optional but recommended)
+   - Set **Success URL**: `https://doulacooperative.com/join-success`
+   - Set **Cancel URL**: `https://doulacooperative.com/join-the-doula-cooperative`
+5. Click **Create pricing table**
+
+#### D. Copy Pricing Table Credentials
+
+After creating, Stripe shows you the embed code:
 
 ```html
+<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 <stripe-pricing-table
-  pricing-table-id="prctbl_1SJdC0JnElCHrlM6MYmo3xVd"
-  publishable-key="pk_live_51SJca8JnElCHrlM6AUzlWNeJHh05jb3j0YqdeNR73AHgFruGmeA3BALuAnRAO1ccbo7DYqH474X4wGjnp6HsGUf600VWHGFDjS"
+  pricing-table-id="prctbl_1ABC...test_xyz"
+  publishable-key="pk_test_51ABC..."
 >
 </stripe-pricing-table>
 ```
 
-**To Update Pricing Table (if needed):**
+**Copy these two values:**
+- **Pricing Table ID**: `prctbl_1ABC...test_xyz` (starts with `prctbl_`, includes "test")
+- **Publishable Key**: `pk_test_51ABC...` (starts with `pk_test_`)
 
-1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Go to **Products** → Select your product → **Pricing tables**
-3. Create or edit a pricing table with your membership product
-4. Configure settings:
-   - Enable **Collect customer email** (required for account creation)
-   - Enable **Collect customer name** (optional but recommended)
-   - Set success URL: `https://doulacooperative.com/join-success`
-   - Set cancel URL: `https://doulacooperative.com/join-the-doula-cooperative`
-5. Copy the `pricing-table-id` and `publishable-key`
-6. Update the widget in `hugo/layouts/join-cooperative/single.html`
+#### E. Add to GitHub Secrets
+
+Add these to your GitHub repository for PR previews:
+
+**Settings → Secrets and variables → Actions → New repository secret**
+
+1. Name: `STRIPE_TEST_PRICING_TABLE_ID`
+   - Value: `prctbl_1ABC...test_xyz` (just the ID)
+
+2. Name: `STRIPE_TEST_PUBLISHABLE_KEY`
+   - Value: `pk_test_51ABC...` (just the key)
+
+#### F. Repeat for Live Mode (Before Production)
+
+When ready to go live:
+1. Switch Stripe Dashboard to **Live mode**
+2. Create product and pricing table in live mode (same steps)
+3. Get live credentials (will start with `prctbl_...live_...` and `pk_live_...`)
+4. Add to GitHub Secrets:
+   - `STRIPE_LIVE_PRICING_TABLE_ID`
+   - `STRIPE_LIVE_PUBLISHABLE_KEY`
 
 **Note:** Stripe Pricing Tables provide a better UX than payment links, allowing customers to see pricing details inline without leaving your site.
 
