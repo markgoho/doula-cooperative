@@ -62,7 +62,8 @@
       "Bash(npm run build:*)",
       "Bash(members/*)",
       "Bash(hugo list:*)",
-      "Bash(hugo:*)"
+      "Bash(hugo:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
