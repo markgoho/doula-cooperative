@@ -36,11 +36,11 @@
   <section class="membership-join text-content">
     <h2>Cooperative Membership, 1 Year</h2>
 
-    {{ if .Site.Params.stripe.pricingTableId }}
+    {{ if .Site.Params.stripe.pricingtableid }}
       <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
       <stripe-pricing-table
-        pricing-table-id="{{ .Site.Params.stripe.pricingTableId }}"
-        publishable-key="{{ .Site.Params.stripe.publishableKey }}">
+        pricing-table-id="{{ .Site.Params.stripe.pricingtableid }}"
+        publishable-key="{{ .Site.Params.stripe.publishablekey }}">
       </stripe-pricing-table>
     {{ else }}
       <p class="price">

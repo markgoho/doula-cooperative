@@ -33,8 +33,8 @@ jobs:
         run: bun run build
         env:
           # Test mode Stripe keys for preview deployments
-          HUGO_PARAMS_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
-          HUGO_PARAMS_STRIPE_PRICING_TABLE_ID: ${{ secrets.STRIPE_TEST_PRICING_TABLE_ID }}
+          HUGO_PARAMS_STRIPE_PUBLISHABLEKEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+          HUGO_PARAMS_STRIPE_PRICINGTABLEID: ${{ secrets.STRIPE_TEST_PRICING_TABLE_ID }}
           HUGO_PARAMS_STRIPE_MODE: "test"
 
       - name: Deploy to Firebase preview channel
