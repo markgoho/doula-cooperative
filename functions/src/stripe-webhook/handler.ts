@@ -11,6 +11,7 @@ import {
 } from "../collections/index.js";
 import {
   ERROR_IDS,
+  MARK_EMAIL,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
@@ -82,7 +83,7 @@ async function sendWelcomeEmail(
         <li>Stay updated on cooperative events</li>
       </ul>
 
-      <p>If you have any questions, please reach out to us at ${REFERRAL_EMAIL}.</p>
+      <p>If you have any questions, please reach out to us at ${MARK_EMAIL}.</p>
 
       <p>Welcome aboard!</p>
       <p>The Rochester Doula Cooperative Team</p>
