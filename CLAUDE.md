@@ -138,22 +138,21 @@ Emulator ports: Auth:9099, Functions:5001, Firestore:8080
 For local development with Firebase emulators (Auth, Firestore, Functions):
 
 - **webmaster@doulacooperative.com** / `test1234`
-  - Admin account for website management
-  - No doula profile
+  - Admin account for cooperative management
+  - Has member record but NOT a doula member (no public profile)
+  - Used for administrative tasks and testing
 
 For Stripe subscription testing (both local and deployed):
 
 - **test-new-member@doulacooperative.com**
   - For testing new member sign-up flow
   - Use for checkout with test card `4242 4242 4242 4242`
-  - Forwards to markgoho@gmail.com
+  - Forwards to admin's inbox
 
 - **test-existing-member@doulacooperative.com**
   - For testing renewal/existing user flow
   - Create initial member, then test re-subscription
-  - Forwards to markgoho@gmail.com
-
-Note: Both test accounts forward to markgoho@gmail.com inbox for easy monitoring.
+  - Forwards to admin's inbox
 
 ## External Integrations
 
