@@ -141,9 +141,19 @@ For local development with Firebase emulators (Auth, Firestore, Functions):
   - Admin account for website management
   - No doula profile
 
-- **markgoho@gmail.com** / `test1234`
-  - Regular user with doula profile
-  - Has not claimed existing subscription yet
+For Stripe subscription testing (both local and deployed):
+
+- **test-new-member@doulacooperative.com**
+  - For testing new member sign-up flow
+  - Use for checkout with test card `4242 4242 4242 4242`
+  - Forwards to markgoho@gmail.com
+
+- **test-existing-member@doulacooperative.com**
+  - For testing renewal/existing user flow
+  - Create initial member, then test re-subscription
+  - Forwards to markgoho@gmail.com
+
+Note: Both test accounts forward to markgoho@gmail.com inbox for easy monitoring.
 
 ## External Integrations
 
