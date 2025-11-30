@@ -35,6 +35,7 @@ jobs:
           # Hugo templates use {{ os.Getenv "VAR_NAME" }} to read these
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
           STRIPE_PRICING_TABLE_ID: ${{ secrets.STRIPE_TEST_PRICING_TABLE_ID }}
+          STRIPE_VISIBILITY_KEY: ${{ secrets.STRIPE_VISIBILITY_KEY }}
           STRIPE_MODE: "test"
 
       - name: Deploy to Firebase preview channel
