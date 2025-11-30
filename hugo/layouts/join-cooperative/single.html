@@ -2,7 +2,11 @@
   {{ $pageCSS := "scss/join-cooperative.scss" }}
   {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
   {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
-  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+  <style>
+    {{ $inlineCSS.Content | safeCSS }}
+    .pricing-visible { display: block; }
+    .pricing-hidden { display: none; }
+  </style>
 {{ end }}
 
 {{ define "main" }}
@@ -35,24 +39,70 @@
 
   <section class="membership-join text-content">
     <h2>Cooperative Membership, 1 Year</h2>
-    <p class="price">
-      <span class="currency-symbol">$</span>
-      <span class="amount">50</span>
-    </p>
-    <button class="membership-cta button" disabled>Join the Cooperative</button>
-    <div class="callout">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        class="callout__icon"
-        viewBox="0 0 64 64">
-        <path
-          fill="var(--teal-500)"
-          d="M32 6a26 26 0 1 0 26 26A26.027 26.027 0 0 0 32 6Zm0 48a22 22 0 1 1 22-22 22.025 22.025 0 1 1-22 22Zm-2-20V20a2 2 0 0 1 4 0v14a2 2 0 1 1-4 0Zm5 9a3 3 0 1 1-5.999 0A3 3 0 0 1 35 43Z" />
-      </svg>
-      <p class="callout__text">
-        <strong>Note:</strong> New memberships have been paused temporarily.
+
+    {{ $pricingTableId := os.Getenv "STRIPE_PRICING_TABLE_ID" }}
+    {{ $publishableKey := os.Getenv "STRIPE_PUBLISHABLE_KEY" }}
+    {{ if and $pricingTableId $publishableKey }}
+      <div class="stripe-pricing pricing-hidden">
+        <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+        <stripe-pricing-table
+          pricing-table-id="{{ $pricingTableId }}"
+          publishable-key="{{ $publishableKey }}">
+        </stripe-pricing-table>
+      </div>
+
+      <div class="pricing-paused pricing-visible">
+        <p class="price">
+          <span class="currency-symbol">$</span>
+          <span class="amount">50</span>
+        </p>
+        <button class="membership-cta button" disabled>
+          Join the Cooperative
+        </button>
+        <div class="callout">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            class="callout__icon"
+            viewBox="0 0 64 64">
+            <path
+              fill="var(--teal-500)"
+              d="M32 6a26 26 0 1 0 26 26A26.027 26.027 0 0 0 32 6Zm0 48a22 22 0 1 1 22-22 22.025 22.025 1 1 1-22 22Zm-2-20V20a2 2 0 0 1 4 0v14a2 2 0 1 1-4 0Zm5 9a3 3 0 1 1-5.999 0A3 3 0 0 1 35 43Z" />
+          </svg>
+          <p class="callout__text">
+            <strong>Note:</strong> New memberships have been paused temporarily.
+          </p>
+        </div>
+      </div>
+    {{ else }}
+      <p class="price">
+        <span class="currency-symbol">$</span>
+        <span class="amount">50</span>
       </p>
-    </div>
+      <button class="membership-cta button" disabled>
+        Join the Cooperative
+      </button>
+      <div class="callout">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          class="callout__icon"
+          viewBox="0 0 64 64">
+          <path
+            fill="var(--teal-500)"
+            d="M32 6a26 26 0 1 0 26 26A26.027 26.027 0 0 0 32 6Zm0 48a22 22 0 1 1 22-22 22.025 22.025 0 1 1-22 22Zm-2-20V20a2 2 0 0 1 4 0v14a2 2 0 1 1-4 0Zm5 9a3 3 0 1 1-5.999 0A3 3 0 0 1 35 43Z" />
+        </svg>
+        <p class="callout__text">
+          <strong>Note:</strong> New memberships have been paused temporarily.
+        </p>
+      </div>
+    {{ end }}
   </section>
+{{ end }}
+
+{{ define "footer-scripts" }}
+  {{ if os.Getenv "STRIPE_VISIBILITY_KEY" }}
+    {{ $js := resources.Get "ts/stripe-visibility.ts" | js.Build (dict "defines" (dict "STRIPE_SECRET_KEY" (printf "\"%s\"" (os.Getenv "STRIPE_VISIBILITY_KEY")))) }}
+    <script src="{{ $js.RelPermalink }}"></script>
+  {{ end }}
 {{ end }}

@@ -118,6 +118,7 @@ export const myFunction = onRequest(async (request, response) => {
 - Doula profiles managed via GitHub App integration
 - Pagefind search index built with `bun run index`
 - Runs on localhost:1313 during development
+- **See [HUGO_GUIDE.md](/HUGO_GUIDE.md)** for environment variables and configuration details
 
 ## Code Style
 
@@ -137,12 +138,21 @@ Emulator ports: Auth:9099, Functions:5001, Firestore:8080
 For local development with Firebase emulators (Auth, Firestore, Functions):
 
 - **webmaster@doulacooperative.com** / `test1234`
-  - Admin account for website management
-  - No doula profile
+  - Admin account for cooperative management
+  - Has member record but NOT a doula member (no public profile)
+  - Used for administrative tasks and testing
 
-- **markgoho@gmail.com** / `test1234`
-  - Regular user with doula profile
-  - Has not claimed existing subscription yet
+For Stripe subscription testing (both local and deployed):
+
+- **test-new-member@doulacooperative.com**
+  - For testing new member sign-up flow
+  - Use for checkout with test card `4242 4242 4242 4242`
+  - Forwards to admin's inbox
+
+- **test-existing-member@doulacooperative.com**
+  - For testing renewal/existing user flow
+  - Create initial member, then test re-subscription
+  - Forwards to admin's inbox
 
 ## External Integrations
 
