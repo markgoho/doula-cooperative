@@ -14,7 +14,7 @@ function stripUrlProtocol(url: string): string {
   return url.replace(/^https?:\/\//, "");
 }
 
-function serializeToMarkdown(
+export function serializeToMarkdown(
   data: ProfileData,
   existingMetadata?: {
     date?: string;
@@ -61,7 +61,7 @@ ${data.bio.trim()}
     .join("\n");
 }
 
-function parseExistingMetadata(content: string): {
+export function parseExistingMetadata(content: string): {
   date?: string;
   createdOn?: string;
   updatedOn?: string;

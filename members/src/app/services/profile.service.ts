@@ -55,6 +55,23 @@ export class ProfileService {
     }
   }
 
+  async createProfileContent(data: ProfileData): Promise<void> {
+    const createProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
+      this.functions,
+      'createProfile',
+    );
+
+    try {
+      await createProfileCallable(data);
+
+      // Reload the profile resource to reflect the created profile
+      this.profileResource.reload();
+    } catch (error) {
+      console.error('Error calling createProfile function:', error);
+      throw error;
+    }
+  }
+
   private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
     const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(
       this.functions,

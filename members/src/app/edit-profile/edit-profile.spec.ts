@@ -325,6 +325,7 @@ async function setup({
       isLoading: vi.fn(() => profileResourceLoading),
       hasValue: vi.fn(() => !profileResourceLoading && profileValue !== undefined),
       value: vi.fn(() => profileValue),
+      error: vi.fn(() => (!hasProfile && userHasSlug ? new Error('Profile not found') : undefined)),
     },
     getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),
     updateProfile: vi.fn().mockImplementation(async () => {
@@ -335,6 +336,7 @@ async function setup({
         throw errorMessage ? new Error(errorMessage) : new Error('Unknown error');
       }
     }),
+    createProfileContent: vi.fn().mockResolvedValue(undefined),
   };
 
   const result = await render(EditProfile, {

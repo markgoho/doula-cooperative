@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import {
@@ -9,6 +9,7 @@ import {
   getDoc,
   Timestamp,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { map, of, switchMap } from 'rxjs';
 
 interface MigratedUserData {
@@ -58,15 +59,23 @@ export interface Member {
 export class MembershipService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private functions = inject(Functions);
 
   // Use authState directly to avoid circular dependency with AuthService
   private user$ = authState(this.auth);
   private userId$ = this.user$.pipe(map((user) => user?.uid));
 
   userId = computed(() => this.auth.currentUser?.uid ?? 'abcd');
+  user = toSignal(this.user$);
+
+  // Signal to trigger reload of user document
+  private reloadTrigger = signal(0);
 
   userDocument$ = this.userId$.pipe(
     switchMap((userId) => {
+      // Watch the reload trigger to re-fetch when it changes
+      this.reloadTrigger();
+
       if (userId) {
         const userDocumentReference = doc(
           this.firestore,
@@ -100,5 +109,50 @@ export class MembershipService {
       }
     }
     return undefined;
+  }
+
+  /**
+   * Check if a slug is available (not taken by another member)
+   */
+  async checkSlugExists(slug: string): Promise<boolean> {
+    const checkSlugCallable = httpsCallable<
+      { slug: string },
+      { available: boolean }
+    >(this.functions, 'checkSlugAvailable');
+
+    try {
+      const result = await checkSlugCallable({ slug });
+      return !result.data.available; // Returns true if slug EXISTS (taken)
+    } catch (error) {
+      console.error('Error checking slug availability:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set the profile slug for the current user
+   */
+  async updateMemberSlug(slug: string): Promise<void> {
+    const setSlugCallable = httpsCallable<
+      { slug: string },
+      { success: boolean; slug: string }
+    >(this.functions, 'setProfileSlug');
+
+    try {
+      await setSlugCallable({ slug });
+
+      // Trigger reload of user document
+      this.reloadUserDocument();
+    } catch (error) {
+      console.error('Error setting profile slug:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Trigger a reload of the user document from Firestore
+   */
+  reloadUserDocument(): void {
+    this.reloadTrigger.update((v) => v + 1);
   }
 }
