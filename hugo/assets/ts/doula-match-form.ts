@@ -52,16 +52,82 @@ async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
   location.href = "/thank-you-for-your-match-request";
 }
 
+function validateDueDateRange(
+  month: string,
+  day: string,
+  year: string,
+): { isError: boolean; message: string } {
+  // If any field is empty, don't validate (date is optional)
+  if (!month || !day || !year) {
+    return { isError: false, message: "" };
+  }
+
+  // Parse numeric values
+  const m = Number.parseInt(month, 10);
+  const d = Number.parseInt(day, 10);
+  const y = Number.parseInt(year, 10);
+
+  // Construct date (month is 0-indexed in JavaScript Date)
+  const enteredDate = new Date(y, m - 1, d);
+
+  // Check if date is invalid
+  if (Number.isNaN(enteredDate.getTime())) {
+    return { isError: false, message: "" };
+  }
+
+  // Calculate date bounds
+  const now = new Date();
+  const oneYearAgo = new Date(
+    now.getFullYear() - 1,
+    now.getMonth(),
+    now.getDate(),
+  );
+  const twoYearsFromNow = new Date(
+    now.getFullYear() + 2,
+    now.getMonth(),
+    now.getDate(),
+  );
+
+  // Check if date is outside acceptable range
+  if (enteredDate < oneYearAgo || enteredDate > twoYearsFromNow) {
+    return {
+      isError: true,
+      message:
+        "The date you entered is outside the typical doula service window. Please enter a date within 1 year past to 2 years in the future.",
+    };
+  }
+
+  return { isError: false, message: "" };
+}
+
 const doSubmit = async () => {
   if (submitButton) {
-    submitButton.disabled = true;
     submitButton.textContent = "Verifying...";
   }
   if (formError) {
     formError.textContent = "";
+    formError.style.display = "none";
   }
 
   try {
+    // Validate due date range
+    const dateValidation = validateDueDateRange(
+      month?.value ?? "",
+      day?.value ?? "",
+      year?.value ?? "",
+    );
+
+    if (dateValidation.isError) {
+      if (formError) {
+        formError.textContent = dateValidation.message;
+        formError.style.display = "block";
+      }
+      if (submitButton) {
+        submitButton.textContent = "Submit Information";
+      }
+      return;
+    }
+
     // Get reCAPTCHA site key from form data attribute
     const siteKey = matchForm?.dataset["recaptchaSiteKey"];
     if (!siteKey) {
@@ -137,9 +203,9 @@ const doSubmit = async () => {
     if (formError) {
       formError.textContent =
         "Sorry, there was an error sending your message. Please try again later.";
+      formError.style.display = "block";
     }
     if (submitButton) {
-      submitButton.disabled = false;
       submitButton.textContent = "Submit Information";
     }
   }
