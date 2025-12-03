@@ -201,4 +201,76 @@ describe("emailContactForm", () => {
       process.env["MAILGUN_API_KEY"],
     );
   });
+
+  it("should skip email for low reCAPTCHA score", async () => {
+    await testEnvironment.withSecurityRulesDisabled(async context => {
+      // Arrange
+      const { contactName, email, message, messageId } = setup();
+      const database = context.firestore();
+      const reference = doc(database, `${MESSAGES_COLLECTION}/${messageId}`);
+
+      await setDoc(reference, {
+        contactName,
+        email,
+        message,
+        submitted: new Date().toISOString(),
+        sent: false,
+        recaptchaScore: 0.3, // Low score
+      });
+
+      const snapshot = await getDoc(reference);
+
+      const event = {
+        data: snapshot,
+        params: { messageId },
+      };
+
+      // Act
+      await handleDocumentCreated(
+        event as unknown as Parameters<typeof handleDocumentCreated>[0],
+        process.env["MAILGUN_API_KEY"],
+      );
+
+      // Assert - sent should remain false
+      const updatedDocument = await getDoc(reference);
+      const data = updatedDocument.data() as ContactUsFormDocument;
+      expect(data.sent).toBe(false);
+    });
+  });
+
+  it("should send email for high reCAPTCHA score", async () => {
+    await testEnvironment.withSecurityRulesDisabled(async context => {
+      // Arrange
+      const { contactName, email, message, messageId } = setup();
+      const database = context.firestore();
+      const reference = doc(database, `${MESSAGES_COLLECTION}/${messageId}`);
+
+      await setDoc(reference, {
+        contactName,
+        email,
+        message,
+        submitted: new Date().toISOString(),
+        sent: false,
+        recaptchaScore: 0.9, // High score
+      });
+
+      const snapshot = await getDoc(reference);
+
+      const event = {
+        data: snapshot,
+        params: { messageId },
+      };
+
+      // Act
+      await handleDocumentCreated(
+        event as unknown as Parameters<typeof handleDocumentCreated>[0],
+        process.env["MAILGUN_API_KEY"],
+      );
+
+      // Assert - sent should be true
+      const updatedDocument = await getDoc(reference);
+      const data = updatedDocument.data() as ContactUsFormDocument;
+      expect(data.sent).toBe(true);
+    });
+  });
 });

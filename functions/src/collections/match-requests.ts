@@ -19,4 +19,5 @@ export interface MatchRequestDocument {
   insurance: string[];
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }

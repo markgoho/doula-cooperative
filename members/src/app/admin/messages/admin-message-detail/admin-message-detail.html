@@ -57,6 +57,9 @@
 
       <dt>Submitted</dt>
       <dd>{{ message.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
+
+      <dt>reCAPTCHA Score</dt>
+      <dd>{{ message.recaptchaScore ?? 'N/A' }}</dd>
     </dl>
   </section>
 

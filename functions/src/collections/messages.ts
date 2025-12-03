@@ -9,4 +9,5 @@ export interface MessageDocument {
   message: string;
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }

@@ -28,7 +28,17 @@ export async function handleDocumentCreated(
     return;
   }
 
-  const { contactName, email, message } = snapshot.data() as MessageDocument;
+  const { contactName, email, message, recaptchaScore } =
+    snapshot.data() as MessageDocument;
+
+  // Only send email if score meets threshold
+  if ((recaptchaScore ?? 0) < 0.5) {
+    logger.info(`Skipping email for low-score message ${event.params.messageId}`, {
+      email,
+      score: recaptchaScore,
+    });
+    return;
+  }
 
   const emailMessage: MailgunMessageData = {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,

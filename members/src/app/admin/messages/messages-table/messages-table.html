@@ -8,6 +8,7 @@
     <table class="messages-table">
       <thead>
         <tr>
+          <th>Status</th>
           <th class="sortable" (click)="handleSort('name')">
             Name
             @if (sortColumn() === 'name') {
@@ -27,6 +28,13 @@
       <tbody>
         @for (message of sortedMessages(); track message.id) {
           <tr>
+            <td>
+              <app-tag
+                [label]="message.sent ? 'Processed' : 'Pending'"
+                [color]="message.sent ? 'default' : 'accent'"
+                size="small"
+              />
+            </td>
             <td class="name-cell">{{ message.contactName || '—' }}</td>
             <td class="email-cell">
               <a [href]="'mailto:' + message.email" class="email-link">{{ message.email }}</a>
@@ -57,7 +65,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="4" class="empty-state">No messages found.</td>
+            <td colspan="5" class="empty-state">No messages found.</td>
           </tr>
         }
       </tbody>

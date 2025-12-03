@@ -7,6 +7,7 @@ import {
   type ResourceRef,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Tag } from '../../../tag/tag';
 import type { ListMessagesResponse } from '../../admin.types';
 import { getRelativeTime } from '../../match-requests/match-request.utilities';
 
@@ -15,7 +16,7 @@ type MessageSortColumn = 'name' | 'submitted';
 
 @Component({
   selector: 'app-messages-table',
-  imports: [RouterLink],
+  imports: [RouterLink, Tag],
   templateUrl: './messages-table.html',
   styleUrl: './messages-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

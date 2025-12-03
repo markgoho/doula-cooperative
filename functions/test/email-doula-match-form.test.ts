@@ -560,4 +560,94 @@ describe("emailDoulaMatch", () => {
       process.env["MAILGUN_API_KEY"],
     );
   });
+
+  it("should skip email for low reCAPTCHA score", async () => {
+    await testEnvironment.withSecurityRulesDisabled(async context => {
+      // Arrange
+      const formData = setup();
+      const database = context.firestore();
+      const reference = doc(
+        database,
+        `${MATCH_REQUESTS_COLLECTION}/${formData.matchRequestId}`,
+      );
+
+      await setDoc(reference, {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        zipcode: formData.zipcode,
+        estimatedDueDate: formData.estimatedDueDate,
+        services: formData.services,
+        birthLocation: formData.birthLocation,
+        otherInfo: formData.otherInfo,
+        insurance: formData.insurance,
+        submitted: new Date().toISOString(),
+        sent: false,
+        recaptchaScore: 0.3, // Low score
+      });
+
+      const snapshot = await getDoc(reference);
+
+      const event = {
+        data: snapshot,
+        params: { matchRequestId: formData.matchRequestId },
+      };
+
+      // Act
+      await handleDocumentCreated(
+        event as unknown as Parameters<typeof handleDocumentCreated>[0],
+        process.env["MAILGUN_API_KEY"],
+      );
+
+      // Assert - sent should remain false
+      const updatedDocument = await getDoc(reference);
+      const data = updatedDocument.data() as DoulaMatchFormDocument;
+      expect(data.sent).toBe(false);
+    });
+  });
+
+  it("should send email for high reCAPTCHA score", async () => {
+    await testEnvironment.withSecurityRulesDisabled(async context => {
+      // Arrange
+      const formData = setup();
+      const database = context.firestore();
+      const reference = doc(
+        database,
+        `${MATCH_REQUESTS_COLLECTION}/${formData.matchRequestId}`,
+      );
+
+      await setDoc(reference, {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        zipcode: formData.zipcode,
+        estimatedDueDate: formData.estimatedDueDate,
+        services: formData.services,
+        birthLocation: formData.birthLocation,
+        otherInfo: formData.otherInfo,
+        insurance: formData.insurance,
+        submitted: new Date().toISOString(),
+        sent: false,
+        recaptchaScore: 0.9, // High score
+      });
+
+      const snapshot = await getDoc(reference);
+
+      const event = {
+        data: snapshot,
+        params: { matchRequestId: formData.matchRequestId },
+      };
+
+      // Act
+      await handleDocumentCreated(
+        event as unknown as Parameters<typeof handleDocumentCreated>[0],
+        process.env["MAILGUN_API_KEY"],
+      );
+
+      // Assert - sent should be true
+      const updatedDocument = await getDoc(reference);
+      const data = updatedDocument.data() as DoulaMatchFormDocument;
+      expect(data.sent).toBe(true);
+    });
+  });
 });

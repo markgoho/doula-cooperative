@@ -28,17 +28,6 @@ export async function handleContactUsForm(
       recaptchaSecretKey,
     );
 
-    if (!verification.success || verification.score < 0.5) {
-      logger.warn("reCAPTCHA verification failed", {
-        score: verification.score,
-        error: verification.error,
-      });
-      response.status(403).send({
-        error: "Verification failed. Please try again.",
-      });
-      return;
-    }
-
     // Remove recaptchaToken from body before saving to Firestore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { recaptchaToken: _, ...formData } = request.body;
@@ -49,6 +38,7 @@ export async function handleContactUsForm(
       ...formData,
       submitted: today,
       sent: false,
+      recaptchaScore: verification.score,
     });
 
     response.status(200).send("Okay");

@@ -446,18 +446,18 @@ describe("doulaMatchForm", () => {
     await cleanupDoulaMatchForm({ firestore });
   });
 
-  it("should return 403 when reCAPTCHA verification fails", async () => {
+  it("should save submission with low reCAPTCHA score", async () => {
     // Arrange
-    const { firestore, request, response, mockResponse } = setup();
+    const { firestore, request, response, mockResponse, formData } = setup();
     process.env["RECAPTCHA_SECRET_KEY"] = "test_secret_key";
 
-    // Mock failed reCAPTCHA verification
+    // Mock low reCAPTCHA score
     globalThis.fetch = (() => {
       return Promise.resolve({
         json: () =>
           Promise.resolve({
-            success: false,
-            score: 0.1,
+            success: true,
+            score: 0.3,
           }),
       });
     }) as unknown as typeof fetch;
@@ -465,8 +465,46 @@ describe("doulaMatchForm", () => {
     // Act
     await doulaMatchForm(request, response);
 
+    // Assert - Should return 200 (not 403)
+    expect(mockResponse.statusCode).toBe(200);
+
+    // Verify document was saved with score
+    const matchRequestDocument = await getDocumentByEmail({
+      firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
+      email: formData.email,
+    });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
+    const data = matchRequestDocument.data() as DoulaMatchFormDocument;
+    expect(data.recaptchaScore).toBe(0.3);
+    expect(data.sent).toBe(false);
+
+    await cleanupDoulaMatchForm({ firestore });
+  });
+
+  it("should store recaptchaScore in Firestore", async () => {
+    // Arrange
+    const { formData, firestore, request, response } = setup();
+    // Default setup mocks score: 0.9
+
+    // Act
+    await doulaMatchForm(request, response);
+
     // Assert
-    expect(mockResponse.statusCode).toBe(403);
+    const matchRequestDocument = await getDocumentByEmail({
+      firestore,
+      collection: MATCH_REQUESTS_COLLECTION,
+      email: formData.email,
+    });
+    expect(matchRequestDocument).toBeDefined();
+    if (!matchRequestDocument) {
+      throw new Error("matchRequestDocument is undefined");
+    }
+    const data = matchRequestDocument.data() as DoulaMatchFormDocument;
+    expect(data.recaptchaScore).toBe(0.9);
 
     await cleanupDoulaMatchForm({ firestore });
   });

@@ -62,6 +62,7 @@ export interface MatchRequest {
   insurance: string[];
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }
 
 export interface ListMatchRequestsResponse {
@@ -78,6 +79,7 @@ export interface Message {
   message: string;
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }
 
 export interface ListMessagesResponse {
