@@ -13,7 +13,9 @@ export function generateSlug(name: string): string {
     .replaceAll('ß', 'ss')
     .replaceAll('ð', 'd')
     .replaceAll('þ', 'th')
-    .normalize('NFD') // Decompose accented characters (é → e + ´)
+    // Decompose most accented characters into base + combining marks (é → e + ´)
+    // Special cases handled above don't decompose with NFD
+    .normalize('NFD')
     .replaceAll(/[\u0300-\u036F]/g, '') // Remove diacritical marks
     .replaceAll(/[^a-z0-9\s-]/g, '') // Remove remaining special chars
     .replaceAll(/\s+/g, '-') // Replace spaces with hyphens
@@ -24,17 +26,25 @@ export function generateSlug(name: string): string {
 /**
  * Ensure a slug is unique by appending a numeric suffix if needed
  * @param baseSlug - The base slug to check
- * @param checkSlugExists - Async function that checks if a slug exists
+ * @param checkSlugExists - Async function that returns true if slug is already taken, false if available
+ * @param maxAttempts - Maximum number of attempts to find a unique slug (default: 100)
  * @returns A unique slug (either the original or with a numeric suffix)
+ * @throws Error if unable to find unique slug after maxAttempts
  */
 export async function ensureUniqueSlug(
   baseSlug: string,
   checkSlugExists: (slug: string) => Promise<boolean>,
+  maxAttempts = 100,
 ): Promise<string> {
   let slug = baseSlug;
   let suffix = 1;
 
   while (await checkSlugExists(slug)) {
+    if (suffix >= maxAttempts) {
+      throw new Error(
+        `Unable to find unique slug after ${maxAttempts} attempts`,
+      );
+    }
     suffix++;
     slug = `${baseSlug}-${suffix}`;
   }

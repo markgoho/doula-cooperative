@@ -10,6 +10,11 @@ import { validateProfileData } from "./validation.js";
 
 export type { ProfileData } from "../types/profile-data.js";
 
+/**
+ * Remove protocol from URLs for Hugo front matter.
+ * Hugo adds protocols automatically in templates, so storing without protocol
+ * keeps data clean and protocol-agnostic.
+ */
 function stripUrlProtocol(url: string): string {
   return url.replace(/^https?:\/\//, "");
 }
@@ -119,7 +124,6 @@ export async function handleWriteProfile(
     string,
   ],
 ) {
-  // 1. Check for Firebase authenticated user
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
@@ -129,10 +133,8 @@ export async function handleWriteProfile(
   const uid = request.auth.uid;
   logger.info(`Write request initiated for user: ${uid}`);
 
-  // 2. Validate input data
   validateProfileData(request.data);
 
-  // 3. Get the Hugo file path from the members collection
   const database = getFirestore();
   const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
   const memberDocument = await memberReference.get();
@@ -148,7 +150,6 @@ export async function handleWriteProfile(
     throw new HttpsError("not-found", "Member document data is empty.");
   }
 
-  // Check if user has an active membership
   if (!memberData.membershipActive) {
     throw new HttpsError(
       "failed-precondition",
@@ -167,7 +168,6 @@ export async function handleWriteProfile(
 
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
-  // 4. Authenticate as the GitHub App
   const app = new App({
     appId: GITHUB_APP_ID,
     privateKey: GITHUB_PRIVATE_KEY,
@@ -176,33 +176,30 @@ export async function handleWriteProfile(
     Number.parseInt(GITHUB_INSTALLATION_ID),
   );
 
-  // These repository values can be hardcoded since they're specific to this project
+  // Hardcoded for this deployment. In forks/test environments, use environment
+  // variables GITHUB_OWNER/GITHUB_REPO or modify these constants.
   const owner = "markgoho";
   const repo = "doula-cooperative";
 
   try {
-    // First, fetch the existing file to get its SHA and preserve metadata
+    // Fetch the existing file to get its SHA and preserve metadata
     const { data: fileData } = await octokit.rest.repos.getContent({
       owner,
       repo,
       path: filePath,
     });
 
-    // Safety check to ensure we got a file and not a directory
     if (!("content" in fileData)) {
       throw new Error("Path did not resolve to a file.");
     }
 
-    // Parse existing content to preserve metadata
     const existingContent = Buffer.from(fileData.content, "base64").toString(
       "utf8",
     );
     const existingMetadata = parseExistingMetadata(existingContent);
 
-    // 5. Serialize the profile data to markdown format
     const newContent = serializeToMarkdown(request.data, existingMetadata);
 
-    // 6. Update the file on GitHub
     await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,

@@ -1,6 +1,9 @@
 /**
  * Error ID constants for Sentry tracking and error correlation.
  * Use these IDs consistently in error logs to enable tracking error patterns across requests.
+ *
+ * Naming convention: <module>_<specific_error_condition>
+ * Add new error IDs for any error condition that needs tracking/monitoring/debugging.
  */
 export const ERROR_IDS = {
   // Stripe webhook errors
@@ -56,6 +59,17 @@ export const ERROR_IDS = {
   CREATE_PROFILE_GITHUB_CONFLICT: "create_profile_github_conflict",
   CREATE_PROFILE_GITHUB_GENERIC: "create_profile_github_generic",
   CREATE_PROFILE_PROCESSING_ERROR: "create_profile_processing_error",
+  CREATE_PROFILE_GITHUB_AUTH_FAILED: "create_profile_github_auth_failed",
+  CREATE_PROFILE_FIRESTORE_READ_ERROR: "create_profile_firestore_read_error",
+  CREATE_PROFILE_SERIALIZATION_ERROR: "create_profile_serialization_error",
+
+  // Check slug availability errors
+  CHECK_SLUG_FIRESTORE_ERROR: "check_slug_firestore_error",
+
+  // Set profile slug errors
+  SET_SLUG_FIRESTORE_READ_ERROR: "set_slug_firestore_read_error",
+  SET_SLUG_FIRESTORE_QUERY_ERROR: "set_slug_firestore_query_error",
+  SET_SLUG_FIRESTORE_UPDATE_FAILED: "set_slug_firestore_update_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

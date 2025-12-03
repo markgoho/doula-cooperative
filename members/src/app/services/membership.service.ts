@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import {
   doc,
@@ -10,7 +10,8 @@ import {
   Timestamp,
 } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { map, of, switchMap } from 'rxjs';
+import { combineLatest, map, of, switchMap } from 'rxjs';
+import { isFirebaseFunctionsError } from '../types/firebase-error';
 
 interface MigratedUserData {
   name: string;
@@ -70,12 +71,10 @@ export class MembershipService {
 
   // Signal to trigger reload of user document
   private reloadTrigger = signal(0);
+  private reloadTrigger$ = toObservable(this.reloadTrigger);
 
-  userDocument$ = this.userId$.pipe(
-    switchMap((userId) => {
-      // Watch the reload trigger to re-fetch when it changes
-      this.reloadTrigger();
-
+  userDocument$ = combineLatest([this.userId$, this.reloadTrigger$]).pipe(
+    switchMap(([userId]) => {
       if (userId) {
         const userDocumentReference = doc(
           this.firestore,
@@ -113,6 +112,9 @@ export class MembershipService {
 
   /**
    * Check if a slug is available (not taken by another member)
+   * @param slug - The slug to check
+   * @returns true if slug is already taken, false if available
+   * @throws Error with user-friendly message
    */
   async checkSlugExists(slug: string): Promise<boolean> {
     const checkSlugCallable = httpsCallable<
@@ -123,14 +125,34 @@ export class MembershipService {
     try {
       const result = await checkSlugCallable({ slug });
       return !result.data.available; // Returns true if slug EXISTS (taken)
-    } catch (error) {
-      console.error('Error checking slug availability:', error);
-      throw error;
+    } catch (error: unknown) {
+      console.error('Slug availability check failed:', {
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        switch (error.code) {
+          case 'unauthenticated': {
+            throw new Error('You must be signed in to check slug availability.');
+          }
+
+          case 'deadline-exceeded': {
+            throw new Error(
+              'Request timed out. Please check your connection and try again.',
+            );
+          }
+        }
+      }
+
+      throw new Error('Unable to check slug availability. Please try again.');
     }
   }
 
   /**
-   * Set the profile slug for the current user
+   * Set the profile slug for the current user and reload user document
+   * @param slug - The slug to set
+   * @throws Error with user-friendly message
    */
   async updateMemberSlug(slug: string): Promise<void> {
     const setSlugCallable = httpsCallable<
@@ -143,9 +165,43 @@ export class MembershipService {
 
       // Trigger reload of user document
       this.reloadUserDocument();
-    } catch (error) {
-      console.error('Error setting profile slug:', error);
-      throw error;
+    } catch (error: unknown) {
+      console.error('Failed to set profile slug:', {
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        switch (error.code) {
+          case 'unauthenticated': {
+            throw new Error('You must be signed in to set a profile slug.');
+          }
+
+          case 'failed-precondition': {
+            if (error.message.includes('active membership')) {
+              throw new Error('Active membership required to set profile slug.');
+            }
+            if (error.message.includes('already has')) {
+              throw new Error(
+                'You already have a profile slug. Contact support to change it.',
+              );
+            }
+            break;
+          }
+
+          case 'already-exists': {
+            throw new Error('This slug is already taken. Please choose another.');
+          }
+
+          case 'deadline-exceeded': {
+            throw new Error(
+              'Request timed out. Please check your connection and try again.',
+            );
+          }
+        }
+      }
+
+      throw new Error('Unable to set profile slug. Please try again.');
     }
   }
 

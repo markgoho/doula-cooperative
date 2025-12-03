@@ -25,7 +25,10 @@ export class EditProfile {
   // Use the profile service's profile signal
   readonly profile = this.profileService.profile;
 
-  // Detect if this is a new profile (has slug but no GitHub file yet)
+  // Detect if this is a new profile being created for the first time.
+  // A profile is "new" when the user has claimed a slug (from onboarding) but hasn't
+  // created the GitHub file yet. In this state, profileResource errors with 404
+  // (hasError=true) but slug exists. After first save, profile loads normally.
   readonly isNewProfile = computed(() => {
     const hasError = !!this.profileService.profileResource.error();
     const hasSlug = !!this.membershipService.userDocument()?.slug;

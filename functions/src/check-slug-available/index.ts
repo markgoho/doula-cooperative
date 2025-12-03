@@ -2,6 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { type CallableRequest, HttpsError } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
 import { MEMBERS_COLLECTION } from "../collections/index.js";
+import { ERROR_IDS } from "../constants/error-ids.js";
 
 interface CheckSlugAvailableRequest {
   slug: string;
@@ -10,7 +11,6 @@ interface CheckSlugAvailableRequest {
 export async function handleCheckSlugAvailable(
   request: CallableRequest<CheckSlugAvailableRequest>,
 ) {
-  // 1. Check for Firebase authenticated user
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
@@ -21,33 +21,50 @@ export async function handleCheckSlugAvailable(
   const uid = request.auth.uid;
   const { slug } = request.data;
 
-  // 2. Validate input
   if (!slug || typeof slug !== "string") {
     throw new HttpsError("invalid-argument", "Slug is required.");
   }
 
-  // 3. Check if slug is valid format (lowercase, alphanumeric, hyphens only)
-  const slugRegex = /^[a-z0-9-]+$/;
+  if (slug.length < 2) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Slug must be at least 2 characters long.",
+    );
+  }
+
+  // Ensure slug contains at least one alphanumeric character and no consecutive/trailing hyphens
+  const slugRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
   if (!slugRegex.test(slug)) {
     throw new HttpsError(
       "invalid-argument",
-      "Slug must contain only lowercase letters, numbers, and hyphens.",
+      "Slug must contain only lowercase letters, numbers, and hyphens. It must start and end with a letter or number.",
     );
   }
 
   logger.info(`Checking slug availability: ${slug} for user: ${uid}`);
 
-  // 4. Query Firestore for existing slug
   const database = getFirestore();
   const membersQuery = database
     .collection(MEMBERS_COLLECTION)
     .where("slug", "==", slug)
     .limit(1);
 
-  const snapshot = await membersQuery.get();
-  const isAvailable = snapshot.empty;
+  try {
+    const snapshot = await membersQuery.get();
+    const isAvailable = snapshot.empty;
 
-  logger.info(`Slug ${slug} availability: ${isAvailable}`);
-
-  return { available: isAvailable };
+    logger.info(`Slug ${slug} availability: ${isAvailable}`);
+    return { available: isAvailable };
+  } catch (error: unknown) {
+    logger.error("Firestore query failed in checkSlugAvailable", {
+      errorId: ERROR_IDS.CHECK_SLUG_FIRESTORE_ERROR,
+      uid,
+      slug,
+      error,
+    });
+    throw new HttpsError(
+      "internal",
+      "Failed to check slug availability. Please try again.",
+    );
+  }
 }

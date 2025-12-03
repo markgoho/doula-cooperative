@@ -19,7 +19,6 @@ export async function handleCreateProfile(
     string,
   ],
 ) {
-  // 1. Check for Firebase authenticated user
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
@@ -29,78 +28,125 @@ export async function handleCreateProfile(
   const uid = request.auth.uid;
   logger.info(`Create profile request initiated for user: ${uid}`);
 
-  // 2. Validate input data
   validateProfileData(request.data);
 
-  // 3. Get the member document to check membership and slug
   const database = getFirestore();
   const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
-  const memberDocument = await memberReference.get();
 
-  if (!memberDocument.exists) {
-    throw new HttpsError(
-      "not-found",
-      "No member document found for this user.",
-    );
-  }
-  const memberData = memberDocument.data() as MemberDocument | undefined;
-  if (!memberData) {
-    throw new HttpsError("not-found", "Member document data is empty.");
-  }
+  let memberData: MemberDocument;
+  let slug: string;
 
-  // Check if user has an active membership
-  if (!memberData.membershipActive) {
-    throw new HttpsError(
-      "failed-precondition",
-      "User does not have an active membership.",
-    );
-  }
+  try {
+    const memberDocument = await memberReference.get();
 
-  // Check if user has a slug
-  const slug = memberData.slug;
-  if (!slug) {
+    if (!memberDocument.exists) {
+      throw new HttpsError(
+        "not-found",
+        "No member document found for this user.",
+      );
+    }
+
+    const data = memberDocument.data() as MemberDocument | undefined;
+    if (!data) {
+      throw new HttpsError("not-found", "Member document data is empty.");
+    }
+
+    memberData = data;
+
+    if (!memberData.membershipActive) {
+      throw new HttpsError(
+        "failed-precondition",
+        "User does not have an active membership.",
+      );
+    }
+
+    if (!memberData.slug) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Profile slug not found. User must create a slug first.",
+      );
+    }
+
+    slug = memberData.slug;
+  } catch (error: unknown) {
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    logger.error("Failed to read member document in createProfile", {
+      errorId: ERROR_IDS.CREATE_PROFILE_FIRESTORE_READ_ERROR,
+      uid,
+      error,
+    });
     throw new HttpsError(
-      "failed-precondition",
-      "Profile slug not found. User must create a slug first.",
+      "internal",
+      "Failed to retrieve member information. Please try again.",
     );
   }
 
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
-  // 4. Authenticate as the GitHub App
-  const app = new App({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
-  });
-  const octokit = await app.getInstallationOctokit(
-    Number.parseInt(GITHUB_INSTALLATION_ID),
-  );
-
-  // These repository values can be hardcoded since they're specific to this project
+  // Hardcoded for this deployment. In forks/test environments, use environment
+  // variables GITHUB_OWNER/GITHUB_REPO or modify these constants.
   const owner = "markgoho";
   const repo = "doula-cooperative";
 
+  // Create initial metadata for new profile
+  const now = new Date().toISOString();
+  const initialMetadata = {
+    date: now,
+    createdOn: now,
+    updatedOn: now,
+    // New profiles start as draft to prevent accidental premature publication
+    draft: true,
+  };
+
+  // Serialize the profile data to markdown format
+  let content: string;
   try {
-    // 5. Create initial metadata for new profile
-    const now = new Date().toISOString();
-    const initialMetadata = {
-      date: now,
-      createdOn: now,
-      updatedOn: now,
-      draft: true, // New profiles start as draft
-    };
+    content = serializeToMarkdown(request.data, initialMetadata);
+  } catch (error: unknown) {
+    logger.error("Failed to serialize profile data", {
+      errorId: ERROR_IDS.CREATE_PROFILE_SERIALIZATION_ERROR,
+      uid,
+      slug,
+      error,
+    });
+    throw new HttpsError(
+      "invalid-argument",
+      "Profile data could not be processed. Please check your input.",
+    );
+  }
 
-    // 6. Serialize the profile data to markdown format
-    const content = serializeToMarkdown(request.data, initialMetadata);
+  // Authenticate as the GitHub App
+  let octokit;
+  try {
+    const app = new App({
+      appId: GITHUB_APP_ID,
+      privateKey: GITHUB_PRIVATE_KEY,
+    });
+    octokit = await app.getInstallationOctokit(
+      Number.parseInt(GITHUB_INSTALLATION_ID),
+    );
+  } catch (error: unknown) {
+    logger.error("GitHub authentication failed", {
+      errorId: ERROR_IDS.CREATE_PROFILE_GITHUB_AUTH_FAILED,
+      uid,
+      error,
+    });
+    throw new HttpsError(
+      "internal",
+      "Failed to authenticate with GitHub. Please try again later.",
+    );
+  }
 
-    // 7. Create the file on GitHub
+  // Create the file on GitHub
+  try {
     await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
       path: filePath,
       message: `Create profile for ${request.data.title}`,
       content: Buffer.from(content, "utf8").toString("base64"),
-      // No SHA needed for new file creation
       branch: "trunk",
     });
 

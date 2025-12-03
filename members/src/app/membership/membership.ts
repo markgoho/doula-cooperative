@@ -119,18 +119,40 @@ export class Membership {
 
       // Generate slug from name
       const baseSlug = generateSlug(userDocument.name);
-      const uniqueSlug = await ensureUniqueSlug(baseSlug, (slug) =>
-        this.membershipService.checkSlugExists(slug),
-      );
+      let uniqueSlug: string;
+
+      try {
+        uniqueSlug = await ensureUniqueSlug(baseSlug, (slug) =>
+          this.membershipService.checkSlugExists(slug),
+        );
+      } catch (error) {
+        console.error('Slug generation failed:', error);
+        throw new Error(
+          'Unable to generate a unique profile URL. Please try again or contact support.',
+        );
+      }
 
       // Update Firestore with slug
-      await this.membershipService.updateMemberSlug(uniqueSlug);
+      try {
+        await this.membershipService.updateMemberSlug(uniqueSlug);
+      } catch (error) {
+        console.error('Failed to save profile slug:', error);
+        // Re-throw with the error message from the service (which has better context)
+        throw error;
+      }
 
       // Navigate immediately to profile editor
       await this.router.navigate(['/profile']);
     } catch (error) {
       console.error('Error creating profile:', error);
-      this.createProfileError.set('Failed to create profile. Please try again.');
+
+      // Use the error message if it's already user-friendly
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to create profile. Please try again.';
+
+      this.createProfileError.set(errorMessage);
     } finally {
       this.createProfileInProgress.set(false);
     }
