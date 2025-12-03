@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -25,6 +25,16 @@ export class EditProfile {
   // Use the profile service's profile signal
   readonly profile = this.profileService.profile;
 
+  // Detect if this is a new profile being created for the first time.
+  // A profile is "new" when the user has claimed a slug (from onboarding) but hasn't
+  // created the GitHub file yet. In this state, profileResource errors with 404
+  // (hasError=true) but slug exists. After first save, profile loads normally.
+  readonly isNewProfile = computed(() => {
+    const hasError = !!this.profileService.profileResource.error();
+    const hasSlug = !!this.membershipService.userDocument()?.slug;
+    return hasError && hasSlug;
+  });
+
   // Available tags for selection
   readonly availableTags = PROFILE_TAGS;
 
@@ -46,11 +56,19 @@ export class EditProfile {
   successMessage = signal('');
 
   constructor() {
-    // Initialize form when profile data loads
+    // Initialize form when profile data loads OR when it's a new profile
     effect(() => {
       const profile = this.profile();
+      const isNew = this.isNewProfile();
+
       if (profile && !this.profileForm.dirty) {
         this.initializeForm(profile);
+      } else if (isNew && !this.profileForm.dirty) {
+        // Pre-fill with member data for new profile
+        const userDocument = this.membershipService.userDocument();
+        if (userDocument) {
+          this.initializeNewProfileForm(userDocument);
+        }
       }
     });
   }
@@ -73,9 +91,30 @@ export class EditProfile {
     const tagsArray = this.profileForm.get('tags') as FormArray;
     tagsArray.clear();
 
-    for (const tag of this.availableTags) {
-      const isSelected = profile.tags?.includes(tag) || false;
+    for (const _ of this.availableTags) {
+      const isSelected = profile.tags?.includes(_) || false;
       tagsArray.push(new FormControl(isSelected));
+    }
+  }
+
+  private initializeNewProfileForm(userDocument: NonNullable<ReturnType<typeof this.membershipService.userDocument>>) {
+    // Pre-fill with member data
+    this.profileForm.patchValue({
+      title: userDocument.name || '',
+      bio: '',
+      credentials: '',
+      businessName: '',
+      phone: '',
+      email: userDocument.email || '',
+      website: '',
+    });
+
+    // Initialize empty tags checkboxes
+    const tagsArray = this.profileForm.get('tags') as FormArray;
+    tagsArray.clear();
+
+    for (const tagControl of this.availableTags.map(() => new FormControl(false))) {
+      tagsArray.push(tagControl);
     }
   }
 
@@ -112,9 +151,14 @@ export class EditProfile {
         },
       };
 
-      await this.profileService.updateProfile(profileData);
-
-      this.successMessage.set('Profile updated successfully!');
+      // Use createProfileContent for first save, updateProfile for subsequent saves
+      if (this.isNewProfile()) {
+        await this.profileService.createProfileContent(profileData);
+        this.successMessage.set('Profile created successfully!');
+      } else {
+        await this.profileService.updateProfile(profileData);
+        this.successMessage.set('Profile updated successfully!');
+      }
 
       // Mark form as pristine after successful save
       this.profileForm.markAsPristine();

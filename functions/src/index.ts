@@ -99,6 +99,24 @@ export const claimProfile = onCall({ invoker: "public" }, async request => {
   return handleClaimProfile(request.data, request);
 });
 
+export const checkSlugAvailable = onCall(
+  { invoker: "public" },
+  async (request: CallableRequest<{ slug: string }>) => {
+    const { handleCheckSlugAvailable } =
+      await import("./check-slug-available/index.js");
+    return handleCheckSlugAvailable(request);
+  },
+);
+
+export const setProfileSlug = onCall(
+  { invoker: "public" },
+  async (request: CallableRequest<{ slug: string }>) => {
+    const { handleSetProfileSlug } =
+      await import("./set-profile-slug/index.js");
+    return handleSetProfileSlug(request);
+  },
+);
+
 export const readProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
   async request => {
@@ -132,6 +150,26 @@ export const writeProfile = onCall(
 
     const { handleWriteProfile } = await import("./write-profile/index.js");
     return handleWriteProfile(request, [
+      GITHUB_APP_ID,
+      GITHUB_PRIVATE_KEY,
+      GITHUB_INSTALLATION_ID,
+    ]);
+  },
+);
+
+export const createProfile = onCall(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async (request: CallableRequest<ProfileData>) => {
+    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
+    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
+    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      throw new HttpsError("internal", "Missing GitHub secrets.");
+    }
+
+    const { handleCreateProfile } = await import("./create-profile/index.js");
+    return handleCreateProfile(request, [
       GITHUB_APP_ID,
       GITHUB_PRIVATE_KEY,
       GITHUB_INSTALLATION_ID,

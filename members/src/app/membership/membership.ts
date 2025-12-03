@@ -7,8 +7,10 @@ import {
   resource,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
+import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
   imports: [DatePipe],
@@ -19,9 +21,12 @@ import { MembershipService } from '../services/membership.service';
 export class Membership {
   private authService = inject(AuthService);
   private membershipService = inject(MembershipService);
+  private router = inject(Router);
 
   protected user = this.authService.user;
   protected claimInProgress = signal(false);
+  protected createProfileInProgress = signal(false);
+  protected createProfileError = signal<string | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
 
@@ -29,6 +34,12 @@ export class Membership {
   protected claimableProfileResource = resource({
     params: () => ({ user: this.user() }),
     loader: ({ params }) => this.membershipService.getClaimableProfileData(params.user),
+  });
+
+  // Show create profile banner for active members without a slug who have a name
+  protected showCreateProfileBanner = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.membershipActive && !userDocument?.slug && !!userDocument?.name;
   });
 
   // Computed signals for formatted user data
@@ -93,6 +104,57 @@ export class Membership {
       // TODO: Add proper error handling (toast notification, etc.)
     } finally {
       this.claimInProgress.set(false);
+    }
+  }
+
+  protected async onCreateProfile() {
+    this.createProfileInProgress.set(true);
+    this.createProfileError.set(undefined);
+
+    try {
+      const userDocument = this.userDocument();
+      if (!userDocument?.name) {
+        throw new Error('Name is required to create profile');
+      }
+
+      // Generate slug from name
+      const baseSlug = generateSlug(userDocument.name);
+      let uniqueSlug: string;
+
+      try {
+        uniqueSlug = await ensureUniqueSlug(baseSlug, (slug) =>
+          this.membershipService.checkSlugExists(slug),
+        );
+      } catch (error) {
+        console.error('Slug generation failed:', error);
+        throw new Error(
+          'Unable to generate a unique profile URL. Please try again or contact support.',
+        );
+      }
+
+      // Update Firestore with slug
+      try {
+        await this.membershipService.updateMemberSlug(uniqueSlug);
+      } catch (error) {
+        console.error('Failed to save profile slug:', error);
+        // Re-throw with the error message from the service (which has better context)
+        throw error;
+      }
+
+      // Navigate immediately to profile editor
+      await this.router.navigate(['/profile']);
+    } catch (error) {
+      console.error('Error creating profile:', error);
+
+      // Use the error message if it's already user-friendly
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to create profile. Please try again.';
+
+      this.createProfileError.set(errorMessage);
+    } finally {
+      this.createProfileInProgress.set(false);
     }
   }
 

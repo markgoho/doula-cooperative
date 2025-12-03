@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { type ProfileData } from '../types/profile-data';
+import { isFirebaseFunctionsError } from '../types/firebase-error';
 import { MembershipService } from './membership.service';
 
 @Injectable({
@@ -47,11 +48,108 @@ export class ProfileService {
     try {
       await writeProfileCallable(data);
 
-      // Reload the profile resource to reflect the updated data
+      // Only reload on success
       this.profileResource.reload();
-    } catch (error) {
-      console.error('Error calling writeProfile function:', error);
-      throw error;
+    } catch (error: unknown) {
+      console.error('Profile update failed:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        switch (error.code) {
+          case 'unauthenticated': {
+            throw new Error('You must be signed in to update your profile.');
+          }
+
+          case 'failed-precondition': {
+            if (error.message.includes('active membership')) {
+              throw new Error('Active membership required to update profile.');
+            }
+            if (error.message.includes('modified by another process')) {
+              throw new Error(
+                'Profile was modified elsewhere. Please refresh and try again.',
+              );
+            }
+            break;
+          }
+
+          case 'not-found': {
+            throw new Error('Profile not found. Please create a profile first.');
+          }
+
+          case 'resource-exhausted': {
+            throw new Error(
+              'Too many requests. Please try again in a few minutes.',
+            );
+          }
+
+          case 'deadline-exceeded': {
+            throw new Error(
+              'Request timed out. Please check your connection and try again.',
+            );
+          }
+        }
+      }
+
+      throw new Error('Failed to update profile. Please try again.');
+    }
+  }
+
+  async createProfileContent(data: ProfileData): Promise<void> {
+    const createProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
+      this.functions,
+      'createProfile',
+    );
+
+    try {
+      await createProfileCallable(data);
+
+      // Only reload on success
+      this.profileResource.reload();
+    } catch (error: unknown) {
+      console.error('Profile creation failed:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        switch (error.code) {
+          case 'unauthenticated': {
+            throw new Error('You must be signed in to create a profile.');
+          }
+
+          case 'failed-precondition': {
+            if (error.message.includes('slug')) {
+              throw new Error(
+                'You must set up your profile slug first. Please return to the membership page.',
+              );
+            }
+            if (error.message.includes('membership')) {
+              throw new Error('Active membership required to create a profile.');
+            }
+            break;
+          }
+
+          case 'resource-exhausted': {
+            throw new Error(
+              'Too many requests. Please try again in a few minutes.',
+            );
+          }
+
+          case 'already-exists': {
+            throw new Error('Profile already exists. Try refreshing the page.');
+          }
+
+          case 'deadline-exceeded': {
+            throw new Error(
+              'Request timed out. Please check your connection and try again.',
+            );
+          }
+        }
+      }
+
+      throw new Error(
+        'Failed to create profile. Please try again or contact support.',
+      );
     }
   }
 
@@ -69,15 +167,15 @@ export class ProfileService {
     const frontMatterMatch = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(content);
 
     if (!frontMatterMatch) {
-      console.warn('No front matter found in profile content');
-      return undefined;
+      console.error('No front matter found in profile content');
+      throw new Error('Profile data is corrupted. Please contact support.');
     }
 
     const [, frontMatter, bodyContent] = frontMatterMatch;
 
     if (!frontMatter || !bodyContent) {
-      console.warn('Invalid front matter format');
-      return undefined;
+      console.error('Invalid front matter format');
+      throw new Error('Profile data format is invalid. Please contact support.');
     }
 
     // Simple YAML parser for the fields we need
