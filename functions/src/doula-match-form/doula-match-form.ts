@@ -21,8 +21,7 @@ export async function handleDoulaMatchForm(
       return;
     }
 
-    const { verifyRecaptchaToken } =
-      await import("../utils/recaptcha.js");
+    const { verifyRecaptchaToken } = await import("../utils/recaptcha.js");
     const verification = await verifyRecaptchaToken(
       recaptchaToken,
       recaptchaSecretKey,

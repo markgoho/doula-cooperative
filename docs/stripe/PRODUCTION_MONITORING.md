@@ -18,11 +18,13 @@ Observability, alerting, and incident response for the Stripe integration.
 **Target**: > 99%
 
 **Where to Check**:
+
 - Stripe Dashboard → Developers → Webhooks → [Endpoint] → Success rate
 - Firebase Console → Functions → stripeWebhook → Metrics
 
 **Alert Thresholds**:
-- ⚠️  Warning: < 98% success rate over 1 hour
+
+- ⚠️ Warning: < 98% success rate over 1 hour
 - 🚨 Critical: < 95% success rate over 15 minutes
 
 ### 2. User Creation Success Rate
@@ -30,11 +32,13 @@ Observability, alerting, and incident response for the Stripe integration.
 **Target**: 100% (should match webhook success rate)
 
 **How to Measure**:
+
 - Compare successful webhooks to new Auth users created
 - Check `welcomeEmailStatus` field distribution in Firestore
 
 **Alert Thresholds**:
-- ⚠️  Warning: Any failed user creation
+
+- ⚠️ Warning: Any failed user creation
 - 🚨 Critical: Multiple failed creations in 1 hour
 
 ### 3. Response Time
@@ -42,10 +46,12 @@ Observability, alerting, and incident response for the Stripe integration.
 **Target**: p95 < 2 seconds
 
 **Where to Check**:
+
 - Firebase Console → Functions → stripeWebhook → Execution time
 
 **Alert Thresholds**:
-- ⚠️  Warning: p95 > 3 seconds
+
+- ⚠️ Warning: p95 > 3 seconds
 - 🚨 Critical: p95 > 5 seconds
 
 ### 4. Email Delivery Rate
@@ -53,6 +59,7 @@ Observability, alerting, and incident response for the Stripe integration.
 **Target**: > 95%
 
 **How to Measure**:
+
 ```javascript
 // Firestore query
 members collection
@@ -61,7 +68,8 @@ count over last 24 hours
 ```
 
 **Alert Thresholds**:
-- ⚠️  Warning: < 95% over 24 hours
+
+- ⚠️ Warning: < 95% over 24 hours
 - 🚨 Critical: < 90% over 1 hour
 
 ---
@@ -71,6 +79,7 @@ count over last 24 hours
 ### Logs Queries
 
 **All webhook invocations**:
+
 ```
 resource.type="cloud_function"
 resource.labels.function_name="stripeWebhook"
@@ -78,6 +87,7 @@ severity>=DEFAULT
 ```
 
 **Errors only**:
+
 ```
 resource.type="cloud_function"
 resource.labels.function_name="stripeWebhook"
@@ -85,6 +95,7 @@ severity>=ERROR
 ```
 
 **Search for specific email**:
+
 ```
 resource.type="cloud_function"
 resource.labels.function_name="stripeWebhook"
@@ -92,6 +103,7 @@ jsonPayload.email="user@example.com"
 ```
 
 **Search by ERROR_ID**:
+
 ```
 resource.type="cloud_function"
 resource.labels.function_name="stripeWebhook"
@@ -101,6 +113,7 @@ jsonPayload.errorId="STRIPE_WEBHOOK_USER_CREATE_FAILED"
 ### Firestore Monitoring Queries
 
 **Failed email deliveries (last 24h)**:
+
 ```javascript
 collection: members
 where: welcomeEmailStatus == "failed"
@@ -109,6 +122,7 @@ order by: createdAt desc
 ```
 
 **Recent sign-ups**:
+
 ```javascript
 collection: members
 where: createdAt > (now - 24h)
@@ -116,14 +130,16 @@ order by: createdAt desc
 ```
 
 **Active memberships count**:
+
 ```javascript
-collection: members
-where: membershipActive == true
-where: membershipExpiresAt > now
-count
+collection: members;
+where: membershipActive == true;
+where: membershipExpiresAt > now;
+count;
 ```
 
 **Orphaned users (Auth but no member doc)**:
+
 ```javascript
 // Manual check:
 // 1. Export all Auth user UIDs
@@ -140,12 +156,14 @@ count
 **Location**: Dashboard → Developers → Webhooks → [Your endpoint]
 
 **Check Daily**:
+
 1. Success rate over last 24h
 2. Recent deliveries (any 400/500 responses?)
 3. Response time trends
 4. Events currently being retried
 
 **Weekly Review**:
+
 1. Total events processed
 2. Failed event details and patterns
 3. Retry attempts and outcomes
@@ -173,6 +191,7 @@ Filter: customer.subscription.*
 ### Firebase Alerts (via Cloud Monitoring)
 
 **Setup**:
+
 1. Go to Cloud Console → Monitoring → Alerting
 2. Create new alert policy
 3. Configure conditions and notifications
@@ -183,8 +202,7 @@ Filter: customer.subscription.*
 
 ```yaml
 Metric: cloud_function/execution_count
-Filter: 
-  function_name="stripeWebhook" 
+Filter: function_name="stripeWebhook"
   AND status="error"
 Condition: Rate > 5 errors/minute for 5 minutes
 Notification: Email + SMS
@@ -213,8 +231,8 @@ Notification: Email + SMS
 
 ```yaml
 Metric: cloud_function/execution_count
-Filter: 
-  function_name="stripeWebhook" 
+Filter:
+  function_name="stripeWebhook"
   AND instance_state="cold"
 Condition: > 50% of executions are cold starts
 Notification: Email
@@ -223,11 +241,13 @@ Notification: Email
 ### Stripe Webhook Failure Notifications
 
 **Setup**:
+
 1. Stripe Dashboard → Settings → Webhook settings
 2. Enable "Email notifications for webhook failures"
 3. Add team email addresses
 
 **Notification Triggers**:
+
 - Individual webhook delivery failure
 - Multiple consecutive failures (>3)
 - Webhook disabled due to repeated failures (automatic at ~5% failure rate)
@@ -262,10 +282,10 @@ firebase functions:log --only stripeWebhook --since 24h | grep "Welcome email se
 
 Track these metrics weekly in a spreadsheet or dashboard:
 
-| Week Of | New Members | Webhook Success % | Avg Response Time | Email Success % | Issues |
-|---------|-------------|-------------------|-------------------|-----------------|--------|
-| 2025-01-06 | 15 | 100% | 1.2s | 100% | None |
-| 2025-01-13 | 22 | 99.5% | 1.4s | 95% | 1 Mailgun timeout |
+| Week Of    | New Members | Webhook Success % | Avg Response Time | Email Success % | Issues            |
+| ---------- | ----------- | ----------------- | ----------------- | --------------- | ----------------- |
+| 2025-01-06 | 15          | 100%              | 1.2s              | 100%            | None              |
+| 2025-01-13 | 22          | 99.5%             | 1.4s              | 95%             | 1 Mailgun timeout |
 
 **How to Collect**:
 
@@ -289,12 +309,12 @@ Track these metrics weekly in a spreadsheet or dashboard:
 
 ### Severity Levels
 
-| Severity | Description | Response Time | Examples |
-|----------|-------------|---------------|----------|
-| 🚨 **P0 - Critical** | Complete outage | < 15 minutes | No webhooks processing, all failing |
-| ⚠️ **P1 - High** | Partial outage | < 1 hour | >10% failure rate, slow responses |
-| 📝 **P2 - Medium** | Degraded service | < 4 hours | Email failures, isolated issues |
-| ℹ️ **P3 - Low** | Minor issue | < 24 hours | Single failed webhook, recovered |
+| Severity             | Description      | Response Time | Examples                            |
+| -------------------- | ---------------- | ------------- | ----------------------------------- |
+| 🚨 **P0 - Critical** | Complete outage  | < 15 minutes  | No webhooks processing, all failing |
+| ⚠️ **P1 - High**     | Partial outage   | < 1 hour      | >10% failure rate, slow responses   |
+| 📝 **P2 - Medium**   | Degraded service | < 4 hours     | Email failures, isolated issues     |
+| ℹ️ **P3 - Low**      | Minor issue      | < 24 hours    | Single failed webhook, recovered    |
 
 ### P0 - Critical Outage Response
 
@@ -331,6 +351,7 @@ stripe trigger checkout.session.completed
 #### Resolution
 
 **If recent deployment broke it:**
+
 ```bash
 # Rollback
 git revert [commit-hash]
@@ -339,6 +360,7 @@ firebase deploy --only functions:stripeWebhook
 ```
 
 **If secrets are wrong:**
+
 ```bash
 # Update secrets
 firebase functions:secrets:set STRIPE_API_KEY
@@ -347,6 +369,7 @@ firebase deploy --only functions:stripeWebhook
 ```
 
 **If function is down:**
+
 ```bash
 # Redeploy
 cd functions && bun run build
@@ -461,18 +484,23 @@ firebase functions:log --only stripeWebhook --since 1h | grep "duration"
 
 ```typescript
 // functions/src/stripe-webhook/index.ts
-export const stripeWebhook = onRequest({
-  memory: "512MB", // Up from 256MB
-  secrets: [...STRIPE_SECRETS, "MAILGUN_API_KEY"],
-}, handler);
+export const stripeWebhook = onRequest(
+  {
+    memory: "512MB", // Up from 256MB
+    secrets: [...STRIPE_SECRETS, "MAILGUN_API_KEY"],
+  },
+  handler,
+);
 ```
 
 **2. Optimize cold starts** (already implemented):
+
 - ✅ Lazy loading with dynamic imports
 - ✅ Minimal dependencies
 - ✅ Tree-shaking enabled
 
 **3. Review external call optimization**:
+
 - Consider caching Stripe API responses (if applicable)
 - Batch Firestore operations (already optimal)
 - Review Mailgun timeout settings
@@ -484,10 +512,12 @@ export const stripeWebhook = onRequest({
 ### Backup and Recovery Strategy
 
 **Firestore Data**:
+
 - Automated backups: Configure in Firebase Console → Firestore → Backups
 - Recovery: Import from backup if data loss occurs
 
 **Stripe Data**:
+
 - Stripe maintains all subscription data
 - Can reconcile from Stripe if Firestore data is lost
 
@@ -537,6 +567,7 @@ export const stripeWebhook = onRequest({
 - MRR (Monthly Recurring Revenue) trend
 
 **Tools to consider**:
+
 - Firebase Extensions for analytics
 - Looker Studio / Data Studio for visualization
 - Custom Angular dashboard in members portal

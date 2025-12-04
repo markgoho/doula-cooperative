@@ -4,8 +4,8 @@
  * Reusable utilities for Stripe webhook testing.
  */
 
-import type Stripe from "stripe";
 import { Timestamp } from "firebase-admin/firestore";
+import type Stripe from "stripe";
 
 /**
  * Generate a unique event ID for test events
@@ -193,7 +193,7 @@ export function createExpiredMemberDocument(options: {
  * Sleep for testing async operations
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**

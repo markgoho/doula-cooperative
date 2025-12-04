@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -97,7 +104,9 @@ export class EditProfile {
     }
   }
 
-  private initializeNewProfileForm(userDocument: NonNullable<ReturnType<typeof this.membershipService.userDocument>>) {
+  private initializeNewProfileForm(
+    userDocument: NonNullable<ReturnType<typeof this.membershipService.userDocument>>,
+  ) {
     // Pre-fill with member data
     this.profileForm.patchValue({
       title: userDocument.name || '',

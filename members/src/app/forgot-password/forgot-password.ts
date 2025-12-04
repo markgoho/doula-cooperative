@@ -33,7 +33,7 @@ export class ForgotPassword {
         await this.authService.sendPasswordResetEmail(email);
 
         this.successMessage.set(
-          'Password reset email sent! Please check your inbox and follow the instructions to reset your password.'
+          'Password reset email sent! Please check your inbox and follow the instructions to reset your password.',
         );
         this.forgotPasswordForm.reset();
       } catch (error) {

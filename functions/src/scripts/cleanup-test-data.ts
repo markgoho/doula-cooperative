@@ -24,9 +24,9 @@
  *   - Blocks deletion of production emails without explicit confirmation
  */
 
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { initializeApp, getApps } from "firebase-admin/app";
 import {
   MEMBERS_COLLECTION,
   PROCESSED_STRIPE_EVENTS_COLLECTION,
@@ -88,8 +88,8 @@ async function confirm(message: string): Promise<boolean> {
     output: process.stdout,
   });
 
-  return new Promise((resolve) => {
-    rl.question("> ", (answer) => {
+  return new Promise(resolve => {
+    rl.question("> ", answer => {
       rl.close();
       resolve(answer.toLowerCase() === "yes");
     });
@@ -101,7 +101,7 @@ async function confirm(message: string): Promise<boolean> {
  */
 function isProtectedEmail(email: string | undefined): boolean {
   if (!email) return false;
-  return PROTECTED_PATTERNS.some((pattern) => email.includes(pattern));
+  return PROTECTED_PATTERNS.some(pattern => email.includes(pattern));
 }
 
 /**
@@ -264,7 +264,7 @@ async function main() {
   }
 
   // Check for protected emails
-  const protectedUsers = users.filter((u) => isProtectedEmail(u.email));
+  const protectedUsers = users.filter(u => isProtectedEmail(u.email));
   if (protectedUsers.length > 0 && !process.env["USE_PRODUCTION"]) {
     console.log(
       `\n⚠️  Warning: ${protectedUsers.length} user(s) match protected patterns`,
@@ -293,9 +293,7 @@ async function main() {
 
   for (const user of users) {
     if (dryRun) {
-      console.log(
-        `\n[DRY RUN] Would delete: ${user.email ?? user.uid}`,
-      );
+      console.log(`\n[DRY RUN] Would delete: ${user.email ?? user.uid}`);
       console.log(`  - Member document: ${user.memberDocExists}`);
       console.log(`  - Events: ${user.eventsCount}`);
     } else {

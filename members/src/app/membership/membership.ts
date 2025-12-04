@@ -148,9 +148,7 @@ export class Membership {
 
       // Use the error message if it's already user-friendly
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to create profile. Please try again.';
+        error instanceof Error ? error.message : 'Failed to create profile. Please try again.';
 
       this.createProfileError.set(errorMessage);
     } finally {

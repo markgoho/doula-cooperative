@@ -5,17 +5,20 @@ One-page cheat sheet for daily development.
 ## Essential Commands
 
 ### Start Development
+
 ```bash
 bun start                    # Start all services (emulators, Angular, Hugo)
 ```
 
 ### Run Tests
+
 ```bash
 cd functions && bun test stripe-webhook.test.ts   # Run Stripe tests (53 tests)
 cd functions && bun test --watch                   # Watch mode
 ```
 
 ### Stripe CLI
+
 ```bash
 stripe login                                        # Authenticate
 stripe trigger checkout.session.completed          # Test event (uses jenny.rosen@example.com)
@@ -23,12 +26,14 @@ stripe listen --forward-to http://localhost:5001/PROJECT/us-central1/stripeWebho
 ```
 
 ### View Logs
+
 ```bash
 firebase functions:log --only stripeWebhook --follow   # Watch logs real-time
 firebase functions:log --only stripeWebhook --limit 50 # Recent 50 entries
 ```
 
 ### Deploy
+
 ```bash
 cd functions && bun run build                        # Build functions
 firebase deploy --only functions:stripeWebhook      # Deploy webhook function
@@ -36,10 +41,10 @@ firebase deploy --only functions:stripeWebhook      # Deploy webhook function
 
 ## Test Credit Cards
 
-| Purpose | Card Number | Expiry | CVC | ZIP |
-|---------|-------------|--------|-----|-----|
-| **Success** | `4242 4242 4242 4242` | Any future | Any 3 digits | Any |
-| **Declined** | `4000 0000 0000 0002` | Any future | Any 3 digits | Any |
+| Purpose           | Card Number           | Expiry     | CVC          | ZIP |
+| ----------------- | --------------------- | ---------- | ------------ | --- |
+| **Success**       | `4242 4242 4242 4242` | Any future | Any 3 digits | Any |
+| **Declined**      | `4000 0000 0000 0002` | Any future | Any 3 digits | Any |
 | **Requires Auth** | `4000 0027 6000 3184` | Any future | Any 3 digits | Any |
 
 **Test Mode Only!** These cards only work with `pk_test_...` / `sk_test_...` keys.
@@ -48,11 +53,11 @@ firebase deploy --only functions:stripeWebhook      # Deploy webhook function
 
 ### Required Environment Variables
 
-| Secret | Location | Purpose |
-|--------|----------|---------|
-| `STRIPE_API_KEY` | Firebase Functions | Stripe API access (`sk_test_...` or `sk_live_...`) |
-| `STRIPE_WEBHOOK_SECRET` | Firebase Functions | Verify webhook signatures (`whsec_...`) |
-| `MAILGUN_API_KEY` | Firebase Functions | Send welcome emails |
+| Secret                  | Location           | Purpose                                            |
+| ----------------------- | ------------------ | -------------------------------------------------- |
+| `STRIPE_API_KEY`        | Firebase Functions | Stripe API access (`sk_test_...` or `sk_live_...`) |
+| `STRIPE_WEBHOOK_SECRET` | Firebase Functions | Verify webhook signatures (`whsec_...`)            |
+| `MAILGUN_API_KEY`       | Firebase Functions | Send welcome emails                                |
 
 ### Managing Secrets
 
@@ -69,30 +74,33 @@ firebase functions:secrets:set STRIPE_API_KEY
 
 ## Webhook Event Types
 
-| Event | Status | Description |
-|-------|--------|-------------|
-| `checkout.session.completed` | ✅ Implemented | New subscription created |
-| `customer.subscription.updated` | ⏳ Future | Subscription changed/renewed |
-| `customer.subscription.deleted` | ⏳ Future | Subscription canceled |
+| Event                           | Status         | Description                  |
+| ------------------------------- | -------------- | ---------------------------- |
+| `checkout.session.completed`    | ✅ Implemented | New subscription created     |
+| `customer.subscription.updated` | ⏳ Future      | Subscription changed/renewed |
+| `customer.subscription.deleted` | ⏳ Future      | Subscription canceled        |
 
 ## Common Queries
 
 ### Firestore Queries (Emulator UI or Console)
 
 **Find member by email:**
+
 ```javascript
-collection: members
-where: email == "test@example.com"
+collection: members;
+where: email == "test@example.com";
 ```
 
 **Find active memberships:**
+
 ```javascript
-collection: members
-where: membershipActive == true
-where: membershipExpiresAt > now
+collection: members;
+where: membershipActive == true;
+where: membershipExpiresAt > now;
 ```
 
 **Find failed email deliveries:**
+
 ```javascript
 collection: members
 where: welcomeEmailStatus == "failed"
@@ -100,29 +108,31 @@ order by: createdAt desc
 ```
 
 **Check processed events:**
+
 ```javascript
-collection: processedStripeEvents
-where: eventId == "evt_xxxxx"
+collection: processedStripeEvents;
+where: eventId == "evt_xxxxx";
 ```
 
 ## Error IDs
 
 When debugging, look for these ERROR_IDs in logs:
 
-| Error ID | Issue |
-|----------|-------|
-| `STRIPE_WEBHOOK_MISSING_SECRETS` | API key or webhook secret not configured |
-| `STRIPE_WEBHOOK_MISSING_SIGNATURE` | No stripe-signature header |
-| `STRIPE_WEBHOOK_INVALID_SIGNATURE` | Signature verification failed (security) |
-| `STRIPE_WEBHOOK_MISSING_EMAIL` | No email in checkout session |
-| `STRIPE_WEBHOOK_USER_CREATE_FAILED` | Firebase Auth failed to create user |
-| `STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED` | Firestore write failed |
-| `STRIPE_WEBHOOK_EMAIL_FAILED` | Mailgun failed to send email (non-critical) |
-| `STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED` | MAILGUN_API_KEY not set |
+| Error ID                                  | Issue                                       |
+| ----------------------------------------- | ------------------------------------------- |
+| `STRIPE_WEBHOOK_MISSING_SECRETS`          | API key or webhook secret not configured    |
+| `STRIPE_WEBHOOK_MISSING_SIGNATURE`        | No stripe-signature header                  |
+| `STRIPE_WEBHOOK_INVALID_SIGNATURE`        | Signature verification failed (security)    |
+| `STRIPE_WEBHOOK_MISSING_EMAIL`            | No email in checkout session                |
+| `STRIPE_WEBHOOK_USER_CREATE_FAILED`       | Firebase Auth failed to create user         |
+| `STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED` | Firestore write failed                      |
+| `STRIPE_WEBHOOK_EMAIL_FAILED`             | Mailgun failed to send email (non-critical) |
+| `STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED`   | MAILGUN_API_KEY not set                     |
 
 ## URLs & Access Points
 
 ### Local Development
+
 - **Emulator UI**: http://localhost:4000
 - **Hugo Site**: http://localhost:1313
 - **Angular Portal**: http://localhost:4200
@@ -131,11 +141,13 @@ When debugging, look for these ERROR_IDs in logs:
 - **Functions**: http://localhost:5001
 
 ### Production
+
 - **Main Site**: https://doulacooperative.com
 - **Members Portal**: https://members.doulacooperative.com
 - **Webhook**: https://us-central1-PROJECT.cloudfunctions.net/stripeWebhook
 
 ### Dashboards
+
 - **Stripe Dashboard**: https://dashboard.stripe.com
 - **Firebase Console**: https://console.firebase.google.com
 - **Mailgun Dashboard**: https://app.mailgun.com
@@ -143,6 +155,7 @@ When debugging, look for these ERROR_IDs in logs:
 ## File Locations
 
 ### Key Implementation Files
+
 ```
 /functions/src/stripe-webhook/
 ├── handler.ts          # Main webhook logic
@@ -160,6 +173,7 @@ When debugging, look for these ERROR_IDs in logs:
 ```
 
 ### Documentation
+
 ```
 /docs/stripe/
 ├── README.md                 # This directory
@@ -231,25 +245,27 @@ firebase deploy --only functions:stripeWebhook
 ## Testing Accounts
 
 ### Local Development (Emulators)
+
 - **Email**: webmaster@doulacooperative.com
 - **Password**: test1234
 - Use for testing both Auth and Stripe flows
 
 ### Default Stripe CLI Test User
+
 - **Email**: jenny.rosen@example.com
 - Used by `stripe trigger checkout.session.completed`
 
 ## Quick Troubleshooting
 
-| Symptom | Quick Fix |
-|---------|-----------|
-| Webhook not firing | Check `stripe listen` is running; verify URL |
-| Signature error | Update `STRIPE_WEBHOOK_SECRET`; restart emulators |
-| User not created | Check customer email was collected in checkout |
-| Member doc not created | Check function logs for ERROR_IDs; verify Firestore rules |
-| Email not sent | Expected in emulator mode; check logs for "Would have sent" |
-| Emulator won't start | Run `firebase emulators:kill` then restart |
-| Stripe CLI errors | Run `stripe login` again |
+| Symptom                | Quick Fix                                                   |
+| ---------------------- | ----------------------------------------------------------- |
+| Webhook not firing     | Check `stripe listen` is running; verify URL                |
+| Signature error        | Update `STRIPE_WEBHOOK_SECRET`; restart emulators           |
+| User not created       | Check customer email was collected in checkout              |
+| Member doc not created | Check function logs for ERROR_IDs; verify Firestore rules   |
+| Email not sent         | Expected in emulator mode; check logs for "Would have sent" |
+| Emulator won't start   | Run `firebase emulators:kill` then restart                  |
+| Stripe CLI errors      | Run `stripe login` again                                    |
 
 ## Documentation Links
 

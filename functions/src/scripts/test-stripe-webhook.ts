@@ -26,9 +26,12 @@ import { $ } from "bun";
 // Parse command line arguments
 const commandLineArguments = process.argv.slice(2);
 const email = commandLineArguments[commandLineArguments.indexOf("--email") + 1];
-const name = commandLineArguments[commandLineArguments.indexOf("--name") + 1] ?? "Test User";
+const name =
+  commandLineArguments[commandLineArguments.indexOf("--name") + 1] ??
+  "Test User";
 const shouldUseStripeCLI = commandLineArguments.includes("--use-stripe-cli");
-const customWebhookUrl = commandLineArguments[commandLineArguments.indexOf("--webhook-url") + 1];
+const customWebhookUrl =
+  commandLineArguments[commandLineArguments.indexOf("--webhook-url") + 1];
 
 // Default webhook URL for emulator
 const DEFAULT_WEBHOOK_URL =
@@ -81,10 +84,7 @@ function generateMockEvent(testEmail: string, customerName: string) {
 /**
  * Call webhook directly with mock event
  */
-async function callWebhookDirectly(
-  testEmail: string,
-  customerName: string,
-) {
+async function callWebhookDirectly(testEmail: string, customerName: string) {
   console.log("\n🔄 Generating mock Stripe event...");
 
   const event = generateMockEvent(testEmail, customerName);
@@ -129,10 +129,10 @@ async function callWebhookDirectly(
     console.log("\n📋 Verification Steps:");
     console.log("   1. Check Firebase emulator UI (http://localhost:4000)");
     console.log("      - Auth tab: Look for user with email", testEmail);
-    console.log("      - Firestore tab: members collection → Check for document");
     console.log(
-      "   2. Check function logs:",
+      "      - Firestore tab: members collection → Check for document",
     );
+    console.log("   2. Check function logs:");
     console.log("      firebase functions:log --only stripeWebhook --follow");
     console.log(
       "   3. Check processed events: Firestore → processedStripeEvents",
@@ -152,7 +152,9 @@ async function useStripeCLI() {
   console.log(
     "   Note: This uses Stripe's test data (jenny.rosen@example.com)",
   );
-  console.log("   To use custom email, use direct mode without --use-stripe-cli");
+  console.log(
+    "   To use custom email, use direct mode without --use-stripe-cli",
+  );
 
   console.log("\n📋 Prerequisites:");
   console.log("   - Stripe CLI installed: stripe --version");
@@ -173,14 +175,14 @@ async function useStripeCLI() {
     console.log("   2. Check Firebase emulator UI (http://localhost:4000)");
     console.log("      - Auth tab: Look for jenny.rosen@example.com");
     console.log("      - Firestore tab: members collection");
-    console.log(
-      "   3. Check function logs:",
-    );
+    console.log("   3. Check function logs:");
     console.log("      firebase functions:log --only stripeWebhook --follow");
   } catch (error) {
     console.error("\n❌ Error triggering via Stripe CLI");
     console.log("\n💡 Make sure:");
-    console.log("   1. Stripe CLI is installed: brew install stripe/stripe-cli/stripe");
+    console.log(
+      "   1. Stripe CLI is installed: brew install stripe/stripe-cli/stripe",
+    );
     console.log("   2. You're logged in: stripe login");
     console.log("   3. stripe listen is running in another terminal");
     throw error;
@@ -197,9 +199,13 @@ async function main() {
     await useStripeCLI();
   } else {
     if (!email) {
-      console.error("❌ Error: --email is required when not using --use-stripe-cli");
+      console.error(
+        "❌ Error: --email is required when not using --use-stripe-cli",
+      );
       console.log("\nUsage:");
-      console.log("  bun run scripts/test-stripe-webhook.ts --email test@example.com");
+      console.log(
+        "  bun run scripts/test-stripe-webhook.ts --email test@example.com",
+      );
       console.log("  bun run scripts/test-stripe-webhook.ts --use-stripe-cli");
       process.exit(1);
     }

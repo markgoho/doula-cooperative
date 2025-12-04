@@ -117,10 +117,10 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async checkSlugExists(slug: string): Promise<boolean> {
-    const checkSlugCallable = httpsCallable<
-      { slug: string },
-      { available: boolean }
-    >(this.functions, 'checkSlugAvailable');
+    const checkSlugCallable = httpsCallable<{ slug: string }, { available: boolean }>(
+      this.functions,
+      'checkSlugAvailable',
+    );
 
     try {
       const result = await checkSlugCallable({ slug });
@@ -138,9 +138,7 @@ export class MembershipService {
           }
 
           case 'deadline-exceeded': {
-            throw new Error(
-              'Request timed out. Please check your connection and try again.',
-            );
+            throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
       }
@@ -155,10 +153,10 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async updateMemberSlug(slug: string): Promise<void> {
-    const setSlugCallable = httpsCallable<
-      { slug: string },
-      { success: boolean; slug: string }
-    >(this.functions, 'setProfileSlug');
+    const setSlugCallable = httpsCallable<{ slug: string }, { success: boolean; slug: string }>(
+      this.functions,
+      'setProfileSlug',
+    );
 
     try {
       await setSlugCallable({ slug });
@@ -182,9 +180,7 @@ export class MembershipService {
               throw new Error('Active membership required to set profile slug.');
             }
             if (error.message.includes('already has')) {
-              throw new Error(
-                'You already have a profile slug. Contact support to change it.',
-              );
+              throw new Error('You already have a profile slug. Contact support to change it.');
             }
             break;
           }
@@ -194,9 +190,7 @@ export class MembershipService {
           }
 
           case 'deadline-exceeded': {
-            throw new Error(
-              'Request timed out. Please check your connection and try again.',
-            );
+            throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
       }

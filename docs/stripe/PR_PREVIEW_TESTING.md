@@ -14,6 +14,7 @@ How to test Stripe Pricing Table changes privately using Firebase Hosting previe
 ## Overview
 
 When you open a PR that modifies the Hugo site, a GitHub Actions workflow automatically:
+
 1. Builds the Hugo site with **test mode Stripe configuration**
 2. Deploys to a temporary preview URL (e.g., `doula-cooperative--pr-123-abc.web.app`)
 3. Posts the preview URL as a PR comment
@@ -28,11 +29,13 @@ When you open a PR that modifies the Hugo site, a GitHub Actions workflow automa
 **File:** `.github/workflows/hugo-hosting-pull-request.yml`
 
 **Triggers on:**
+
 - PRs that modify `hugo/**`
 - PRs that modify `firebase.json`
 - PRs that modify the workflow file itself
 
 **What it does:**
+
 ```yaml
 1. Checkout code
 2. Build Hugo with environment variables:
@@ -46,11 +49,13 @@ When you open a PR that modifies the Hugo site, a GitHub Actions workflow automa
 ### Environment Variables Strategy
 
 **Preview Deployments (PRs):**
+
 - Use `STRIPE_TEST_PUBLISHABLE_KEY` from GitHub Secrets
 - Use `STRIPE_TEST_PRICING_TABLE_ID` from GitHub Secrets
 - Sets `HUGO_PARAMS_STRIPE_MODE=test`
 
 **Production Deployments (trunk):**
+
 - Use live Stripe keys (configured in Hugo config or separate workflow)
 - Sets `HUGO_PARAMS_STRIPE_MODE=live`
 
@@ -62,11 +67,11 @@ Add these secrets to your GitHub repository:
 
 **Settings → Secrets and variables → Actions → New repository secret**
 
-| Secret Name | Value | Where to Find |
-|-------------|-------|---------------|
-| `STRIPE_TEST_PUBLISHABLE_KEY` | `pk_test_...` | Stripe Dashboard (test mode) → Developers → API Keys |
+| Secret Name                    | Value             | Where to Find                                            |
+| ------------------------------ | ----------------- | -------------------------------------------------------- |
+| `STRIPE_TEST_PUBLISHABLE_KEY`  | `pk_test_...`     | Stripe Dashboard (test mode) → Developers → API Keys     |
 | `STRIPE_TEST_PRICING_TABLE_ID` | `prctbl_test_...` | Stripe Dashboard (test mode) → Products → Pricing tables |
-| `STRIPE_LIVE_PUBLISHABLE_KEY` | `pk_live_...` | Stripe Dashboard (live mode) → Developers → API Keys |
+| `STRIPE_LIVE_PUBLISHABLE_KEY`  | `pk_live_...`     | Stripe Dashboard (live mode) → Developers → API Keys     |
 | `STRIPE_LIVE_PRICING_TABLE_ID` | `prctbl_live_...` | Stripe Dashboard (live mode) → Products → Pricing tables |
 
 **Note:** These are publishable keys (safe to expose in HTML), not secret keys.
@@ -90,7 +95,11 @@ Update the Stripe Pricing Table section to use Hugo params:
 
   {{ if eq .Site.Params.stripe.mode "test" }}
   <div class="callout callout--warning">
-    <p><strong>⚠️ Test Mode:</strong> This is a preview deployment using Stripe test mode. Use test card <code>4242 4242 4242 4242</code> to complete checkout.</p>
+    <p>
+      <strong>⚠️ Test Mode:</strong> This is a preview deployment using Stripe
+      test mode. Use test card <code>4242 4242 4242 4242</code> to complete
+      checkout.
+    </p>
   </div>
   {{ end }}
 </section>
@@ -124,6 +133,7 @@ Add Stripe parameters:
 ```
 
 Or if using YAML:
+
 ```yaml
 params:
   stripe:
@@ -167,11 +177,13 @@ git push origin add-stripe-pricing-table
 ### Step 2: Open PR on GitHub
 
 The workflow automatically:
+
 1. Builds Hugo site with test Stripe keys
 2. Deploys to preview channel
 3. Comments on PR with preview URL
 
 **Example PR comment:**
+
 ```
 🔍 Hugo Preview Deployment
 
@@ -198,6 +210,7 @@ Preview URL: https://doula-cooperative--pr-123-abc.web.app
 ### Step 4: Merge When Ready
 
 Once testing looks good:
+
 1. Get PR approved
 2. Merge to trunk
 3. Production workflow deploys with live Stripe keys
@@ -210,11 +223,13 @@ Once testing looks good:
 **Issue:** Preview deployments and production need different webhook endpoints
 
 **Solution 1: Single Webhook (Recommended for now)**
+
 - Keep one webhook endpoint that handles both test and live events
 - Stripe automatically sends test events to test webhooks, live events to live webhooks
 - Your Firebase Function works with both
 
 **Solution 2: Separate Webhooks (Advanced)**
+
 - Configure separate webhook endpoints for test and live
 - Update Firebase Function URL in Stripe Dashboard based on environment
 - More isolation but more complex
@@ -224,11 +239,13 @@ Once testing looks good:
 **Note:** Firebase Hosting preview channels only deploy hosting, not Functions.
 
 This means:
+
 - ✅ Hugo site deploys to preview URL
 - ❌ Firebase Functions stay on the deployed version
 - ✅ Webhooks still work (they call the deployed function)
 
 **Implication:**
+
 - Stripe webhooks from preview will call your existing deployed `stripeWebhook` function
 - Make sure your function handles test mode events appropriately
 - Function already handles both test and live events correctly
@@ -236,6 +253,7 @@ This means:
 ### Test Data Management
 
 When testing on preview:
+
 - Use test cards (`4242 4242 4242 4242`)
 - Creates real Firebase Auth users and Firestore documents
 - Clean up test data after testing:
@@ -246,11 +264,13 @@ When testing on preview:
 ## Security
 
 **Publishable Keys Are Safe in HTML**
+
 - `pk_test_...` and `pk_live_...` are designed to be public
 - They only allow creating checkout sessions, not accessing customer data
 - Secret keys (`sk_test_...`, `sk_live_...`) must NEVER be in HTML or Git
 
 **Test Mode Isolation**
+
 - Test keys can't charge real cards
 - Test cards can't work with live keys
 - Completely isolated environments in Stripe
@@ -260,6 +280,7 @@ When testing on preview:
 ### Preview deployment succeeds but Pricing Table doesn't appear
 
 **Check:**
+
 1. View page source of preview URL
 2. Look for `<stripe-pricing-table>` element
 3. Verify `pricing-table-id` and `publishable-key` attributes have values
@@ -268,6 +289,7 @@ When testing on preview:
 ### Pricing Table appears but checkout fails
 
 **Check:**
+
 1. Verify you're using a test card (`4242 4242 4242 4242`)
 2. Check Stripe Dashboard (test mode) for checkout session
 3. Verify webhook endpoint is configured in Stripe Dashboard
@@ -278,6 +300,7 @@ When testing on preview:
 **Expected!** Webhooks fire to the endpoint configured in Stripe Dashboard, which points to your deployed Function (not the preview).
 
 **Testing strategy:**
+
 - Preview shows the UI/UX
 - Webhook testing happens against deployed function
 - Full integration tests in staging or production
@@ -287,6 +310,7 @@ When testing on preview:
 ### Option 1: Preview-Specific Webhook Endpoint
 
 Create a separate test webhook endpoint:
+
 ```bash
 # Deploy test-specific function
 firebase deploy --only functions:stripeWebhookTest
@@ -298,6 +322,7 @@ firebase deploy --only functions:stripeWebhookTest
 ### Option 2: Deploy Functions in Preview
 
 Modify workflow to also deploy functions:
+
 ```yaml
 - name: Deploy functions to preview
   run: |
@@ -311,17 +336,20 @@ Modify workflow to also deploy functions:
 ## Summary
 
 **What you get:**
+
 - ✅ Private preview URL for each PR
 - ✅ Automatic test mode Stripe configuration
 - ✅ Safe testing environment
 - ✅ Auto-cleanup after 7 days
 
 **Limitations:**
+
 - Functions don't deploy to preview (use shared deployed function)
 - Test data is created in real Firebase (requires cleanup)
 - Preview URLs expire after 7 days
 
 **Next Steps:**
+
 1. Add GitHub Secrets for test Stripe keys
 2. Update Hugo template to use params
 3. Test on your next PR!

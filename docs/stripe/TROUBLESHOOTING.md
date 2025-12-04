@@ -29,6 +29,7 @@ firebase functions:log --only stripeWebhook --limit 50
 ### 2. Is the function responding?
 
 Look for HTTP status codes in logs or Stripe Dashboard:
+
 - **200**: Success
 - **400**: Bad request (signature, missing data)
 - **500**: Server error (processing failure)
@@ -58,14 +59,17 @@ firebase functions:secrets:access STRIPE_WEBHOOK_SECRET
 **Diagnostic Steps**:
 
 1. **Verify webhook URL in Stripe Dashboard**:
+
    ```
    Expected: https://us-central1-YOUR-PROJECT.cloudfunctions.net/stripeWebhook
    ```
+
    - Go to Stripe Dashboard → Developers → Webhooks
    - Click on your endpoint
    - Verify URL matches deployed function
 
 2. **Check if function is deployed**:
+
    ```bash
    firebase functions:list | grep stripeWebhook
    # Should show: stripeWebhook (HTTP trigger)
@@ -102,6 +106,7 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Diagnostic Steps**:
 
 1. **Check function logs for errors**:
+
    ```bash
    firebase functions:log --only stripeWebhook | grep "ERROR_IDS"
    ```
@@ -116,11 +121,11 @@ firebase functions:secrets:access STRIPE_API_KEY
 
 **Common Error IDs**:
 
-| Error ID | Cause | Solution |
-|----------|-------|----------|
-| `STRIPE_WEBHOOK_MISSING_EMAIL` | No email in checkout session | Enable email collection in Pricing Table |
-| `STRIPE_WEBHOOK_USER_CREATE_FAILED` | Firebase Auth error | Check quotas, verify permissions |
-| `STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED` | Permission issue | Verify service account permissions |
+| Error ID                            | Cause                        | Solution                                 |
+| ----------------------------------- | ---------------------------- | ---------------------------------------- |
+| `STRIPE_WEBHOOK_MISSING_EMAIL`      | No email in checkout session | Enable email collection in Pricing Table |
+| `STRIPE_WEBHOOK_USER_CREATE_FAILED` | Firebase Auth error          | Check quotas, verify permissions         |
+| `STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED` | Permission issue             | Verify service account permissions       |
 
 **Solutions**:
 
@@ -146,15 +151,17 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Diagnostic Steps**:
 
 1. **Check for orphaned user**:
+
    ```bash
    # Firebase Console → Authentication
    # Find user by email, note UID
-   
+
    # Firebase Console → Firestore → members collection
    # Search for document with that UID
    ```
 
 2. **Check function logs for Firestore errors**:
+
    ```bash
    firebase functions:log --only stripeWebhook | grep "MEMBER_DOC"
    ```
@@ -170,6 +177,7 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Solutions**:
 
 1. **Check logs** for `STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED`:
+
    ```bash
    firebase functions:log --only stripeWebhook | grep "MEMBER_DOC_CREATE_FAILED"
    ```
@@ -205,6 +213,7 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Diagnostic Steps**:
 
 1. **Check member document for email status**:
+
    ```javascript
    // Firestore Console → members → [user UID]
    {
@@ -214,6 +223,7 @@ firebase functions:secrets:access STRIPE_API_KEY
    ```
 
 2. **Check function logs for Mailgun errors**:
+
    ```bash
    firebase functions:log --only stripeWebhook | grep "EMAIL_FAILED"
    ```
@@ -226,6 +236,7 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Solutions**:
 
 1. **Verify Mailgun secret**:
+
    ```bash
    firebase functions:secrets:set MAILGUN_API_KEY
    # Paste your Mailgun API key
@@ -253,12 +264,14 @@ firebase functions:secrets:access STRIPE_API_KEY
 **Diagnostic Steps**:
 
 1. **Check `processedStripeEvents` collection**:
+
    ```javascript
    // Firestore Console → processedStripeEvents
    // Search for event ID
    ```
 
 2. **Review webhook logs** for timing issues:
+
    ```bash
    firebase functions:log --only stripeWebhook | grep "already processed"
    ```
@@ -291,10 +304,11 @@ Idempotency is handled automatically via Firestore `.create()` which atomically 
 **Diagnostic Steps**:
 
 1. **Verify webhook secret matches**:
+
    ```bash
    # Get current secret from Stripe Dashboard
    # Dashboard → Developers → Webhooks → [Endpoint] → Signing secret
-   
+
    # Compare with Firebase secret
    firebase functions:secrets:access STRIPE_WEBHOOK_SECRET
    ```
@@ -306,6 +320,7 @@ Idempotency is handled automatically via Firestore `.create()` which atomically 
 **Solutions**:
 
 1. **Update webhook secret**:
+
    ```bash
    firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
    # Paste the whsec_... value from Stripe Dashboard
@@ -500,12 +515,16 @@ firebase functions:log --only stripeWebhook --tail
 **Optimization Options**:
 
 1. **Increase function memory** (reduces cold starts):
+
    ```typescript
    // functions/src/stripe-webhook/index.ts
-   export const stripeWebhook = onRequest({
-     memory: "512MB", // Default is 256MB
-     secrets: [...STRIPE_SECRETS, "MAILGUN_API_KEY"],
-   }, handler);
+   export const stripeWebhook = onRequest(
+     {
+       memory: "512MB", // Default is 256MB
+       secrets: [...STRIPE_SECRETS, "MAILGUN_API_KEY"],
+     },
+     handler,
+   );
    ```
 
 2. **Review lazy loading** (already implemented):
@@ -522,21 +541,21 @@ firebase functions:log --only stripeWebhook --tail
 
 Quick reference for all ERROR_IDs in the codebase:
 
-| Error ID | Location | Description | Action |
-|----------|----------|-------------|--------|
-| `STRIPE_WEBHOOK_MISSING_SECRETS` | Configuration | API key or webhook secret not set | Set secrets, redeploy |
-| `STRIPE_WEBHOOK_MISSING_SIGNATURE` | Request validation | No stripe-signature header | Ensure webhooks configured correctly |
-| `STRIPE_WEBHOOK_INVALID_SIGNATURE` | Security | Signature verification failed | Update STRIPE_WEBHOOK_SECRET |
-| `STRIPE_WEBHOOK_MISSING_EMAIL` | Data validation | No email in checkout session | Enable email collection in Pricing Table |
-| `STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED` | Firebase Auth | User lookup failed | Check Auth permissions, quotas |
-| `STRIPE_WEBHOOK_USER_CREATE_FAILED` | Firebase Auth | User creation failed | Check quotas, permissions |
-| `STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED` | Firestore | Member document creation failed | Check Firestore rules, quotas |
-| `STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED` | Firestore | Member document update failed | Check Firestore rules |
-| `STRIPE_WEBHOOK_EMAIL_FAILED` | Mailgun | Email sending failed (non-critical) | Check Mailgun config, manual resend |
-| `STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED` | Configuration | MAILGUN_API_KEY not set | Set secret, redeploy |
-| `STRIPE_WEBHOOK_PASSWORD_RESET_LINK_FAILED` | Firebase Auth | Password reset link generation failed | Check Auth configuration |
-| `STRIPE_WEBHOOK_UNHANDLED_EVENT` | Event handling | Unrecognized event type | Expected for non-checkout events |
-| `STRIPE_WEBHOOK_UNEXPECTED_ERROR` | General | Unexpected error condition | Review logs, file bug report |
+| Error ID                                    | Location           | Description                           | Action                                   |
+| ------------------------------------------- | ------------------ | ------------------------------------- | ---------------------------------------- |
+| `STRIPE_WEBHOOK_MISSING_SECRETS`            | Configuration      | API key or webhook secret not set     | Set secrets, redeploy                    |
+| `STRIPE_WEBHOOK_MISSING_SIGNATURE`          | Request validation | No stripe-signature header            | Ensure webhooks configured correctly     |
+| `STRIPE_WEBHOOK_INVALID_SIGNATURE`          | Security           | Signature verification failed         | Update STRIPE_WEBHOOK_SECRET             |
+| `STRIPE_WEBHOOK_MISSING_EMAIL`              | Data validation    | No email in checkout session          | Enable email collection in Pricing Table |
+| `STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED`         | Firebase Auth      | User lookup failed                    | Check Auth permissions, quotas           |
+| `STRIPE_WEBHOOK_USER_CREATE_FAILED`         | Firebase Auth      | User creation failed                  | Check quotas, permissions                |
+| `STRIPE_WEBHOOK_MEMBER_DOC_CREATE_FAILED`   | Firestore          | Member document creation failed       | Check Firestore rules, quotas            |
+| `STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED`   | Firestore          | Member document update failed         | Check Firestore rules                    |
+| `STRIPE_WEBHOOK_EMAIL_FAILED`               | Mailgun            | Email sending failed (non-critical)   | Check Mailgun config, manual resend      |
+| `STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED`     | Configuration      | MAILGUN_API_KEY not set               | Set secret, redeploy                     |
+| `STRIPE_WEBHOOK_PASSWORD_RESET_LINK_FAILED` | Firebase Auth      | Password reset link generation failed | Check Auth configuration                 |
+| `STRIPE_WEBHOOK_UNHANDLED_EVENT`            | Event handling     | Unrecognized event type               | Expected for non-checkout events         |
+| `STRIPE_WEBHOOK_UNEXPECTED_ERROR`           | General            | Unexpected error condition            | Review logs, file bug report             |
 
 ---
 

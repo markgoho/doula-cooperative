@@ -70,6 +70,7 @@ MAILGUN_API_KEY=...
 ```
 
 **Where to find these values:**
+
 - `STRIPE_API_KEY`: Stripe Dashboard → Developers → API Keys → Secret key (test mode)
 - `STRIPE_WEBHOOK_SECRET`: For local dev, this comes from `stripe listen` command output
 - `MAILGUN_API_KEY`: Mailgun dashboard → API Keys
@@ -82,12 +83,14 @@ bun start
 ```
 
 This single command starts:
+
 - **Firebase Emulators** (Auth: 9099, Firestore: 8080, Functions: 5001)
 - **Hugo Dev Server** (localhost:1313)
 - **Angular Dev Server** (localhost:4200)
 - **Functions TypeScript Watcher**
 
 **Verify everything started:**
+
 - Open http://localhost:4000 (Emulator UI)
 - Open http://localhost:1313 (Hugo site)
 - Open http://localhost:4200 (Angular members portal)
@@ -101,6 +104,7 @@ stripe listen --forward-to http://localhost:5001/doula-cooperative-test/us-centr
 ```
 
 **Important:** Copy the signing secret from the output:
+
 ```
 > Ready! Your webhook signing secret is whsec_xxxxxxxxxxxxx
 ```
@@ -122,6 +126,7 @@ bun test --watch
 ```
 
 **Expected Output:**
+
 ```
 ✓ Configuration validation (6 tests)
 ✓ Webhook signature verification (2 tests)
@@ -229,6 +234,7 @@ grep "Password reset link" # Shows the actual link
 ### Issue: "stripe: command not found"
 
 **Solution:**
+
 ```bash
 # Install Stripe CLI
 # macOS:
@@ -244,6 +250,7 @@ scoop install stripe
 ### Issue: "stripe listen" fails to connect
 
 **Solution:**
+
 ```bash
 # Re-authenticate
 stripe login
@@ -255,6 +262,7 @@ stripe listen --forward-to http://localhost:5001/PROJECT/us-central1/stripeWebho
 ### Issue: Firebase emulators won't start
 
 **Solution:**
+
 ```bash
 # Check if ports are in use
 lsof -i :5001 # Functions
@@ -274,6 +282,7 @@ bun start
 ### Issue: "Missing signature" error
 
 **Solution:**
+
 - Ensure `stripe listen` is running
 - Verify webhook URL matches emulator URL
 - Check `.env.local` has correct `STRIPE_WEBHOOK_SECRET`
@@ -282,6 +291,7 @@ bun start
 ### Issue: User created but no member document
 
 **Solution:**
+
 ```bash
 # Check function logs for Firestore errors
 firebase functions:log --only stripeWebhook | grep ERROR_IDS
@@ -295,6 +305,7 @@ firebase functions:log --only stripeWebhook | grep ERROR_IDS
 ### Issue: Email not sent in emulator
 
 **Expected behavior!** In emulator mode (`FUNCTIONS_EMULATOR=true`), emails are logged but not sent. Check logs for:
+
 ```
 "Emulator detected, skipping email dispatch"
 "Would have sent welcome email to: <email>"
@@ -306,6 +317,7 @@ firebase functions:log --only stripeWebhook | grep ERROR_IDS
 ### VS Code
 
 Recommended extensions:
+
 - **Firebase** (firebase.vscode-firebase)
 - **ESLint** (dbaeumer.vscode-eslint)
 - **TypeScript and JavaScript Language Features** (built-in)

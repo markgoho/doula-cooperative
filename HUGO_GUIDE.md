@@ -9,6 +9,7 @@ Project-specific Hugo configuration and best practices for the Rochester Doula C
 Hugo has special support for environment variables that override configuration values at build time.
 
 **Key Rules:**
+
 1. Environment variables must be prefixed with `HUGO_`
 2. Underscores after the prefix represent **nesting levels**
 3. Everything converts to **lowercase**
@@ -16,37 +17,42 @@ Hugo has special support for environment variables that override configuration v
 
 ### Naming Convention Examples
 
-| Environment Variable | Becomes in Template | Notes |
-|---------------------|---------------------|-------|
-| `HUGO_PARAMS_APIKEY` | `.Site.Params.apikey` | Single level param |
-| `HUGO_PARAMS_STRIPE_MODE` | `.Site.Params.stripe.mode` | One underscore = one nesting level |
-| `HUGO_PARAMS_STRIPE_PUBLISHABLEKEY` | `.Site.Params.stripe.publishablekey` | All lowercase (not camelCase) |
+| Environment Variable                    | Becomes in Template                   | Notes                              |
+| --------------------------------------- | ------------------------------------- | ---------------------------------- |
+| `HUGO_PARAMS_APIKEY`                    | `.Site.Params.apikey`                 | Single level param                 |
+| `HUGO_PARAMS_STRIPE_MODE`               | `.Site.Params.stripe.mode`            | One underscore = one nesting level |
+| `HUGO_PARAMS_STRIPE_PUBLISHABLEKEY`     | `.Site.Params.stripe.publishablekey`  | All lowercase (not camelCase)      |
 | ❌ `HUGO_PARAMS_STRIPE_PUBLISHABLE_KEY` | `.Site.Params.stripe.publishable.key` | Two underscores = nested too deep! |
 
 ### Common Pitfall: Multiple Underscores
 
 **Problem:**
+
 ```yaml
 # In GitHub Actions workflow
 env:
-  HUGO_PARAMS_STRIPE_PUBLISHABLE_KEY: "pk_test_..."  # ❌ Wrong!
+  HUGO_PARAMS_STRIPE_PUBLISHABLE_KEY: "pk_test_..." # ❌ Wrong!
 ```
 
 **Why it fails:**
+
 - Hugo interprets this as: `.Site.Params.stripe.publishable.key` (3 levels deep)
 - Template expects: `.Site.Params.stripe.publishableKey` (2 levels)
 - Result: `publishableKey` is undefined
 
 **Solution:**
+
 ```yaml
 # In GitHub Actions workflow
 env:
-  HUGO_PARAMS_STRIPE_PUBLISHABLEKEY: "pk_test_..."  # ✅ Correct!
+  HUGO_PARAMS_STRIPE_PUBLISHABLEKEY: "pk_test_..." # ✅ Correct!
 ```
 
 **In template:**
+
 ```html
-{{ .Site.Params.stripe.publishablekey }}  <!-- lowercase! -->
+{{ .Site.Params.stripe.publishablekey }}
+<!-- lowercase! -->
 ```
 
 ### Testing Environment Variables Locally
@@ -67,6 +73,7 @@ HUGO_PARAMS_STRIPE_PUBLISHABLEKEY="pk_test_ABC" hugo config | grep stripe
 The site uses environment variables to switch between test and production Stripe credentials:
 
 **PR Previews** (`.github/workflows/hugo-hosting-pull-request.yml`):
+
 ```yaml
 env:
   HUGO_PARAMS_STRIPE_PUBLISHABLEKEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
@@ -75,6 +82,7 @@ env:
 ```
 
 **Production** (`.github/workflows/hugo-hosting-merge.yml`):
+
 ```yaml
 env:
   HUGO_PARAMS_STRIPE_PUBLISHABLEKEY: ${{ secrets.STRIPE_LIVE_PUBLISHABLE_KEY }}
@@ -83,17 +91,20 @@ env:
 ```
 
 **Template Usage** (`hugo/layouts/join-cooperative/single.html`):
+
 ```html
 {{ if .Site.Params.stripe.pricingtableid }}
-  <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-  <stripe-pricing-table
-    pricing-table-id="{{ .Site.Params.stripe.pricingtableid }}"
-    publishable-key="{{ .Site.Params.stripe.publishablekey }}">
-  </stripe-pricing-table>
+<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+<stripe-pricing-table
+  pricing-table-id="{{ .Site.Params.stripe.pricingtableid }}"
+  publishable-key="{{ .Site.Params.stripe.publishablekey }}"
+>
+</stripe-pricing-table>
 {{ end }}
 ```
 
 **Result:**
+
 - Same template code works for both test and production
 - GitHub Actions injects appropriate keys based on context
 - No manual key swapping needed
@@ -132,6 +143,7 @@ bun run build:search    # Includes Pagefind indexing
 **File:** `hugo/hugo.toml`
 
 **Key Settings:**
+
 - `baseURL`: Production URL
 - `params.description`: Site meta description
 - `params.recaptchaSiteKey`: reCAPTCHA public key
@@ -156,6 +168,7 @@ bun run hugo:dev
 ### Modify Templates
 
 Templates use Go templating language:
+
 - `{{ .Title }}` - Access page variables
 - `{{ .Content }}` - Render page content
 - `{{ .Site.Params.* }}` - Access site parameters
@@ -168,11 +181,12 @@ Templates use Go templating language:
 SCSS files in `assets/scss/` are processed by Hugo Pipes:
 
 ```html
-{{ define "head-styles" }}
-  {{ $pageCSS := "scss/your-page.scss" }}
-  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
-  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+{{ define "head-styles" }} {{ $pageCSS := "scss/your-page.scss" }} {{ $options
+:= (dict "transpiler" "dartsass" "outputStyle" "compressed") }} {{ $inlineCSS :=
+resources.Get $pageCSS | css.Sass $options }}
+<style>
+  {{ $inlineCSS.Content | safeCSS }}
+</style>
 {{ end }}
 ```
 
@@ -221,6 +235,7 @@ HUGO_PARAMS_YOUR_PARAM="value" hugo config | grep your
 ### Pricing Table Not Showing
 
 **Check:**
+
 1. Are GitHub Secrets set? (Settings → Secrets → Actions)
 2. View page source - do attributes have values?
    ```html

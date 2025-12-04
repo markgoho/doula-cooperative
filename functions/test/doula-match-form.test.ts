@@ -527,7 +527,9 @@ describe("doulaMatchForm", () => {
       throw new Error("matchRequestDocument is undefined");
     }
     const data = matchRequestDocument.data() as DoulaMatchFormDocument;
-    expect((data as { recaptchaToken?: string }).recaptchaToken).toBeUndefined();
+    expect(
+      (data as { recaptchaToken?: string }).recaptchaToken,
+    ).toBeUndefined();
 
     await cleanupDoulaMatchForm({ firestore });
   });

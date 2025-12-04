@@ -4,23 +4,25 @@
  * @returns A lowercase, hyphenated slug
  */
 export function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    // Handle special characters that don't decompose with NFD
-    .replaceAll('ø', 'o')
-    .replaceAll('æ', 'ae')
-    .replaceAll('œ', 'oe')
-    .replaceAll('ß', 'ss')
-    .replaceAll('ð', 'd')
-    .replaceAll('þ', 'th')
-    // Decompose most accented characters into base + combining marks (é → e + ´)
-    // Special cases handled above don't decompose with NFD
-    .normalize('NFD')
-    .replaceAll(/[\u0300-\u036F]/g, '') // Remove diacritical marks
-    .replaceAll(/[^a-z0-9\s-]/g, '') // Remove remaining special chars
-    .replaceAll(/\s+/g, '-') // Replace spaces with hyphens
-    .replaceAll(/-+/g, '-') // Remove consecutive hyphens
-    .replaceAll(/^-|-$/g, ''); // Trim leading/trailing hyphens
+  return (
+    name
+      .toLowerCase()
+      // Handle special characters that don't decompose with NFD
+      .replaceAll('ø', 'o')
+      .replaceAll('æ', 'ae')
+      .replaceAll('œ', 'oe')
+      .replaceAll('ß', 'ss')
+      .replaceAll('ð', 'd')
+      .replaceAll('þ', 'th')
+      // Decompose most accented characters into base + combining marks (é → e + ´)
+      // Special cases handled above don't decompose with NFD
+      .normalize('NFD')
+      .replaceAll(/[\u0300-\u036F]/g, '') // Remove diacritical marks
+      .replaceAll(/[^a-z0-9\s-]/g, '') // Remove remaining special chars
+      .replaceAll(/\s+/g, '-') // Replace spaces with hyphens
+      .replaceAll(/-+/g, '-') // Remove consecutive hyphens
+      .replaceAll(/^-|-$/g, '') // Trim leading/trailing hyphens
+  );
 }
 
 /**
@@ -41,9 +43,7 @@ export async function ensureUniqueSlug(
 
   while (await checkSlugExists(slug)) {
     if (suffix >= maxAttempts) {
-      throw new Error(
-        `Unable to find unique slug after ${maxAttempts} attempts`,
-      );
+      throw new Error(`Unable to find unique slug after ${maxAttempts} attempts`);
     }
     suffix++;
     slug = `${baseSlug}-${suffix}`;

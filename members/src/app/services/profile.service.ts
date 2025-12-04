@@ -66,9 +66,7 @@ export class ProfileService {
               throw new Error('Active membership required to update profile.');
             }
             if (error.message.includes('modified by another process')) {
-              throw new Error(
-                'Profile was modified elsewhere. Please refresh and try again.',
-              );
+              throw new Error('Profile was modified elsewhere. Please refresh and try again.');
             }
             break;
           }
@@ -78,15 +76,11 @@ export class ProfileService {
           }
 
           case 'resource-exhausted': {
-            throw new Error(
-              'Too many requests. Please try again in a few minutes.',
-            );
+            throw new Error('Too many requests. Please try again in a few minutes.');
           }
 
           case 'deadline-exceeded': {
-            throw new Error(
-              'Request timed out. Please check your connection and try again.',
-            );
+            throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
       }
@@ -130,9 +124,7 @@ export class ProfileService {
           }
 
           case 'resource-exhausted': {
-            throw new Error(
-              'Too many requests. Please try again in a few minutes.',
-            );
+            throw new Error('Too many requests. Please try again in a few minutes.');
           }
 
           case 'already-exists': {
@@ -140,16 +132,12 @@ export class ProfileService {
           }
 
           case 'deadline-exceeded': {
-            throw new Error(
-              'Request timed out. Please check your connection and try again.',
-            );
+            throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
       }
 
-      throw new Error(
-        'Failed to create profile. Please try again or contact support.',
-      );
+      throw new Error('Failed to create profile. Please try again or contact support.');
     }
   }
 

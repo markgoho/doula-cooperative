@@ -98,7 +98,7 @@ export async function handleSetProfileSlug(
   // Use transaction to atomically check slug availability and update member document
   // This prevents race conditions where two users could claim the same slug simultaneously
   try {
-    await database.runTransaction(async (transaction) => {
+    await database.runTransaction(async transaction => {
       const membersQuery = database
         .collection(MEMBERS_COLLECTION)
         .where("slug", "==", slug)

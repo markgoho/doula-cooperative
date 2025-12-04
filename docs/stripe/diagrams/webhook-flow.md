@@ -117,15 +117,12 @@ sequenceDiagram
 
 ### Happy Path - Existing User (Renewal)
 
-1-5. Same as new user flow
-6. **User Update**: For existing users, function recognizes email already exists
-7. **Member Document Update**: Updates Firestore document with new subscription details (merge: true)
-8. **Success Response**: Returns 200 OK to Stripe (no email sent)
-9. **Existing Access**: User continues using existing credentials
+1-5. Same as new user flow 6. **User Update**: For existing users, function recognizes email already exists 7. **Member Document Update**: Updates Firestore document with new subscription details (merge: true) 8. **Success Response**: Returns 200 OK to Stripe (no email sent) 9. **Existing Access**: User continues using existing credentials
 
 ### Error Scenarios
 
 #### Email Failure (Non-Critical)
+
 - User account created successfully
 - Email fails to send (Mailgun error)
 - Function still returns 200 OK to Stripe
@@ -133,12 +130,14 @@ sequenceDiagram
 - User can manually request password reset
 
 #### Auth Failure (Critical)
+
 - User creation fails (quota exceeded, etc.)
 - Function returns 500 error to Stripe
 - Stripe will retry webhook (up to 3 days)
 - Requires manual intervention if retries fail
 
 #### Firestore Failure (Critical)
+
 - User created in Auth successfully
 - Member document creation fails
 - Function returns 500 error to Stripe

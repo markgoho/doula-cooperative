@@ -33,10 +33,13 @@ export async function handleDocumentCreated(
 
   // Only send email if score meets threshold
   if ((recaptchaScore ?? 0) < 0.5) {
-    logger.info(`Skipping email for low-score message ${event.params.messageId}`, {
-      email,
-      score: recaptchaScore,
-    });
+    logger.info(
+      `Skipping email for low-score message ${event.params.messageId}`,
+      {
+        email,
+        score: recaptchaScore,
+      },
+    );
     return;
   }
 

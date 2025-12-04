@@ -135,9 +135,9 @@ describe("createProfile", () => {
       data: profileData,
     });
 
-    expect(
-      wrappedCreateProfile(unauthenticatedRequest),
-    ).rejects.toThrow("The function must be called while authenticated.");
+    expect(wrappedCreateProfile(unauthenticatedRequest)).rejects.toThrow(
+      "The function must be called while authenticated.",
+    );
   });
 
   it("should return failed-precondition when membership not active", async () => {
@@ -170,13 +170,8 @@ describe("createProfile", () => {
   });
 
   it("should return failed-precondition when slug missing", async () => {
-    const {
-      wrappedCreateProfile,
-      firestore,
-      testUid,
-      testEmail,
-      profileData,
-    } = setup();
+    const { wrappedCreateProfile, firestore, testUid, testEmail, profileData } =
+      setup();
 
     await createMemberDocument({
       firestore,
@@ -197,13 +192,8 @@ describe("createProfile", () => {
   });
 
   it("should validate profile data", async () => {
-    const {
-      wrappedCreateProfile,
-      firestore,
-      testUid,
-      testEmail,
-      slug,
-    } = setup();
+    const { wrappedCreateProfile, firestore, testUid, testEmail, slug } =
+      setup();
 
     await createMemberDocument({
       firestore,
@@ -464,7 +454,7 @@ describe("createProfile", () => {
     // Verify expected frontmatter structure
     expect(content).toContain("---");
     expect(content).toContain(`title: "${profileData.title}"`);
-    expect(content).toContain("type: \"doulas\"");
+    expect(content).toContain('type: "doulas"');
     expect(content).toContain(profileData.bio);
 
     // Verify tags format

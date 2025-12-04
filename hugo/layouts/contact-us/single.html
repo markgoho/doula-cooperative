@@ -6,7 +6,10 @@
 {{ end }}
 
 {{ define "head-scripts" }}
-  <script src="https://www.google.com/recaptcha/api.js?render={{ .Site.Params.recaptchaSiteKey }}" async defer></script>
+  <script
+    src="https://www.google.com/recaptcha/api.js?render={{ .Site.Params.recaptchaSiteKey }}"
+    async
+    defer></script>
 {{ end }}
 
 {{ define "main" }}

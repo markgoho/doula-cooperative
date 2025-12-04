@@ -100,6 +100,7 @@ After creating, Stripe shows you the embed code:
 ```
 
 **Copy these two values:**
+
 - **Pricing Table ID**: `prctbl_1ABC...test_xyz` (starts with `prctbl_`, includes "test")
 - **Publishable Key**: `pk_test_51ABC...` (starts with `pk_test_`)
 
@@ -118,6 +119,7 @@ Add these to your GitHub repository for PR previews:
 #### F. Repeat for Live Mode (Before Production)
 
 When ready to go live:
+
 1. Switch Stripe Dashboard to **Live mode**
 2. Create product and pricing table in live mode (same steps)
 3. Get live credentials (will start with `prctbl_...live_...` and `pk_live_...`)

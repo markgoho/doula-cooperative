@@ -384,7 +384,9 @@ describe("contactUsForm", () => {
       throw new Error("messageDocument is undefined");
     }
     const data = messageDocument.data() as ContactUsFormDocument;
-    expect((data as { recaptchaToken?: string }).recaptchaToken).toBeUndefined();
+    expect(
+      (data as { recaptchaToken?: string }).recaptchaToken,
+    ).toBeUndefined();
 
     await cleanupContactUsForm({ firestore });
   });
