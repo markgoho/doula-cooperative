@@ -302,6 +302,7 @@ async function setup({
       email: 'test@example.com',
       createdAt: new Timestamp(0, 0),
       slug: 'jane-doe',
+      profileCreatedAt: new Timestamp(0, 0),
       membershipActive: true,
     };
   } else {

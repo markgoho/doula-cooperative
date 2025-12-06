@@ -1,4 +1,4 @@
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { type CallableRequest, HttpsError } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
 import { App } from "octokit";
@@ -151,6 +151,23 @@ export async function handleCreateProfile(
     });
 
     logger.info(`Successfully created ${filePath} for user ${uid}`);
+
+    // Update member document with profile creation timestamp
+    try {
+      await memberReference.update({
+        profileCreatedAt: FieldValue.serverTimestamp(),
+      });
+      logger.info(`Set profileCreatedAt timestamp for user ${uid}`);
+    } catch (error: unknown) {
+      // Log error but don't fail the whole operation
+      // GitHub file was created successfully, user can retry if needed
+      logger.error("Failed to update profileCreatedAt timestamp", {
+        errorId: ERROR_IDS.CREATE_PROFILE_FIRESTORE_UPDATE_ERROR,
+        uid,
+        error,
+      });
+    }
+
     return { success: true };
   } catch (error: unknown) {
     // Type guard for GitHub API errors

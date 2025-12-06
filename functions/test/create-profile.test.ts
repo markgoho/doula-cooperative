@@ -286,7 +286,7 @@ describe("createProfile", () => {
     expect(content).toContain("draft: true");
   });
 
-  it("should set date, createdOn, updatedOn timestamps", async () => {
+  it("should set date, createdAt, updatedAt timestamps", async () => {
     const {
       wrappedCreateProfile,
       firestore,
@@ -347,6 +347,42 @@ describe("createProfile", () => {
     const result = await wrappedCreateProfile(request);
 
     expect(result).toEqual({ success: true });
+  });
+
+  it("should set profileCreatedAt timestamp in Firestore", async () => {
+    const {
+      wrappedCreateProfile,
+      firestore,
+      testUid,
+      testEmail,
+      slug,
+      profileData,
+    } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    const request = createMockCallableRequest({
+      data: profileData,
+      uid: testUid,
+      email: testEmail,
+    });
+
+    await wrappedCreateProfile(request);
+
+    // Verify profileCreatedAt was set
+    const memberDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
+
+    const memberData = memberDocument.data() as MemberDocument;
+    expect(memberData.profileCreatedAt).toBeDefined();
+    expect(memberData.profileCreatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("should handle GitHub API rate limit errors", async () => {

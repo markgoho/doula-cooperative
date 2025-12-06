@@ -26,5 +26,13 @@ export class Header {
     return this.isEmailVerified() && this.membershipService.membershipActive();
   });
 
+  protected readonly hasProfile = computed(() => {
+    const user = this.membershipService.userDocument();
+    // New users: profileCreatedAt exists
+    // Migrated users: profileCreatedAt from createdAt
+    // Existing users without migration: fallback to slug
+    return !!(user?.profileCreatedAt ?? user?.slug);
+  });
+
   protected readonly isAdmin = this.authService.isAdmin;
 }

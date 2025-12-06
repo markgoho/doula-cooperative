@@ -47,6 +47,14 @@ export interface UnclaimedProfileDocumentData {
    * The error message from the user's invitation email.
    */
   invitationEmailError?: string;
+  /**
+   * The date the profile was originally created in the legacy system.
+   */
+  createdAt?: Timestamp;
+  /**
+   * The date the profile was last updated in the legacy system.
+   */
+  updatedAt?: Timestamp;
 }
 
 /**

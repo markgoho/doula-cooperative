@@ -47,6 +47,7 @@ export interface Member {
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   slug?: string;
+  profileCreatedAt?: Timestamp;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
@@ -89,7 +90,13 @@ export class MembershipService {
 
   // Computed properties for easy access to specific member document fields
   membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
-  hasProfile = computed(() => !!this.userDocument()?.slug);
+  hasProfile = computed(() => {
+    const user = this.userDocument();
+    // New users: profileCreatedAt exists
+    // Migrated users: profileCreatedAt from createdAt
+    // Existing users without migration: fallback to slug
+    return !!(user?.profileCreatedAt ?? user?.slug);
+  });
 
   async getClaimableProfileData(
     user: User | null | undefined,

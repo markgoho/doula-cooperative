@@ -45,14 +45,30 @@ describe('Header', () => {
     expect(screen.queryByRole('link', { name: 'Edit Profile' })).not.toBeInTheDocument();
   });
 
-  it('should show edit profile button when email is verified and membership is active', async () => {
+  it('should show edit profile button when user has a profile', async () => {
     await setup({
       isAuthenticated: true,
       isEmailVerified: true,
       isMembershipActive: true,
+      hasProfile: true,
     });
 
-    expect(screen.getByRole('link', { name: 'Edit Profile' })).toBeVisible();
+    const editLink = screen.getByRole('link', { name: 'Edit Profile' });
+    expect(editLink).toBeVisible();
+    expect(editLink).toHaveAttribute('href', '/profile');
+  });
+
+  it('should show create profile button when user has no profile', async () => {
+    await setup({
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isMembershipActive: true,
+      hasProfile: false,
+    });
+
+    const createLink = screen.getByRole('link', { name: 'Create Profile' });
+    expect(createLink).toBeVisible();
+    expect(createLink).toHaveAttribute('href', '/profile/create');
   });
 });
 
@@ -60,12 +76,14 @@ interface SetupOptions {
   isAuthenticated?: boolean;
   isEmailVerified?: boolean;
   isMembershipActive?: boolean;
+  hasProfile?: boolean;
 }
 
 async function setup({
   isAuthenticated = false,
   isEmailVerified = false,
   isMembershipActive = false,
+  hasProfile = false,
 }: SetupOptions = {}) {
   // eslint-disable-next-line unicorn/no-null
   const mockUser = isAuthenticated ? { emailVerified: isEmailVerified } : null;
@@ -75,8 +93,13 @@ async function setup({
     isAdmin: signal(false),
   };
 
+  const mockUserDocument = hasProfile
+    ? { profileCreatedAt: new Date(), slug: 'test-slug' }
+    : undefined;
+
   const mockMembershipService = {
     membershipActive: signal(isMembershipActive),
+    userDocument: signal(mockUserDocument),
   };
 
   await render(Header, {

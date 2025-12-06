@@ -61,6 +61,7 @@ export const ERROR_IDS = {
   CREATE_PROFILE_PROCESSING_ERROR: "create_profile_processing_error",
   CREATE_PROFILE_GITHUB_AUTH_FAILED: "create_profile_github_auth_failed",
   CREATE_PROFILE_FIRESTORE_READ_ERROR: "create_profile_firestore_read_error",
+  CREATE_PROFILE_FIRESTORE_UPDATE_ERROR: "create_profile_firestore_update_error",
   CREATE_PROFILE_SERIALIZATION_ERROR: "create_profile_serialization_error",
 
   // Check slug availability errors

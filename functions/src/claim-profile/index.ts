@@ -92,7 +92,7 @@ export const handleClaimProfile = async (
   }
 
   try {
-    const { subscriptionStart, ...restOfProfileData } = profileData;
+    const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
 
     const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
 
@@ -101,6 +101,8 @@ export const handleClaimProfile = async (
       subscriptionStart,
       membershipActive: true,
       membershipExpiresAt,
+      // If legacy profile has createdAt, use it as profileCreatedAt
+      ...(createdAt && { profileCreatedAt: createdAt }),
     };
 
     await memberDocumentReference.set(memberUpdate, { merge: true });

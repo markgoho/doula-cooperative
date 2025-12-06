@@ -23,12 +23,14 @@ export function serializeToMarkdown(
   data: ProfileData,
   existingMetadata?: {
     date?: string;
+    createdAt?: string;
     createdOn?: string;
+    updatedAt?: string;
     updatedOn?: string;
     draft?: boolean;
   },
 ): string {
-  const updatedOn = new Date().toISOString();
+  const updatedAt = new Date().toISOString();
 
   // Format tags as YAML array
   const tagsYaml =
@@ -47,11 +49,14 @@ export function serializeToMarkdown(
 ${data.contact.business_name ? `  business_name: ${data.contact.business_name}\n` : ""}${data.contact.website ? `  website: ${stripUrlProtocol(data.contact.website)}\n` : ""}${data.contact.phone ? `  phone: ${data.contact.phone}\n` : ""}${data.contact.email ? `  email: "${data.contact.email}"\n` : ""}`.trimEnd()
       : "";
 
+  const createdAt = existingMetadata?.createdAt ?? existingMetadata?.createdOn;
+  const finalUpdatedAt = existingMetadata?.updatedAt ?? existingMetadata?.updatedOn ?? updatedAt;
+
   return `---
 title: "${data.title}"
 ${existingMetadata?.date ? `date: ${existingMetadata.date}` : ""}
-${existingMetadata?.createdOn ? `createdAt: ${existingMetadata.createdOn}` : ""}
-updatedAt: ${updatedOn}
+${createdAt ? `createdAt: ${createdAt}` : ""}
+updatedAt: ${finalUpdatedAt}
 type: "doulas"
 ${data.credentials ? `credentials: "${data.credentials}"` : ""}
 ${tagsYaml}
@@ -68,7 +73,9 @@ ${data.bio.trim()}
 
 export function parseExistingMetadata(content: string): {
   date?: string;
+  createdAt?: string;
   createdOn?: string;
+  updatedAt?: string;
   updatedOn?: string;
   draft?: boolean;
 } {
@@ -88,7 +95,9 @@ export function parseExistingMetadata(content: string): {
   const frontMatter = frontMatterMatch[1];
   const metadata: {
     date?: string;
+    createdAt?: string;
     createdOn?: string;
+    updatedAt?: string;
     updatedOn?: string;
     draft?: boolean;
   } = {};
@@ -98,12 +107,24 @@ export function parseExistingMetadata(content: string): {
     metadata.date = dateMatch[1].trim();
   }
 
-  const createdOnMatch = /^createdAt:\s*(.+)$/m.exec(frontMatter);
+  // Support both new (createdAt) and old (createdOn) field names
+  const createdAtMatch = /^createdAt:\s*(.+)$/m.exec(frontMatter);
+  if (createdAtMatch?.[1]) {
+    metadata.createdAt = createdAtMatch[1].trim();
+  }
+
+  const createdOnMatch = /^createdOn:\s*(.+)$/m.exec(frontMatter);
   if (createdOnMatch?.[1]) {
     metadata.createdOn = createdOnMatch[1].trim();
   }
 
-  const updatedOnMatch = /^updatedAt:\s*(.+)$/m.exec(frontMatter);
+  // Support both new (updatedAt) and old (updatedOn) field names
+  const updatedAtMatch = /^updatedAt:\s*(.+)$/m.exec(frontMatter);
+  if (updatedAtMatch?.[1]) {
+    metadata.updatedAt = updatedAtMatch[1].trim();
+  }
+
+  const updatedOnMatch = /^updatedOn:\s*(.+)$/m.exec(frontMatter);
   if (updatedOnMatch?.[1]) {
     metadata.updatedOn = updatedOnMatch[1].trim();
   }
