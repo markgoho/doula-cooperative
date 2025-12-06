@@ -1,0 +1,19 @@
+// Import shared profile form styles
+@import '../shared/profile-form/profile-form-styles.scss';
+
+// Create Profile Specific Styles
+
+.welcome-message {
+  background-color: var(--teal-100);
+  border-left: 4px solid var(--teal-500);
+  padding: var(--space-m);
+  margin-block-end: var(--space-l);
+  border-radius: var(--border-radius-md);
+
+  p {
+    margin: 0;
+    color: var(--brown-600);
+    font-size: var(--step-1);
+    line-height: 1.6;
+  }
+}

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { type ProfileData } from '../types/profile-data';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
+import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
 @Injectable({

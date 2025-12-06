@@ -141,8 +141,8 @@ export class Membership {
         throw error;
       }
 
-      // Navigate immediately to profile editor
-      await this.router.navigate(['/profile']);
+      // Navigate to create profile page
+      await this.router.navigate(['/profile/create']);
     } catch (error) {
       console.error('Error creating profile:', error);
 

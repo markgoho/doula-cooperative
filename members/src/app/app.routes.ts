@@ -16,6 +16,11 @@ export const routes: Routes = [
     ...canActivate(redirectUnauthorizedToSignIn),
   },
   {
+    path: 'profile/create',
+    loadComponent: () => import('./create-profile/create-profile').then((m) => m.CreateProfile),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
     ...canActivate(redirectUnauthorizedToSignIn),

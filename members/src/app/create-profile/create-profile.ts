@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MembershipService } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
 import {
@@ -8,22 +15,23 @@ import {
 } from '../shared/profile-form/profile-form-config';
 import {
   extractProfileData,
-  initializeEditProfileForm,
+  initializeCreateProfileForm,
   markAllTouched,
 } from '../shared/profile-form/profile-form-utilities';
 
 @Component({
   imports: [ReactiveFormsModule],
-  templateUrl: './edit-profile.html',
-  styleUrl: './edit-profile.scss',
+  templateUrl: './create-profile.html',
+  styleUrl: './create-profile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EditProfile {
-  readonly profileService = inject(ProfileService);
-  readonly membershipService = inject(MembershipService);
+export class CreateProfile {
+  private profileService = inject(ProfileService);
+  private membershipService = inject(MembershipService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
-  protected profile = this.profileService.profile;
+  protected userDocument = this.membershipService.userDocument;
   protected availableTags = PROFILE_TAGS;
 
   protected profileForm = createProfileFormGroup(this.fb);
@@ -32,11 +40,11 @@ export class EditProfile {
   protected successMessage = signal('');
 
   constructor() {
-    // Initialize form when profile data loads
+    // Initialize form when user document loads
     effect(() => {
-      const profile = this.profile();
-      if (profile && !this.profileForm.dirty) {
-        initializeEditProfileForm(this.profileForm, profile);
+      const user = this.userDocument();
+      if (user && !this.profileForm.dirty) {
+        initializeCreateProfileForm(this.profileForm, user);
       }
     });
   }
@@ -54,12 +62,16 @@ export class EditProfile {
 
     try {
       const profileData = extractProfileData(this.profileForm);
-      await this.profileService.updateProfile(profileData);
-      this.successMessage.set('Profile updated successfully!');
-      this.profileForm.markAsPristine();
+      await this.profileService.createProfileContent(profileData);
+      this.successMessage.set('Profile created successfully!');
+
+      // Navigate to edit mode after successful creation
+      setTimeout(() => {
+        void this.router.navigate(['/profile']);
+      }, 1500);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to update profile. Please try again.';
+        error instanceof Error ? error.message : 'Failed to create profile. Please try again.';
       this.errorMessage.set(message);
     } finally {
       this.loading.set(false);
@@ -67,16 +79,7 @@ export class EditProfile {
   }
 
   protected onCancel() {
-    const profile = this.profile();
-    if (profile) {
-      initializeEditProfileForm(this.profileForm, profile);
-    }
-    this.errorMessage.set('');
-    this.successMessage.set('');
-  }
-
-  protected getTagUrl(tag: string): string {
-    return this.profileService.getTagUrl(tag);
+    void this.router.navigate(['/membership']);
   }
 
   // Control accessors for template

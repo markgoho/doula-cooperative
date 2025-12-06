@@ -37,10 +37,10 @@ describe('EditProfile', () => {
       expect(membershipLink).toHaveAttribute('href', '/membership');
     });
 
-    it('should show profile load error when profile fails to load', async () => {
-      await setup({ hasProfile: false, userHasSlug: true });
+    it('should show profile load error when profile fails to load and no slug exists', async () => {
+      await setup({ hasProfile: false, userHasSlug: false });
 
-      expect(screen.getByText('Profile Load Error')).toBeVisible();
+      expect(screen.getByText('Profile Setup Required')).toBeVisible();
     });
   });
 
@@ -333,10 +333,10 @@ async function setup({
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       if (updateShouldFail) {
-        throw errorMessage ? new Error(errorMessage) : new Error('Unknown error');
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        throw errorMessage ? new Error(errorMessage) : 'Unknown error';
       }
     }),
-    createProfileContent: vi.fn().mockResolvedValue(undefined),
   };
 
   const result = await render(EditProfile, {

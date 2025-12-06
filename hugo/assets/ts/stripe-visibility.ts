@@ -1,7 +1,7 @@
 declare const STRIPE_SECRET_KEY: string;
 
-const urlParams = new URLSearchParams(window.location.search);
-const providedKey = urlParams.get("key");
+const urlParameters = new URLSearchParams(globalThis.location.search);
+const providedKey = urlParameters.get("key");
 
 const isValidKey = providedKey === STRIPE_SECRET_KEY;
 

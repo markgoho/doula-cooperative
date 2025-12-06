@@ -1,29 +1,20 @@
-<h1>Edit Profile</h1>
+<h1>Create Your Doula Profile</h1>
 
-@let profileResource = profileService.profileResource;
-@let user = membershipService.userDocument();
+@let user = userDocument();
 
 @if (!user) {
   <div class="loading-message">
-    <p>Loading your profile...</p>
+    <p>Loading...</p>
   </div>
-} @else if (!user.slug) {
-  <div class="no-profile-message">
-    <h2>Profile Setup Required</h2>
-    <p>It looks like you don't have a doula profile set up yet.</p>
-    <p>
-      Please contact us to set up your profile, or visit the
-      <a href="/membership">Membership page</a> for more information.
-    </p>
-    <p>Once your profile is created, you'll be able to edit it here.</p>
-  </div>
-} @else if (profileResource.isLoading()) {
-  <div class="loading-message">
-    <p>Loading your profile...</p>
-  </div>
-} @else if (profileResource.hasValue()) {
-  @let profile = profileResource.value();
+} @else {
   <div class="form-container">
+    <div class="welcome-message">
+      <p>
+        Welcome to the Doula Cooperative! Let's set up your professional profile. This information
+        will be displayed in our public doula directory.
+      </p>
+    </div>
+
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
       <!-- Success Message -->
       @if (successMessage()) {
@@ -186,15 +177,6 @@
         </div>
       </fieldset>
 
-      <!-- Profile Image Link -->
-      <div class="form-group">
-        <span class="form__label">Profile Image</span>
-        @if (profile?.image) {
-          <img [src]="profile.image" alt="Profile image" class="profile-image-preview" />
-        }
-        <a href="/profile/image" class="button button--secondary">Edit Profile Image</a>
-      </div>
-
       <!-- Form Actions -->
       <div class="form-actions">
         <button
@@ -211,17 +193,12 @@
           [disabled]="loading() || profileForm.invalid"
         >
           @if (loading()) {
-            <span>Saving...</span>
+            <span>Creating...</span>
           } @else {
-            <span>Save Profile</span>
+            <span>Create Profile</span>
           }
         </button>
       </div>
     </form>
-  </div>
-} @else {
-  <div class="no-profile-message">
-    <h2>Profile Load Error</h2>
-    <p>We encountered an issue loading your profile. Please try refreshing the page.</p>
   </div>
 }
