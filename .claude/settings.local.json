@@ -63,7 +63,8 @@
       "Bash(members/*)",
       "Bash(hugo list:*)",
       "Bash(hugo:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
