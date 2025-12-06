@@ -50,8 +50,8 @@ ${data.contact.business_name ? `  business_name: ${data.contact.business_name}\n
   return `---
 title: "${data.title}"
 ${existingMetadata?.date ? `date: ${existingMetadata.date}` : ""}
-${existingMetadata?.createdOn ? `createdOn: ${existingMetadata.createdOn}` : ""}
-updatedOn: ${updatedOn}
+${existingMetadata?.createdOn ? `createdAt: ${existingMetadata.createdOn}` : ""}
+updatedAt: ${updatedOn}
 type: "doulas"
 ${data.credentials ? `credentials: "${data.credentials}"` : ""}
 ${tagsYaml}
@@ -98,12 +98,12 @@ export function parseExistingMetadata(content: string): {
     metadata.date = dateMatch[1].trim();
   }
 
-  const createdOnMatch = /^createdOn:\s*(.+)$/m.exec(frontMatter);
+  const createdOnMatch = /^createdAt:\s*(.+)$/m.exec(frontMatter);
   if (createdOnMatch?.[1]) {
     metadata.createdOn = createdOnMatch[1].trim();
   }
 
-  const updatedOnMatch = /^updatedOn:\s*(.+)$/m.exec(frontMatter);
+  const updatedOnMatch = /^updatedAt:\s*(.+)$/m.exec(frontMatter);
   if (updatedOnMatch?.[1]) {
     metadata.updatedOn = updatedOnMatch[1].trim();
   }

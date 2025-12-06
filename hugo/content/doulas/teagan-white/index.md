@@ -1,8 +1,8 @@
 ---
 title: "Teagan White"
 date: 2025-10-24
-createdOn: 2025-10-24T15:57:18Z
-updatedOn: 2025-10-24T15:57:18Z
+createdAt: 2025-10-24T15:57:18Z
+updatedAt: 2025-10-24T15:57:18Z
 type: "doulas"
 types: ["birth"]
 tags:

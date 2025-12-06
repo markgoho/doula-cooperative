@@ -1,8 +1,8 @@
 ---
 title: "Melody Osgood"
 date: 2025-04-23
-createdOn: 2025-04-23T18:31:04Z
-updatedOn: 2025-04-23T18:31:04Z
+createdAt: 2025-04-23T18:31:04Z
+updatedAt: 2025-04-23T18:31:04Z
 type: "doulas"
 credentials: "LAC, Doula, CBE, Placenta Specialist"
 tags:

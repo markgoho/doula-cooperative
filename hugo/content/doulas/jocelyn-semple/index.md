@@ -1,8 +1,8 @@
 ---
 title: "Jocelyn Semple"
 date: 2024-04-18
-createdOn: 2024-04-18T20:28:41Z
-updatedOn: 2024-11-19T19:43:10Z
+createdAt: 2024-04-18T20:28:41Z
+updatedAt: 2024-11-19T19:43:10Z
 type: "doulas"
 credentials: "BEC, CD-L"
 headshot: "headshot.jpeg"

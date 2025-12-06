@@ -317,8 +317,8 @@ describe("createProfile", () => {
     const content = Buffer.from(call.content, "base64").toString("utf8");
 
     expect(content).toMatch(/date: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    expect(content).toMatch(/createdOn: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    expect(content).toMatch(/updatedOn: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(content).toMatch(/createdAt: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(content).toMatch(/updatedAt: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
   });
 
   it("should return success after creating file", async () => {

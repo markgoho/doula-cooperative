@@ -94,8 +94,8 @@ export async function handleCreateProfile(
   const now = new Date().toISOString();
   const initialMetadata = {
     date: now,
-    createdOn: now,
-    updatedOn: now,
+    createdAt: now,
+    updatedAt: now,
     // New profiles start as draft to prevent accidental premature publication
     draft: true,
   };

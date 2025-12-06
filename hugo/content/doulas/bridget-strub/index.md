@@ -1,8 +1,8 @@
 ---
 title: "Bridget Strub"
 date: 2020-02-04
-createdOn: 2020-02-04T02:51:05Z
-updatedOn: 2020-02-04T02:51:05Z
+createdAt: 2020-02-04T02:51:05Z
+updatedAt: 2020-02-04T02:51:05Z
 type: "doulas"
 credentials: "CD(DONA), LCCE"
 tags:
