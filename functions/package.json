@@ -13,7 +13,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "cleanup-test-data": "bun run src/scripts/cleanup-test-data.ts",
-    "test-webhook": "bun run src/scripts/test-stripe-webhook.ts"
+    "test-webhook": "bun run src/scripts/test-stripe-webhook.ts",
+    "sync-profile-timestamps": "bun run src/scripts/sync-profile-timestamps.ts"
   },
   "engines": {
     "node": "20"

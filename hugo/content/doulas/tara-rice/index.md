@@ -1,8 +1,8 @@
 ---
 title: "Tara Rice"
 date: 2023-10-08
-createdOn: 2023-10-08T22:56:56Z
-updatedOn: 2023-10-08T22:56:56Z
+createdAt: 2023-10-08T22:56:56Z
+updatedAt: 2023-10-08T22:56:56Z
 type: "doulas"
 credentials: "IBCE"
 tags:

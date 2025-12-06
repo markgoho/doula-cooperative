@@ -388,4 +388,53 @@ describe("claimProfile", () => {
 
     await cleanupClaimProfile();
   });
+
+  it("should set profileCreatedAt from legacy createdAt in import document", async () => {
+    // Arrange
+    const { testUid, testEmail, wrappedClaimProfile, firestore } = setup();
+
+    const legacyCreatedAt = Timestamp.fromDate(new Date("2020-06-15"));
+    await createImportDocument({
+      firestore,
+      email: testEmail,
+      profileData: { createdAt: legacyCreatedAt },
+    });
+
+    // Act
+    await wrappedClaimProfile(
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
+    );
+
+    // Assert
+    const data = await getMemberData({ firestore, uid: testUid });
+    expect(data?.profileCreatedAt?.toMillis()).toBe(legacyCreatedAt.toMillis());
+
+    await cleanupClaimProfile();
+  });
+
+  it("should not set profileCreatedAt when legacy createdAt is absent", async () => {
+    // Arrange - use unique identifiers to avoid test pollution
+    const { testUid, testEmail, wrappedClaimProfile, firestore } = setup({
+      testUid: "test-claim-002",
+      testEmail: "testclaim002@example.com",
+    });
+
+    // Create import document without createdAt
+    await createImportDocument({
+      firestore,
+      email: testEmail,
+      profileData: {}, // No createdAt
+    });
+
+    // Act
+    await wrappedClaimProfile(
+      createMockCallableRequest({ uid: testUid, email: testEmail }),
+    );
+
+    // Assert
+    const data = await getMemberData({ firestore, uid: testUid });
+    expect(data?.profileCreatedAt).toBeUndefined();
+
+    await cleanupClaimProfile();
+  });
 });

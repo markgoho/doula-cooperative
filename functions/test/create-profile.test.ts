@@ -286,7 +286,7 @@ describe("createProfile", () => {
     expect(content).toContain("draft: true");
   });
 
-  it("should set date, createdOn, updatedOn timestamps", async () => {
+  it("should set date, createdAt, updatedAt timestamps", async () => {
     const {
       wrappedCreateProfile,
       firestore,
@@ -317,8 +317,8 @@ describe("createProfile", () => {
     const content = Buffer.from(call.content, "base64").toString("utf8");
 
     expect(content).toMatch(/date: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    expect(content).toMatch(/createdOn: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    expect(content).toMatch(/updatedOn: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(content).toMatch(/createdAt: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(content).toMatch(/updatedAt: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
   });
 
   it("should return success after creating file", async () => {
@@ -347,6 +347,42 @@ describe("createProfile", () => {
     const result = await wrappedCreateProfile(request);
 
     expect(result).toEqual({ success: true });
+  });
+
+  it("should set profileCreatedAt timestamp in Firestore", async () => {
+    const {
+      wrappedCreateProfile,
+      firestore,
+      testUid,
+      testEmail,
+      slug,
+      profileData,
+    } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    const request = createMockCallableRequest({
+      data: profileData,
+      uid: testUid,
+      email: testEmail,
+    });
+
+    await wrappedCreateProfile(request);
+
+    // Verify profileCreatedAt was set
+    const memberDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(testUid)
+      .get();
+
+    const memberData = memberDocument.data() as MemberDocument;
+    expect(memberData.profileCreatedAt).toBeDefined();
+    expect(memberData.profileCreatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("should handle GitHub API rate limit errors", async () => {

@@ -1,8 +1,8 @@
 ---
 title: "Amanda Moore"
 date: 2025-07-07
-createdOn: 2025-07-07T14:26:09Z
-updatedOn: 2025-07-07T14:26:09Z
+createdAt: 2025-07-07T14:26:09Z
+updatedAt: 2025-07-07T14:26:09Z
 type: "doulas"
 headshot: "headshot.jpeg"
 tags:

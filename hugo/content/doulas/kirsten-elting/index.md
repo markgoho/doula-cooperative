@@ -1,8 +1,8 @@
 ---
 title: "Kirsten Elting"
 date: 2022-03-22
-createdOn: 2022-03-22T19:29:48Z
-updatedOn: 2025-04-05T18:57:39Z
+createdAt: 2022-03-22T19:29:48Z
+updatedAt: 2025-04-05T18:57:39Z
 type: "doulas"
 credentials: "BA, CD(DONA), LCCE, CLEC, CLC, SBD, CVD(TVL)"
 headshot: "headshot.jpeg"

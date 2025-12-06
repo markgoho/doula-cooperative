@@ -120,8 +120,8 @@ function setupGitHubMock({
   existingContent = `---
 title: "Test Doula"
 date: 2024-01-01
-createdOn: 2024-01-01T00:00:00.000Z
-updatedOn: 2024-01-01T00:00:00.000Z
+createdAt: 2024-01-01T00:00:00.000Z
+updatedAt: 2024-01-01T00:00:00.000Z
 type: "doulas"
 draft: false
 ---
@@ -725,8 +725,8 @@ describe("writeProfile", () => {
       existingContent: `---
 title: "Old Title"
 date: ${existingDate}
-createdOn: 2024-01-15T00:00:00.000Z
-updatedOn: 2024-01-15T00:00:00.000Z
+createdAt: 2024-01-15T00:00:00.000Z
+updatedAt: 2024-01-15T00:00:00.000Z
 type: "doulas"
 ---
 
@@ -779,8 +779,8 @@ Old bio.`,
     setupGitHubMock({
       existingContent: `---
 title: "Old Title"
-createdOn: ${createdOn}
-updatedOn: 2024-01-15T00:00:00.000Z
+createdAt: ${createdOn}
+updatedAt: 2024-01-15T00:00:00.000Z
 type: "doulas"
 ---
 
@@ -806,7 +806,7 @@ Old bio.`,
       callArguments.content,
       "base64",
     ).toString("utf8");
-    expect(decodedContent).toContain(`createdOn: ${createdOn}`);
+    expect(decodedContent).toContain(`createdAt: ${createdOn}`);
 
     await cleanupWriteProfile();
   });
@@ -832,8 +832,8 @@ Old bio.`,
     setupGitHubMock({
       existingContent: `---
 title: "Old Title"
-createdOn: 2024-01-15T00:00:00.000Z
-updatedOn: 2024-01-15T00:00:00.000Z
+createdAt: 2024-01-15T00:00:00.000Z
+updatedAt: 2024-01-15T00:00:00.000Z
 type: "doulas"
 draft: true
 ---
@@ -887,7 +887,7 @@ Old bio.`,
     setupGitHubMock({
       existingContent: `---
 title: "Old Title"
-updatedOn: ${oldUpdatedOn}
+updatedAt: ${oldUpdatedOn}
 type: "doulas"
 ---
 
@@ -913,8 +913,8 @@ Old bio.`,
       callArguments.content,
       "base64",
     ).toString("utf8");
-    expect(decodedContent).not.toContain(`updatedOn: ${oldUpdatedOn}`);
-    expect(decodedContent).toContain("updatedOn:");
+    expect(decodedContent).not.toContain(`updatedAt: ${oldUpdatedOn}`);
+    expect(decodedContent).toContain("updatedAt:");
 
     await cleanupWriteProfile();
   });

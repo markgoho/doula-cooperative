@@ -15,7 +15,11 @@
         }
       </ul>
       @if (canEditProfile()) {
-        <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
+        @if (hasProfile()) {
+          <a routerLink="/profile" class="navbar__cta button navbar__button">Edit Profile</a>
+        } @else {
+          <a routerLink="/profile/create" class="navbar__cta button navbar__button">Create Profile</a>
+        }
       }
     }
   </nav>

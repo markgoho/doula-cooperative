@@ -61,6 +61,7 @@ export const ERROR_IDS = {
   CREATE_PROFILE_PROCESSING_ERROR: "create_profile_processing_error",
   CREATE_PROFILE_GITHUB_AUTH_FAILED: "create_profile_github_auth_failed",
   CREATE_PROFILE_FIRESTORE_READ_ERROR: "create_profile_firestore_read_error",
+  CREATE_PROFILE_FIRESTORE_UPDATE_ERROR: "create_profile_firestore_update_error",
   CREATE_PROFILE_SERIALIZATION_ERROR: "create_profile_serialization_error",
 
   // Check slug availability errors
@@ -70,6 +71,12 @@ export const ERROR_IDS = {
   SET_SLUG_FIRESTORE_READ_ERROR: "set_slug_firestore_read_error",
   SET_SLUG_FIRESTORE_QUERY_ERROR: "set_slug_firestore_query_error",
   SET_SLUG_FIRESTORE_UPDATE_FAILED: "set_slug_firestore_update_failed",
+
+  // Claim profile errors
+  CLAIM_PROFILE_FIRESTORE_WRITE_ERROR: "claim_profile_firestore_write_error",
+  CLAIM_PROFILE_AUTH_UPDATE_FAILED: "claim_profile_auth_update_failed",
+  CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
+  CLAIM_PROFILE_EXPIRATION_CALC_ERROR: "claim_profile_expiration_calc_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

@@ -45,14 +45,43 @@ describe('Header', () => {
     expect(screen.queryByRole('link', { name: 'Edit Profile' })).not.toBeInTheDocument();
   });
 
-  it('should show edit profile button when email is verified and membership is active', async () => {
+  it('should show edit profile button when user has a profile', async () => {
     await setup({
       isAuthenticated: true,
       isEmailVerified: true,
       isMembershipActive: true,
+      hasProfile: true,
     });
 
-    expect(screen.getByRole('link', { name: 'Edit Profile' })).toBeVisible();
+    const editLink = screen.getByRole('link', { name: 'Edit Profile' });
+    expect(editLink).toBeVisible();
+    expect(editLink).toHaveAttribute('href', '/profile');
+  });
+
+  it('should show create profile button when user has no profile', async () => {
+    await setup({
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isMembershipActive: true,
+      hasProfile: false,
+    });
+
+    const createLink = screen.getByRole('link', { name: 'Create Profile' });
+    expect(createLink).toBeVisible();
+    expect(createLink).toHaveAttribute('href', '/profile/create');
+  });
+
+  it('should show edit profile button when user has slug but no profileCreatedAt (migration fallback)', async () => {
+    await setup({
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isMembershipActive: true,
+      hasSlugOnly: true,
+    });
+
+    const editLink = screen.getByRole('link', { name: 'Edit Profile' });
+    expect(editLink).toBeVisible();
+    expect(editLink).toHaveAttribute('href', '/profile');
   });
 });
 
@@ -60,12 +89,26 @@ interface SetupOptions {
   isAuthenticated?: boolean;
   isEmailVerified?: boolean;
   isMembershipActive?: boolean;
+  hasProfile?: boolean;
+  hasSlugOnly?: boolean;
+}
+
+function getMockUserDocument(hasProfile: boolean, hasSlugOnly: boolean) {
+  if (hasProfile) {
+    return { profileCreatedAt: new Date(), slug: 'test-slug' };
+  }
+  if (hasSlugOnly) {
+    return { slug: 'test-slug' }; // No profileCreatedAt - tests fallback behavior
+  }
+  return;
 }
 
 async function setup({
   isAuthenticated = false,
   isEmailVerified = false,
   isMembershipActive = false,
+  hasProfile = false,
+  hasSlugOnly = false,
 }: SetupOptions = {}) {
   // eslint-disable-next-line unicorn/no-null
   const mockUser = isAuthenticated ? { emailVerified: isEmailVerified } : null;
@@ -75,8 +118,11 @@ async function setup({
     isAdmin: signal(false),
   };
 
+  const mockUserDocument = getMockUserDocument(hasProfile, hasSlugOnly);
+
   const mockMembershipService = {
     membershipActive: signal(isMembershipActive),
+    userDocument: signal(mockUserDocument),
   };
 
   await render(Header, {

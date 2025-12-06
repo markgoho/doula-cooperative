@@ -8,6 +8,7 @@ import {
   type MemberDocument,
   type UnclaimedProfileDocumentData,
 } from "../collections/index.js";
+import { ERROR_IDS } from "../constants/error-ids.js";
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
   const startDate = subscriptionStart.toDate();
@@ -91,45 +92,84 @@ export const handleClaimProfile = async (
     throw new HttpsError("not-found", "No profile data found for this user.");
   }
 
+  const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
+
+  // Calculate membership expiration date
+  let membershipExpiresAt: Timestamp;
   try {
-    const { subscriptionStart, ...restOfProfileData } = profileData;
-
-    const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
-
-    const memberUpdate: Partial<MemberDocument> = {
-      ...restOfProfileData,
-      subscriptionStart,
-      membershipActive: true,
-      membershipExpiresAt,
-    };
-
-    await memberDocumentReference.set(memberUpdate, { merge: true });
-    logger.log(`Successfully claimed profile for user: ${email} (UID: ${uid})`);
-
-    // 5. Update the auth displayName if name property exists in profile data.
-    if (profileData.name && typeof profileData.name === "string") {
-      const auth = getAuth();
-      try {
-        await auth.updateUser(uid, {
-          displayName: profileData.name,
-        });
-        logger.log(`Successfully updated displayName for user: ${email}`);
-      } catch (authError) {
-        logger.error("Error updating auth displayName:", authError);
-        // Don't throw here as the profile claim was successful
-      }
-    }
-
-    // 6. Delete the document from the import collection.
-    await importDocumentReference.delete();
-    logger.log(`Successfully deleted import record for: ${email}`);
-
-    return { status: "success", data: profileData };
+    membershipExpiresAt = calculateExpirationDate(subscriptionStart);
   } catch (error) {
-    logger.error("Error claiming profile:", error);
+    logger.error("Error calculating expiration date", {
+      errorId: ERROR_IDS.CLAIM_PROFILE_EXPIRATION_CALC_ERROR,
+      email,
+      uid,
+      error,
+    });
     throw new HttpsError(
       "internal",
-      "An error occurred while claiming the profile.",
+      "Failed to calculate membership expiration date.",
     );
   }
+
+  const memberUpdate: Partial<MemberDocument> = {
+    ...restOfProfileData,
+    subscriptionStart,
+    membershipActive: true,
+    membershipExpiresAt,
+    // If legacy profile has createdAt, use it as profileCreatedAt
+    ...(createdAt && { profileCreatedAt: createdAt }),
+  };
+
+  // 4. Write member document
+  try {
+    await memberDocumentReference.set(memberUpdate, { merge: true });
+    logger.log(`Successfully claimed profile for user: ${email} (UID: ${uid})`);
+  } catch (error) {
+    logger.error("Error writing member document", {
+      errorId: ERROR_IDS.CLAIM_PROFILE_FIRESTORE_WRITE_ERROR,
+      email,
+      uid,
+      error,
+    });
+    throw new HttpsError(
+      "internal",
+      "Failed to save profile data. Please try again.",
+    );
+  }
+
+  // 5. Update the auth displayName if name property exists in profile data.
+  if (profileData.name && typeof profileData.name === "string") {
+    const auth = getAuth();
+    try {
+      await auth.updateUser(uid, {
+        displayName: profileData.name,
+      });
+      logger.log(`Successfully updated displayName for user: ${email}`);
+    } catch (authError) {
+      // Log error but don't fail the whole operation - profile claim was successful
+      logger.error("Error updating auth displayName", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_AUTH_UPDATE_FAILED,
+        email,
+        uid,
+        error: authError,
+      });
+    }
+  }
+
+  // 6. Delete the document from the import collection.
+  try {
+    await importDocumentReference.delete();
+    logger.log(`Successfully deleted import record for: ${email}`);
+  } catch (deleteError) {
+    // Log error but don't fail - profile claim was successful
+    // Import cleanup is not critical but should be tracked for data hygiene
+    logger.error("Failed to delete import record after successful claim", {
+      errorId: ERROR_IDS.CLAIM_PROFILE_IMPORT_DELETE_FAILED,
+      email,
+      uid,
+      error: deleteError,
+    });
+  }
+
+  return { status: "success", data: profileData };
 };

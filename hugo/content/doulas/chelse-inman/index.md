@@ -1,8 +1,8 @@
 ---
 title: "Chelsé Inman"
 date: 2021-06-11
-createdOn: 2021-06-11T04:10:08Z
-updatedOn: 2023-01-08T15:55:35Z
+createdAt: 2021-06-11T04:10:08Z
+updatedAt: 2023-01-08T15:55:35Z
 type: "doulas"
 headshot: "headshot.jpeg"
 tags:
