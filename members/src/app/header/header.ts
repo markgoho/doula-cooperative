@@ -27,11 +27,7 @@ export class Header {
   });
 
   protected readonly hasProfile = computed(() => {
-    const user = this.membershipService.userDocument();
-    // New users: profileCreatedAt exists
-    // Migrated users: profileCreatedAt from createdAt
-    // Existing users without migration: fallback to slug
-    return !!(user?.profileCreatedAt ?? user?.slug);
+    return !!this.membershipService.userDocument()?.profileCreatedAt;
   });
 
   protected readonly isAdmin = this.authService.isAdmin;

@@ -757,7 +757,7 @@ Old bio.`,
     await cleanupWriteProfile();
   });
 
-  it("should preserve existing createdOn metadata", async () => {
+  it("should preserve existing createdAt metadata", async () => {
     // Arrange
     const {
       testUid,
@@ -775,11 +775,11 @@ Old bio.`,
       slug,
     });
 
-    const createdOn = "2024-01-15T10:30:00.000Z";
+    const createdAt = "2024-01-15T10:30:00.000Z";
     setupGitHubMock({
       existingContent: `---
 title: "Old Title"
-createdAt: ${createdOn}
+createdAt: ${createdAt}
 updatedAt: 2024-01-15T00:00:00.000Z
 type: "doulas"
 ---
@@ -806,7 +806,7 @@ Old bio.`,
       callArguments.content,
       "base64",
     ).toString("utf8");
-    expect(decodedContent).toContain(`createdAt: ${createdOn}`);
+    expect(decodedContent).toContain(`createdAt: ${createdAt}`);
 
     await cleanupWriteProfile();
   });
@@ -865,7 +865,7 @@ Old bio.`,
     await cleanupWriteProfile();
   });
 
-  it("should update the updatedOn timestamp", async () => {
+  it("should update the updatedAt timestamp", async () => {
     // Arrange
     const {
       testUid,
@@ -883,11 +883,11 @@ Old bio.`,
       slug,
     });
 
-    const oldUpdatedOn = "2024-01-15T00:00:00.000Z";
+    const oldUpdatedAt = "2024-01-15T00:00:00.000Z";
     setupGitHubMock({
       existingContent: `---
 title: "Old Title"
-updatedAt: ${oldUpdatedOn}
+updatedAt: ${oldUpdatedAt}
 type: "doulas"
 ---
 
@@ -913,7 +913,7 @@ Old bio.`,
       callArguments.content,
       "base64",
     ).toString("utf8");
-    expect(decodedContent).not.toContain(`updatedAt: ${oldUpdatedOn}`);
+    expect(decodedContent).not.toContain(`updatedAt: ${oldUpdatedAt}`);
     expect(decodedContent).toContain("updatedAt:");
 
     await cleanupWriteProfile();

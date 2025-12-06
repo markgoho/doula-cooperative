@@ -24,9 +24,7 @@ export function serializeToMarkdown(
   existingMetadata?: {
     date?: string;
     createdAt?: string;
-    createdOn?: string;
     updatedAt?: string;
-    updatedOn?: string;
     draft?: boolean;
   },
 ): string {
@@ -49,8 +47,9 @@ export function serializeToMarkdown(
 ${data.contact.business_name ? `  business_name: ${data.contact.business_name}\n` : ""}${data.contact.website ? `  website: ${stripUrlProtocol(data.contact.website)}\n` : ""}${data.contact.phone ? `  phone: ${data.contact.phone}\n` : ""}${data.contact.email ? `  email: "${data.contact.email}"\n` : ""}`.trimEnd()
       : "";
 
-  const createdAt = existingMetadata?.createdAt ?? existingMetadata?.createdOn;
-  const finalUpdatedAt = existingMetadata?.updatedAt ?? existingMetadata?.updatedOn ?? updatedAt;
+  const createdAt = existingMetadata?.createdAt;
+  // Always use current timestamp for updatedAt
+  const finalUpdatedAt = updatedAt;
 
   return `---
 title: "${data.title}"
@@ -74,9 +73,7 @@ ${data.bio.trim()}
 export function parseExistingMetadata(content: string): {
   date?: string;
   createdAt?: string;
-  createdOn?: string;
   updatedAt?: string;
-  updatedOn?: string;
   draft?: boolean;
 } {
   const frontMatterMatch = /^---\n([\s\S]*?)\n---/.exec(content);
@@ -96,9 +93,7 @@ export function parseExistingMetadata(content: string): {
   const metadata: {
     date?: string;
     createdAt?: string;
-    createdOn?: string;
     updatedAt?: string;
-    updatedOn?: string;
     draft?: boolean;
   } = {};
 
@@ -107,26 +102,14 @@ export function parseExistingMetadata(content: string): {
     metadata.date = dateMatch[1].trim();
   }
 
-  // Support both new (createdAt) and old (createdOn) field names
   const createdAtMatch = /^createdAt:\s*(.+)$/m.exec(frontMatter);
   if (createdAtMatch?.[1]) {
     metadata.createdAt = createdAtMatch[1].trim();
   }
 
-  const createdOnMatch = /^createdOn:\s*(.+)$/m.exec(frontMatter);
-  if (createdOnMatch?.[1]) {
-    metadata.createdOn = createdOnMatch[1].trim();
-  }
-
-  // Support both new (updatedAt) and old (updatedOn) field names
   const updatedAtMatch = /^updatedAt:\s*(.+)$/m.exec(frontMatter);
   if (updatedAtMatch?.[1]) {
     metadata.updatedAt = updatedAtMatch[1].trim();
-  }
-
-  const updatedOnMatch = /^updatedOn:\s*(.+)$/m.exec(frontMatter);
-  if (updatedOnMatch?.[1]) {
-    metadata.updatedOn = updatedOnMatch[1].trim();
   }
 
   const draftMatch = /^draft:\s*(.+)$/m.exec(frontMatter);

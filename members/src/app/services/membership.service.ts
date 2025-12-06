@@ -91,11 +91,7 @@ export class MembershipService {
   // Computed properties for easy access to specific member document fields
   membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
   hasProfile = computed(() => {
-    const user = this.userDocument();
-    // New users: profileCreatedAt exists
-    // Migrated users: profileCreatedAt from createdAt
-    // Existing users without migration: fallback to slug
-    return !!(user?.profileCreatedAt ?? user?.slug);
+    return !!this.userDocument()?.profileCreatedAt;
   });
 
   async getClaimableProfileData(
