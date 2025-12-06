@@ -333,7 +333,6 @@ async function setup({
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       if (updateShouldFail) {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw errorMessage ? new Error(errorMessage) : 'Unknown error';
       }
     }),

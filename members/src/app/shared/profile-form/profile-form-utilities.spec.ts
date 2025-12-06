@@ -186,13 +186,12 @@ describe('Profile Form Utilities', () => {
         website: 'example.com',
       });
 
-      // Set some tags as checked
+      // Set some tags as checked (Birth Doula=true, Postpartum Doula=false, etc.)
       const tagsArray = form.get('tags') as FormArray;
       tagsArray.clear();
-      // Birth Doula, Postpartum Doula, etc.
-      tagsArray.push(fb.control(true));
-      tagsArray.push(fb.control(false));
-      tagsArray.push(fb.control(true));
+      for (const value of [true, false, true]) {
+        tagsArray.push(fb.control(value));
+      }
 
       const profileData = extractProfileData(form);
 
