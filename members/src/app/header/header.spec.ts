@@ -70,6 +70,19 @@ describe('Header', () => {
     expect(createLink).toBeVisible();
     expect(createLink).toHaveAttribute('href', '/profile/create');
   });
+
+  it('should show edit profile button when user has slug but no profileCreatedAt (migration fallback)', async () => {
+    await setup({
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isMembershipActive: true,
+      hasSlugOnly: true,
+    });
+
+    const editLink = screen.getByRole('link', { name: 'Edit Profile' });
+    expect(editLink).toBeVisible();
+    expect(editLink).toHaveAttribute('href', '/profile');
+  });
 });
 
 interface SetupOptions {
@@ -77,6 +90,17 @@ interface SetupOptions {
   isEmailVerified?: boolean;
   isMembershipActive?: boolean;
   hasProfile?: boolean;
+  hasSlugOnly?: boolean;
+}
+
+function getMockUserDocument(hasProfile: boolean, hasSlugOnly: boolean) {
+  if (hasProfile) {
+    return { profileCreatedAt: new Date(), slug: 'test-slug' };
+  }
+  if (hasSlugOnly) {
+    return { slug: 'test-slug' }; // No profileCreatedAt - tests fallback behavior
+  }
+  return;
 }
 
 async function setup({
@@ -84,6 +108,7 @@ async function setup({
   isEmailVerified = false,
   isMembershipActive = false,
   hasProfile = false,
+  hasSlugOnly = false,
 }: SetupOptions = {}) {
   // eslint-disable-next-line unicorn/no-null
   const mockUser = isAuthenticated ? { emailVerified: isEmailVerified } : null;
@@ -93,9 +118,7 @@ async function setup({
     isAdmin: signal(false),
   };
 
-  const mockUserDocument = hasProfile
-    ? { profileCreatedAt: new Date(), slug: 'test-slug' }
-    : undefined;
+  const mockUserDocument = getMockUserDocument(hasProfile, hasSlugOnly);
 
   const mockMembershipService = {
     membershipActive: signal(isMembershipActive),

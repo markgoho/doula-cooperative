@@ -114,6 +114,8 @@ async function syncProfileTimestamps() {
   let successCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
+  const failedSlugs: string[] = [];
+  const skippedSlugs: { slug: string; reason: string }[] = [];
 
   // 3. Iterate through each profile directory
   for (const slug of profileDirectories) {
@@ -122,6 +124,7 @@ async function syncProfileTimestamps() {
 
     if (timestamps === undefined) {
       skippedCount++;
+      skippedSlugs.push({ slug, reason: "failed to parse front matter" });
       continue;
     }
 
@@ -131,6 +134,7 @@ async function syncProfileTimestamps() {
         `⚠️ No timestamps found in ${slug}/index.md, skipping update`,
       );
       skippedCount++;
+      skippedSlugs.push({ slug, reason: "no timestamps in front matter" });
       continue;
     }
 
@@ -143,6 +147,7 @@ async function syncProfileTimestamps() {
           `⚠️ No import document found for slug: ${slug}, skipping`,
         );
         skippedCount++;
+        skippedSlugs.push({ slug, reason: "no import document found" });
         continue;
       }
 
@@ -163,6 +168,7 @@ async function syncProfileTimestamps() {
     } catch (error) {
       console.error(`\n❌ Error updating ${slug}:`, error);
       errorCount++;
+      failedSlugs.push(slug);
     }
   }
 
@@ -170,6 +176,20 @@ async function syncProfileTimestamps() {
   console.log(`✅ Success: ${successCount}`);
   console.log(`⚠️ Skipped: ${skippedCount}`);
   console.log(`❌ Errors: ${errorCount}`);
+
+  // Output failed slugs for retry capability
+  if (failedSlugs.length > 0) {
+    console.log("\n📋 Failed slugs (for retry):");
+    console.log(JSON.stringify(failedSlugs, undefined, 2));
+  }
+
+  // Output detailed skip reasons if any
+  if (skippedSlugs.length > 0) {
+    console.log("\n📋 Skipped slugs with reasons:");
+    for (const { slug, reason } of skippedSlugs) {
+      console.log(`  - ${slug}: ${reason}`);
+    }
+  }
 }
 
 await syncProfileTimestamps();

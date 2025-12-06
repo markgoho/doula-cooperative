@@ -34,6 +34,13 @@ export interface MemberDocument {
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
   slug?: string;
+  /**
+   * Timestamp when the member's public doula profile was created.
+   * Distinct from createdAt (member account creation).
+   * - Set via serverTimestamp() when creating new profiles
+   * - Set from legacy system timestamp when claiming migrated profiles
+   * - Undefined if member has no public profile
+   */
   profileCreatedAt?: Timestamp;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;

@@ -161,3 +161,4 @@ For Stripe subscription testing (both local and deployed):
 - **GitHub App**: Profile management via `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY`, `GITHUB_INSTALLATION_ID`
 - bun runs typescript files natively, do not ever suggest using tsx
 - deployments are the responsibility of CI or the user, do not deploy any applications
+- don't use nested ternaries
