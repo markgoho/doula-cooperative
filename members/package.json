@@ -44,6 +44,7 @@
     "@testing-library/angular": "^18.1.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/js-yaml": "^4.0.9",
     "@vitest/coverage-v8": "^4.0.15",
     "angular-eslint": "^21.0.1",
     "eslint": "^9.39.1",
