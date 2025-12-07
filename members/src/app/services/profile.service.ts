@@ -231,16 +231,32 @@ export class ProfileService {
       const businessNameMatch = /business_name:\s*(.+)/.exec(frontMatter);
 
       if (phoneMatch && phoneMatch[1]) {
-        data.contact.phone = phoneMatch[1].replaceAll(/['"]/g, '');
+        let phone = phoneMatch[1].trim();
+        if ((phone.startsWith('"') && phone.endsWith('"')) || (phone.startsWith("'") && phone.endsWith("'"))) {
+          phone = phone.slice(1, -1);
+        }
+        data.contact.phone = phone;
       }
       if (emailMatch && emailMatch[1]) {
-        data.contact.email = emailMatch[1].replaceAll(/['"]/g, '');
+        let email = emailMatch[1].trim();
+        if ((email.startsWith('"') && email.endsWith('"')) || (email.startsWith("'") && email.endsWith("'"))) {
+          email = email.slice(1, -1);
+        }
+        data.contact.email = email;
       }
       if (websiteMatch && websiteMatch[1]) {
-        data.contact.website = websiteMatch[1].replaceAll(/['"]/g, '');
+        let website = websiteMatch[1].trim();
+        if ((website.startsWith('"') && website.endsWith('"')) || (website.startsWith("'") && website.endsWith("'"))) {
+          website = website.slice(1, -1);
+        }
+        data.contact.website = website;
       }
       if (businessNameMatch && businessNameMatch[1]) {
-        data.contact.business_name = businessNameMatch[1].replaceAll(/['"]/g, '');
+        let businessName = businessNameMatch[1].trim();
+        if ((businessName.startsWith('"') && businessName.endsWith('"')) || (businessName.startsWith("'") && businessName.endsWith("'"))) {
+          businessName = businessName.slice(1, -1);
+        }
+        data.contact.business_name = businessName;
       }
     }
 
