@@ -3,35 +3,29 @@
 /**
  * Seed Test Data for Claim Profile Flow
  *
- * Creates test data in migrated_users_import collection for testing
- * the claim existing membership flow.
+ * Resets test state and creates fresh test data in migrated_users_import
+ * collection for testing the claim existing membership flow.
+ *
+ * What it does:
+ *   1. Deletes existing member document (auth user deletes automatically via trigger)
+ *   2. Creates fresh unclaimed profile in migrated_users_import
  *
  * Usage:
- *   bun run seed-claim-test                           # Default: emulator, 1yr ago dates
- *   bun run seed-claim-test --subscription-start "2024-01-15"
- *   bun run seed-claim-test --slug "test-existing-doula"
- *   USE_EMULATOR=false bun run seed-claim-test        # Production mode
- *   bun run seed-claim-test --force                   # Skip confirmation
- *
- * Safety:
- *   - Defaults to emulator (USE_EMULATOR env var)
- *   - Prompts before overwriting existing data
- *   - Clear visual feedback with emojis
+ *   bun run seed-claim-test                    # Emulator mode
+ *   USE_EMULATOR=false bun run seed-claim-test # Production mode
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import {
   IMPORT_COLLECTION,
+  MEMBERS_COLLECTION,
   type UnclaimedProfileDocumentData,
 } from "../collections/index.js";
 
-// Parse command line arguments
-const arguments_ = process.argv.slice(2);
-const subscriptionStartArgument =
-  arguments_[arguments_.indexOf("--subscription-start") + 1];
-const slugArgument = arguments_[arguments_.indexOf("--slug") + 1];
-const forceOverwrite = arguments_.includes("--force");
+// Default configuration
+const DEFAULT_SLUG = "marie-curie";
 
 // Test email constant
 const TEST_EMAIL = "test-existing-member@doulacooperative.com";
@@ -56,45 +50,9 @@ if (getApps().length === 0) {
 const firestore = getFirestore();
 
 /**
- * Get confirmation from user
+ * Get subscription start date (1 year ago from today)
  */
-async function confirm(message: string): Promise<boolean> {
-  if (forceOverwrite) return true;
-
-  console.log(`\n${message}`);
-  console.log("Type 'yes' to confirm, anything else to cancel:");
-
-  const readline = await import("node:readline");
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise(resolve => {
-    rl.question("> ", answer => {
-      rl.close();
-      resolve(answer.toLowerCase() === "yes");
-    });
-  });
-}
-
-/**
- * Parse subscription start date from CLI arg
- */
-function parseSubscriptionStart(): Date {
-  if (subscriptionStartArgument && subscriptionStartArgument !== "undefined") {
-    const parsed = new Date(subscriptionStartArgument);
-    if (Number.isNaN(parsed.getTime())) {
-      console.error(
-        `❌ Invalid date format: ${subscriptionStartArgument}`,
-      );
-      console.error('   Expected format: "2024-01-15" or "2024-01-15T10:30:00Z"');
-      process.exit(1);
-    }
-    return parsed;
-  }
-
-  // Default: 1 year ago from today
+function getSubscriptionStart(): Date {
   const oneYearAgo = new Date();
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   return oneYearAgo;
@@ -130,13 +88,51 @@ function formatDate(date: Date): string {
 }
 
 /**
+ * Clean up existing member document (auth user deletes automatically via trigger)
+ */
+async function cleanupExistingMember() {
+  const auth = getAuth();
+
+  // Find user by email to get UID
+  try {
+    const user = await auth.getUserByEmail(TEST_EMAIL);
+    console.log(`🗑️  Found existing user: ${user.uid}`);
+
+    // Delete member document (this triggers auth user deletion automatically)
+    const memberDocument = await firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(user.uid)
+      .get();
+
+    if (memberDocument.exists) {
+      await memberDocument.ref.delete();
+      console.log(`   ✓ Deleted member document (auth user will delete automatically)`);
+    } else {
+      console.log(`   No member document found (OK)`);
+    }
+  } catch (error: unknown) {
+    // User doesn't exist, that's fine
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "auth/user-not-found"
+    ) {
+      console.log(`   No existing user found (OK)`);
+      return;
+    }
+    throw error;
+  }
+}
+
+/**
  * Seed test profile data
  */
 async function seedTestProfile() {
-  const subscriptionStart = parseSubscriptionStart();
+  const subscriptionStart = getSubscriptionStart();
   const nextPayment = calculateNextPayment(subscriptionStart);
   const legacyCreatedAt = calculateLegacyCreatedAt();
-  const slug = slugArgument ?? "marie-curie";
+  const slug = DEFAULT_SLUG;
 
   // Display configuration
   console.log(`📧 Email: ${TEST_EMAIL}`);
@@ -145,17 +141,12 @@ async function seedTestProfile() {
   console.log(`🔗 Slug: ${slug}`);
   console.log(`📅 Profile Created: ${formatDate(legacyCreatedAt)}`);
 
-  // Check if document exists
-  const documentReference = firestore.collection(IMPORT_COLLECTION).doc(TEST_EMAIL);
-  const existingDocument = await documentReference.get();
+  // Clean up any existing member/auth user first
+  console.log("\n🔄 Resetting test state...");
+  await cleanupExistingMember();
 
-  if (existingDocument.exists) {
-    const confirmed = await confirm("⚠️  Document already exists. Overwrite?");
-    if (!confirmed) {
-      console.log("\n❌ Cancelled - no changes made");
-      return;
-    }
-  }
+  // Prepare to write import document
+  const documentReference = firestore.collection(IMPORT_COLLECTION).doc(TEST_EMAIL);
 
   // Prepare profile data
   const profileData: UnclaimedProfileDocumentData = {
