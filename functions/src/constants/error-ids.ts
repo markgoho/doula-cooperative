@@ -77,6 +77,13 @@ export const ERROR_IDS = {
   CLAIM_PROFILE_AUTH_UPDATE_FAILED: "claim_profile_auth_update_failed",
   CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
   CLAIM_PROFILE_EXPIRATION_CALC_ERROR: "claim_profile_expiration_calc_error",
+
+  // Profile deployment webhook errors
+  PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET:
+    "profile_deploy_webhook_invalid_secret",
+  PROFILE_DEPLOY_WEBHOOK_MEMBER_NOT_FOUND:
+    "profile_deploy_webhook_member_not_found",
+  PROFILE_DEPLOY_WEBHOOK_EMAIL_FAILED: "profile_deploy_webhook_email_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

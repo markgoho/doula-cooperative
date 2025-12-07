@@ -34,3 +34,24 @@ jobs:
           channelId: live
           projectId: doula-cooperative
           target: main-site
+      - name: Notify Profile Updates
+        if: success()
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_SHA=$(git rev-parse HEAD)
+
+          # Get changed profile files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- "hugo/content/doulas/*/index.md" || echo "")
+          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c "index.md" || echo "0")
+
+          # Extract slug if single file
+          if [ "$FILE_COUNT" -eq 1 ]; then
+            SLUG=$(echo "$CHANGED_FILES" | sed -n 's|hugo/content/doulas/\([^/]*\)/index.md|\1|p')
+          else
+            SLUG=""
+          fi
+
+          curl -X POST https://doulacooperative.com/api/profile-deployment-webhook \
+            -H "Content-Type: application/json" \
+            -d "{\"commitMessage\":\"$COMMIT_MSG\",\"commitSha\":\"$COMMIT_SHA\",\"slug\":\"$SLUG\",\"secret\":\"${{ secrets.DEPLOY_WEBHOOK_SECRET }}\"}"
+        continue-on-error: true
