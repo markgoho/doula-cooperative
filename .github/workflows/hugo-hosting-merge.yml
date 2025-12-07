@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - name: Install dependencies
         run: bun install
       - name: Build Hugo site
@@ -41,8 +43,12 @@ jobs:
           COMMIT_SHA=$(git rev-parse HEAD)
 
           # Get changed profile files
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- "hugo/content/doulas/*/index.md" || echo "")
-          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c "index.md" || echo "0")
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- "hugo/content/doulas/*/index.md" 2>/dev/null || echo "")
+          if [ -z "$CHANGED_FILES" ]; then
+            FILE_COUNT=0
+          else
+            FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+          fi
 
           # Extract slug if single file
           if [ "$FILE_COUNT" -eq 1 ]; then
