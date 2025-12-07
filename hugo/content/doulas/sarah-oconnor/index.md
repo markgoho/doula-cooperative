@@ -4,7 +4,6 @@ date: 2025-12-07T21:06:23.750Z
 createdAt: 2025-12-07T21:06:23.750Z
 updatedAt: 2025-12-07T21:14:02.592Z
 type: "doulas"
-
 tags:
   - "Birth Planning"
   - "Breastmilk jewelry"
@@ -18,4 +17,4 @@ contact:
 draft: true
 ---
 
-I'm a birth doula
+I'm a birth doula, for real
