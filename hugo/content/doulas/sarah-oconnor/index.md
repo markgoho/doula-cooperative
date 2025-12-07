@@ -17,4 +17,4 @@ contact:
 draft: true
 ---
 
-I'm a birth doula, for real
+I'm a birth doula
