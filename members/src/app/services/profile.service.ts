@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { load } from 'js-yaml';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
-import { type ProfileData } from '../types/profile-data';
+import { type ProfileData, type ProfileFrontMatter } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
 @Injectable({
@@ -161,103 +162,35 @@ export class ProfileService {
 
     const [, frontMatter, bodyContent] = frontMatterMatch;
 
-    if (!frontMatter || !bodyContent) {
+    if (!frontMatter || bodyContent === undefined) {
       console.error('Invalid front matter format');
       throw new Error('Profile data format is invalid. Please contact support.');
     }
 
-    // Simple YAML parser for the fields we need
+    // Parse YAML front matter with proper typing
+    const parsed = load(frontMatter) as ProfileFrontMatter;
+
+    // Build ProfileData object from parsed YAML
     const data: ProfileData = {
-      title: '',
+      title: parsed.title ?? '',
       bio: bodyContent.trim(),
-      draft: false,
+      draft: parsed.draft ?? false,
     };
 
-    // Parse each line of front matter
-    const lines = frontMatter.split('\n');
-    for (const line of lines) {
-      const colonIndex = line.indexOf(':');
-      if (colonIndex === -1) continue;
-
-      const key = line.slice(0, colonIndex).trim();
-      let value = line.slice(colonIndex + 1).trim();
-
-      // Remove quotes if present
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-
-      switch (key) {
-        case 'title': {
-          data.title = value;
-          break;
-        }
-        case 'credentials': {
-          data.credentials = value;
-          break;
-        }
-        case 'draft': {
-          data.draft = value === 'true';
-          break;
-        }
-        case 'tags': {
-          // Handle YAML array format
-          if (value.startsWith('[') && value.endsWith(']')) {
-            data.tags = value
-              .slice(1, -1)
-              .split(',')
-              .map((tag) => tag.trim().replaceAll(/['"]/g, ''));
-          } else if (value.startsWith('- ')) {
-            // Handle multi-line array format
-            data.tags = [value.slice(2).trim().replaceAll(/['"]/g, '')];
-          }
-          break;
-        }
-        case 'contact': {
-          // For now, we'll parse contact in the next section if needed
-          break;
-        }
-      }
+    if (parsed.credentials) {
+      data.credentials = parsed.credentials;
     }
 
-    // Parse contact information if present
-    if (frontMatter.includes('contact:')) {
-      data.contact = {};
+    if (parsed.pronouns) {
+      data.pronouns = parsed.pronouns;
+    }
 
-      // Look for phone, email, website under contact
-      const phoneMatch = /phone:\s*(.+)/.exec(frontMatter);
-      const emailMatch = /email:\s*(.+)/.exec(frontMatter);
-      const websiteMatch = /website:\s*(.+)/.exec(frontMatter);
-      const businessNameMatch = /business_name:\s*(.+)/.exec(frontMatter);
+    if (parsed.tags) {
+      data.tags = parsed.tags;
+    }
 
-      if (phoneMatch && phoneMatch[1]) {
-        let phone = phoneMatch[1].trim();
-        if ((phone.startsWith('"') && phone.endsWith('"')) || (phone.startsWith("'") && phone.endsWith("'"))) {
-          phone = phone.slice(1, -1);
-        }
-        data.contact.phone = phone;
-      }
-      if (emailMatch && emailMatch[1]) {
-        let email = emailMatch[1].trim();
-        if ((email.startsWith('"') && email.endsWith('"')) || (email.startsWith("'") && email.endsWith("'"))) {
-          email = email.slice(1, -1);
-        }
-        data.contact.email = email;
-      }
-      if (websiteMatch && websiteMatch[1]) {
-        let website = websiteMatch[1].trim();
-        if ((website.startsWith('"') && website.endsWith('"')) || (website.startsWith("'") && website.endsWith("'"))) {
-          website = website.slice(1, -1);
-        }
-        data.contact.website = website;
-      }
-      if (businessNameMatch && businessNameMatch[1]) {
-        let businessName = businessNameMatch[1].trim();
-        if ((businessName.startsWith('"') && businessName.endsWith('"')) || (businessName.startsWith("'") && businessName.endsWith("'"))) {
-          businessName = businessName.slice(1, -1);
-        }
-        data.contact.business_name = businessName;
-      }
+    if (parsed.contact) {
+      data.contact = parsed.contact;
     }
 
     return data;

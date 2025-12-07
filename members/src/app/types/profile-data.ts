@@ -32,3 +32,25 @@ export interface ProfileData {
   /** Optional: Profile image URL (managed separately from markdown content, provided by backend) */
   image?: string;
 }
+
+/**
+ * YAML front matter structure from Hugo markdown files.
+ * This represents what gets parsed from the --- delimited front matter.
+ */
+export interface ProfileFrontMatter {
+  title?: string;
+  pronouns?: string;
+  credentials?: string;
+  tags?: string[];
+  contact?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+    business_name?: string;
+  };
+  draft?: boolean;
+  date?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  type?: string;
+}
