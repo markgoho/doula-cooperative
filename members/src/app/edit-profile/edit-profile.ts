@@ -15,7 +15,10 @@ import {
 @Component({
   imports: [ReactiveFormsModule],
   templateUrl: './edit-profile.html',
-  styleUrl: './edit-profile.scss',
+  styleUrls: [
+    '../shared/profile-form/profile-form-styles.scss',
+    './edit-profile.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditProfile {

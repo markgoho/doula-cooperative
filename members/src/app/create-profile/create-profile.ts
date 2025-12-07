@@ -22,7 +22,10 @@ import {
 @Component({
   imports: [ReactiveFormsModule],
   templateUrl: './create-profile.html',
-  styleUrl: './create-profile.scss',
+  styleUrls: [
+    '../shared/profile-form/profile-form-styles.scss',
+    './create-profile.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateProfile {
