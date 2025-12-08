@@ -1,4 +1,4 @@
-import { HttpsError, onCall } from "firebase-functions/https";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { PROFILE_SECRETS } from "../constants/profile-secrets.js";
 import { ERROR_IDS } from "../constants/error-ids.js";

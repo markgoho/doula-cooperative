@@ -1,5 +1,5 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { type CallableRequest, HttpsError } from "firebase-functions/https";
+import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { App, type Octokit } from "octokit";
 import sharp from "sharp";

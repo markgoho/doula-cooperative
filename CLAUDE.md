@@ -61,9 +61,19 @@ export const myFunction = onRequest(async (request, response) => {
 **Function Types**:
 
 - **HTTP Functions** (`onRequest`): `contactUsForm`, `doulaMatchForm`, `stripeWebhook`
-- **Callable Functions** (`onCall`): `claimProfile`, `readProfile`
+- **Callable Functions** (`onCall`): `claimProfile`, `readProfile`, `uploadProfileImage`, `deleteProfileImage`
 - **Firestore Triggers** (`onDocumentCreated`): `emailContactForm`, `emailDoulaMatch`
 - **Auth Triggers**: `createMemberOnUserCreated`, `deleteMemberOnUserDeleted`
+
+**IMPORTANT**: Always use Firebase Functions v2 imports:
+```typescript
+// ✅ CORRECT - Use v2 imports
+import { onCall, onRequest } from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
+
+// ❌ WRONG - Don't use v1 imports (causes CORS issues)
+import { onCall } from "firebase-functions/https";
+```
 
 **Key Patterns**:
 

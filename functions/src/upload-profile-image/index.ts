@@ -1,4 +1,4 @@
-import { type CallableRequest, HttpsError, onCall } from "firebase-functions/https";
+import { type CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import type { UploadProfileImageRequest } from "./handler.js";
 import * as logger from "firebase-functions/logger";
 import { PROFILE_SECRETS } from "../constants/profile-secrets.js";
