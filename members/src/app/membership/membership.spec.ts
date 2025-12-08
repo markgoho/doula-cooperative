@@ -444,6 +444,7 @@ async function setup(options: SetupOptions = {}) {
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
     getClaimableProfileData: getClaimableProfileDataMock,
+    reloadUserDocument: vi.fn(),
   };
 
   await render(Membership, {

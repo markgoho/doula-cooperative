@@ -104,6 +104,8 @@ export class Membership {
     this.claimInProgress.set(true);
     try {
       await this.authService.claimProfile();
+      // Reload user document to reflect claimed profile
+      this.membershipService.reloadUserDocument();
       // Clear the banner after claiming
       this.claimableProfileResource.set(undefined);
     } catch (error) {
