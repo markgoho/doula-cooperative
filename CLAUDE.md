@@ -162,3 +162,4 @@ For Stripe subscription testing (both local and deployed):
 - bun runs typescript files natively, do not ever suggest using tsx
 - deployments are the responsibility of CI or the user, do not deploy any applications
 - don't use nested ternaries
+- there should only be one exported function per module (file)

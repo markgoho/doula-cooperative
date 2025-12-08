@@ -177,6 +177,10 @@ export const createProfile = onCall(
   },
 );
 
+export { uploadProfileImage } from "./upload-profile-image/index.js";
+
+export { deleteProfileImage } from "./delete-profile-image/index.js";
+
 export { stripeWebhook } from "./stripe-webhook/index.js";
 
 export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";

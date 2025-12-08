@@ -84,6 +84,20 @@ export const ERROR_IDS = {
   PROFILE_DEPLOY_WEBHOOK_MEMBER_NOT_FOUND:
     "profile_deploy_webhook_member_not_found",
   PROFILE_DEPLOY_WEBHOOK_EMAIL_FAILED: "profile_deploy_webhook_email_failed",
+
+  // Upload profile image errors
+  UPLOAD_PROFILE_IMAGE_INVALID_DATA: "upload_profile_image_invalid_data",
+  UPLOAD_PROFILE_IMAGE_TOO_LARGE: "upload_profile_image_too_large",
+  UPLOAD_PROFILE_IMAGE_PROCESSING_FAILED:
+    "upload_profile_image_processing_failed",
+  UPLOAD_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
+    "upload_profile_image_github_rate_limit",
+  UPLOAD_PROFILE_IMAGE_GITHUB_FAILED: "upload_profile_image_github_failed",
+
+  // Delete profile image errors
+  DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
+    "delete_profile_image_github_rate_limit",
+  DELETE_PROFILE_IMAGE_GITHUB_FAILED: "delete_profile_image_github_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

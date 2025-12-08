@@ -9,32 +9,120 @@
 } @else if (profileResource.hasValue()) {
   @let profile = profileResource.value();
   <div class="image-editor-container">
-    @if (profile.image) {
-      <div class="current-image">
-        <h2>Current Profile Image</h2>
-        <img
-          [src]="profile.image"
-          alt="Profile image of {{ profile.title }}"
-          class="profile-image-large"
-        />
-      </div>
-    } @else {
-      <div class="no-image">
-        <p>No profile image set yet.</p>
+    <!-- Error Message -->
+    @if (errorMessage()) {
+      <div class="message message--error" role="alert">
+        <p>{{ errorMessage() }}</p>
+        <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+          ×
+        </button>
       </div>
     }
 
-    <div class="coming-soon">
-      <h2>Image Editing Coming Soon</h2>
-      <p>
-        The ability to upload and edit your profile image will be available soon. For now, please
-        contact support if you need to update your profile image.
-      </p>
-    </div>
+    <!-- Success Message -->
+    @if (successMessage()) {
+      <div class="message message--success" role="status">
+        <p>{{ successMessage() }}</p>
+        <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+          ×
+        </button>
+      </div>
+    }
 
-    <div class="actions">
-      <a routerLink="/profile" class="button button--primary">Back to Profile</a>
-    </div>
+    <!-- Cropping State -->
+    @if (editorState() === 'cropping' && selectedFile()) {
+      <app-image-cropper
+        [sourceImage]="selectedFile()!"
+        (cropConfirmed)="onCropConfirmed($event)"
+        (cancelled)="onCropCancelled()"
+      />
+    } @else if (editorState() === 'uploading') {
+      <!-- Uploading State -->
+      <div class="processing-state">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Uploading your photo...</p>
+      </div>
+    } @else if (editorState() === 'deleting') {
+      <!-- Deleting State -->
+      <div class="processing-state">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Removing your photo...</p>
+      </div>
+    } @else if (editorState() === 'confirming-delete') {
+      <!-- Delete Confirmation -->
+      <div class="confirm-delete">
+        <h2>Remove Profile Photo?</h2>
+        <p>Are you sure you want to remove your profile photo? This cannot be undone.</p>
+        <div class="actions">
+          <button type="button" class="button button--secondary" (click)="cancelDelete()">
+            Cancel
+          </button>
+          <button type="button" class="button button--danger" (click)="confirmDelete()">
+            Remove Photo
+          </button>
+        </div>
+      </div>
+    } @else if (editorState() === 'loading-existing') {
+      <!-- Loading Existing Image -->
+      <div class="processing-state">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Loading your photo for editing...</p>
+      </div>
+    } @else {
+      <!-- Viewing State -->
+      @if (profile.image) {
+        <div class="current-image">
+          <h2>Current Profile Image</h2>
+          <img
+            [src]="profile.image"
+            alt="Profile image of {{ profile.title }}"
+            class="profile-image-large"
+          />
+        </div>
+      } @else {
+        <div class="no-image">
+          <div class="no-image-icon" aria-hidden="true">📷</div>
+          <p>No profile image set yet.</p>
+          <p class="no-image-hint">Add a photo to help clients recognize you.</p>
+        </div>
+      }
+
+      <!-- File Input (hidden) -->
+      <input
+        type="file"
+        id="image-upload"
+        accept="image/jpeg,image/png,image/webp"
+        class="visually-hidden"
+        (change)="onFileSelected($event)"
+      />
+
+      <!-- Action Buttons -->
+      <div class="actions">
+        @if (profile.image) {
+          <button type="button" class="button button--primary" (click)="loadExistingImage()">
+            Edit Photo
+          </button>
+        }
+
+        <label for="image-upload" class="button {{ profile.image ? 'button--secondary' : 'button--primary' }}">
+          @if (profile.image) {
+            Change Photo
+          } @else {
+            Add Photo
+          }
+        </label>
+
+        @if (profile.image) {
+          <button type="button" class="button button--danger" (click)="startDelete()">
+            Remove Photo
+          </button>
+        }
+      </div>
+
+      <div class="back-link">
+        <a routerLink="/profile">← Back to Profile</a>
+      </div>
+    }
   </div>
 } @else {
   <div class="no-profile-message">

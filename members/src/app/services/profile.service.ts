@@ -1,9 +1,19 @@
 import { Injectable, computed, inject, resource } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { load } from 'js-yaml';
+import { type CropData } from '../types/crop-data';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
 import { type ProfileData, type ProfileFrontMatter } from '../types/profile-data';
 import { MembershipService } from './membership.service';
+
+// Re-export for consumers
+export type { CropData } from '../types/crop-data';
+
+interface UploadProfileImageRequest {
+  imageData: string;
+  mimeType: string;
+  cropData: CropData;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -198,5 +208,116 @@ export class ProfileService {
 
   getTagUrl(tag: string): string {
     return tag.toLowerCase().replaceAll(/\s+/g, '-');
+  }
+
+  /**
+   * Upload a profile image with crop data.
+   * The server will apply the crop and save the image.
+   */
+  async uploadProfileImage(file: File, cropData: CropData): Promise<void> {
+    const uploadCallable = httpsCallable<UploadProfileImageRequest, { success: boolean }>(
+      this.functions,
+      'uploadProfileImage',
+    );
+
+    try {
+      // Convert file to base64
+      const imageData = await this.fileToBase64(file);
+
+      await uploadCallable({
+        imageData,
+        mimeType: file.type,
+        cropData,
+      });
+
+      // Reload profile to get new image URL
+      this.profileResource.reload();
+    } catch (error: unknown) {
+      console.error('Profile image upload failed:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        const errorMessages: Record<string, string> = {
+          'unauthenticated': 'You must be signed in to upload a profile image.',
+          'invalid-argument': error.message || 'Invalid image. Please try a different file.',
+          'resource-exhausted': 'Too many requests. Please try again in a few minutes.',
+        };
+
+        if (error.code === 'failed-precondition') {
+          if (error.message.includes('membership')) {
+            throw new Error('Active membership required to upload a profile image.');
+          }
+          if (error.message.includes('slug')) {
+            throw new Error('Please set up your profile first.');
+          }
+          console.warn('Unhandled failed-precondition:', error.message);
+          throw new Error(error.message || 'A precondition for this operation was not met.');
+        }
+
+        const message = errorMessages[error.code];
+        if (message) {
+          throw new Error(message);
+        }
+      }
+
+      throw new Error('Failed to upload profile image. Please try again.');
+    }
+  }
+
+  /**
+   * Delete the profile image.
+   */
+  async deleteProfileImage(): Promise<void> {
+    const deleteCallable = httpsCallable<void, { success: boolean }>(
+      this.functions,
+      'deleteProfileImage',
+    );
+
+    try {
+      await deleteCallable();
+
+      // Reload profile to clear image URL
+      this.profileResource.reload();
+    } catch (error: unknown) {
+      console.error('Profile image delete failed:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        const errorMessages: Record<string, string> = {
+          'unauthenticated': 'You must be signed in to delete your profile image.',
+          'resource-exhausted': 'Too many requests. Please try again in a few minutes.',
+        };
+
+        if (error.code === 'failed-precondition') {
+          if (error.message.includes('membership')) {
+            throw new Error('Active membership required to delete your profile image.');
+          }
+          console.warn('Unhandled failed-precondition:', error.message);
+          throw new Error(error.message || 'A precondition for this operation was not met.');
+        }
+
+        const message = errorMessages[error.code];
+        if (message) {
+          throw new Error(message);
+        }
+      }
+
+      throw new Error('Failed to delete profile image. Please try again.');
+    }
+  }
+
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        resolve(reader.result as string);
+      });
+      reader.addEventListener('error', () => {
+        reject(new Error('Failed to read file'));
+      });
+      reader.readAsDataURL(file);
+    });
   }
 }

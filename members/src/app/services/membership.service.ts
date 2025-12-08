@@ -1,16 +1,8 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { computed, inject, Injectable, resource } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
-import {
-  doc,
-  docData,
-  DocumentReference,
-  Firestore,
-  getDoc,
-  Timestamp,
-} from '@angular/fire/firestore';
+import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { combineLatest, map, of, switchMap } from 'rxjs';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
 
 interface MigratedUserData {
@@ -65,28 +57,30 @@ export class MembershipService {
 
   // Use authState directly to avoid circular dependency with AuthService
   private user$ = authState(this.auth);
-  private userId$ = this.user$.pipe(map((user) => user?.uid));
 
   userId = computed(() => this.auth.currentUser?.uid ?? 'abcd');
   user = toSignal(this.user$);
 
-  // Signal to trigger reload of user document
-  private reloadTrigger = signal(0);
-  private reloadTrigger$ = toObservable(this.reloadTrigger);
+  // Resource for loading user document - automatically reloads when user changes
+  readonly userDocumentResource = resource({
+    params: (): { uid: string } | undefined => {
+      const user = this.user();
+      return user?.uid ? { uid: user.uid } : undefined;
+    },
+    loader: async ({ params }): Promise<Member | undefined> => {
+      const userDocumentReference = doc(this.firestore, `members/${params.uid}`);
+      const snapshot = await getDoc(userDocumentReference);
+      return snapshot.exists() ? (snapshot.data() as Member) : undefined;
+    },
+  });
 
-  userDocument$ = combineLatest([this.userId$, this.reloadTrigger$]).pipe(
-    switchMap(([userId]) => {
-      if (userId) {
-        const userDocumentReference = doc(
-          this.firestore,
-          `members/${userId}`,
-        ) as DocumentReference<Member>;
-        return docData(userDocumentReference);
-      }
-      return of(undefined);
-    }),
-  );
-  userDocument = toSignal(this.userDocument$);
+  // Computed signal for easy access to user document value
+  userDocument = computed((): Member | undefined => {
+    if (this.userDocumentResource.hasValue()) {
+      return this.userDocumentResource.value();
+    }
+    return undefined;
+  });
 
   // Computed properties for easy access to specific member document fields
   membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
@@ -206,6 +200,6 @@ export class MembershipService {
    * Trigger a reload of the user document from Firestore
    */
   reloadUserDocument(): void {
-    this.reloadTrigger.update((v) => v + 1);
+    this.userDocumentResource.reload();
   }
 }

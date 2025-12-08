@@ -1,0 +1,233 @@
+.cropper-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.cropper-instructions {
+  color: var(--gray-600);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+// Accessible visually hidden text
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Preview Area
+.preview-container {
+  margin-bottom: 1.5rem;
+
+  &:focus {
+    outline: 3px solid var(--teal-500);
+    outline-offset: 2px;
+  }
+}
+
+// Wrapper shows more context around the crop area
+.preview-wrapper {
+  width: 350px;
+  height: 350px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--gray-900);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  position: relative;
+
+  &--dragging {
+    cursor: grabbing;
+  }
+}
+
+.preview-image {
+  // Size image to cover the crop area (280px)
+  min-width: 280px;
+  min-height: 280px;
+  width: auto;
+  height: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  margin-left: -50%;
+  margin-top: -50%;
+  pointer-events: none;
+}
+
+// Overlay that masks the area outside the crop zone
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+// The visible crop frame with teal border
+.crop-frame {
+  width: 280px;
+  height: 280px;
+  border: 6px solid var(--teal-500);
+  border-radius: 4px;
+  // Create the mask effect using box-shadow (light overlay outside crop area)
+  box-shadow:
+    0 0 0 9999px rgba(255, 255, 255, 0.7),
+    inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.preview-loading {
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--gray-100);
+  border-radius: 8px;
+  color: var(--gray-500);
+}
+
+// Controls Groups
+.controls-group {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+
+  legend {
+    font-weight: 600;
+    padding: 0 0.5rem;
+    color: var(--gray-700);
+  }
+}
+
+// Position Controls
+.position-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.position-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.position-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 50px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background-color: var(--gray-50);
+    border-color: var(--teal-400);
+  }
+
+  &:focus {
+    outline: 2px solid var(--teal-500);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    background-color: var(--gray-100);
+  }
+
+  span[aria-hidden="true"] {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .button-label {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+  }
+
+  &--center {
+    background-color: var(--teal-50);
+    border-color: var(--teal-300);
+
+    &:hover {
+      background-color: var(--teal-100);
+    }
+  }
+}
+
+// Zoom Controls
+.zoom-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.zoom-label {
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.zoom-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--gray-200);
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--teal-600);
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--teal-700);
+    }
+  }
+
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--teal-600);
+    cursor: pointer;
+    border: none;
+  }
+
+  &:focus {
+    outline: 2px solid var(--teal-500);
+    outline-offset: 2px;
+  }
+}
+
+// Action Buttons
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}

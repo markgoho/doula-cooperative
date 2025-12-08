@@ -202,6 +202,18 @@ describe('Membership', () => {
   });
 
   describe('claimable profile banner', () => {
+    it('should show error message when claimable profile fails to load', async () => {
+      await setup({
+        isAuthenticated: true,
+        claimableProfileError: new Error('Failed to load profile'),
+      });
+
+      expect(await screen.findByText('Unable to Load Profile Information')).toBeVisible();
+      expect(
+        screen.getByText(/We encountered an error while loading your profile information/),
+      ).toBeVisible();
+    });
+
     it('should not show claim banner when no claimable profile exists', async () => {
       await setup({
         isAuthenticated: true,
@@ -383,6 +395,7 @@ interface SetupOptions {
   hasUserDocument?: boolean;
   userDocument?: Partial<Member>;
   claimableProfileData?: UnclaimedProfile;
+  claimableProfileError?: Error;
   signOutImplementation?: () => Promise<void>;
   claimProfileImplementation?: () => Promise<void>;
 }
@@ -396,6 +409,7 @@ async function setup(options: SetupOptions = {}) {
     hasUserDocument = true,
     userDocument,
     claimableProfileData,
+    claimableProfileError,
     signOutImplementation = vi.fn().mockResolvedValue(undefined),
     claimProfileImplementation = vi.fn().mockResolvedValue(undefined),
   } = options;
@@ -423,9 +437,13 @@ async function setup(options: SetupOptions = {}) {
       }
     : undefined;
 
+  const getClaimableProfileDataMock = claimableProfileError
+    ? vi.fn().mockRejectedValue(claimableProfileError)
+    : vi.fn().mockResolvedValue(claimableProfileData);
+
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
-    getClaimableProfileData: vi.fn().mockResolvedValue(claimableProfileData),
+    getClaimableProfileData: getClaimableProfileDataMock,
   };
 
   await render(Membership, {

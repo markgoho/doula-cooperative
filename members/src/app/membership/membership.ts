@@ -29,6 +29,13 @@ export class Membership {
   protected createProfileError = signal<string | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
+  protected userDocumentResource = this.membershipService.userDocumentResource;
+
+  // Error message for user document loading failures
+  protected userDocumentError = computed(() => {
+    const error = this.userDocumentResource.error();
+    return error ? 'Unable to load your account details. Please try refreshing the page.' : undefined;
+  });
 
   // Resource automatically loads when user changes
   protected claimableProfileResource = resource({
