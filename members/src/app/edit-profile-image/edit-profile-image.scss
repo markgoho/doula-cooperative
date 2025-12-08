@@ -7,7 +7,8 @@
 // Messages
 .message {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 1rem;
   border-radius: 8px;
@@ -15,6 +16,7 @@
 
   p {
     margin: 0;
+    flex: 1 1 100%;
   }
 
   &--error {
@@ -28,6 +30,12 @@
     border: 1px solid #86efac;
     color: #166534;
   }
+}
+
+.message-note {
+  font-size: 0.875rem;
+  opacity: 0.85;
+  margin-top: 0.5rem !important;
 }
 
 .message-dismiss {

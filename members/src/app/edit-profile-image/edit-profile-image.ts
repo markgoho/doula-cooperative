@@ -108,21 +108,40 @@ export class EditProfileImage {
     this.editorState.set('cropping');
   }
 
-  protected onCropConfirmed(result: CropResult): void {
+  protected async onCropConfirmed(result: CropResult): Promise<void> {
     this.editorState.set('uploading');
     this.errorMessage.set(undefined);
 
-    this.profileService
-      .uploadProfileImage(result.file, result.cropData)
-      .then(() => {
-        this.successMessage.set('Profile image updated successfully!');
-        this.editorState.set('viewing');
-        this.selectedFile.set(undefined);
-      })
-      .catch((error: unknown) => {
-        this.errorMessage.set(error instanceof Error ? error.message : 'Upload failed. Please try again.');
-        this.editorState.set('viewing');
+    try {
+      // Generate a preview URL from the file for optimistic display
+      const previewUrl = await this.fileToDataUrl(result.file);
+
+      await this.profileService.uploadProfileImage(result.file, result.cropData, previewUrl);
+
+      this.successMessage.set('Profile image updated successfully!');
+      this.editorState.set('viewing');
+      this.selectedFile.set(undefined);
+    } catch (error: unknown) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Upload failed. Please try again.');
+      this.editorState.set('viewing');
+    }
+  }
+
+  /**
+   * Convert a file to a data URL for optimistic display preview.
+   */
+  private fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        resolve(reader.result as string);
       });
+      reader.addEventListener('error', () => {
+        console.error('FileReader error', { error: reader.error });
+        reject(new Error(`Failed to read file: ${reader.error?.message || 'Unknown error'}`));
+      });
+      reader.readAsDataURL(file);
+    });
   }
 
   protected onCropCancelled(): void {

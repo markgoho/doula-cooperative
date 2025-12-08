@@ -98,10 +98,14 @@ function setupGitHubMock({
   markdownContent = "# Test Profile\n\nThis is a test profile.",
   imageExists = true,
   shouldThrowError = false,
+  avifExists = true,
+  jpegExists = false,
 }: {
   markdownContent?: string;
   imageExists?: boolean;
   shouldThrowError?: boolean;
+  avifExists?: boolean;
+  jpegExists?: boolean;
 } = {}) {
   mockGetContent.mockImplementation(
     ({ path }: { owner: string; repo: string; path: string }) => {
@@ -109,12 +113,24 @@ function setupGitHubMock({
         throw new Error("GitHub API error");
       }
 
-      // Check if this is an image request
+      // Check if this is an AVIF image request
       if (path.endsWith(".avif")) {
-        if (imageExists) {
+        if (imageExists && avifExists) {
           return {
             data: {
-              content: Buffer.from("fake-image-data").toString("base64"),
+              content: Buffer.from("fake-avif-image-data").toString("base64"),
+            },
+          };
+        }
+        throw new Error("Not Found");
+      }
+
+      // Check if this is a JPEG image request
+      if (path.endsWith(".jpg")) {
+        if (imageExists && jpegExists) {
+          return {
+            data: {
+              content: Buffer.from("fake-jpeg-image-data").toString("base64"),
             },
           };
         }
@@ -504,6 +520,151 @@ describe("readProfile", () => {
         owner: "markgoho",
         repo: "doula-cooperative",
       }),
+    );
+
+    await cleanupReadProfile();
+  });
+
+  // JPEG fallback tests
+  it("should fall back to JPEG when AVIF does not exist", async () => {
+    // Arrange
+    const { testUid, testEmail, slug, wrappedReadProfile, firestore } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    // Mock: AVIF doesn't exist, but JPEG does
+    setupGitHubMock({ imageExists: true, avifExists: false, jpegExists: true });
+
+    // Act
+    const result = await wrappedReadProfile(
+      createMockCallableRequest({ uid: testUid }),
+    );
+
+    // Assert
+    expect(result.image).toBeDefined();
+    expect(result.image).toContain(".jpg");
+    expect(result.image).not.toContain(".avif");
+
+    // Verify both paths were tried
+    expect(mockGetContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: `hugo/content/doulas/${slug}/${slug}-profile-600.avif`,
+      }),
+    );
+    expect(mockGetContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: `hugo/content/doulas/${slug}/${slug}-profile.jpg`,
+      }),
+    );
+
+    await cleanupReadProfile();
+  });
+
+  it("should prefer AVIF over JPEG when both exist", async () => {
+    // Arrange
+    const { testUid, testEmail, slug, wrappedReadProfile, firestore } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    // Mock: Both AVIF and JPEG exist
+    setupGitHubMock({ imageExists: true, avifExists: true, jpegExists: true });
+
+    // Act
+    const result = await wrappedReadProfile(
+      createMockCallableRequest({ uid: testUid }),
+    );
+
+    // Assert
+    expect(result.image).toBeDefined();
+    expect(result.image).toContain(".avif");
+    expect(result.image).not.toContain(".jpg");
+
+    // Verify AVIF was tried first and returned immediately
+    expect(mockGetContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: `hugo/content/doulas/${slug}/${slug}-profile-600.avif`,
+      }),
+    );
+
+    await cleanupReadProfile();
+  });
+
+  it("should return undefined image when both AVIF and JPEG are missing", async () => {
+    // Arrange
+    const { testUid, testEmail, slug, wrappedReadProfile, firestore } = setup();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    // Mock: Neither AVIF nor JPEG exist
+    setupGitHubMock({
+      imageExists: false,
+      avifExists: false,
+      jpegExists: false,
+    });
+
+    // Act
+    const result = await wrappedReadProfile(
+      createMockCallableRequest({ uid: testUid }),
+    );
+
+    // Assert
+    expect(result.image).toBeUndefined();
+
+    // Verify both paths were tried
+    expect(mockGetContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: `hugo/content/doulas/${slug}/${slug}-profile-600.avif`,
+      }),
+    );
+    expect(mockGetContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: `hugo/content/doulas/${slug}/${slug}-profile.jpg`,
+      }),
+    );
+
+    await cleanupReadProfile();
+  });
+
+  it("should construct correct GitHub raw URL for JPEG fallback", async () => {
+    // Arrange
+    const customSlug = "sarah-smith-doula";
+    const { testUid, testEmail, wrappedReadProfile, firestore } = setup({
+      slug: customSlug,
+    });
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug: customSlug,
+    });
+
+    // Mock: Only JPEG exists
+    setupGitHubMock({ imageExists: true, avifExists: false, jpegExists: true });
+
+    // Act
+    const result = await wrappedReadProfile(
+      createMockCallableRequest({ uid: testUid }),
+    );
+
+    // Assert
+    expect(result.image).toBe(
+      `https://raw.githubusercontent.com/markgoho/doula-cooperative/refs/heads/trunk/hugo/content/doulas/${customSlug}/${customSlug}-profile.jpg`,
     );
 
     await cleanupReadProfile();

@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, resource } from '@angular/core';
+import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { load } from 'js-yaml';
 import { type CropData } from '../types/crop-data';
@@ -15,12 +15,34 @@ interface UploadProfileImageRequest {
   cropData: CropData;
 }
 
+/** Optimistic state for image uploads - stores the preview URL */
+interface OptimisticImageUpload {
+  url: string;
+  slug: string;
+}
+
+/** Optimistic state for image deletions */
+interface OptimisticImageDelete {
+  deleted: true;
+  slug: string;
+}
+
+type OptimisticImageState = OptimisticImageUpload | OptimisticImageDelete | undefined;
+
+const OPTIMISTIC_IMAGE_KEY = 'optimisticProfileImage';
+
 @Injectable({
   providedIn: 'root',
 })
 export class ProfileService {
   private functions = inject(Functions);
   private membershipService = inject(MembershipService);
+
+  /**
+   * Optimistic image state - stores preview URL after upload or deleted flag after delete.
+   * Persisted to localStorage for cross-refresh persistence, auto-cleared when backend catches up.
+   */
+  private readonly optimisticImage = signal<OptimisticImageState>(this.loadOptimisticState());
 
   // Resource automatically loads profile based on membership status
   readonly profileResource = resource({
@@ -32,22 +54,54 @@ export class ProfileService {
     loader: async () => {
       const result = await this.fetchProfileFromServer();
       const profileData = this.parseProfileContent(result.content);
+      const userSlug = this.membershipService.userDocument()?.slug;
 
       // Use the image URL directly from the backend
       if (profileData && result.image) {
         profileData.image = result.image;
+
+        // Backend has image - clear optimistic upload state only if it's for the current user
+        // This prevents clearing state when viewing a different user's profile
+        const optimistic = this.optimisticImage();
+        if (optimistic && 'url' in optimistic && optimistic.slug === userSlug) {
+          this.saveOptimisticState(undefined);
+        }
+      } else if (profileData && !result.image) {
+        // Backend confirms no image - clear optimistic delete state only if it's for the current user
+        // This prevents clearing state when viewing a different user's profile
+        const optimistic = this.optimisticImage();
+        if (optimistic && 'deleted' in optimistic && optimistic.slug === userSlug) {
+          this.saveOptimisticState(undefined);
+        }
       }
 
       return profileData;
     },
   });
 
-  readonly profile = computed(() => {
-    if (this.profileResource.hasValue()) {
-      return this.profileResource.value();
+  /**
+   * Computed profile that merges optimistic image state with server data.
+   * Optimistic state takes precedence until the backend catches up.
+   */
+  readonly profile = computed((): ProfileData | undefined => {
+    const serverProfile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
+    if (!serverProfile) return undefined;
+
+    const optimistic = this.optimisticImage();
+    const userSlug = this.membershipService.userDocument()?.slug;
+
+    // Only apply optimistic state if it matches current user's slug
+    if (optimistic && optimistic.slug === userSlug) {
+      if ('deleted' in optimistic) {
+        // Remove the image for delete state
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { image: _, ...profileWithoutImage } = serverProfile;
+        return profileWithoutImage as ProfileData;
+      }
+      return { ...serverProfile, image: optimistic.url };
     }
 
-    return;
+    return serverProfile;
   });
 
   async updateProfile(data: ProfileData): Promise<void> {
@@ -213,8 +267,11 @@ export class ProfileService {
   /**
    * Upload a profile image with crop data.
    * The server will apply the crop and save the image.
+   * @param file - The image file to upload
+   * @param cropData - Crop coordinates and zoom
+   * @param previewUrl - Optional preview URL for optimistic display
    */
-  async uploadProfileImage(file: File, cropData: CropData): Promise<void> {
+  async uploadProfileImage(file: File, cropData: CropData, previewUrl?: string): Promise<void> {
     const uploadCallable = httpsCallable<UploadProfileImageRequest, { success: boolean }>(
       this.functions,
       'uploadProfileImage',
@@ -230,7 +287,13 @@ export class ProfileService {
         cropData,
       });
 
-      // Reload profile to get new image URL
+      // Set optimistic state for immediate display
+      const slug = this.membershipService.userDocument()?.slug;
+      if (previewUrl && slug) {
+        this.saveOptimisticState({ url: previewUrl, slug });
+      }
+
+      // Reload profile - will auto-clear optimistic state when backend catches up
       this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile image upload failed:', {
@@ -277,7 +340,13 @@ export class ProfileService {
     try {
       await deleteCallable();
 
-      // Reload profile to clear image URL
+      // Set optimistic state to show image as deleted immediately
+      const slug = this.membershipService.userDocument()?.slug;
+      if (slug) {
+        this.saveOptimisticState({ deleted: true, slug });
+      }
+
+      // Reload profile - will auto-clear optimistic state when backend catches up
       this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile image delete failed:', {
@@ -319,5 +388,70 @@ export class ProfileService {
       });
       reader.readAsDataURL(file);
     });
+  }
+
+  /**
+   * Load optimistic image state from localStorage.
+   * Called once during service initialization.
+   */
+  private loadOptimisticState(): OptimisticImageState {
+    try {
+      const stored = localStorage.getItem(OPTIMISTIC_IMAGE_KEY);
+      if (!stored) return undefined;
+
+      const parsed: unknown = JSON.parse(stored);
+
+      // Validate structure before returning
+      if (!this.isValidOptimisticState(parsed)) {
+        console.warn('Invalid optimistic state in localStorage, clearing', { parsed });
+        localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
+        return undefined;
+      }
+
+      return parsed as OptimisticImageState;
+    } catch (error) {
+      console.error('Failed to load optimistic state, clearing', { error });
+      localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
+      return undefined;
+    }
+  }
+
+  /**
+   * Validate that an unknown value matches the OptimisticImageState structure.
+   */
+  private isValidOptimisticState(value: unknown): value is OptimisticImageState {
+    if (!value || typeof value !== 'object') return false;
+    if (!('slug' in value) || typeof value.slug !== 'string') return false;
+
+    // Check for upload state (has url)
+    if ('url' in value) {
+      return typeof value.url === 'string';
+    }
+
+    // Check for delete state (has deleted)
+    if ('deleted' in value) {
+      return value.deleted === true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Save optimistic image state to both signal and localStorage.
+   * Pass null to clear the state.
+   * If localStorage fails (quota exceeded, private browsing), state is still set in memory.
+   */
+  private saveOptimisticState(state: OptimisticImageState): void {
+    this.optimisticImage.set(state);
+    try {
+      if (state) {
+        localStorage.setItem(OPTIMISTIC_IMAGE_KEY, JSON.stringify(state));
+      } else {
+        localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
+      }
+    } catch (error) {
+      console.warn('Failed to persist optimistic state to localStorage', { error });
+      // State is still set in memory, just won't persist across page refreshes
+    }
   }
 }

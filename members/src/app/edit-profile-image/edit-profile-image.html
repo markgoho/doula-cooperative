@@ -1,13 +1,13 @@
 <h1>Edit Profile Image</h1>
 
 @let profileResource = profileService.profileResource;
+@let profile = profileService.profile();
 
 @if (profileResource.isLoading()) {
   <div class="loading-message">
     <p>Loading your profile...</p>
   </div>
-} @else if (profileResource.hasValue()) {
-  @let profile = profileResource.value();
+} @else if (profile) {
   <div class="image-editor-container">
     <!-- Error Message -->
     @if (errorMessage()) {
@@ -23,6 +23,7 @@
     @if (successMessage()) {
       <div class="message message--success" role="status">
         <p>{{ successMessage() }}</p>
+        <p class="message-note">You'll receive an email when your update is published to your public profile.</p>
         <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
           ×
         </button>

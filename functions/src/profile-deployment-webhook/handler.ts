@@ -96,9 +96,12 @@ export async function handler(
     return;
   }
 
-  // Check if commit message indicates a profile update (not creation)
-  if (!commitMessage.startsWith("Update profile for ")) {
-    logger.info("Not a profile update commit, skipping notification", {
+  // Check if commit message indicates a profile or image update (not creation)
+  const isProfileUpdate = commitMessage.startsWith("Update profile for ");
+  const isImageUpdate = commitMessage.startsWith("Update profile image for ");
+
+  if (!isProfileUpdate && !isImageUpdate) {
+    logger.info("Not a profile-related commit, skipping notification", {
       commitMessage,
       commitSha,
       slug,
@@ -106,7 +109,7 @@ export async function handler(
     response.status(200).send({
       received: true,
       notified: false,
-      reason: "not_profile_update",
+      reason: "not_profile_related",
     });
     return;
   }
@@ -168,25 +171,38 @@ export async function handler(
   // Construct profile URL
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
 
+  // Customize email content based on update type
+  const subject = isImageUpdate
+    ? "Your profile photo has been updated"
+    : "Your Doula Cooperative profile has been updated";
+
+  const heading = isImageUpdate
+    ? "Your profile photo has been updated!"
+    : "Your profile has been updated!";
+
+  const description = isImageUpdate
+    ? "Your profile photo on the Rochester Doula Cooperative website has been successfully updated and is now live."
+    : "Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.";
+
   // Construct email
   const emailMessage: MailgunMessageData = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: memberData.email,
-    subject: "Your Doula Cooperative profile has been updated",
+    subject,
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile Updated</title>
+  <title>${heading}</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
-    <h2 style="color: #2c5282; margin-top: 0;">Your profile has been updated!</h2>
+    <h2 style="color: #2c5282; margin-top: 0;">${heading}</h2>
 
     <p>Hello${memberData.name ? ` ${memberData.name}` : ""},</p>
 
-    <p>Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.</p>
+    <p>${description}</p>
 
     <p style="text-align: center; margin: 30px 0;">
       <a href="${profileUrl}"

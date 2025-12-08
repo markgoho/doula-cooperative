@@ -328,6 +328,23 @@ describe('EditProfileImage', () => {
 
       expect(await screen.findByText(/network error/i)).toBeVisible();
     });
+
+    it('should show email notification message after successful delete', async () => {
+      const { user } = await setup({
+        profileData: {
+          title: 'Jane Doe',
+          bio: 'Experienced doula',
+          image: 'https://example.com/profile.jpg',
+        },
+      });
+
+      await user.click(screen.getByRole('button', { name: /remove photo/i }));
+      await user.click(screen.getByRole('button', { name: /^remove photo$/i }));
+
+      expect(
+        await screen.findByText(/you'll receive an email when your update is published/i),
+      ).toBeVisible();
+    });
   });
 });
 
@@ -354,6 +371,8 @@ async function setup({ profileData, uploadError, deleteError, slug }: SetupOptio
       value: signal(profileData),
       error: signal(undefined),
     },
+    // profile() computed that includes optimistic state (returns the same as profileResource.value() in tests)
+    profile: signal(profileData),
     uploadProfileImage: uploadMock,
     deleteProfileImage: deleteMock,
   } as unknown as ProfileService;

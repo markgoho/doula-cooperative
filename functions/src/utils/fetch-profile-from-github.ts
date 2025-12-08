@@ -12,6 +12,54 @@ export interface ProfileFromGitHub {
 }
 
 /**
+ * Attempts to find a profile image, with fallback from AVIF to JPEG.
+ * This ensures users see their image immediately after upload (JPEG),
+ * before the AVIF conversion workflow completes.
+ */
+async function findProfileImage(
+  slug: string,
+  octokit: Octokit,
+): Promise<string | undefined> {
+  const baseDirectory = `hugo/content/doulas/${slug}`;
+  const baseUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/refs/heads/${GITHUB_BRANCH}`;
+
+  // Image candidates in priority order: optimized AVIF first, then raw JPEG
+  const imageCandidates = [
+    { path: `${baseDirectory}/${slug}-profile-600.avif`, description: "optimized AVIF" },
+    { path: `${baseDirectory}/${slug}-profile.jpg`, description: "raw JPEG" },
+  ];
+
+  for (const candidate of imageCandidates) {
+    try {
+      const { data: imageData } = await octokit.rest.repos.getContent({
+        owner: GITHUB_OWNER,
+        repo: GITHUB_REPO,
+        path: candidate.path,
+      });
+
+      if ("content" in imageData) {
+        logger.info(`Found ${candidate.description} for slug ${slug}`);
+        return `${baseUrl}/${candidate.path}`;
+      }
+    } catch (error) {
+      // Only treat 404 as "not found", log other errors for debugging
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes("Not Found")) {
+        logger.warn(`Unexpected error checking for ${candidate.description}`, {
+          error: errorMessage,
+          slug,
+          path: candidate.path,
+        });
+      }
+      // Continue to next candidate
+    }
+  }
+
+  logger.info(`No profile image found for slug ${slug}`);
+  return undefined;
+}
+
+/**
  * Fetches a profile's markdown content and image URL from GitHub.
  * This helper is used by both user-facing and admin profile read functions.
  *
@@ -41,28 +89,10 @@ export async function fetchProfileFromGitHub(
   // Decode the content
   const content = Buffer.from(fileData.content, "base64").toString("utf8");
 
-  // Check if profile image exists
-  let image: string | undefined;
-
-  // Use the 600px variant as it's the standard size for profile display
-  const imagePath = `hugo/content/doulas/${slug}/${slug}-profile-600.avif`;
-  const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/refs/heads/${GITHUB_BRANCH}/${imagePath}`;
-
-  try {
-    const { data: imageData } = await octokit.rest.repos.getContent({
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO,
-      path: imagePath,
-    });
-
-    if ("content" in imageData) {
-      // Return the full GitHub URL for the image
-      image = imageUrl;
-    }
-  } catch {
-    // Image doesn't exist, which is fine - continue without it
-    logger.info(`Profile image not found for slug ${slug}`);
-  }
+  // Check if profile image exists, with fallback chain:
+  // 1. Try optimized AVIF (600px) - preferred
+  // 2. Fall back to raw JPEG - available immediately after upload, before AVIF conversion
+  const image = await findProfileImage(slug, octokit);
 
   return {
     content,

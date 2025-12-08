@@ -344,6 +344,16 @@ main h1 {
   border-radius: var(--border-radius-md);
   border-left: 4px solid var(--teal-500);
   font-size: var(--step-1);
+
+  p {
+    margin: 0;
+  }
+}
+
+.message-note {
+  font-size: 0.875em;
+  opacity: 0.85;
+  margin-top: var(--space-xs) !important;
 }
 
 /* Form Styles from Hugo App */
