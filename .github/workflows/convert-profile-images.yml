@@ -40,25 +40,28 @@ jobs:
       - name: Find changed profile images
         id: changed
         run: |
-          # Get list of changed profile image files
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- \
+          # Get list of changed profile image files with status (A=added, M=modified, D=deleted)
+          # Filter out deletions - only process added or modified images
+          CHANGED=$(git diff --name-status HEAD~1 HEAD -- \
             "hugo/content/doulas/**/*-profile.jpg" \
             "hugo/content/doulas/**/*-profile.jpeg" \
             "hugo/content/doulas/**/*-profile.png" \
-            "hugo/content/doulas/**/*-profile.webp" 2>/dev/null || echo "")
+            "hugo/content/doulas/**/*-profile.webp" 2>/dev/null | \
+            grep -E "^(A|M)" | \
+            cut -f2 || echo "")
 
           if [ -z "$CHANGED" ]; then
-            echo "No profile images changed"
+            echo "No profile images added or modified (deletions are ignored)"
             echo "skip=true" >> $GITHUB_OUTPUT
           else
-            echo "Profile images changed:"
+            echo "Profile images added or modified:"
             echo "$CHANGED"
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Convert images to AVIF
         if: steps.changed.outputs.skip != 'true'
-        run: bun run convert-images-to-avif.ts --force
+        run: bun run convert-images-to-avif.ts
 
       - name: Check for generated files
         if: steps.changed.outputs.skip != 'true'
