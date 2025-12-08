@@ -6,6 +6,7 @@ import {
   MEMBERS_COLLECTION,
   type MemberDocument,
 } from "../collections/index.js";
+import { fetchProfileFromGitHub } from "../utils/fetch-profile-from-github.js";
 import { verifyAdmin } from "./verify-admin.js";
 
 export interface AdminReadProfileRequest {
@@ -65,8 +66,6 @@ export async function handleAdminReadMemberProfile(
     );
   }
 
-  const filePath = `hugo/content/doulas/${slug}/index.md`;
-
   // 3. Authenticate as the GitHub App
   const app = new App({
     appId: GITHUB_APP_ID,
@@ -76,49 +75,11 @@ export async function handleAdminReadMemberProfile(
     Number.parseInt(GITHUB_INSTALLATION_ID),
   );
 
-  // 4. Use the GitHub API to fetch the file content
-  const owner = "markgoho";
-  const repo = "doula-cooperative";
-
+  // 4. Fetch profile content and image from GitHub
   try {
-    // Fetch the markdown content
-    const { data: fileData } = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: filePath,
-    });
+    const { content, image } = await fetchProfileFromGitHub(slug, octokit);
 
-    // Safety check to ensure we got a file and not a directory
-    if (!("content" in fileData)) {
-      throw new Error("Path did not resolve to a file.");
-    }
-
-    // 5. Decode the content
-    const content = Buffer.from(fileData.content, "base64").toString("utf8");
-
-    // Construct the full GitHub URL for the image
-    let image: string | undefined;
-
-    const imagePath = `hugo/content/doulas/${slug}/${slug}.avif`;
-    const imageUrl = `https://raw.githubusercontent.com/markgoho/doula-cooperative/refs/heads/trunk/${imagePath}`;
-
-    // Check if image exists
-    try {
-      const { data: imageData } = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path: imagePath,
-      });
-
-      if ("content" in imageData) {
-        image = imageUrl;
-      }
-    } catch {
-      // Image doesn't exist, which is fine
-      logger.info(`Profile image not found for user ${slug}`);
-    }
-
-    logger.info(`Admin successfully read profile ${filePath} for user ${uid}`);
+    logger.info(`Admin successfully read profile for user ${uid} (slug: ${slug})`);
     return {
       content,
       slug,

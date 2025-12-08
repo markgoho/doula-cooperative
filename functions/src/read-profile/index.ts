@@ -6,6 +6,7 @@ import {
   MEMBERS_COLLECTION,
   type MemberDocument,
 } from "../collections/index.js";
+import { fetchProfileFromGitHub } from "../utils/fetch-profile-from-github.js";
 
 export async function handleReadProfile(
   request: CallableRequest,
@@ -59,8 +60,6 @@ export async function handleReadProfile(
     );
   }
 
-  const filePath = `hugo/content/doulas/${slug}/index.md`;
-
   // 3. Authenticate as the GitHub App
   const app = new App({
     appId: GITHUB_APP_ID,
@@ -70,50 +69,11 @@ export async function handleReadProfile(
     Number.parseInt(GITHUB_INSTALLATION_ID),
   );
 
-  // 4. Use the GitHub API to fetch the file content
-  const owner = "markgoho"; // <-- IMPORTANT: Change this
-  const repo = "doula-cooperative"; // <-- IMPORTANT: Change this
-
+  // 4. Fetch profile content and image from GitHub
   try {
-    // Fetch the markdown content
-    const { data: fileData } = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: filePath,
-    });
+    const { content, image } = await fetchProfileFromGitHub(slug, octokit);
 
-    // Safety check to ensure we got a file and not a directory
-    if (!("content" in fileData)) {
-      throw new Error("Path did not resolve to a file.");
-    }
-
-    // 5. Decode the content and return it
-    const content = Buffer.from(fileData.content, "base64").toString("utf8");
-
-    // Construct the full GitHub URL for the image
-    let image: string | undefined;
-
-    const imagePath = `hugo/content/doulas/${slug}/${slug}.avif`;
-    const imageUrl = `https://raw.githubusercontent.com/markgoho/doula-cooperative/refs/heads/trunk/${imagePath}`;
-
-    // Check if image exists by making a request to the URL
-    try {
-      const { data: imageData } = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path: imagePath,
-      });
-
-      if ("content" in imageData) {
-        // Return the full GitHub URL for the image
-        image = imageUrl;
-      }
-    } catch {
-      // Image doesn't exist, which is fine - continue without it
-      logger.info(`Profile image not found for user ${slug}`);
-    }
-
-    logger.info(`Successfully read ${filePath} for user ${uid}`);
+    logger.info(`Successfully read profile for user ${uid} (slug: ${slug})`);
     return { content, image };
   } catch (error) {
     logger.error("Error interacting with GitHub API", error);

@@ -372,7 +372,7 @@ describe("readProfile", () => {
     // Assert
     expect(mockGetContent).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: `hugo/content/doulas/${slug}/${slug}.avif`,
+        path: `hugo/content/doulas/${slug}/${slug}-profile-600.avif`,
       }),
     );
 
