@@ -96,11 +96,12 @@ export async function handler(
     return;
   }
 
-  // Check if commit message indicates a profile or image update (not creation)
+  // Check if commit message indicates a profile or image update/deletion (not creation)
   const isProfileUpdate = commitMessage.startsWith("Update profile for ");
   const isImageUpdate = commitMessage.startsWith("Update profile image for ");
+  const isImageDeletion = commitMessage.startsWith("Delete all profile images for ");
 
-  if (!isProfileUpdate && !isImageUpdate) {
+  if (!isProfileUpdate && !isImageUpdate && !isImageDeletion) {
     logger.info("Not a profile-related commit, skipping notification", {
       commitMessage,
       commitSha,
@@ -172,17 +173,23 @@ export async function handler(
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
 
   // Customize email content based on update type
-  const subject = isImageUpdate
-    ? "Your profile photo has been updated"
-    : "Your Doula Cooperative profile has been updated";
+  let subject: string;
+  let heading: string;
+  let description: string;
 
-  const heading = isImageUpdate
-    ? "Your profile photo has been updated!"
-    : "Your profile has been updated!";
-
-  const description = isImageUpdate
-    ? "Your profile photo on the Rochester Doula Cooperative website has been successfully updated and is now live."
-    : "Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.";
+  if (isImageDeletion) {
+    subject = "Your profile photo has been removed";
+    heading = "Your profile photo has been removed";
+    description = "Your profile photo on the Rochester Doula Cooperative website has been successfully removed. Your profile is still active and visible without a photo.";
+  } else if (isImageUpdate) {
+    subject = "Your profile photo has been updated";
+    heading = "Your profile photo has been updated!";
+    description = "Your profile photo on the Rochester Doula Cooperative website has been successfully updated and is now live.";
+  } else {
+    subject = "Your Doula Cooperative profile has been updated";
+    heading = "Your profile has been updated!";
+    description = "Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.";
+  }
 
   // Construct email
   const emailMessage: MailgunMessageData = {
