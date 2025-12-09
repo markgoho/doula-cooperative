@@ -439,13 +439,19 @@ export class ProfileService {
   /**
    * Save optimistic image state to both signal and localStorage.
    * Pass null to clear the state.
-   * If localStorage fails (quota exceeded, private browsing), state is still set in memory.
+   * Image URLs with data URIs are not persisted to avoid quota errors.
    */
   private saveOptimisticState(state: OptimisticImageState): void {
     this.optimisticImage.set(state);
     try {
       if (state) {
-        localStorage.setItem(OPTIMISTIC_IMAGE_KEY, JSON.stringify(state));
+        // Don't persist image URLs with base64 data to localStorage (can exceed quota)
+        // They only need to exist in memory until the profile resource reloads
+        const shouldPersist = !('url' in state) || !state.url.startsWith('data:');
+
+        if (shouldPersist) {
+          localStorage.setItem(OPTIMISTIC_IMAGE_KEY, JSON.stringify(state));
+        }
       } else {
         localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
       }
