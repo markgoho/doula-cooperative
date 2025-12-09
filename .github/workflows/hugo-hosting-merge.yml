@@ -43,13 +43,8 @@ jobs:
           COMMIT_SHA=$(git rev-parse HEAD)
 
           # Get changed profile files (both index.md and profile images)
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- \
-            "hugo/content/doulas/*/index.md" \
-            "hugo/content/doulas/**/*-profile.jpg" \
-            "hugo/content/doulas/**/*-profile.jpeg" \
-            "hugo/content/doulas/**/*-profile.png" \
-            "hugo/content/doulas/**/*-profile.webp" \
-            "hugo/content/doulas/**/*-profile.avif" \
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | \
+            grep -E "hugo/content/doulas/[^/]+/(.*-profile.*\.(jpg|jpeg|png|webp|avif)|index\.md)$" \
             2>/dev/null || echo "")
 
           if [ -z "$CHANGED_FILES" ]; then
