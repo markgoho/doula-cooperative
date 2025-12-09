@@ -24,6 +24,102 @@ import { addNewsletterSubscriber } from "../utils/mailerlite.js";
 import { calculateExpirationDate } from "../utils/membership-dates.js";
 import { sendEmail } from "../utils/send-email.js";
 
+/**
+ * Creates HTML for MailerLite failure notification email
+ * @param customerEmail - Email of the customer
+ * @param customerName - Name of the customer
+ * @param uid - User ID
+ * @param subscriptionStart - Subscription start timestamp
+ * @param membershipExpiresAt - Membership expiration timestamp
+ * @param errorMessage - Error message from MailerLite
+ * @returns HTML string for the email
+ */
+function createMailerLiteFailureEmailHtml(
+  customerEmail: string,
+  customerName: string | null | undefined,
+  uid: string,
+  subscriptionStart: Timestamp,
+  membershipExpiresAt: Timestamp,
+  errorMessage: string,
+): string {
+  return `
+    <h2>MailerLite Newsletter Signup Failed</h2>
+    <p>A new member completed payment but could not be added to the newsletter automatically.</p>
+
+    <h3>Member Details:</h3>
+    <ul>
+      <li><strong>Email:</strong> ${customerEmail}</li>
+      <li><strong>Name:</strong> ${customerName ?? "Not provided"}</li>
+      <li><strong>UID:</strong> ${uid}</li>
+      <li><strong>Subscription Start:</strong> ${subscriptionStart.toDate().toISOString()}</li>
+      <li><strong>Membership Expires:</strong> ${membershipExpiresAt.toDate().toISOString()}</li>
+    </ul>
+
+    <h3>Error Details:</h3>
+    <p>${errorMessage}</p>
+
+    <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
+  `;
+}
+
+/**
+ * Sends notification email when MailerLite subscription fails
+ * @param parameters - Parameters for the notification email
+ */
+async function sendMailerLiteFailureNotification(parameters: {
+  customerEmail: string;
+  customerName: string | null | undefined;
+  userRecord: UserRecord;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
+  errorMessage: string;
+  mailgunApiKey: string;
+}): Promise<void> {
+  const {
+    customerEmail,
+    customerName,
+    userRecord,
+    subscriptionStart,
+    membershipExpiresAt,
+    errorMessage,
+    mailgunApiKey,
+  } = parameters;
+
+  try {
+    const notificationEmail: MailgunMessageData = {
+      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+      to: NEWSLETTER_EMAIL,
+      subject: "Action Required: Manual Newsletter Signup",
+      html: createMailerLiteFailureEmailHtml(
+        customerEmail,
+        customerName,
+        userRecord.uid,
+        subscriptionStart,
+        membershipExpiresAt,
+        errorMessage,
+      ),
+    };
+
+    await sendEmail(notificationEmail, mailgunApiKey);
+    logger.info("Sent MailerLite failure notification email", {
+      uid: userRecord.uid,
+      email: customerEmail,
+    });
+  } catch (emailError) {
+    logger.error("Failed to send MailerLite failure notification", {
+      error: emailError,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED,
+      uid: userRecord.uid,
+      email: customerEmail,
+      severity: "CRITICAL",
+      actionRequired:
+        "Check Sentry alerts immediately - newsletter signup failed and notification failed",
+    });
+    // Don't throw - we don't want to fail the webhook because email notification failed
+    // But this is logged as CRITICAL so it will be tracked in Sentry
+  }
+}
+
 function generateSecurePassword(): string {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -364,16 +460,21 @@ export async function handler(request: Request, response: Response) {
     }
 
     // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
+    // This is wrapped in try-catch because newsletter subscription failure should not
+    // block member account creation. The member's Stripe payment has succeeded and their
+    // Firestore record has been created. If MailerLite fails, we send a notification
+    // email to newsletter@doulacooperative.com for manual follow-up.
     if (mailerliteApiKey) {
       try {
         const customerName = session.customer_details?.name;
-        const groupId = process.env["MAILERLITE_GROUP_ID"];
         await addNewsletterSubscriber({
           email: customerEmail,
           ...(customerName && { name: customerName }),
           subscriptionStart,
           membershipExpiresAt,
-          ...(groupId && { groupId }),
+          ...(process.env["MAILERLITE_GROUP_ID"] && {
+            groupId: process.env["MAILERLITE_GROUP_ID"],
+          }),
           apiKey: mailerliteApiKey,
         });
 
@@ -382,70 +483,124 @@ export async function handler(request: Request, response: Response) {
           email: customerEmail,
         });
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        // Only catch errors from MailerLite specifically
+        // Let all other errors (programmer errors, TypeScript errors) propagate
+        if (
+          !(
+            error instanceof Error &&
+            error.message.includes("Failed to add subscriber to MailerLite")
+          )
+        ) {
+          // This is not a MailerLite error - it's a programmer error or unexpected failure
+          logger.error("Unexpected error in newsletter subscription flow", {
+            error,
+            errorId: ERROR_IDS.STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+            uid: userRecord.uid,
+            email: customerEmail,
+            context: "This error suggests a bug in the newsletter integration code",
+          });
+          throw error; // Fail the webhook - this is not a MailerLite API issue
+        }
+
+        // This is a MailerLite API error - log and notify but don't fail webhook
+        const errorMessage = error.message;
+
+        // Extract specific error ID from error message by parsing the error
+        let specificErrorId: string = ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_FAILED;
+        const errorLower = errorMessage.toLowerCase();
+
+        if (
+          errorLower.includes("unauthorized") ||
+          errorLower.includes("authentication") ||
+          errorLower.includes("api key")
+        ) {
+          specificErrorId = ERROR_IDS.MAILERLITE_AUTH_FAILED;
+        } else if (
+          errorLower.includes("rate limit") ||
+          errorLower.includes("too many requests")
+        ) {
+          specificErrorId = ERROR_IDS.MAILERLITE_RATE_LIMITED;
+        } else if (
+          errorLower.includes("invalid") &&
+          errorLower.includes("email")
+        ) {
+          specificErrorId = ERROR_IDS.MAILERLITE_INVALID_EMAIL;
+        } else if (
+          errorLower.includes("network") ||
+          errorLower.includes("timeout") ||
+          errorLower.includes("econnrefused") ||
+          errorLower.includes("enotfound")
+        ) {
+          specificErrorId = ERROR_IDS.MAILERLITE_NETWORK_ERROR;
+        }
 
         logger.error("Failed to add subscriber to MailerLite", {
           error,
-          errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_FAILED,
+          errorId: specificErrorId,
           uid: userRecord.uid,
           email: customerEmail,
           actionRequired: "Manual newsletter signup needed",
         });
 
-        // Send notification email to newsletter admin
+        // Send notification email to newsletter admin (production only)
+        // This alerts the team to manually add the subscriber in MailerLite
         if (!process.env["FUNCTIONS_EMULATOR"] && mailgunApiKey) {
-          try {
-            const notificationEmail: MailgunMessageData = {
-              from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
-              to: NEWSLETTER_EMAIL,
-              subject: "Action Required: Manual Newsletter Signup",
-              html: `
-                <h2>MailerLite Newsletter Signup Failed</h2>
-                <p>A new member completed payment but could not be added to the newsletter automatically.</p>
-
-                <h3>Member Details:</h3>
-                <ul>
-                  <li><strong>Email:</strong> ${customerEmail}</li>
-                  <li><strong>Name:</strong> ${session.customer_details?.name ?? "Not provided"}</li>
-                  <li><strong>UID:</strong> ${userRecord.uid}</li>
-                  <li><strong>Subscription Start:</strong> ${subscriptionStart.toDate().toISOString()}</li>
-                  <li><strong>Membership Expires:</strong> ${membershipExpiresAt.toDate().toISOString()}</li>
-                </ul>
-
-                <h3>Error Details:</h3>
-                <p>${errorMessage}</p>
-
-                <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
-              `,
-            };
-
-            await sendEmail(notificationEmail, mailgunApiKey);
-            logger.info("Sent MailerLite failure notification email", {
-              uid: userRecord.uid,
-              email: customerEmail,
-            });
-          } catch (emailError) {
-            logger.error("Failed to send MailerLite failure notification", {
-              error: emailError,
-              errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED,
-              uid: userRecord.uid,
-              email: customerEmail,
-            });
-          }
+          await sendMailerLiteFailureNotification({
+            customerEmail,
+            customerName: session.customer_details?.name,
+            userRecord,
+            subscriptionStart,
+            membershipExpiresAt,
+            errorMessage,
+            mailgunApiKey,
+          });
         }
-        // Continue - account was created successfully, newsletter can be added manually
+        // Webhook continues - account creation succeeded
       }
     } else if (process.env["FUNCTIONS_EMULATOR"]) {
       logger.warn(
         "MAILERLITE_API_KEY not configured - emulator mode, skipping newsletter",
       );
     } else {
-      logger.warn("MAILERLITE_API_KEY not configured in production", {
+      // Production environment - MailerLite should be configured but isn't
+      logger.error("CRITICAL: MAILERLITE_API_KEY not configured in production", {
         errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOT_CONFIGURED,
         uid: userRecord.uid,
         email: customerEmail,
+        severity: "CRITICAL",
+        actionRequired:
+          "Configure MAILERLITE_API_KEY in Firebase Functions secrets immediately",
+        impact: "Users completing checkout will not be added to newsletter",
       });
+
+      // Send immediate notification to admin
+      if (mailgunApiKey) {
+        try {
+          const configAlert: MailgunMessageData = {
+            from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+            to: NEWSLETTER_EMAIL,
+            subject: "CRITICAL: MailerLite Not Configured",
+            html: `
+              <h2>CRITICAL: MailerLite API Key Not Configured</h2>
+              <p>A member just completed checkout but MailerLite is not configured in production.</p>
+              <h3>Member Details:</h3>
+              <ul>
+                <li><strong>Email:</strong> ${customerEmail}</li>
+                <li><strong>UID:</strong> ${userRecord.uid}</li>
+                <li><strong>Time:</strong> ${new Date().toISOString()}</li>
+              </ul>
+              <p><strong>Action Required:</strong> Configure MAILERLITE_API_KEY in Firebase Functions secrets immediately and manually add all affected members to the newsletter.</p>
+            `,
+          };
+          await sendEmail(configAlert, mailgunApiKey);
+        } catch (emailError) {
+          logger.error("Failed to send MailerLite configuration alert", {
+            error: emailError,
+            errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED,
+            uid: userRecord.uid,
+          });
+        }
+      }
     }
 
     // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)

@@ -16,6 +16,68 @@ interface MailerLiteClient {
 const MailerLite = (MailerLiteModule as unknown as { default: new (config: { api_key: string }) => MailerLiteClient }).default;
 
 /**
+ * Classifies MailerLite errors into specific error types
+ * @param error - The error to classify
+ * @returns Object containing errorId and retryable flag
+ */
+function classifyMailerLiteError(error: unknown): {
+  errorId: ErrorId;
+  retryable: boolean;
+} {
+  if (!(error instanceof Error)) {
+    return {
+      errorId: ERROR_IDS.MAILERLITE_GENERIC_ERROR,
+      retryable: false,
+    };
+  }
+
+  const errorMessage = error.message.toLowerCase();
+
+  // Check for invalid email specifically (requires both keywords)
+  if (errorMessage.includes("invalid") && errorMessage.includes("email")) {
+    return {
+      errorId: ERROR_IDS.MAILERLITE_INVALID_EMAIL,
+      retryable: false,
+    };
+  }
+
+  // Map error patterns to error types
+  const errorPatterns: {
+    patterns: string[];
+    errorId: ErrorId;
+    retryable: boolean;
+  }[] = [
+    {
+      patterns: ["unauthorized", "forbidden", "authentication", "api key"],
+      errorId: ERROR_IDS.MAILERLITE_AUTH_FAILED,
+      retryable: false,
+    },
+    {
+      patterns: ["rate limit", "too many requests"],
+      errorId: ERROR_IDS.MAILERLITE_RATE_LIMITED,
+      retryable: true,
+    },
+    {
+      patterns: ["timeout", "network", "econnrefused", "enotfound"],
+      errorId: ERROR_IDS.MAILERLITE_NETWORK_ERROR,
+      retryable: true,
+    },
+  ];
+
+  // Check other patterns
+  for (const { patterns, errorId, retryable } of errorPatterns) {
+    if (patterns.some(pattern => errorMessage.includes(pattern))) {
+      return { errorId, retryable };
+    }
+  }
+
+  return {
+    errorId: ERROR_IDS.MAILERLITE_GENERIC_ERROR,
+    retryable: false,
+  };
+}
+
+/**
  * Formats a Firebase Timestamp to MailerLite's required date format
  * @param timestamp - Firebase Timestamp to format
  * @returns Date string in format "yyyy-MM-dd HH:mm:ss"
@@ -62,18 +124,28 @@ export async function addNewsletterSubscriber({
     const formattedMembershipExpires =
       formatDateForMailerLite(membershipExpiresAt);
 
-    // Build subscriber parameters
+    // Build subscriber parameters with optional fields
+    const fields: Record<string, string> = {
+      subscription_start: formattedSubscriptionStart,
+      membership_expires: formattedMembershipExpires,
+    };
+
+    // Only add name if provided
+    if (name) {
+      fields["name"] = name;
+    }
+
     const subscriberParameters: CreateOrUpdateSubscriberParams = {
       email,
-      fields: {
-        ...(name && { name }),
-        subscription_start: formattedSubscriptionStart,
-        membership_expires: formattedMembershipExpires,
-      },
-      ...(groupId && { groups: [groupId] }),
+      fields,
       status: "active",
       subscribed_at: formatDateForMailerLite(subscriptionStart),
     };
+
+    // Only add groups if groupId is provided
+    if (groupId) {
+      subscriberParameters.groups = [groupId];
+    }
 
     await mailerlite.subscribers.createOrUpdate(subscriberParameters);
 
@@ -82,47 +154,30 @@ export async function addNewsletterSubscriber({
       hasGroupId: !!groupId,
     });
   } catch (error) {
-    // Parse MailerLite-specific errors
-    let specificErrorId: ErrorId = ERROR_IDS.MAILERLITE_GENERIC_ERROR;
-    let retryable = false;
+    const { errorId, retryable } = classifyMailerLiteError(error);
 
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-
-      if (
-        errorMessage.includes("unauthorized") ||
-        errorMessage.includes("forbidden") ||
-        errorMessage.includes("authentication") ||
-        errorMessage.includes("api key")
-      ) {
-        specificErrorId = ERROR_IDS.MAILERLITE_AUTH_FAILED;
-      } else if (
-        errorMessage.includes("rate limit") ||
-        errorMessage.includes("too many requests")
-      ) {
-        specificErrorId = ERROR_IDS.MAILERLITE_RATE_LIMITED;
-        retryable = true;
-      } else if (
-        errorMessage.includes("invalid") &&
-        errorMessage.includes("email")
-      ) {
-        specificErrorId = ERROR_IDS.MAILERLITE_INVALID_EMAIL;
-      } else if (
-        errorMessage.includes("timeout") ||
-        errorMessage.includes("network") ||
-        errorMessage.includes("econnrefused") ||
-        errorMessage.includes("enotfound")
-      ) {
-        specificErrorId = ERROR_IDS.MAILERLITE_NETWORK_ERROR;
-        retryable = true;
-      }
-    }
+    // Format dates for logging
+    const formattedSubscriptionStart = formatDateForMailerLite(subscriptionStart);
+    const formattedMembershipExpires =
+      formatDateForMailerLite(membershipExpiresAt);
 
     logger.error("MailerLite API call failed", {
       error,
-      errorId: specificErrorId,
+      errorId,
       retryable,
       email,
+      groupId: groupId ?? "none",
+      hasName: !!name,
+      subscriberParameters: {
+        email,
+        hasName: !!name,
+        subscriptionStart: formattedSubscriptionStart,
+        membershipExpires: formattedMembershipExpires,
+        groupId: groupId ?? "none",
+      },
+      actionRequired: retryable
+        ? "MailerLite request may succeed if retried"
+        : "Manual intervention required - check MailerLite configuration",
     });
 
     throw new Error(
