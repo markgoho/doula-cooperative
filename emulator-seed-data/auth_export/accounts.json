@@ -9,7 +9,7 @@
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltLe7QumYcQ5EFiDnqoZXR:password=test1234",
       "salt": "fakeSaltLe7QumYcQ5EFiDnqoZXR",
-      "passwordUpdatedAt": 1763867619441,
+      "passwordUpdatedAt": 1765253427273,
       "customAttributes": "{ \"admin\": true }",
       "providerUserInfo": [
         {
@@ -21,35 +21,35 @@
           "photoUrl": ""
         }
       ],
-      "validSince": "1763867619",
+      "validSince": "1765253427",
       "email": "webmaster@doulacooperative.com",
       "emailVerified": true,
-      "disabled": false,
-      "lastRefreshAt": "2025-11-23T03:14:07.227Z"
+      "disabled": false
     },
     {
       "localId": "UJyp1a2g7L8k37c3osOVbhV4KjMb",
       "createdAt": "1762982324058",
       "lastLoginAt": "1762982337373",
-      "displayName": "",
+      "displayName": "Mark Goho",
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltyqO4BElrO6rfUb9nw9JV:password=test1234",
       "salt": "fakeSaltyqO4BElrO6rfUb9nw9JV",
-      "passwordUpdatedAt": 1763867619441,
+      "passwordUpdatedAt": 1765253427274,
       "providerUserInfo": [
         {
           "providerId": "password",
           "email": "markgoho@gmail.com",
           "federatedId": "markgoho@gmail.com",
           "rawId": "markgoho@gmail.com",
-          "displayName": "",
+          "displayName": "Mark Goho",
           "photoUrl": ""
         }
       ],
-      "validSince": "1763867619",
+      "validSince": "1765253427",
       "email": "markgoho@gmail.com",
       "emailVerified": true,
-      "disabled": false
+      "disabled": false,
+      "lastRefreshAt": "2025-12-09T04:10:47.547Z"
     }
   ]
 }
