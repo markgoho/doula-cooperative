@@ -42,17 +42,30 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B)
           COMMIT_SHA=$(git rev-parse HEAD)
 
-          # Get changed profile files
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- "hugo/content/doulas/*/index.md" 2>/dev/null || echo "")
+          # Get changed profile files (both index.md and profile images)
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- \
+            "hugo/content/doulas/*/index.md" \
+            "hugo/content/doulas/**/*-profile.jpg" \
+            "hugo/content/doulas/**/*-profile.jpeg" \
+            "hugo/content/doulas/**/*-profile.png" \
+            "hugo/content/doulas/**/*-profile.webp" \
+            "hugo/content/doulas/**/*-profile.avif" \
+            2>/dev/null || echo "")
+
           if [ -z "$CHANGED_FILES" ]; then
             FILE_COUNT=0
           else
             FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
           fi
 
-          # Extract slug if single file
+          # Extract slug if single file (from either index.md or image path)
           if [ "$FILE_COUNT" -eq 1 ]; then
+            # Try extracting from index.md path first
             SLUG=$(echo "$CHANGED_FILES" | sed -n 's|hugo/content/doulas/\([^/]*\)/index.md|\1|p')
+            # If empty, try extracting from image path
+            if [ -z "$SLUG" ]; then
+              SLUG=$(echo "$CHANGED_FILES" | sed -n 's|hugo/content/doulas/\([^/]*\)/.*|\1|p')
+            fi
           else
             SLUG=""
           fi
