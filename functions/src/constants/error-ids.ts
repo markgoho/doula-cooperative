@@ -38,6 +38,18 @@ export const ERROR_IDS = {
   MAILGUN_INVALID_RECIPIENT: "mailgun_invalid_recipient",
   MAILGUN_NETWORK_ERROR: "mailgun_network_error",
 
+  // MailerLite newsletter errors
+  MAILERLITE_AUTH_FAILED: "mailerlite_auth_failed",
+  MAILERLITE_RATE_LIMITED: "mailerlite_rate_limited",
+  MAILERLITE_INVALID_EMAIL: "mailerlite_invalid_email",
+  MAILERLITE_NETWORK_ERROR: "mailerlite_network_error",
+  MAILERLITE_GENERIC_ERROR: "mailerlite_generic_error",
+  STRIPE_WEBHOOK_MAILERLITE_NOT_CONFIGURED:
+    "stripe_webhook_mailerlite_not_configured",
+  STRIPE_WEBHOOK_MAILERLITE_FAILED: "stripe_webhook_mailerlite_failed",
+  STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED:
+    "stripe_webhook_mailerlite_notification_failed",
+
   // Admin send invitation errors
   ADMIN_SEND_INVITATION_INVALID_UID: "admin_send_invitation_invalid_uid",
   ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND:

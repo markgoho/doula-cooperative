@@ -12,6 +12,7 @@ import {
 import {
   ERROR_IDS,
   MARK_EMAIL,
+  NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
@@ -19,6 +20,7 @@ import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
 } from "../utils/member-factory.js";
+import { addNewsletterSubscriber } from "../utils/mailerlite.js";
 import { calculateExpirationDate } from "../utils/membership-dates.js";
 import { sendEmail } from "../utils/send-email.js";
 
@@ -114,6 +116,7 @@ export async function handler(request: Request, response: Response) {
   const stripeApiKey = process.env["STRIPE_API_KEY"];
   const webhookSecret = process.env["STRIPE_WEBHOOK_SECRET"];
   const mailgunApiKey = process.env["MAILGUN_API_KEY"];
+  const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
 
   if (!stripeApiKey || !webhookSecret) {
     logger.error("Missing required Stripe secrets", {
@@ -358,6 +361,91 @@ export async function handler(request: Request, response: Response) {
         response.status(500).send("Unable to update membership");
         return;
       }
+    }
+
+    // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
+    if (mailerliteApiKey) {
+      try {
+        const customerName = session.customer_details?.name;
+        const groupId = process.env["MAILERLITE_GROUP_ID"];
+        await addNewsletterSubscriber({
+          email: customerEmail,
+          ...(customerName && { name: customerName }),
+          subscriptionStart,
+          membershipExpiresAt,
+          ...(groupId && { groupId }),
+          apiKey: mailerliteApiKey,
+        });
+
+        logger.info("Added subscriber to MailerLite newsletter", {
+          uid: userRecord.uid,
+          email: customerEmail,
+        });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+
+        logger.error("Failed to add subscriber to MailerLite", {
+          error,
+          errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_FAILED,
+          uid: userRecord.uid,
+          email: customerEmail,
+          actionRequired: "Manual newsletter signup needed",
+        });
+
+        // Send notification email to newsletter admin
+        if (!process.env["FUNCTIONS_EMULATOR"] && mailgunApiKey) {
+          try {
+            const notificationEmail: MailgunMessageData = {
+              from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+              to: NEWSLETTER_EMAIL,
+              subject: "Action Required: Manual Newsletter Signup",
+              html: `
+                <h2>MailerLite Newsletter Signup Failed</h2>
+                <p>A new member completed payment but could not be added to the newsletter automatically.</p>
+
+                <h3>Member Details:</h3>
+                <ul>
+                  <li><strong>Email:</strong> ${customerEmail}</li>
+                  <li><strong>Name:</strong> ${session.customer_details?.name ?? "Not provided"}</li>
+                  <li><strong>UID:</strong> ${userRecord.uid}</li>
+                  <li><strong>Subscription Start:</strong> ${subscriptionStart.toDate().toISOString()}</li>
+                  <li><strong>Membership Expires:</strong> ${membershipExpiresAt.toDate().toISOString()}</li>
+                </ul>
+
+                <h3>Error Details:</h3>
+                <p>${errorMessage}</p>
+
+                <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
+              `,
+            };
+
+            await sendEmail(notificationEmail, mailgunApiKey);
+            logger.info("Sent MailerLite failure notification email", {
+              uid: userRecord.uid,
+              email: customerEmail,
+            });
+          } catch (emailError) {
+            logger.error("Failed to send MailerLite failure notification", {
+              error: emailError,
+              errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED,
+              uid: userRecord.uid,
+              email: customerEmail,
+            });
+          }
+        }
+        // Continue - account was created successfully, newsletter can be added manually
+      }
+    } else if (process.env["FUNCTIONS_EMULATOR"]) {
+      logger.warn(
+        "MAILERLITE_API_KEY not configured - emulator mode, skipping newsletter",
+      );
+    } else {
+      logger.warn("MAILERLITE_API_KEY not configured in production", {
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOT_CONFIGURED,
+        uid: userRecord.uid,
+        email: customerEmail,
+      });
     }
 
     // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)
