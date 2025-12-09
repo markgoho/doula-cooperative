@@ -8,13 +8,25 @@ import { type MemberDocument } from "../src/types/member-document.js";
 
 // Mock the octokit module
 const mockGetContent = mock();
-const mockDeleteFile = mock();
+const mockGetReference = mock();
+const mockGetCommit = mock();
+const mockGetTree = mock();
+const mockCreateTree = mock();
+const mockCreateCommit = mock();
+const mockUpdateReference = mock();
 const mockGetInstallationOctokit = mock<
   () => {
     rest: {
       repos: {
         getContent: typeof mockGetContent;
-        deleteFile: typeof mockDeleteFile;
+      };
+      git: {
+        getRef: typeof mockGetReference;
+        getCommit: typeof mockGetCommit;
+        getTree: typeof mockGetTree;
+        createTree: typeof mockCreateTree;
+        createCommit: typeof mockCreateCommit;
+        updateRef: typeof mockUpdateReference;
       };
     };
   }
@@ -113,12 +125,14 @@ interface SetupGitHubMockOptions {
   existingFiles?: string[];
   shouldThrowRateLimit?: boolean;
   shouldThrowGeneric?: boolean;
+  slug?: string;
 }
 
 function setupGitHubMock({
   existingFiles = [],
   shouldThrowRateLimit = false,
   shouldThrowGeneric = false,
+  slug = "test-doula-delete",
 }: SetupGitHubMockOptions = {}) {
   const existingFilesSet = new Set(existingFiles);
 
@@ -155,13 +169,58 @@ function setupGitHubMock({
     throw notFoundError;
   });
 
-  mockDeleteFile.mockResolvedValue({});
+  // Mock Git API methods for batch delete
+  mockGetReference.mockResolvedValue({
+    data: { object: { sha: "current-commit-sha" } },
+  });
+
+  mockGetCommit.mockResolvedValue({
+    data: { tree: { sha: "current-tree-sha" } },
+  });
+
+  // Build tree with all files (to be deleted) + other files
+  const treeItems = existingFiles.map((fileName) => ({
+    path: `hugo/content/doulas/${slug}/${fileName}`,
+    mode: "100644",
+    type: "blob",
+    sha: `sha-for-${fileName}`,
+  }));
+  // Add an unrelated file that should not be deleted
+  treeItems.push({
+    path: `hugo/content/doulas/${slug}/index.md`,
+    mode: "100644",
+    type: "blob",
+    sha: "sha-for-index-md",
+  });
+
+  mockGetTree.mockResolvedValue({
+    data: { tree: treeItems },
+  });
+
+  mockCreateTree.mockResolvedValue({
+    data: { sha: "new-tree-sha" },
+  });
+
+  mockCreateCommit.mockResolvedValue({
+    data: { sha: "new-commit-sha" },
+  });
+
+  mockUpdateReference.mockResolvedValue({
+    data: {},
+  });
 
   mockGetInstallationOctokit.mockReturnValue({
     rest: {
       repos: {
         getContent: mockGetContent,
-        deleteFile: mockDeleteFile,
+      },
+      git: {
+        getRef: mockGetReference,
+        getCommit: mockGetCommit,
+        getTree: mockGetTree,
+        createTree: mockCreateTree,
+        createCommit: mockCreateCommit,
+        updateRef: mockUpdateReference,
       },
     },
   });
@@ -170,7 +229,12 @@ function setupGitHubMock({
 describe("deleteProfileImage", () => {
   beforeEach(() => {
     mockGetContent.mockReset();
-    mockDeleteFile.mockReset();
+    mockGetReference.mockReset();
+    mockGetCommit.mockReset();
+    mockGetTree.mockReset();
+    mockCreateTree.mockReset();
+    mockCreateCommit.mockReset();
+    mockUpdateReference.mockReset();
     mockGetInstallationOctokit.mockReset();
   });
 
@@ -271,7 +335,7 @@ describe("deleteProfileImage", () => {
       slug,
     });
 
-    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`] });
+    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`], slug });
 
     const result = await wrappedDeleteProfileImage(
       createMockCallableRequest({ uid: testUid }),
@@ -285,7 +349,7 @@ describe("deleteProfileImage", () => {
     await cleanupTestData();
   });
 
-  it("should delete multiple image files when they exist", async () => {
+  it("should delete multiple image files in a single commit when they exist", async () => {
     const {
       testUid,
       testEmail,
@@ -308,6 +372,7 @@ describe("deleteProfileImage", () => {
         `${slug}-profile-600.avif`,
         `${slug}-profile-300.avif`,
       ],
+      slug,
     });
 
     const result = await wrappedDeleteProfileImage(
@@ -316,7 +381,10 @@ describe("deleteProfileImage", () => {
 
     expect(result.success).toBe(true);
     expect(result.deletedFiles.length).toBe(4);
-    expect(mockDeleteFile).toHaveBeenCalledTimes(4);
+
+    // Verify single commit was created (not multiple)
+    expect(mockCreateCommit).toHaveBeenCalledTimes(1);
+    expect(mockUpdateReference).toHaveBeenCalledTimes(1);
 
     await cleanupTestData();
   });
@@ -337,7 +405,7 @@ describe("deleteProfileImage", () => {
       slug,
     });
 
-    setupGitHubMock({ existingFiles: [] });
+    setupGitHubMock({ existingFiles: [], slug });
 
     const result = await wrappedDeleteProfileImage(
       createMockCallableRequest({ uid: testUid }),
@@ -345,7 +413,10 @@ describe("deleteProfileImage", () => {
 
     expect(result.success).toBe(true);
     expect(result.deletedFiles).toEqual([]);
-    expect(mockDeleteFile).not.toHaveBeenCalled();
+
+    // Should not create a commit when there are no files to delete
+    expect(mockCreateCommit).not.toHaveBeenCalled();
+    expect(mockUpdateReference).not.toHaveBeenCalled();
 
     await cleanupTestData();
   });
@@ -380,7 +451,7 @@ describe("deleteProfileImage", () => {
     await cleanupTestData();
   });
 
-  it("should call GitHub API with correct parameters", async () => {
+  it("should call GitHub API with correct parameters for batch delete", async () => {
     const {
       testUid,
       testEmail,
@@ -396,26 +467,42 @@ describe("deleteProfileImage", () => {
       slug,
     });
 
-    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`] });
+    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`], slug });
 
     await wrappedDeleteProfileImage(
       createMockCallableRequest({ uid: testUid }),
     );
 
-    expect(mockDeleteFile).toHaveBeenCalledWith(
+    // Verify Git API methods were called with correct parameters
+    expect(mockGetReference).toHaveBeenCalledWith(
       expect.objectContaining({
         owner: "markgoho",
         repo: "doula-cooperative",
-        path: `hugo/content/doulas/${slug}/${slug}-profile.jpg`,
-        branch: "trunk",
-        sha: `sha-for-${slug}-profile.jpg`,
+        ref: "heads/trunk",
+      }),
+    );
+
+    expect(mockCreateCommit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: "markgoho",
+        repo: "doula-cooperative",
+        message: `Delete all profile images for ${slug}`,
+      }),
+    );
+
+    expect(mockUpdateReference).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: "markgoho",
+        repo: "doula-cooperative",
+        ref: "heads/trunk",
+        force: false,
       }),
     );
 
     await cleanupTestData();
   });
 
-  it("should continue deleting other files even if some fail with non-rate-limit errors", async () => {
+  it("should handle mix of existing and non-existing files gracefully", async () => {
     const {
       testUid,
       testEmail,
@@ -432,7 +519,7 @@ describe("deleteProfileImage", () => {
     });
 
     // Only the jpg exists, others will 404 (which is handled gracefully)
-    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`] });
+    setupGitHubMock({ existingFiles: [`${slug}-profile.jpg`], slug });
 
     const result = await wrappedDeleteProfileImage(
       createMockCallableRequest({ uid: testUid }),
@@ -440,6 +527,9 @@ describe("deleteProfileImage", () => {
 
     expect(result.success).toBe(true);
     expect(result.deletedFiles.length).toBe(1);
+    expect(result.deletedFiles).toContain(
+      `hugo/content/doulas/${slug}/${slug}-profile.jpg`,
+    );
 
     await cleanupTestData();
   });

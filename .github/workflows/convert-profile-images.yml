@@ -16,7 +16,8 @@ permissions:
 jobs:
   convert_images:
     # Skip if commit was made by github-actions bot (to prevent infinite loop)
-    if: github.actor != 'github-actions[bot]'
+    # Skip if commit is deleting/removing profile images
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'Delete all profile images') && !contains(github.event.head_commit.message, 'Remove old profile images')
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}:trunk

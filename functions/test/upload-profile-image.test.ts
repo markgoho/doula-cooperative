@@ -26,14 +26,26 @@ void mock.module("sharp", () => ({
 // Mock the octokit module
 const mockGetContent = mock();
 const mockCreateOrUpdateFileContents = mock();
-const mockDeleteFile = mock();
+const mockGetReference = mock();
+const mockGetCommit = mock();
+const mockGetTree = mock();
+const mockCreateTree = mock();
+const mockCreateCommit = mock();
+const mockUpdateReference = mock();
 const mockGetInstallationOctokit = mock<
   () => {
     rest: {
       repos: {
         getContent: typeof mockGetContent;
         createOrUpdateFileContents: typeof mockCreateOrUpdateFileContents;
-        deleteFile: typeof mockDeleteFile;
+      };
+      git: {
+        getRef: typeof mockGetReference;
+        getCommit: typeof mockGetCommit;
+        getTree: typeof mockGetTree;
+        createTree: typeof mockCreateTree;
+        createCommit: typeof mockCreateCommit;
+        updateRef: typeof mockUpdateReference;
       };
     };
   }
@@ -212,14 +224,44 @@ function setupGitHubMock({
     return { data: { commit: { sha: "new-sha-456" } } };
   });
 
-  mockDeleteFile.mockResolvedValue({});
+  // Mock Git API methods for batch delete
+  mockGetReference.mockResolvedValue({
+    data: { object: { sha: "current-commit-sha" } },
+  });
+
+  mockGetCommit.mockResolvedValue({
+    data: { tree: { sha: "current-tree-sha" } },
+  });
+
+  mockGetTree.mockResolvedValue({
+    data: { tree: [] },
+  });
+
+  mockCreateTree.mockResolvedValue({
+    data: { sha: "new-tree-sha" },
+  });
+
+  mockCreateCommit.mockResolvedValue({
+    data: { sha: "new-commit-sha" },
+  });
+
+  mockUpdateReference.mockResolvedValue({
+    data: {},
+  });
 
   mockGetInstallationOctokit.mockReturnValue({
     rest: {
       repos: {
         getContent: mockGetContent,
         createOrUpdateFileContents: mockCreateOrUpdateFileContents,
-        deleteFile: mockDeleteFile,
+      },
+      git: {
+        getRef: mockGetReference,
+        getCommit: mockGetCommit,
+        getTree: mockGetTree,
+        createTree: mockCreateTree,
+        createCommit: mockCreateCommit,
+        updateRef: mockUpdateReference,
       },
     },
   });
@@ -260,7 +302,12 @@ describe("uploadProfileImage", () => {
   beforeEach(() => {
     mockGetContent.mockReset();
     mockCreateOrUpdateFileContents.mockReset();
-    mockDeleteFile.mockReset();
+    mockGetReference.mockReset();
+    mockGetCommit.mockReset();
+    mockGetTree.mockReset();
+    mockCreateTree.mockReset();
+    mockCreateCommit.mockReset();
+    mockUpdateReference.mockReset();
     mockGetInstallationOctokit.mockReset();
     mockMetadata.mockReset();
     mockExtract.mockReset();

@@ -93,8 +93,14 @@ export const ERROR_IDS = {
   UPLOAD_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
     "upload_profile_image_github_rate_limit",
   UPLOAD_PROFILE_IMAGE_GITHUB_FAILED: "upload_profile_image_github_failed",
+  UPLOAD_PROFILE_IMAGE_FILE_CHECK_FAILED:
+    "upload_profile_image_file_check_failed",
+  UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED:
+    "upload_profile_image_cleanup_failed",
 
   // Delete profile image errors
+  DELETE_PROFILE_IMAGE_FIRESTORE_READ_ERROR:
+    "delete_profile_image_firestore_read_error",
   DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
     "delete_profile_image_github_rate_limit",
   DELETE_PROFILE_IMAGE_GITHUB_FAILED: "delete_profile_image_github_failed",

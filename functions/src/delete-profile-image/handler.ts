@@ -10,7 +10,8 @@ import {
   GITHUB_REPO,
 } from "../constants/github-config.js";
 import { type MemberDocument } from "../types/member-document.js";
-import { isGitHubError, isRateLimitError } from "../utils/github-error.js";
+import { batchDeleteFiles } from "../utils/github-batch-delete.js";
+import { isRateLimitError } from "../utils/github-error.js";
 
 /**
  * All possible profile image file patterns to delete.
@@ -53,7 +54,7 @@ export async function handler(
     memberDocument = await memberReference.get();
   } catch (error) {
     logger.error("Failed to read member document", {
-      errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_FAILED,
+      errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FIRESTORE_READ_ERROR,
       uid,
       error,
     });
@@ -101,86 +102,54 @@ export async function handler(
 
   const baseDirectory = `hugo/content/doulas/${slug}`;
 
-  // 4. Delete all profile image files
-  const deletedFiles: string[] = [];
-  const errors: string[] = [];
+  // 4. Delete all profile image files in a single commit
+  const filePaths = IMAGE_FILE_PATTERNS.map(
+    (pattern) => `${baseDirectory}/${slug}${pattern}`,
+  );
 
-  for (const pattern of IMAGE_FILE_PATTERNS) {
-    const filePath = `${baseDirectory}/${slug}${pattern}`;
+  try {
+    const result = await batchDeleteFiles({
+      octokit,
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      branch: GITHUB_BRANCH,
+      filePaths,
+      commitMessage: `Delete all profile images for ${slug}`,
+    });
 
-    try {
-      const { data: file } = await octokit.rest.repos.getContent({
-        owner: GITHUB_OWNER,
-        repo: GITHUB_REPO,
-        path: filePath,
-      });
+    logger.info(`Successfully deleted profile images for ${slug}`, {
+      deletedFiles: result.deletedFiles,
+      commitSha: result.commitSha,
+    });
 
-      if ("sha" in file) {
-        await octokit.rest.repos.deleteFile({
-          owner: GITHUB_OWNER,
-          repo: GITHUB_REPO,
-          path: filePath,
-          message: `Delete profile image file: ${slug}${pattern}`,
-          sha: file.sha,
-          branch: GITHUB_BRANCH,
-        });
-        deletedFiles.push(filePath);
-        logger.info(`Deleted profile image file: ${filePath}`);
-      }
-    } catch (error: unknown) {
-      // 404 is expected - file doesn't exist
-      if (isGitHubError(error) && error.status === 404) {
-        continue;
-      }
-
-      // Rate limit error - check headers to confirm it's actually rate limiting
-      if (isRateLimitError(error)) {
-        logger.error("GitHub API rate limit exceeded during delete", {
-          errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT,
-          uid,
-          slug,
-          filePath,
-        });
-        throw new HttpsError(
-          "resource-exhausted",
-          "Too many requests. Please try again later.",
-        );
-      }
-
-      // Other errors - log but continue trying other files
-      logger.warn(`Failed to delete ${filePath}`, {
-        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_FAILED,
+    return {
+      success: true,
+      deletedFiles: result.deletedFiles,
+    };
+  } catch (error: unknown) {
+    // Rate limit error
+    if (isRateLimitError(error)) {
+      logger.error("GitHub API rate limit exceeded during delete", {
+        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT,
         uid,
         slug,
-        filePath,
-        error,
       });
-      errors.push(filePath);
+      throw new HttpsError(
+        "resource-exhausted",
+        "Too many requests. Please try again later.",
+      );
     }
-  }
 
-  // If no files were deleted and there were errors, report failure
-  if (deletedFiles.length === 0 && errors.length > 0) {
-    logger.error("Failed to delete any profile image files", {
+    // Other errors
+    logger.error("Failed to delete profile images", {
       errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_FAILED,
       uid,
       slug,
-      errors,
+      error,
     });
     throw new HttpsError(
       "internal",
       "Failed to delete profile image. Please try again.",
     );
   }
-
-  logger.info(`Successfully deleted profile images for ${slug}`, {
-    deletedFiles,
-    errors,
-  });
-
-  return {
-    success: true,
-    deletedFiles,
-    ...(errors.length > 0 ? { errors, partialSuccess: true } : {}),
-  };
 }

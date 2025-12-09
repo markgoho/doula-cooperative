@@ -12,6 +12,7 @@ import {
 } from "../constants/github-config.js";
 import { type CropData, validateCropData } from "../types/crop-data.js";
 import { type MemberDocument } from "../types/member-document.js";
+import { batchDeleteFiles } from "../utils/github-batch-delete.js";
 import { isGitHubError, isRateLimitError } from "../utils/github-error.js";
 
 export interface UploadProfileImageRequest {
@@ -81,7 +82,7 @@ async function processImage(
 }
 
 /**
- * Deletes old profile images with different extensions.
+ * Deletes old profile images with different extensions using batch delete.
  */
 async function deleteOldProfileImages(
   octokit: Octokit,
@@ -92,44 +93,34 @@ async function deleteOldProfileImages(
 ): Promise<void> {
   const extensions = [".jpg", ".jpeg", ".png", ".webp"];
 
-  for (const extension of extensions) {
-    if (extension === currentExtension) {
-      continue;
-    }
+  const filePaths = extensions
+    .filter((extension) => extension !== currentExtension)
+    .map((extension) => `hugo/content/doulas/${slug}/${slug}-profile${extension}`);
 
-    const path = `hugo/content/doulas/${slug}/${slug}-profile${extension}`;
+  try {
+    const result = await batchDeleteFiles({
+      octokit,
+      owner,
+      repo,
+      branch: GITHUB_BRANCH,
+      filePaths,
+      commitMessage: `Remove old profile images for ${slug}`,
+    });
 
-    try {
-      const { data: file } = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path,
-      });
-
-      if (!Array.isArray(file) && file.sha) {
-        await octokit.rest.repos.deleteFile({
-          owner,
-          repo,
-          path,
-          message: `Remove old profile image (${extension}) for ${slug}`,
-          sha: file.sha,
-          branch: GITHUB_BRANCH,
-        });
-        logger.info(`Deleted old profile image: ${path}`);
-      }
-    } catch (error: unknown) {
-      // 404 is expected - file doesn't exist
-      if (isGitHubError(error) && error.status === 404) {
-        continue;
-      }
-
-      // Log unexpected errors but don't fail the upload
-      logger.warn(`Failed to delete old profile image: ${path}`, {
-        slug,
-        extension,
-        error: error instanceof Error ? error.message : String(error),
+    if (result.deletedFiles.length > 0) {
+      logger.info(`Deleted old profile images for ${slug}`, {
+        deletedFiles: result.deletedFiles,
       });
     }
+  } catch (error: unknown) {
+    // EXPLICITLY JUSTIFIED: Cleanup failure should not prevent upload success
+    // because the new image is the source of truth. Old images don't break functionality.
+    logger.error(`Failed to delete old profile images for ${slug}`, {
+      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED,
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    // Continue with upload - user gets their new image even if cleanup fails
   }
 }
 
