@@ -6,11 +6,36 @@ import { createMockCallableRequest } from "../src/test-utils/mock-request.js";
 import { initializeTest } from "../src/test-utils/test-setup.js";
 import { type MemberDocument } from "../src/types/member-document.js";
 
+// Helper to create GitHub errors with status codes
+interface GitHubError extends Error {
+  status?: number;
+  response?: {
+    headers?: Record<string, string>;
+  };
+}
+
+function createGitHubError(message: string, status?: number, isRateLimit = false): GitHubError {
+  const error: GitHubError = new Error(message);
+  if (status) {
+    error.status = status;
+  }
+  if (isRateLimit) {
+    error.response = {
+      headers: {
+        "x-ratelimit-remaining": "0",
+        "x-ratelimit-reset": "1234567890",
+      },
+    };
+  }
+  return error;
+}
+
 // Mock sharp module
 const mockMetadata = mock<() => Promise<{ width: number; height: number }>>();
 const mockExtract = mock<() => unknown>();
 const mockResize = mock<() => unknown>();
 const mockJpeg = mock<() => unknown>();
+const mockAvif = mock<() => unknown>();
 const mockToBuffer = mock<() => Promise<Buffer>>();
 
 void mock.module("sharp", () => ({
@@ -19,6 +44,7 @@ void mock.module("sharp", () => ({
     extract: mockExtract,
     resize: mockResize,
     jpeg: mockJpeg,
+    avif: mockAvif,
     toBuffer: mockToBuffer,
   }),
 }));
@@ -29,6 +55,7 @@ const mockCreateOrUpdateFileContents = mock();
 const mockGetReference = mock();
 const mockGetCommit = mock();
 const mockGetTree = mock();
+const mockCreateBlob = mock();
 const mockCreateTree = mock();
 const mockCreateCommit = mock();
 const mockUpdateReference = mock();
@@ -43,6 +70,7 @@ const mockGetInstallationOctokit = mock<
         getRef: typeof mockGetReference;
         getCommit: typeof mockGetCommit;
         getTree: typeof mockGetTree;
+        createBlob: typeof mockCreateBlob;
         createTree: typeof mockCreateTree;
         createCommit: typeof mockCreateCommit;
         updateRef: typeof mockUpdateReference;
@@ -176,22 +204,10 @@ function setupGitHubMock({
   mockGetContent.mockImplementation(() => {
     if (shouldThrowOnGetContent) {
       if (errorType === "not-found") {
-        const notFoundError = new Error("Not found");
-        Object.assign(notFoundError, { status: 404 });
-        throw notFoundError;
+        throw createGitHubError("Not found", 404);
       }
       if (errorType === "rate-limit") {
-        const rateLimitError = new Error("Rate limit exceeded");
-        Object.assign(rateLimitError, {
-          status: 403,
-          response: {
-            headers: {
-              "x-ratelimit-remaining": "0",
-              "x-ratelimit-reset": "1234567890",
-            },
-          },
-        });
-        throw rateLimitError;
+        throw createGitHubError("Rate limit exceeded", 403, true);
       }
       throw new Error("GitHub API error");
     }
@@ -199,25 +215,13 @@ function setupGitHubMock({
     if (existingSha) {
       return { data: { sha: existingSha } };
     }
-    const notFoundError = new Error("Not found");
-    Object.assign(notFoundError, { status: 404 });
-    throw notFoundError;
+    throw createGitHubError("Not found", 404);
   });
 
   mockCreateOrUpdateFileContents.mockImplementation(() => {
     if (shouldThrowOnUpdate) {
       if (errorType === "rate-limit") {
-        const rateLimitError = new Error("Rate limit exceeded");
-        Object.assign(rateLimitError, {
-          status: 403,
-          response: {
-            headers: {
-              "x-ratelimit-remaining": "0",
-              "x-ratelimit-reset": "1234567890",
-            },
-          },
-        });
-        throw rateLimitError;
+        throw createGitHubError("Rate limit exceeded", 403, true);
       }
       throw new Error("GitHub API error");
     }
@@ -235,6 +239,10 @@ function setupGitHubMock({
 
   mockGetTree.mockResolvedValue({
     data: { tree: [] },
+  });
+
+  mockCreateBlob.mockResolvedValue({
+    data: { sha: "new-blob-sha" },
   });
 
   mockCreateTree.mockResolvedValue({
@@ -259,6 +267,7 @@ function setupGitHubMock({
         getRef: mockGetReference,
         getCommit: mockGetCommit,
         getTree: mockGetTree,
+        createBlob: mockCreateBlob,
         createTree: mockCreateTree,
         createCommit: mockCreateCommit,
         updateRef: mockUpdateReference,
@@ -289,9 +298,15 @@ function setupSharpMock({
 
   mockResize.mockReturnValue({
     jpeg: mockJpeg,
+    avif: mockAvif,
+    toBuffer: mockToBuffer,
   });
 
   mockJpeg.mockReturnValue({
+    toBuffer: mockToBuffer,
+  });
+
+  mockAvif.mockReturnValue({
     toBuffer: mockToBuffer,
   });
 
@@ -305,6 +320,7 @@ describe("uploadProfileImage", () => {
     mockGetReference.mockReset();
     mockGetCommit.mockReset();
     mockGetTree.mockReset();
+    mockCreateBlob.mockReset();
     mockCreateTree.mockReset();
     mockCreateCommit.mockReset();
     mockUpdateReference.mockReset();
@@ -313,6 +329,7 @@ describe("uploadProfileImage", () => {
     mockExtract.mockReset();
     mockResize.mockReset();
     mockJpeg.mockReset();
+    mockAvif.mockReset();
     mockToBuffer.mockReset();
   });
 
@@ -627,6 +644,11 @@ describe("uploadProfileImage", () => {
 
     expect(result.success).toBe(true);
 
+    // Verify batch operations were used (createBlob should be called for JPEG + 3 AVIFs)
+    expect(mockCreateBlob).toHaveBeenCalledTimes(4);
+    expect(mockCreateTree).toHaveBeenCalledTimes(1);
+    expect(mockCreateCommit).toHaveBeenCalledTimes(1);
+
     await cleanupTestData();
   });
 
@@ -657,16 +679,16 @@ describe("uploadProfileImage", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(mockCreateOrUpdateFileContents).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sha: "existing-sha-123",
-      }),
-    );
+
+    // Verify batch operations were used
+    expect(mockCreateBlob).toHaveBeenCalledTimes(4); // JPEG + 3 AVIFs
+    expect(mockCreateTree).toHaveBeenCalledTimes(1);
+    expect(mockCreateCommit).toHaveBeenCalledTimes(1);
 
     await cleanupTestData();
   });
 
-  it("should call GitHub API with correct file path", async () => {
+  it("should generate AVIF variants in addition to JPEG", async () => {
     const {
       testUid,
       testEmail,
@@ -692,14 +714,48 @@ describe("uploadProfileImage", () => {
       }),
     );
 
-    expect(mockCreateOrUpdateFileContents).toHaveBeenCalledWith(
-      expect.objectContaining({
-        owner: "markgoho",
-        repo: "doula-cooperative",
-        path: `hugo/content/doulas/${slug}/${slug}-profile.jpg`,
-        branch: "trunk",
+    // Verify AVIF method was called for each variant (1200, 600, 300)
+    expect(mockAvif).toHaveBeenCalledTimes(3);
+    expect(mockAvif).toHaveBeenCalledWith({ quality: 50 });
+
+    // Verify JPEG was generated once
+    expect(mockJpeg).toHaveBeenCalledTimes(1);
+    expect(mockJpeg).toHaveBeenCalledWith({ quality: 90 });
+
+    await cleanupTestData();
+  });
+
+  it("should create single atomic commit with all files", async () => {
+    const {
+      testUid,
+      testEmail,
+      slug,
+      wrappedUploadProfileImage,
+      firestore,
+      validRequestData,
+    } = setup();
+    setupSharpMock();
+    setupGitHubMock();
+
+    await createMemberDocument({
+      firestore,
+      uid: testUid,
+      email: testEmail,
+      slug,
+    });
+
+    await wrappedUploadProfileImage(
+      createMockCallableRequest({
+        data: validRequestData,
+        uid: testUid,
       }),
     );
+
+    // Verify single commit was created with all files
+    expect(mockCreateCommit).toHaveBeenCalledTimes(1);
+    const commitCalls = mockCreateCommit.mock.calls as [{ message: string; tree: string; parents: string[] }][];
+    expect(commitCalls.length).toBe(1);
+    expect(commitCalls[0]?.[0]?.message).toContain("Update profile images for");
 
     await cleanupTestData();
   });
@@ -714,7 +770,10 @@ describe("uploadProfileImage", () => {
       validRequestData,
     } = setup();
     setupSharpMock();
-    setupGitHubMock({ shouldThrowOnUpdate: true, errorType: "rate-limit" });
+    setupGitHubMock();
+
+    // Override mockCreateBlob to throw rate limit error
+    mockCreateBlob.mockRejectedValue(createGitHubError("Rate limit exceeded", 403, true));
 
     await createMemberDocument({
       firestore,
@@ -732,7 +791,7 @@ describe("uploadProfileImage", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Too many requests");
+      expect(String(error)).toContain("Failed to save profile images");
     }
 
     await cleanupTestData();
@@ -748,7 +807,10 @@ describe("uploadProfileImage", () => {
       validRequestData,
     } = setup();
     setupSharpMock();
-    setupGitHubMock({ shouldThrowOnUpdate: true, errorType: "generic" });
+    setupGitHubMock();
+
+    // Override mockCreateBlob to throw generic error
+    mockCreateBlob.mockRejectedValue(new Error("GitHub API error"));
 
     await createMemberDocument({
       firestore,
@@ -766,7 +828,7 @@ describe("uploadProfileImage", () => {
       );
       expect.unreachable();
     } catch (error) {
-      expect(String(error)).toContain("Failed to save profile image");
+      expect(String(error)).toContain("Failed to save profile images");
     }
 
     await cleanupTestData();

@@ -90,9 +90,13 @@ export const ERROR_IDS = {
   UPLOAD_PROFILE_IMAGE_TOO_LARGE: "upload_profile_image_too_large",
   UPLOAD_PROFILE_IMAGE_PROCESSING_FAILED:
     "upload_profile_image_processing_failed",
+  UPLOAD_PROFILE_IMAGE_AVIF_GENERATION_FAILED:
+    "upload_profile_image_avif_generation_failed",
   UPLOAD_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
     "upload_profile_image_github_rate_limit",
   UPLOAD_PROFILE_IMAGE_GITHUB_FAILED: "upload_profile_image_github_failed",
+  UPLOAD_PROFILE_IMAGE_BATCH_OPERATION_FAILED:
+    "upload_profile_image_batch_operation_failed",
   UPLOAD_PROFILE_IMAGE_FILE_CHECK_FAILED:
     "upload_profile_image_file_check_failed",
   UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED:

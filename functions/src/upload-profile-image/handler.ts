@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { type CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import { App, type Octokit } from "octokit";
+import { App } from "octokit";
 import sharp from "sharp";
 import { MEMBERS_COLLECTION } from "../collections/index.js";
 import { ERROR_IDS } from "../constants/error-ids.js";
@@ -12,8 +12,11 @@ import {
 } from "../constants/github-config.js";
 import { type CropData, validateCropData } from "../types/crop-data.js";
 import { type MemberDocument } from "../types/member-document.js";
-import { batchDeleteFiles } from "../utils/github-batch-delete.js";
-import { isGitHubError, isRateLimitError } from "../utils/github-error.js";
+import {
+  batchOperateFiles,
+  type FileOperation,
+} from "../utils/github-batch-operations.js";
+import { isGitHubError } from "../utils/github-error.js";
 
 export interface UploadProfileImageRequest {
   /** Base64-encoded image data (with or without data URL prefix) */
@@ -27,12 +30,21 @@ export interface UploadProfileImageRequest {
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 const OUTPUT_SIZE = 1200; // Max dimension for output image
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const AVIF_SIZES = [1200, 600, 300] as const;
+const AVIF_QUALITY = 50;
+
+interface AvifVariant {
+  filename: string;
+  buffer: Buffer;
+  size: number;
+}
 
 /**
  * Applies crop and resize to image using sharp.
- * Returns a JPEG buffer of the cropped, square image.
+ * Returns a raw buffer of the cropped, square image at 1200x1200.
+ * This buffer can then be used to generate JPEG and AVIF variants.
  */
-async function processImage(
+async function cropAndResizeImage(
   imageBuffer: Buffer,
   cropData: CropData,
 ): Promise<Buffer> {
@@ -68,7 +80,8 @@ async function processImage(
 
   const size = Math.round(cropSize);
 
-  // Crop to square, resize to output size, convert to JPEG
+  // Crop to square and resize to output size (1200x1200)
+  // Return raw buffer for further processing
   return sharp(imageBuffer)
     .extract({
       left: Math.round(left),
@@ -77,50 +90,56 @@ async function processImage(
       height: size,
     })
     .resize(OUTPUT_SIZE, OUTPUT_SIZE, { fit: "cover" })
-    .jpeg({ quality: 90 })
     .toBuffer();
 }
 
 /**
- * Deletes old profile images with different extensions using batch delete.
+ * Converts a processed image buffer to JPEG format.
  */
-async function deleteOldProfileImages(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  slug: string,
-  currentExtension: string,
-): Promise<void> {
-  const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+async function convertToJpeg(processedBuffer: Buffer): Promise<Buffer> {
+  return sharp(processedBuffer).jpeg({ quality: 90 }).toBuffer();
+}
 
-  const filePaths = extensions
-    .filter((extension) => extension !== currentExtension)
-    .map((extension) => `hugo/content/doulas/${slug}/${slug}-profile${extension}`);
+/**
+ * Generates AVIF variants at multiple sizes from a processed image buffer.
+ * Returns an array of AVIF variants with filenames and buffers.
+ *
+ * @throws Error if any variant fails to generate (all-or-nothing)
+ */
+async function generateAvifVariants(
+  processedBuffer: Buffer,
+  slug: string,
+): Promise<AvifVariant[]> {
+  const variants: AvifVariant[] = [];
 
   try {
-    const result = await batchDeleteFiles({
-      octokit,
-      owner,
-      repo,
-      branch: GITHUB_BRANCH,
-      filePaths,
-      commitMessage: `Remove old profile images for ${slug}`,
-    });
+    for (const size of AVIF_SIZES) {
+      const buffer = await sharp(processedBuffer)
+        .resize(size, size, { fit: "inside" })
+        .avif({ quality: AVIF_QUALITY })
+        .toBuffer();
 
-    if (result.deletedFiles.length > 0) {
-      logger.info(`Deleted old profile images for ${slug}`, {
-        deletedFiles: result.deletedFiles,
+      variants.push({
+        filename: `${slug}-profile-${size}.avif`,
+        buffer,
+        size,
       });
     }
-  } catch (error: unknown) {
-    // EXPLICITLY JUSTIFIED: Cleanup failure should not prevent upload success
-    // because the new image is the source of truth. Old images don't break functionality.
-    logger.error(`Failed to delete old profile images for ${slug}`, {
-      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED,
-      slug,
-      error: error instanceof Error ? error.message : String(error),
+
+    logger.info(`Generated ${variants.length} AVIF variants for ${slug}`, {
+      sizes: AVIF_SIZES,
     });
-    // Continue with upload - user gets their new image even if cleanup fails
+
+    return variants;
+  } catch (error) {
+    logger.error("Failed to generate AVIF variants", {
+      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_AVIF_GENERATION_FAILED,
+      slug,
+      error,
+    });
+    throw new Error(
+      `Failed to generate AVIF variants: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -242,14 +261,26 @@ export async function handler(
 
   // 6. Process image (crop and resize)
   let processedBuffer: Buffer;
+  let jpegBuffer: Buffer;
+  let avifVariants: AvifVariant[];
+
   try {
-    processedBuffer = await processImage(imageBuffer, cropData);
-    logger.info(`Image processed successfully for ${slug}`, {
+    // Crop and resize to 1200x1200 square
+    processedBuffer = await cropAndResizeImage(imageBuffer, cropData);
+
+    // Generate JPEG
+    jpegBuffer = await convertToJpeg(processedBuffer);
+
+    // Generate AVIF variants
+    avifVariants = await generateAvifVariants(processedBuffer, slug);
+
+    logger.info(`Images processed successfully for ${slug}`, {
       originalSize: imageBuffer.length,
-      processedSize: processedBuffer.length,
+      jpegSize: jpegBuffer.length,
+      avifCount: avifVariants.length,
     });
   } catch (error) {
-    logger.error("Failed to process image", {
+    logger.error("Failed to process images", {
       errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_PROCESSING_FAILED,
       uid,
       slug,
@@ -261,7 +292,7 @@ export async function handler(
     );
   }
 
-  // 7. Upload to GitHub
+  // 7. Upload to GitHub using batch operations
   const app = new App({
     appId: GITHUB_APP_ID,
     privateKey: GITHUB_PRIVATE_KEY,
@@ -270,72 +301,122 @@ export async function handler(
     Number.parseInt(GITHUB_INSTALLATION_ID),
   );
 
-  const filePath = `hugo/content/doulas/${slug}/${slug}-profile.jpg`;
-
   try {
-    // Check if file exists to get SHA for update
-    let existingSha: string | undefined;
-    try {
-      const { data: existingFile } = await octokit.rest.repos.getContent({
-        owner: GITHUB_OWNER,
-        repo: GITHUB_REPO,
-        path: filePath,
-      });
-      if ("sha" in existingFile) {
-        existingSha = existingFile.sha;
-      }
-    } catch (error: unknown) {
-      // 404 is expected - file doesn't exist, will be created
-      if (isGitHubError(error) && error.status === 404) {
-        logger.info(`No existing profile image found for ${slug}, will create new file`);
-      } else {
-        // Log other errors - they may cause the upload to fail
-        logger.warn(`Failed to check for existing profile image`, {
+    // 7a. Check which files exist to determine create vs update
+    const filesToCheck = [
+      `${slug}-profile.jpg`,
+      ...avifVariants.map((v) => v.filename),
+    ];
+
+    const existingFiles = new Map<string, string>(); // filename -> SHA
+
+    for (const filename of filesToCheck) {
+      const path = `hugo/content/doulas/${slug}/${filename}`;
+      try {
+        const { data: file } = await octokit.rest.repos.getContent({
+          owner: GITHUB_OWNER,
+          repo: GITHUB_REPO,
+          path,
+        });
+        if ("sha" in file) {
+          existingFiles.set(filename, file.sha);
+        }
+      } catch (error: unknown) {
+        // 404 is expected for new files
+        if (isGitHubError(error) && error.status === 404) {
+          continue;
+        }
+        // Log other errors but continue - batch operation will handle failures
+        logger.warn(`Failed to check file existence: ${filename}`, {
           uid,
           slug,
+          filename,
           error: error instanceof Error ? error.message : String(error),
         });
       }
     }
 
-    // Delete old images with different extensions
-    await deleteOldProfileImages(octokit, GITHUB_OWNER, GITHUB_REPO, slug, ".jpg");
+    // 7b. Build operations array
+    const operations: FileOperation[] = [];
 
-    // Create or update the image file
-    await octokit.rest.repos.createOrUpdateFileContents({
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO,
-      path: filePath,
-      message: `Update profile image for ${slug}`,
-      content: processedBuffer.toString("base64"),
-      ...(existingSha ? { sha: existingSha } : {}),
-      branch: GITHUB_BRANCH,
+    // Add JPEG operation
+    const jpegFilename = `${slug}-profile.jpg`;
+    const jpegPath = `hugo/content/doulas/${slug}/${jpegFilename}`;
+    const jpegSha = existingFiles.get(jpegFilename);
+
+    operations.push({
+      path: jpegPath,
+      operation: jpegSha ? "update" : "create",
+      content: jpegBuffer.toString("base64"),
+      ...(jpegSha ? { sha: jpegSha } : {}),
     });
 
-    logger.info(`Successfully uploaded profile image for ${slug}`);
+    // Add AVIF operations
+    for (const variant of avifVariants) {
+      const variantPath = `hugo/content/doulas/${slug}/${variant.filename}`;
+      const variantSha = existingFiles.get(variant.filename);
+
+      operations.push({
+        path: variantPath,
+        operation: variantSha ? "update" : "create",
+        content: variant.buffer.toString("base64"),
+        ...(variantSha ? { sha: variantSha } : {}),
+      });
+    }
+
+    // Add delete operations for old format variants
+    const oldExtensions = [".jpeg", ".png", ".webp"];
+    for (const extension of oldExtensions) {
+      operations.push({
+        path: `hugo/content/doulas/${slug}/${slug}-profile${extension}`,
+        operation: "delete",
+      });
+    }
+
+    // 7c. Execute batch operation
+    const result = await batchOperateFiles({
+      octokit,
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      branch: GITHUB_BRANCH,
+      operations,
+      commitMessage: `Update profile images for ${slug}
+
+- Updated profile.jpg
+- Generated AVIF variants (1200px, 600px, 300px)
+- Removed old format variants`,
+    });
+
+    logger.info(`Successfully uploaded profile images for ${slug}`, {
+      commitSha: result.commitSha,
+      createdFiles: result.createdFiles,
+      updatedFiles: result.updatedFiles,
+      deletedFiles: result.deletedFiles,
+    });
+
     return { success: true };
   } catch (error: unknown) {
-    if (isRateLimitError(error)) {
-      logger.error("GitHub API rate limit exceeded", {
-        errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_GITHUB_RATE_LIMIT,
-        uid,
-        slug,
-      });
+    logger.error("Failed to upload profile images to GitHub", {
+      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_BATCH_OPERATION_FAILED,
+      uid,
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    // Check if it's a concurrent modification error
+    if (
+      error instanceof Error &&
+      error.message.includes("modified by another operation")
+    ) {
       throw new HttpsError(
-        "resource-exhausted",
-        "Too many requests. Please try again later.",
+        "aborted",
+        "Profile was modified by another operation. Please try again.",
       );
     }
 
-    logger.error("Failed to upload profile image to GitHub", {
-      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_GITHUB_FAILED,
-      uid,
-      slug,
-      error,
-    });
     throw new HttpsError(
       "internal",
-      "Failed to save profile image. Please try again.",
+      "Failed to save profile images. Please try again.",
     );
   }
 }
