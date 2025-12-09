@@ -80,15 +80,23 @@ export async function batchDeleteFiles(
       }
 
       // Authentication/authorization errors - fail immediately
-      if (isGitHubError(error) && (error.status === 401 || error.status === 403)) {
-        logger.error(`GitHub authentication/authorization failed while checking file`, {
-          owner,
-          repo,
-          filePath,
-          status: error.status,
-          error,
-        });
-        throw new Error(`GitHub authentication failed. Please check app credentials.`);
+      if (
+        isGitHubError(error) &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        logger.error(
+          `GitHub authentication/authorization failed while checking file`,
+          {
+            owner,
+            repo,
+            filePath,
+            status: error.status,
+            error,
+          },
+        );
+        throw new Error(
+          `GitHub authentication failed. Please check app credentials.`,
+        );
       }
 
       // Server errors (5xx) - fail immediately
@@ -100,7 +108,9 @@ export async function batchDeleteFiles(
           status: error.status,
           error,
         });
-        throw new Error(`GitHub API is experiencing issues. Please try again later.`);
+        throw new Error(
+          `GitHub API is experiencing issues. Please try again later.`,
+        );
       }
 
       // Unknown errors - fail immediately
@@ -110,7 +120,9 @@ export async function batchDeleteFiles(
         filePath,
         error,
       });
-      throw new Error(`Failed to verify files for deletion due to unexpected error`);
+      throw new Error(
+        `Failed to verify files for deletion due to unexpected error`,
+      );
     }
   }
 
@@ -124,7 +136,7 @@ export async function batchDeleteFiles(
   }
 
   logger.info(`Found ${filesToDelete.length} files to delete`, {
-    files: filesToDelete.map((f) => f.path),
+    files: filesToDelete.map(f => f.path),
   });
 
   // 4. Get current commit and tree
@@ -149,53 +161,27 @@ export async function batchDeleteFiles(
     throw new Error("Failed to get current commit");
   }
 
-  // 5. Get the full tree
-  let baseTree;
-  try {
-    const treeResponse = await octokit.rest.git.getTree({
-      owner,
-      repo,
-      tree_sha: baseTreeSha,
-      recursive: "true",
-    });
-    baseTree = treeResponse.data;
-  } catch (error: unknown) {
-    if (isRateLimitError(error)) {
-      throw error;
-    }
-    logger.error("Failed to get tree", {
-      owner,
-      repo,
-      treeSha: baseTreeSha,
-      error,
-    });
-    throw new Error("Failed to get repository tree");
-  }
+  // 5. Create new tree with files marked for deletion
+  // Use base_tree and mark files for deletion by setting sha to null
+  logger.info("Marking files for deletion:", {
+    paths: filesToDelete.map(f => f.path),
+  });
 
-  // 6. Create new tree excluding deleted files
-  const pathsToDelete = new Set(filesToDelete.map((f) => f.path));
-
-  // Filter out the files to be deleted
-  const newTreeItems = baseTree.tree
-    .filter((item) => !pathsToDelete.has(item.path || ""))
-    .map((item) => ({
-      path: item.path,
-      mode: item.mode,
-      type: item.type,
-      sha: item.sha,
-    }));
+  const treeUpdates = filesToDelete.map(f => ({
+    path: f.path,
+    mode: "100644" as const,
+    type: "blob" as const,
+    // eslint-disable-next-line unicorn/no-null -- GitHub API requires null to delete files
+    sha: null,
+  }));
 
   let newTreeSha: string;
   try {
     const newTreeResponse = await octokit.rest.git.createTree({
       owner,
       repo,
-      tree: newTreeItems as {
-        path?: string;
-        mode?: "100644" | "100755" | "040000" | "160000" | "120000";
-        type?: "blob" | "tree" | "commit";
-        sha?: string | null;
-      }[],
+      base_tree: baseTreeSha,
+      tree: treeUpdates,
     });
     newTreeSha = newTreeResponse.data.sha;
   } catch (error: unknown) {
@@ -208,6 +194,24 @@ export async function batchDeleteFiles(
       error,
     });
     throw new Error("Failed to create new tree");
+  }
+
+  logger.info("Tree SHAs:", {
+    baseTreeSha,
+    newTreeSha,
+    areIdentical: baseTreeSha === newTreeSha,
+  });
+
+  // Check if tree actually changed
+  if (baseTreeSha === newTreeSha) {
+    logger.warn("New tree is identical to base tree - no changes to commit", {
+      baseTreeSha,
+      filesToDelete: filesToDelete.map(f => f.path),
+    });
+    return {
+      success: true,
+      deletedFiles: [],
+    };
   }
 
   // 7. Create commit with new tree
@@ -260,7 +264,7 @@ export async function batchDeleteFiles(
     );
   }
 
-  const deletedFilePaths = filesToDelete.map((f) => f.path);
+  const deletedFilePaths = filesToDelete.map(f => f.path);
   logger.info("Successfully batch deleted files", {
     owner,
     repo,
