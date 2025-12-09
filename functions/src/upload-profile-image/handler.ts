@@ -40,64 +40,34 @@ interface AvifVariant {
 }
 
 /**
- * Applies crop and resize to image using sharp.
- * Returns a raw buffer of the cropped, square image at 1200x1200.
- * This buffer can then be used to generate JPEG and AVIF variants.
+ * Processes an image by applying crop and generating all required variants.
+ * Returns the JPEG buffer and AVIF variants.
  */
-async function cropAndResizeImage(
+async function processImage(
   imageBuffer: Buffer,
   cropData: CropData,
-): Promise<Buffer> {
-  // Get image metadata
-  const metadata = await sharp(imageBuffer).metadata();
-  const { width, height } = metadata;
-
-  if (!width || !height) {
-    throw new Error("Could not determine image dimensions");
-  }
-
-  // Calculate the visible area size based on zoom
-  // At zoom 1.0, the entire image is visible
-  // At zoom 2.0, only half the image is visible
-  const visibleWidth = width / cropData.zoom;
-  const visibleHeight = height / cropData.zoom;
-
-  // The crop size is the smaller of the visible dimensions (to make a square)
-  const cropSize = Math.min(visibleWidth, visibleHeight);
-
-  // Calculate crop position
-  // x and y are 0-1 representing the center position
-  const centerX = cropData.x * width;
-  const centerY = cropData.y * height;
-
-  // Calculate top-left of crop region
-  let left = Math.round(centerX - cropSize / 2);
-  let top = Math.round(centerY - cropSize / 2);
-
-  // Clamp to image bounds
-  left = Math.max(0, Math.min(left, width - cropSize));
-  top = Math.max(0, Math.min(top, height - cropSize));
-
-  const size = Math.round(cropSize);
-
-  // Crop to square and resize to output size (1200x1200)
-  // Return raw buffer for further processing
-  return sharp(imageBuffer)
+  slug: string,
+): Promise<{ jpegBuffer: Buffer; avifVariants: AvifVariant[] }> {
+  // Extract crop region and resize to output size
+  const processedBuffer = await sharp(imageBuffer)
     .extract({
-      left: Math.round(left),
-      top: Math.round(top),
-      width: size,
-      height: size,
+      left: Math.round(cropData.x),
+      top: Math.round(cropData.y),
+      width: Math.round(cropData.width),
+      height: Math.round(cropData.height),
     })
     .resize(OUTPUT_SIZE, OUTPUT_SIZE, { fit: "cover" })
     .toBuffer();
-}
 
-/**
- * Converts a processed image buffer to JPEG format.
- */
-async function convertToJpeg(processedBuffer: Buffer): Promise<Buffer> {
-  return sharp(processedBuffer).jpeg({ quality: 90 }).toBuffer();
+  // Generate JPEG
+  const jpegBuffer = await sharp(processedBuffer)
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  // Generate AVIF variants
+  const avifVariants = await generateAvifVariants(processedBuffer, slug);
+
+  return { jpegBuffer, avifVariants };
 }
 
 /**
@@ -193,7 +163,7 @@ export async function handler(
     });
     throw new HttpsError(
       "invalid-argument",
-      "Invalid crop data. Ensure x, y are 0-1 and zoom is >= 1.",
+      "Invalid crop data. Ensure coordinates are positive and width/height > 0.",
     );
   }
 
@@ -259,20 +229,14 @@ export async function handler(
     );
   }
 
-  // 6. Process image (crop and resize)
-  let processedBuffer: Buffer;
+  // 6. Process image (crop, resize, and generate variants)
   let jpegBuffer: Buffer;
   let avifVariants: AvifVariant[];
 
   try {
-    // Crop and resize to 1200x1200 square
-    processedBuffer = await cropAndResizeImage(imageBuffer, cropData);
-
-    // Generate JPEG
-    jpegBuffer = await convertToJpeg(processedBuffer);
-
-    // Generate AVIF variants
-    avifVariants = await generateAvifVariants(processedBuffer, slug);
+    const result = await processImage(imageBuffer, cropData, slug);
+    jpegBuffer = result.jpegBuffer;
+    avifVariants = result.avifVariants;
 
     logger.info(`Images processed successfully for ${slug}`, {
       originalSize: imageBuffer.length,

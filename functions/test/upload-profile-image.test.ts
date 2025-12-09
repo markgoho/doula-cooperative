@@ -7,15 +7,8 @@ import { initializeTest } from "../src/test-utils/test-setup.js";
 import { type MemberDocument } from "../src/types/member-document.js";
 
 // Helper to create GitHub errors with status codes
-interface GitHubError extends Error {
-  status?: number;
-  response?: {
-    headers?: Record<string, string>;
-  };
-}
-
-function createGitHubError(message: string, status?: number, isRateLimit = false): GitHubError {
-  const error: GitHubError = new Error(message);
+function createGitHubError(message: string, status?: number, isRateLimit = false): Error & { status?: number; response?: { headers?: Record<string, string> } } {
+  const error = new Error(message) as Error & { status?: number; response?: { headers?: Record<string, string> } };
   if (status) {
     error.status = status;
   }
@@ -89,19 +82,19 @@ void mock.module("octokit", () => ({
 
 const test = initializeTest();
 
-interface SetupOptions {
+function setup(options: {
   testUid?: string;
   testEmail?: string;
   slug?: string;
   membershipActive?: boolean;
-}
+} = {}) {
+  const {
+    testUid = "test-upload-001",
+    testEmail = "testupload001@example.com",
+    slug = "test-doula-upload",
+    membershipActive = true,
+  } = options;
 
-function setup({
-  testUid = "test-upload-001",
-  testEmail = "testupload001@example.com",
-  slug = "test-doula-upload",
-  membershipActive = true,
-}: SetupOptions = {}) {
   const wrappedUploadProfileImage = test.wrap(uploadProfileImage);
   const firestore = getFirestore();
 
@@ -110,15 +103,15 @@ function setup({
   process.env["GITHUB_PRIVATE_KEY"] = "fake-private-key";
   process.env["GITHUB_INSTALLATION_ID"] = "78910";
 
-  // Create a small 1x1 red pixel PNG as test data
-  // This is a valid base64-encoded PNG
+  // Create a small 1x1 pixel PNG as test data
   const testImageBase64 =
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 
   const validCropData = {
-    x: 0.5,
-    y: 0.5,
-    zoom: 1,
+    x: 100,
+    y: 100,
+    width: 500,
+    height: 500,
   };
 
   const validRequestData = {
@@ -140,23 +133,18 @@ function setup({
   };
 }
 
-interface CreateMemberDocumentOptions {
-  firestore: ReturnType<typeof getFirestore>;
-  uid: string;
-  email: string;
-  slug?: string;
-  membershipActive?: boolean;
-  includeSlug?: boolean;
-}
+async function createMemberDocument(
+  firestore: ReturnType<typeof getFirestore>,
+  uid: string,
+  email: string,
+  options: {
+    slug?: string;
+    membershipActive?: boolean;
+    includeSlug?: boolean;
+  } = {},
+) {
+  const { slug, membershipActive = true, includeSlug = true } = options;
 
-async function createMemberDocument({
-  firestore,
-  uid,
-  email,
-  slug,
-  membershipActive = true,
-  includeSlug = true,
-}: CreateMemberDocumentOptions) {
   const memberData: MemberDocument = {
     createdAt: Timestamp.now(),
     email,
@@ -188,19 +176,18 @@ async function cleanupTestData() {
   await Promise.all(deletePromises);
 }
 
-interface SetupGitHubMockOptions {
+function setupGitHubMock(options: {
   shouldThrowOnGetContent?: boolean;
   shouldThrowOnUpdate?: boolean;
   errorType?: "generic" | "rate-limit" | "not-found";
   existingSha?: string;
-}
-
-function setupGitHubMock({
-  shouldThrowOnGetContent = false,
-  shouldThrowOnUpdate = false,
-  errorType = "generic",
-  existingSha,
-}: SetupGitHubMockOptions = {}) {
+} = {}) {
+  const {
+    shouldThrowOnGetContent = false,
+    shouldThrowOnUpdate = false,
+    errorType = "generic",
+    existingSha,
+  } = options;
   mockGetContent.mockImplementation(() => {
     if (shouldThrowOnGetContent) {
       if (errorType === "not-found") {
@@ -286,14 +273,16 @@ function setupSharpMock({
   height?: number;
 } = {}) {
   mockMetadata.mockImplementation(() => {
-    if (shouldThrow) {
-      throw new Error("Failed to read image metadata");
-    }
     return Promise.resolve({ width, height });
   });
 
-  mockExtract.mockReturnValue({
-    resize: mockResize,
+  mockExtract.mockImplementation(() => {
+    if (shouldThrow) {
+      throw new Error("Failed to extract image region");
+    }
+    return {
+      resize: mockResize,
+    };
   });
 
   mockResize.mockReturnValue({
@@ -421,7 +410,7 @@ describe("uploadProfileImage", () => {
     await cleanupTestData();
   });
 
-  it("should throw error when crop data is invalid (x out of range)", async () => {
+  it("should throw error when crop data x is negative", async () => {
     const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
 
     try {
@@ -430,51 +419,7 @@ describe("uploadProfileImage", () => {
           data: {
             imageData: testImageBase64,
             mimeType: "image/png",
-            cropData: { x: 1.5, y: 0.5, zoom: 1 },
-          },
-          uid: testUid,
-        }),
-      );
-      expect.unreachable();
-    } catch (error) {
-      expect(String(error)).toContain("Invalid crop data");
-    }
-
-    await cleanupTestData();
-  });
-
-  it("should throw error when crop data is invalid (zoom too low)", async () => {
-    const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
-
-    try {
-      await wrappedUploadProfileImage(
-        createMockCallableRequest({
-          data: {
-            imageData: testImageBase64,
-            mimeType: "image/png",
-            cropData: { x: 0.5, y: 0.5, zoom: 0.5 },
-          },
-          uid: testUid,
-        }),
-      );
-      expect.unreachable();
-    } catch (error) {
-      expect(String(error)).toContain("Invalid crop data");
-    }
-
-    await cleanupTestData();
-  });
-
-  it("should throw error when crop data zoom exceeds maximum (> 10)", async () => {
-    const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
-
-    try {
-      await wrappedUploadProfileImage(
-        createMockCallableRequest({
-          data: {
-            imageData: testImageBase64,
-            mimeType: "image/png",
-            cropData: { x: 0.5, y: 0.5, zoom: 11 },
+            cropData: { x: -10, y: 100, width: 500, height: 500 },
           },
           uid: testUid,
         }),
@@ -496,7 +441,7 @@ describe("uploadProfileImage", () => {
           data: {
             imageData: testImageBase64,
             mimeType: "image/png",
-            cropData: { x: 0.5, y: -0.1, zoom: 1 },
+            cropData: { x: 100, y: -20, width: 500, height: 500 },
           },
           uid: testUid,
         }),
@@ -509,7 +454,7 @@ describe("uploadProfileImage", () => {
     await cleanupTestData();
   });
 
-  it("should throw error when crop data y exceeds maximum (> 1)", async () => {
+  it("should throw error when crop data width is zero", async () => {
     const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
 
     try {
@@ -518,7 +463,51 @@ describe("uploadProfileImage", () => {
           data: {
             imageData: testImageBase64,
             mimeType: "image/png",
-            cropData: { x: 0.5, y: 1.5, zoom: 1 },
+            cropData: { x: 100, y: 100, width: 0, height: 500 },
+          },
+          uid: testUid,
+        }),
+      );
+      expect.unreachable();
+    } catch (error) {
+      expect(String(error)).toContain("Invalid crop data");
+    }
+
+    await cleanupTestData();
+  });
+
+  it("should throw error when crop data width is negative", async () => {
+    const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
+
+    try {
+      await wrappedUploadProfileImage(
+        createMockCallableRequest({
+          data: {
+            imageData: testImageBase64,
+            mimeType: "image/png",
+            cropData: { x: 100, y: 100, width: -100, height: 500 },
+          },
+          uid: testUid,
+        }),
+      );
+      expect.unreachable();
+    } catch (error) {
+      expect(String(error)).toContain("Invalid crop data");
+    }
+
+    await cleanupTestData();
+  });
+
+  it("should throw error when crop data height is zero", async () => {
+    const { testUid, wrappedUploadProfileImage, testImageBase64 } = setup();
+
+    try {
+      await wrappedUploadProfileImage(
+        createMockCallableRequest({
+          data: {
+            imageData: testImageBase64,
+            mimeType: "image/png",
+            cropData: { x: 100, y: 100, width: 500, height: 0 },
           },
           uid: testUid,
         }),
@@ -561,10 +550,7 @@ describe("uploadProfileImage", () => {
     } = setup();
     setupSharpMock();
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
+    await createMemberDocument(firestore, testUid, testEmail, {
       slug,
       membershipActive: false,
     });
@@ -594,10 +580,7 @@ describe("uploadProfileImage", () => {
     } = setup();
     setupSharpMock();
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
+    await createMemberDocument(firestore, testUid, testEmail, {
       includeSlug: false,
     });
 
@@ -628,12 +611,7 @@ describe("uploadProfileImage", () => {
     setupSharpMock();
     setupGitHubMock();
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     const result = await wrappedUploadProfileImage(
       createMockCallableRequest({
@@ -664,12 +642,7 @@ describe("uploadProfileImage", () => {
     setupSharpMock();
     setupGitHubMock({ existingSha: "existing-sha-123" });
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     const result = await wrappedUploadProfileImage(
       createMockCallableRequest({
@@ -700,12 +673,7 @@ describe("uploadProfileImage", () => {
     setupSharpMock();
     setupGitHubMock();
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     await wrappedUploadProfileImage(
       createMockCallableRequest({
@@ -737,12 +705,7 @@ describe("uploadProfileImage", () => {
     setupSharpMock();
     setupGitHubMock();
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     await wrappedUploadProfileImage(
       createMockCallableRequest({
@@ -775,12 +738,7 @@ describe("uploadProfileImage", () => {
     // Override mockCreateBlob to throw rate limit error
     mockCreateBlob.mockRejectedValue(createGitHubError("Rate limit exceeded", 403, true));
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     try {
       await wrappedUploadProfileImage(
@@ -812,12 +770,7 @@ describe("uploadProfileImage", () => {
     // Override mockCreateBlob to throw generic error
     mockCreateBlob.mockRejectedValue(new Error("GitHub API error"));
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     try {
       await wrappedUploadProfileImage(
@@ -845,12 +798,7 @@ describe("uploadProfileImage", () => {
     } = setup();
     setupSharpMock({ shouldThrow: true });
 
-    await createMemberDocument({
-      firestore,
-      uid: testUid,
-      email: testEmail,
-      slug,
-    });
+    await createMemberDocument(firestore, testUid, testEmail, { slug });
 
     try {
       await wrappedUploadProfileImage(

@@ -1,130 +1,28 @@
 <div class="cropper-container">
   <h2 id="cropper-heading">Crop Your Photo</h2>
   <p class="cropper-instructions">
-    Drag the image to position it, or use the controls below. The square area shows what will be visible.
+    Drag to reposition and resize the square crop box to select the area you want.
   </p>
 
-  <!-- Preview Area -->
-  <div
-    class="preview-container"
-    tabindex="0"
-    role="application"
-    aria-labelledby="cropper-heading"
-    aria-describedby="preview-instructions"
-    (keydown)="onPreviewKeydown($event)"
-  >
-    <span id="preview-instructions" class="visually-hidden">
-      Use arrow keys to adjust position. Preview shows the cropped result.
-    </span>
-
+  <!-- Cropper Area -->
+  <div class="cropper-wrapper">
     @if (imageUrl()) {
-      <div
-        class="preview-wrapper"
-        [class.preview-wrapper--dragging]="isDragging()"
-        (mousedown)="onMouseDown($event)"
-        (touchstart)="onTouchStart($event)"
-        (touchmove)="onTouchMove($event)"
-        (touchend)="onTouchEnd()"
-      >
-        <img
-          [src]="imageUrl()"
-          alt="Crop preview"
-          class="preview-image"
-          [style.transform]="transformStyle()"
-          draggable="false"
-        />
-        <!-- Mask overlay with cutout for crop area -->
-        <div class="crop-overlay">
-          <div class="crop-frame"></div>
-        </div>
+      <img
+        #cropperImage
+        [src]="imageUrl()"
+        alt="Image to crop"
+        class="cropper-image"
+      />
+    } @else if (imageLoadError()) {
+      <div class="error">
+        <p>{{ imageLoadError() }}</p>
       </div>
     } @else {
-      <div class="preview-loading">
+      <div class="loading">
         <p>Loading image...</p>
       </div>
     }
   </div>
-
-  <!-- Position Controls -->
-  <fieldset class="controls-group">
-    <legend>Position</legend>
-    <div class="position-controls">
-      <div class="position-row">
-        <button
-          type="button"
-          class="position-button"
-          aria-label="Move image up"
-          (click)="moveUp()"
-        >
-          <span aria-hidden="true">↑</span>
-          <span class="button-label">Up</span>
-        </button>
-      </div>
-      <div class="position-row">
-        <button
-          type="button"
-          class="position-button"
-          aria-label="Move image left"
-          (click)="moveLeft()"
-        >
-          <span aria-hidden="true">←</span>
-          <span class="button-label">Left</span>
-        </button>
-        <button
-          type="button"
-          class="position-button position-button--center"
-          aria-label="Center image"
-          (click)="centerPosition()"
-        >
-          <span class="button-label">Center</span>
-        </button>
-        <button
-          type="button"
-          class="position-button"
-          aria-label="Move image right"
-          (click)="moveRight()"
-        >
-          <span aria-hidden="true">→</span>
-          <span class="button-label">Right</span>
-        </button>
-      </div>
-      <div class="position-row">
-        <button
-          type="button"
-          class="position-button"
-          aria-label="Move image down"
-          (click)="moveDown()"
-        >
-          <span aria-hidden="true">↓</span>
-          <span class="button-label">Down</span>
-        </button>
-      </div>
-    </div>
-  </fieldset>
-
-  <!-- Zoom Control -->
-  <fieldset class="controls-group">
-    <legend>Zoom</legend>
-    <div class="zoom-controls">
-      <label for="zoom-slider" class="zoom-label">
-        Zoom: {{ zoom() | number:'1.1-1' }}x
-      </label>
-      <input
-        id="zoom-slider"
-        type="range"
-        min="1"
-        max="3"
-        step="0.1"
-        [value]="zoom()"
-        (input)="onZoomChange($event)"
-        class="zoom-slider"
-        aria-describedby="zoom-description"
-      />
-      <span id="zoom-description" class="visually-hidden">
-        Adjust zoom from 1x to 3x magnification
-      </span>
-    </div>
-  </fieldset>
 
   <!-- Action Buttons -->
   <div class="actions">
@@ -139,6 +37,7 @@
       type="button"
       class="button button--primary"
       (click)="confirm()"
+      [disabled]="!imageUrl()"
     >
       Save Photo
     </button>

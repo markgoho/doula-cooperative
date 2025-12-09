@@ -280,6 +280,7 @@ export async function batchOperateFiles(
     const newTreeResponse = await octokit.rest.git.createTree({
       owner,
       repo,
+      base_tree: baseTreeSha,
       tree: newTreeItems as {
         path?: string;
         mode?: "100644" | "100755" | "040000" | "160000" | "120000";

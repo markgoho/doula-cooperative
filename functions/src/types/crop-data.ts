@@ -1,17 +1,22 @@
 /**
- * Crop data from client specifying how to crop the image.
- * All values are normalized to 0-1 range based on image dimensions.
+ * Crop data describing the crop box coordinates in pixels.
+ * Received from the frontend image cropper and used to process uploaded images.
  *
- * NOTE: This type is also defined in members/src/app/types/crop-data.ts for the frontend.
- * Keep them in sync when making changes.
+ * IMPORTANT: This interface must match members/src/app/types/crop-data.ts exactly.
+ * The frontend sends these coordinates after user crops their image.
+ * Any changes here must be synchronized with the frontend type definition.
+ *
+ * @see members/src/app/types/crop-data.ts
  */
 export interface CropData {
-  /** X position of crop center (0-1 range) */
+  /** Top-left X coordinate in pixels (must be >= 0) */
   x: number;
-  /** Y position of crop center (0-1 range) */
+  /** Top-left Y coordinate in pixels (must be >= 0) */
   y: number;
-  /** Zoom level (1.0 = no zoom, 2.0 = 2x zoom, max 10) */
-  zoom: number;
+  /** Crop box width in pixels (must be > 0) */
+  width: number;
+  /** Crop box height in pixels (must be > 0) */
+  height: number;
 }
 
 /**
@@ -25,17 +30,17 @@ export function validateCropData(cropData: unknown): cropData is CropData {
   const data = cropData as Record<string, unknown>;
   const x = data["x"];
   const y = data["y"];
-  const zoom = data["zoom"];
+  const width = data["width"];
+  const height = data["height"];
 
   return (
     typeof x === "number" &&
     x >= 0 &&
-    x <= 1 &&
     typeof y === "number" &&
     y >= 0 &&
-    y <= 1 &&
-    typeof zoom === "number" &&
-    zoom >= 1 &&
-    zoom <= 10
+    typeof width === "number" &&
+    width > 0 &&
+    typeof height === "number" &&
+    height > 0
   );
 }

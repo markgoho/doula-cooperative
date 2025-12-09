@@ -1,7 +1,19 @@
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImageCropper, type CropResult } from './image-cropper';
+
+// Mock Cropper.js
+const mockGetData = vi.fn();
+const mockDestroy = vi.fn();
+
+// Mock the entire cropperjs module
+vi.mock('cropperjs', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    getData: mockGetData,
+    destroy: mockDestroy,
+  })),
+}));
 
 function createMockFile(name = 'test.jpg', type = 'image/jpeg'): File {
   return new File(['mock-image-data'], name, { type });
@@ -12,7 +24,7 @@ async function setup(options: { sourceImage?: File } = {}) {
   const onCropConfirmed = vi.fn();
   const onCancelled = vi.fn();
 
-  await render(ImageCropper, {
+  const renderResult = await render(ImageCropper, {
     inputs: {
       sourceImage,
     },
@@ -24,10 +36,25 @@ async function setup(options: { sourceImage?: File } = {}) {
 
   const user = userEvent.setup();
 
-  return { user, onCropConfirmed, onCancelled, sourceImage };
+  return { user, onCropConfirmed, onCancelled, sourceImage, unmount: renderResult.fixture.destroy.bind(renderResult.fixture) };
 }
 
 describe('ImageCropper', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Default mock implementation for getData
+    mockGetData.mockReturnValue({
+      x: 100,
+      y: 100,
+      width: 300,
+      height: 300,
+      rotate: 0,
+      scaleX: 1,
+      scaleY: 1,
+    });
+  });
+
   describe('rendering', () => {
     it('should render the cropper heading', async () => {
       await setup();
@@ -35,55 +62,78 @@ describe('ImageCropper', () => {
       expect(screen.getByRole('heading', { name: /crop your photo/i })).toBeVisible();
     });
 
-    it('should render position controls', async () => {
-      await setup();
-
-      expect(screen.getByRole('button', { name: /move image up/i })).toBeVisible();
-      expect(screen.getByRole('button', { name: /move image down/i })).toBeVisible();
-      expect(screen.getByRole('button', { name: /move image left/i })).toBeVisible();
-      expect(screen.getByRole('button', { name: /move image right/i })).toBeVisible();
-      expect(screen.getByRole('button', { name: /center image/i })).toBeVisible();
-    });
-
-    it('should render zoom slider', async () => {
-      await setup();
-
-      expect(screen.getByRole('slider')).toBeVisible();
-    });
-
     it('should render action buttons', async () => {
       await setup();
 
-      expect(screen.getByRole('button', { name: /cancel/i })).toBeVisible();
-      expect(screen.getByRole('button', { name: /save photo/i })).toBeVisible();
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /cancel/i })).toBeVisible();
+        expect(screen.getByRole('button', { name: /save photo/i })).toBeVisible();
+      });
+    });
+
+    it('should show loading state initially', async () => {
+      await setup();
+
+      expect(screen.getByText(/loading image/i)).toBeVisible();
     });
   });
 
-  describe('position controls', () => {
-    it('should emit crop data with default center position when confirmed immediately', async () => {
+  describe('crop confirmation', () => {
+    it('should emit crop data with pixel coordinates when confirmed', async () => {
       const { user, onCropConfirmed, sourceImage } = await setup();
 
       await user.click(screen.getByRole('button', { name: /save photo/i }));
 
       expect(onCropConfirmed).toHaveBeenCalledOnce();
-      const calls = onCropConfirmed.mock.calls;
-      expect(calls.length).toBeGreaterThan(0);
-      const result = calls[0]?.[0] as CropResult | undefined;
-      expect(result).toBeDefined();
-      expect(result?.file).toBe(sourceImage);
-      expect(result?.cropData.x).toBe(0.5);
-      expect(result?.cropData.y).toBe(0.5);
-      expect(result?.cropData.zoom).toBe(1);
+      const result = onCropConfirmed.mock.calls[0]?.[0] as CropResult;
+      expect(result.file).toBe(sourceImage);
+      expect(result.cropData.x).toBe(100);
+      expect(result.cropData.y).toBe(100);
+      expect(result.cropData.width).toBe(300);
+      expect(result.cropData.height).toBe(300);
+    });
+
+    it('should round pixel values', async () => {
+      mockGetData.mockReturnValue({
+        x: 100.7,
+        y: 200.3,
+        width: 299.8,
+        height: 301.2,
+        rotate: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+
+      const { user, onCropConfirmed } = await setup();
+
+      await user.click(screen.getByRole('button', { name: /save photo/i }));
+
+      const result = onCropConfirmed.mock.calls[0]?.[0] as CropResult;
+      expect(result.cropData.x).toBe(101);
+      expect(result.cropData.y).toBe(200);
+      expect(result.cropData.width).toBe(300);
+      expect(result.cropData.height).toBe(301);
     });
   });
 
   describe('cancel', () => {
-    it('should emit cancelled event when cancel is clicked', async () => {
+    it('should emit cancelled event when cancel button clicked', async () => {
       const { user, onCancelled } = await setup();
 
       await user.click(screen.getByRole('button', { name: /cancel/i }));
 
       expect(onCancelled).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should destroy cropper instance on component destroy', async () => {
+      const { unmount } = await setup();
+
+      unmount();
+
+      // Verify cleanup happened
+      expect(mockDestroy).toHaveBeenCalled();
     });
   });
 });

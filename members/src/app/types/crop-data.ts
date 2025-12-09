@@ -1,15 +1,20 @@
 /**
- * Crop data describing how to crop an image.
- * All position values are normalized to 0-1 range.
+ * Crop data describing the crop box coordinates in pixels.
+ * Used by the image cropper component to specify the selected region.
  *
- * NOTE: This type is also defined in functions/src/types/crop-data.ts for the backend.
- * Keep them in sync when making changes.
+ * IMPORTANT: This interface must match functions/src/types/crop-data.ts exactly.
+ * The backend validates and uses these coordinates to process the image.
+ * Any changes here must be synchronized with the backend type definition.
+ *
+ * @see functions/src/types/crop-data.ts
  */
 export interface CropData {
-  /** X position of crop center (0-1 range) */
+  /** Top-left X coordinate in pixels (must be >= 0) */
   x: number;
-  /** Y position of crop center (0-1 range) */
+  /** Top-left Y coordinate in pixels (must be >= 0) */
   y: number;
-  /** Zoom level (1.0 = no zoom, 2.0 = 2x zoom, backend max = 10, frontend max = 3) */
-  zoom: number;
+  /** Crop box width in pixels (must be > 0) */
+  width: number;
+  /** Crop box height in pixels (must be > 0) */
+  height: number;
 }
