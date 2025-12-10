@@ -101,6 +101,8 @@ export const ERROR_IDS = {
     "update_newsletter_pref_mailerlite_failed",
   UPDATE_NEWSLETTER_PREF_NOTIFICATION_FAILED:
     "update_newsletter_pref_notification_failed",
+  UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES:
+    "update_newsletter_pref_missing_subscription_dates",
 
   // Profile deployment webhook errors
   PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET:

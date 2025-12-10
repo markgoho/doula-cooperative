@@ -21,7 +21,7 @@ import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
 } from "../utils/member-factory.js";
-import { addNewsletterSubscriber } from "../utils/mailerlite.js";
+import { addNewsletterSubscriber, MailerLiteError } from "../utils/mailerlite.js";
 import { calculateExpirationDate } from "../utils/membership-dates.js";
 import { sendEmail } from "../utils/send-email.js";
 
@@ -485,6 +485,7 @@ export async function handler(request: Request, response: Response) {
         });
 
         // Update member document to track newsletter subscription
+        // CRITICAL: This must succeed to keep Firestore and MailerLite in sync
         try {
           await database
             .collection(MEMBERS_COLLECTION)
@@ -501,24 +502,25 @@ export async function handler(request: Request, response: Response) {
             email: customerEmail,
           });
         } catch (firestoreError) {
-          // Log the error but don't fail the webhook - MailerLite already has the subscriber
-          logger.error("Failed to update member document with newsletter status", {
+          // This is a critical failure - MailerLite and Firestore would be out of sync
+          // Throw error to fail the webhook and trigger Stripe retry
+          // MailerLite createOrUpdate is idempotent, so retry is safe
+          logger.error("CRITICAL: Failed to update member document with newsletter status", {
             error: firestoreError,
             errorId: ERROR_IDS.STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED,
             uid: userRecord.uid,
             email: customerEmail,
-            context: "Member is subscribed in MailerLite but flag not set in Firestore",
+            context: "MailerLite was updated but Firestore sync failed - throwing to trigger webhook retry",
+            severity: "CRITICAL",
           });
+          throw new Error(
+            `Failed to update newsletter status in Firestore after MailerLite sync for ${customerEmail}`,
+          );
         }
       } catch (error) {
         // Only catch errors from MailerLite specifically
         // Let all other errors (programmer errors, TypeScript errors) propagate
-        if (
-          !(
-            error instanceof Error &&
-            error.message.includes("Failed to add subscriber to MailerLite")
-          )
-        ) {
+        if (!(error instanceof MailerLiteError)) {
           // This is not a MailerLite error - it's a programmer error or unexpected failure
           logger.error("Unexpected error in newsletter subscription flow", {
             error,

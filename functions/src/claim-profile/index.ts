@@ -1,7 +1,6 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
-import { defineSecret } from "firebase-functions/params";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
@@ -15,9 +14,6 @@ import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../constants/index.js";
 import { escapeHtml } from "../utils/html-escape.js";
 import { addNewsletterSubscriber } from "../utils/mailerlite.js";
 import { sendEmail } from "../utils/send-email.js";
-
-const mailerliteApiKey = defineSecret("MAILERLITE_API_KEY");
-const mailgunApiKey = defineSecret("MAILGUN_API_KEY");
 
 /**
  * Creates HTML for MailerLite failure notification email during profile claim
@@ -98,12 +94,18 @@ async function sendClaimProfileMailerLiteFailureNotification(parameters: {
     );
   } catch (error: unknown) {
     logger.error(
-      "Failed to send MailerLite failure notification email during profile claim",
+      "CRITICAL: Failed to send MailerLite failure notification email during profile claim",
       {
         errorId: ERROR_IDS.CLAIM_PROFILE_NOTIFICATION_FAILED,
         uid,
         email,
         error,
+        severity: "CRITICAL",
+        context:
+          "MailerLite sync failed during profile claim AND notification email failed - admin is unaware",
+        actionRequired:
+          "Check Sentry alerts immediately and manually add member to MailerLite",
+        originalMailerLiteError: errorMessage,
       },
     );
   }
@@ -240,7 +242,8 @@ export const handleClaimProfile = async (
   }
 
   // 4.5. Add to newsletter (non-critical - don't fail if this fails)
-  if (mailerliteApiKey.value()) {
+  const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
+  if (mailerliteApiKey) {
     try {
       await addNewsletterSubscriber({
         email,
@@ -250,7 +253,7 @@ export const handleClaimProfile = async (
         ...(process.env["MAILERLITE_GROUP_ID"] && {
           groupId: process.env["MAILERLITE_GROUP_ID"],
         }),
-        apiKey: mailerliteApiKey.value(),
+        apiKey: mailerliteApiKey,
       });
       logger.log(`Added subscriber to MailerLite newsletter: ${email}`);
     } catch (newsletterError) {
@@ -272,7 +275,8 @@ export const handleClaimProfile = async (
       );
 
       // Send notification email if Mailgun is configured
-      if (mailgunApiKey.value()) {
+      const mailgunApiKey = process.env["MAILGUN_API_KEY"];
+      if (mailgunApiKey) {
         await sendClaimProfileMailerLiteFailureNotification({
           email,
           name: profileData.name,
@@ -280,7 +284,7 @@ export const handleClaimProfile = async (
           subscriptionStart,
           membershipExpiresAt,
           errorMessage,
-          mailgunKey: mailgunApiKey.value(),
+          mailgunKey: mailgunApiKey,
         });
       }
     }
