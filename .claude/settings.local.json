@@ -65,7 +65,9 @@
       "Bash(hugo:*)",
       "Bash(git log:*)",
       "Bash(grep:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []
