@@ -15,6 +15,7 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../constants/index.js";
+import { escapeHtml } from "../utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   removeNewsletterSubscriber,
@@ -50,14 +51,14 @@ function createNewsletterPreferenceFailureEmailHtml(
 
     <h3>Member Details:</h3>
     <ul>
-      <li><strong>Email:</strong> ${email}</li>
-      <li><strong>Name:</strong> ${name ?? "Not provided"}</li>
-      <li><strong>UID:</strong> ${uid}</li>
+      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
+      <li><strong>Name:</strong> ${escapeHtml(name) || "Not provided"}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
       <li><strong>Requested Action:</strong> ${subscribed ? "Subscribe" : "Unsubscribe"}</li>
     </ul>
 
     <h3>Error Details:</h3>
-    <p>${errorMessage}</p>
+    <p>${escapeHtml(errorMessage)}</p>
 
     <p><strong>Action Required:</strong> Manually ${action} this member ${subscribed ? "to" : "from"} the MailerLite newsletter.</p>
     <p><strong>Note:</strong> The preference has been updated in Firestore, but MailerLite is out of sync.</p>

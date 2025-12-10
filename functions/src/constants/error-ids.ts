@@ -90,6 +90,7 @@ export const ERROR_IDS = {
   CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
   CLAIM_PROFILE_EXPIRATION_CALC_ERROR: "claim_profile_expiration_calc_error",
   CLAIM_PROFILE_MAILERLITE_FAILED: "claim_profile_mailerlite_failed",
+  CLAIM_PROFILE_NOTIFICATION_FAILED: "claim_profile_notification_failed",
 
   // Newsletter preference errors
   UPDATE_NEWSLETTER_PREF_FIRESTORE_READ_ERROR:

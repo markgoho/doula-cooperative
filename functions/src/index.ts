@@ -94,10 +94,16 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
   await handleSetAutoAdmin(user);
 });
 
-export const claimProfile = onCall({ invoker: "public" }, async request => {
-  const { handleClaimProfile } = await import("./claim-profile/index.js");
-  return handleClaimProfile(request.data, request);
-});
+export const claimProfile = onCall(
+  {
+    invoker: "public",
+    secrets: ["MAILERLITE_API_KEY", "MAILGUN_API_KEY"],
+  },
+  async request => {
+    const { handleClaimProfile } = await import("./claim-profile/index.js");
+    return handleClaimProfile(request.data, request);
+  },
+);
 
 export const checkSlugAvailable = onCall(
   { invoker: "public" },

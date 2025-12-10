@@ -16,6 +16,7 @@ import {
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
+import { escapeHtml } from "../utils/html-escape.js";
 import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
@@ -48,15 +49,15 @@ function createMailerLiteFailureEmailHtml(
 
     <h3>Member Details:</h3>
     <ul>
-      <li><strong>Email:</strong> ${customerEmail}</li>
-      <li><strong>Name:</strong> ${customerName ?? "Not provided"}</li>
-      <li><strong>UID:</strong> ${uid}</li>
-      <li><strong>Subscription Start:</strong> ${subscriptionStart.toDate().toISOString()}</li>
-      <li><strong>Membership Expires:</strong> ${membershipExpiresAt.toDate().toISOString()}</li>
+      <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+      <li><strong>Name:</strong> ${escapeHtml(customerName) || "Not provided"}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
+      <li><strong>Subscription Start:</strong> ${escapeHtml(subscriptionStart.toDate().toISOString())}</li>
+      <li><strong>Membership Expires:</strong> ${escapeHtml(membershipExpiresAt.toDate().toISOString())}</li>
     </ul>
 
     <h3>Error Details:</h3>
-    <p>${errorMessage}</p>
+    <p>${escapeHtml(errorMessage)}</p>
 
     <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
   `;
@@ -612,9 +613,9 @@ export async function handler(request: Request, response: Response) {
               <p>A member just completed checkout but MailerLite is not configured in production.</p>
               <h3>Member Details:</h3>
               <ul>
-                <li><strong>Email:</strong> ${customerEmail}</li>
-                <li><strong>UID:</strong> ${userRecord.uid}</li>
-                <li><strong>Time:</strong> ${new Date().toISOString()}</li>
+                <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+                <li><strong>UID:</strong> ${escapeHtml(userRecord.uid)}</li>
+                <li><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</li>
               </ul>
               <p><strong>Action Required:</strong> Configure MAILERLITE_API_KEY in Firebase Functions secrets immediately and manually add all affected members to the newsletter.</p>
             `,
