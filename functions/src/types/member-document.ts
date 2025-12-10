@@ -48,6 +48,9 @@ export interface MemberDocument {
   welcomeEmailStatus?: "sent" | "failed" | "pending";
   welcomeEmailSentAt?: Timestamp;
   welcomeEmailError?: string;
+  newsletterSubscribed?: boolean;
+  newsletterSubscribedAt?: Timestamp;
+  newsletterUnsubscribedAt?: Timestamp;
 }
 
 /**

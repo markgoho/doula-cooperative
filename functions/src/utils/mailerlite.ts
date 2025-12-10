@@ -185,3 +185,49 @@ export async function addNewsletterSubscriber({
     );
   }
 }
+
+/**
+ * Removes a newsletter subscriber from MailerLite by marking them as "unsubscribed".
+ * This preserves subscriber history while preventing future emails.
+ * @param params - Subscriber email and API key
+ * @throws Error if MailerLite API call fails
+ */
+export async function removeNewsletterSubscriber({
+  email,
+  apiKey,
+}: {
+  email: string;
+  apiKey: string;
+}): Promise<void> {
+  try {
+    const mailerlite = new MailerLite({
+      api_key: apiKey,
+    });
+
+    // Update subscriber status to "unsubscribed" to preserve history
+    await mailerlite.subscribers.createOrUpdate({
+      email,
+      status: "unsubscribed",
+    });
+
+    logger.info("Successfully marked subscriber as unsubscribed in MailerLite", {
+      email,
+    });
+  } catch (error) {
+    const { errorId, retryable } = classifyMailerLiteError(error);
+
+    logger.error("MailerLite API call failed while removing subscriber", {
+      error,
+      errorId,
+      retryable,
+      email,
+      actionRequired: retryable
+        ? "MailerLite request may succeed if retried"
+        : "Manual intervention required - check MailerLite configuration",
+    });
+
+    throw new Error(
+      `Failed to remove subscriber from MailerLite for ${email}: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+}

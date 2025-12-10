@@ -185,6 +185,8 @@ export { stripeWebhook } from "./stripe-webhook/index.js";
 
 export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
 
+export { updateNewsletterPreference } from "./update-newsletter-preference/index.js";
+
 // Admin functions
 export const setAdminClaim = onCall({ invoker: "public" }, async request => {
   const { handleSetAdminClaim } = await import("./admin/set-admin-claim.js");

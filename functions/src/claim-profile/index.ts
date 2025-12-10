@@ -2,6 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 import {
   IMPORT_COLLECTION,
   MEMBERS_COLLECTION,
@@ -9,6 +10,9 @@ import {
   type UnclaimedProfileDocumentData,
 } from "../collections/index.js";
 import { ERROR_IDS } from "../constants/error-ids.js";
+import { addNewsletterSubscriber } from "../utils/mailerlite.js";
+
+const mailerliteApiKey = defineSecret("MAILERLITE_API_KEY");
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
   const startDate = subscriptionStart.toDate();
@@ -118,6 +122,9 @@ export const handleClaimProfile = async (
     membershipExpiresAt,
     // If legacy profile has createdAt, use it as profileCreatedAt
     ...(createdAt && { profileCreatedAt: createdAt }),
+    // Subscribe to newsletter when claiming profile
+    newsletterSubscribed: true,
+    newsletterSubscribedAt: Timestamp.now(),
   };
 
   // 4. Write member document
@@ -135,6 +142,32 @@ export const handleClaimProfile = async (
       "internal",
       "Failed to save profile data. Please try again.",
     );
+  }
+
+  // 4.5. Add to newsletter (non-critical - don't fail if this fails)
+  if (mailerliteApiKey.value()) {
+    try {
+      await addNewsletterSubscriber({
+        email,
+        ...(profileData.name && { name: profileData.name }),
+        subscriptionStart,
+        membershipExpiresAt,
+        ...(process.env["MAILERLITE_GROUP_ID"] && {
+          groupId: process.env["MAILERLITE_GROUP_ID"],
+        }),
+        apiKey: mailerliteApiKey.value(),
+      });
+      logger.log(`Added subscriber to MailerLite newsletter: ${email}`);
+    } catch (newsletterError) {
+      // Log error but don't fail the claim operation - member is already subscribed in Firestore
+      logger.error("Failed to add subscriber to MailerLite during profile claim", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_MAILERLITE_FAILED,
+        email,
+        uid,
+        error: newsletterError,
+        context: "Member is subscribed in Firestore but not in MailerLite",
+      });
+    }
   }
 
   // 5. Update the auth displayName if name property exists in profile data.

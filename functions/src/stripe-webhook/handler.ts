@@ -482,6 +482,33 @@ export async function handler(request: Request, response: Response) {
           uid: userRecord.uid,
           email: customerEmail,
         });
+
+        // Update member document to track newsletter subscription
+        try {
+          await database
+            .collection(MEMBERS_COLLECTION)
+            .doc(userRecord.uid)
+            .set(
+              {
+                newsletterSubscribed: true,
+                newsletterSubscribedAt: Timestamp.now(),
+              },
+              { merge: true },
+            );
+          logger.info("Updated member document with newsletter subscription", {
+            uid: userRecord.uid,
+            email: customerEmail,
+          });
+        } catch (firestoreError) {
+          // Log the error but don't fail the webhook - MailerLite already has the subscriber
+          logger.error("Failed to update member document with newsletter status", {
+            error: firestoreError,
+            errorId: ERROR_IDS.STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED,
+            uid: userRecord.uid,
+            email: customerEmail,
+            context: "Member is subscribed in MailerLite but flag not set in Firestore",
+          });
+        }
       } catch (error) {
         // Only catch errors from MailerLite specifically
         // Let all other errors (programmer errors, TypeScript errors) propagate
