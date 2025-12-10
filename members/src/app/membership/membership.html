@@ -115,6 +115,39 @@
             </div>
           </div>
 
+          <h3>Newsletter Preferences</h3>
+          <div class="membership-details">
+            <div class="detail-item newsletter-preference">
+              <span class="detail-label">Monthly Newsletter:</span>
+              <div class="newsletter-controls">
+                <label class="toggle-label">
+                  <input
+                    type="checkbox"
+                    [checked]="newsletterSubscribed()"
+                    (change)="onUpdateNewsletterPreference(!newsletterSubscribed())"
+                    [disabled]="newsletterUpdateInProgress()"
+                  />
+                  <span class="toggle-text">
+                    @if (newsletterSubscribed()) {
+                      Subscribed
+                    } @else {
+                      Not subscribed
+                    }
+                  </span>
+                </label>
+                @if (newsletterUpdateInProgress()) {
+                  <span class="update-status">Updating...</span>
+                }
+              </div>
+              <p class="newsletter-description">
+                Receive monthly updates about cooperative news, events, and resources for birth workers.
+              </p>
+              @if (newsletterUpdateError(); as error) {
+                <p class="error-message">{{ error }}</p>
+              }
+            </div>
+          </div>
+
           @if (lastPaymentDate() || nextPaymentDate() || membershipExpiresDate()) {
             <h3>Payment Information</h3>
             <div class="membership-details">

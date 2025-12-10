@@ -16,6 +16,8 @@ import {
   onCall,
   onRequest,
 } from "firebase-functions/v2/https";
+import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
+import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
 import { type ProfileData } from "./types/profile-data.js";
 
@@ -94,10 +96,16 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
   await handleSetAutoAdmin(user);
 });
 
-export const claimProfile = onCall({ invoker: "public" }, async request => {
-  const { handleClaimProfile } = await import("./claim-profile/index.js");
-  return handleClaimProfile(request.data, request);
-});
+export const claimProfile = onCall(
+  {
+    invoker: "public",
+    secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
+  },
+  async request => {
+    const { handleClaimProfile } = await import("./claim-profile/index.js");
+    return handleClaimProfile(request.data, request);
+  },
+);
 
 export const checkSlugAvailable = onCall(
   { invoker: "public" },
@@ -184,6 +192,19 @@ export { deleteProfileImage } from "./delete-profile-image/index.js";
 export { stripeWebhook } from "./stripe-webhook/index.js";
 
 export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
+
+export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
+  {
+    invoker: "public",
+    secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
+  },
+  async request => {
+    const { handleUpdateNewsletterPreference } = await import(
+      "./update-newsletter-preference/update-newsletter-preference.js"
+    );
+    return handleUpdateNewsletterPreference(request);
+  },
+);
 
 // Admin functions
 export const setAdminClaim = onCall({ invoker: "public" }, async request => {

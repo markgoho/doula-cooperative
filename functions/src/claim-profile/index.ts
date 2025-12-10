@@ -2,6 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
+import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
   IMPORT_COLLECTION,
   MEMBERS_COLLECTION,
@@ -9,6 +10,106 @@ import {
   type UnclaimedProfileDocumentData,
 } from "../collections/index.js";
 import { ERROR_IDS } from "../constants/error-ids.js";
+import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../constants/index.js";
+import { escapeHtml } from "../utils/html-escape.js";
+import { addNewsletterSubscriber } from "../utils/mailerlite.js";
+import { sendEmail } from "../utils/send-email.js";
+
+/**
+ * Creates HTML for MailerLite failure notification email during profile claim
+ */
+function createClaimProfileMailerLiteFailureEmailHtml(
+  email: string,
+  name: string | undefined,
+  uid: string,
+  subscriptionStart: Timestamp,
+  membershipExpiresAt: Timestamp,
+  errorMessage: string,
+): string {
+  return `
+    <h2>MailerLite Newsletter Signup Failed During Profile Claim</h2>
+    <p>A member claimed their profile but could not be added to the newsletter automatically.</p>
+
+    <h3>Member Details:</h3>
+    <ul>
+      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
+      <li><strong>Name:</strong> ${escapeHtml(name) || "Not provided"}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
+      <li><strong>Subscription Start:</strong> ${escapeHtml(subscriptionStart.toDate().toISOString())}</li>
+      <li><strong>Membership Expires:</strong> ${escapeHtml(membershipExpiresAt.toDate().toISOString())}</li>
+    </ul>
+
+    <h3>Error Details:</h3>
+    <p>${escapeHtml(errorMessage)}</p>
+
+    <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
+    <p><strong>Note:</strong> The member document has been updated with newsletterSubscribed: true, but MailerLite is out of sync.</p>
+  `;
+}
+
+/**
+ * Sends notification email when MailerLite subscription fails during profile claim
+ */
+async function sendClaimProfileMailerLiteFailureNotification(parameters: {
+  email: string;
+  name: string | undefined;
+  uid: string;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
+  errorMessage: string;
+  mailgunKey: string;
+}): Promise<void> {
+  const {
+    email,
+    name,
+    uid,
+    subscriptionStart,
+    membershipExpiresAt,
+    errorMessage,
+    mailgunKey,
+  } = parameters;
+
+  try {
+    const notificationEmail: MailgunMessageData = {
+      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+      to: NEWSLETTER_EMAIL,
+      subject: "Action Required: Manual Newsletter Signup (Profile Claim)",
+      html: createClaimProfileMailerLiteFailureEmailHtml(
+        email,
+        name,
+        uid,
+        subscriptionStart,
+        membershipExpiresAt,
+        errorMessage,
+      ),
+    };
+
+    await sendEmail(notificationEmail, mailgunKey);
+    logger.info(
+      "Sent MailerLite failure notification email for profile claim",
+      {
+        uid,
+        email,
+      },
+    );
+  } catch (error: unknown) {
+    logger.error(
+      "CRITICAL: Failed to send MailerLite failure notification email during profile claim",
+      {
+        errorId: ERROR_IDS.CLAIM_PROFILE_NOTIFICATION_FAILED,
+        uid,
+        email,
+        error,
+        severity: "CRITICAL",
+        context:
+          "MailerLite sync failed during profile claim AND notification email failed - admin is unaware",
+        actionRequired:
+          "Check Sentry alerts immediately and manually add member to MailerLite",
+        originalMailerLiteError: errorMessage,
+      },
+    );
+  }
+}
 
 function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
   const startDate = subscriptionStart.toDate();
@@ -118,6 +219,9 @@ export const handleClaimProfile = async (
     membershipExpiresAt,
     // If legacy profile has createdAt, use it as profileCreatedAt
     ...(createdAt && { profileCreatedAt: createdAt }),
+    // Subscribe to newsletter when claiming profile
+    newsletterSubscribed: true,
+    newsletterSubscribedAt: Timestamp.now(),
   };
 
   // 4. Write member document
@@ -135,6 +239,55 @@ export const handleClaimProfile = async (
       "internal",
       "Failed to save profile data. Please try again.",
     );
+  }
+
+  // 4.5. Add to newsletter (non-critical - don't fail if this fails)
+  const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
+  if (mailerliteApiKey) {
+    try {
+      await addNewsletterSubscriber({
+        email,
+        ...(profileData.name && { name: profileData.name }),
+        subscriptionStart,
+        membershipExpiresAt,
+        ...(process.env["MAILERLITE_GROUP_ID"] && {
+          groupId: process.env["MAILERLITE_GROUP_ID"],
+        }),
+        apiKey: mailerliteApiKey,
+      });
+      logger.log(`Added subscriber to MailerLite newsletter: ${email}`);
+    } catch (newsletterError) {
+      // Log error but don't fail the claim operation - member is already subscribed in Firestore
+      const errorMessage =
+        newsletterError instanceof Error
+          ? newsletterError.message
+          : "Unknown error";
+
+      logger.error(
+        "Failed to add subscriber to MailerLite during profile claim",
+        {
+          errorId: ERROR_IDS.CLAIM_PROFILE_MAILERLITE_FAILED,
+          email,
+          uid,
+          error: newsletterError,
+          context: "Member is subscribed in Firestore but not in MailerLite",
+        },
+      );
+
+      // Send notification email if Mailgun is configured
+      const mailgunApiKey = process.env["MAILGUN_API_KEY"];
+      if (mailgunApiKey) {
+        await sendClaimProfileMailerLiteFailureNotification({
+          email,
+          name: profileData.name,
+          uid,
+          subscriptionStart,
+          membershipExpiresAt,
+          errorMessage,
+          mailgunKey: mailgunApiKey,
+        });
+      }
+    }
   }
 
   // 5. Update the auth displayName if name property exists in profile data.

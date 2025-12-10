@@ -16,11 +16,12 @@ import {
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../constants/index.js";
+import { escapeHtml } from "../utils/html-escape.js";
 import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
 } from "../utils/member-factory.js";
-import { addNewsletterSubscriber } from "../utils/mailerlite.js";
+import { addNewsletterSubscriber, MailerLiteError } from "../utils/mailerlite.js";
 import { calculateExpirationDate } from "../utils/membership-dates.js";
 import { sendEmail } from "../utils/send-email.js";
 
@@ -48,15 +49,15 @@ function createMailerLiteFailureEmailHtml(
 
     <h3>Member Details:</h3>
     <ul>
-      <li><strong>Email:</strong> ${customerEmail}</li>
-      <li><strong>Name:</strong> ${customerName ?? "Not provided"}</li>
-      <li><strong>UID:</strong> ${uid}</li>
-      <li><strong>Subscription Start:</strong> ${subscriptionStart.toDate().toISOString()}</li>
-      <li><strong>Membership Expires:</strong> ${membershipExpiresAt.toDate().toISOString()}</li>
+      <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+      <li><strong>Name:</strong> ${escapeHtml(customerName) || "Not provided"}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
+      <li><strong>Subscription Start:</strong> ${escapeHtml(subscriptionStart.toDate().toISOString())}</li>
+      <li><strong>Membership Expires:</strong> ${escapeHtml(membershipExpiresAt.toDate().toISOString())}</li>
     </ul>
 
     <h3>Error Details:</h3>
-    <p>${errorMessage}</p>
+    <p>${escapeHtml(errorMessage)}</p>
 
     <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
   `;
@@ -482,15 +483,44 @@ export async function handler(request: Request, response: Response) {
           uid: userRecord.uid,
           email: customerEmail,
         });
+
+        // Update member document to track newsletter subscription
+        // CRITICAL: This must succeed to keep Firestore and MailerLite in sync
+        try {
+          await database
+            .collection(MEMBERS_COLLECTION)
+            .doc(userRecord.uid)
+            .set(
+              {
+                newsletterSubscribed: true,
+                newsletterSubscribedAt: Timestamp.now(),
+              },
+              { merge: true },
+            );
+          logger.info("Updated member document with newsletter subscription", {
+            uid: userRecord.uid,
+            email: customerEmail,
+          });
+        } catch (firestoreError) {
+          // This is a critical failure - MailerLite and Firestore would be out of sync
+          // Throw error to fail the webhook and trigger Stripe retry
+          // MailerLite createOrUpdate is idempotent, so retry is safe
+          logger.error("CRITICAL: Failed to update member document with newsletter status", {
+            error: firestoreError,
+            errorId: ERROR_IDS.STRIPE_WEBHOOK_MEMBER_DOC_UPDATE_FAILED,
+            uid: userRecord.uid,
+            email: customerEmail,
+            context: "MailerLite was updated but Firestore sync failed - throwing to trigger webhook retry",
+            severity: "CRITICAL",
+          });
+          throw new Error(
+            `Failed to update newsletter status in Firestore after MailerLite sync for ${customerEmail}`,
+          );
+        }
       } catch (error) {
         // Only catch errors from MailerLite specifically
         // Let all other errors (programmer errors, TypeScript errors) propagate
-        if (
-          !(
-            error instanceof Error &&
-            error.message.includes("Failed to add subscriber to MailerLite")
-          )
-        ) {
+        if (!(error instanceof MailerLiteError)) {
           // This is not a MailerLite error - it's a programmer error or unexpected failure
           logger.error("Unexpected error in newsletter subscription flow", {
             error,
@@ -585,9 +615,9 @@ export async function handler(request: Request, response: Response) {
               <p>A member just completed checkout but MailerLite is not configured in production.</p>
               <h3>Member Details:</h3>
               <ul>
-                <li><strong>Email:</strong> ${customerEmail}</li>
-                <li><strong>UID:</strong> ${userRecord.uid}</li>
-                <li><strong>Time:</strong> ${new Date().toISOString()}</li>
+                <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+                <li><strong>UID:</strong> ${escapeHtml(userRecord.uid)}</li>
+                <li><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</li>
               </ul>
               <p><strong>Action Required:</strong> Configure MAILERLITE_API_KEY in Firebase Functions secrets immediately and manually add all affected members to the newsletter.</p>
             `,

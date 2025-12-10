@@ -45,6 +45,9 @@ export interface Member {
   subscriptionStatus?: SubscriptionStatus;
   lastPayment?: Timestamp;
   nextPayment?: Timestamp;
+  newsletterSubscribed?: boolean;
+  newsletterSubscribedAt?: Timestamp;
+  newsletterUnsubscribedAt?: Timestamp;
 }
 
 @Injectable({
@@ -193,6 +196,43 @@ export class MembershipService {
       }
 
       throw new Error('Unable to set profile slug. Please try again.');
+    }
+  }
+
+  /**
+   * Update the user's newsletter subscription preference
+   * @param subscribed - true to subscribe, false to unsubscribe
+   * @throws Error with user-friendly message
+   */
+  async updateNewsletterPreference(subscribed: boolean): Promise<void> {
+    const updateNewsletterPrefCallable = httpsCallable<
+      { subscribed: boolean },
+      { success: boolean; subscribed: boolean }
+    >(this.functions, 'updateNewsletterPreference');
+
+    try {
+      await updateNewsletterPrefCallable({ subscribed });
+      // Trigger reload of user document to reflect changes
+      this.reloadUserDocument();
+    } catch (error: unknown) {
+      console.error('Failed to update newsletter preference:', {
+        subscribed,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (isFirebaseFunctionsError(error)) {
+        switch (error.code) {
+          case 'unauthenticated': {
+            throw new Error('You must be signed in to update newsletter preferences.');
+          }
+
+          case 'deadline-exceeded': {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
+      throw new Error('Unable to update newsletter preference. Please try again.');
     }
   }
 

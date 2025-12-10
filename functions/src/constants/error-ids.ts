@@ -89,6 +89,20 @@ export const ERROR_IDS = {
   CLAIM_PROFILE_AUTH_UPDATE_FAILED: "claim_profile_auth_update_failed",
   CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
   CLAIM_PROFILE_EXPIRATION_CALC_ERROR: "claim_profile_expiration_calc_error",
+  CLAIM_PROFILE_MAILERLITE_FAILED: "claim_profile_mailerlite_failed",
+  CLAIM_PROFILE_NOTIFICATION_FAILED: "claim_profile_notification_failed",
+
+  // Newsletter preference errors
+  UPDATE_NEWSLETTER_PREF_FIRESTORE_READ_ERROR:
+    "update_newsletter_pref_firestore_read_error",
+  UPDATE_NEWSLETTER_PREF_FIRESTORE_UPDATE_ERROR:
+    "update_newsletter_pref_firestore_update_error",
+  UPDATE_NEWSLETTER_PREF_MAILERLITE_FAILED:
+    "update_newsletter_pref_mailerlite_failed",
+  UPDATE_NEWSLETTER_PREF_NOTIFICATION_FAILED:
+    "update_newsletter_pref_notification_failed",
+  UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES:
+    "update_newsletter_pref_missing_subscription_dates",
 
   // Profile deployment webhook errors
   PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET:

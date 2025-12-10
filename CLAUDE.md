@@ -82,12 +82,22 @@ import { onCall } from "firebase-functions/https";
 - Functions should be idempotent unless they involve timestamps
 - Handlers are in separate files (e.g., `contact-us-form/contact-us-form.ts`)
 
+**Error Handling & Data Consistency**:
+
+- Use custom error classes for external APIs (not string matching in catch blocks)
+- When syncing between systems (Firestore + external service), throw on failure to trigger retry (ensure operations are idempotent)
+- Response types must include external service sync status (e.g., `mailerliteSynced: boolean`, `warning?: string`)
+- Mark cascading failures as CRITICAL severity (e.g., external API fails AND notification email fails)
+- Send admin notifications for: external service failures, unexpected validation issues, production config errors
+
 **Testing**:
 
 - Use `initializeTest()` from `test-utils/test-setup.ts`
 - HTTP functions: Import from `index.ts`, call directly (no `test.wrap()`)
 - Callable functions: Import from `index.ts`, use `test.wrap()`
 - Firestore triggers: Use `initializeFirestoreTriggerTest()` for handlers with external dependencies
+- **All new features require tests** covering: authentication, input validation, business logic, error scenarios, and edge cases
+- Security utilities (XSS prevention, auth checks) require comprehensive test coverage
 
 ### Angular Members App (`/members/`)
 

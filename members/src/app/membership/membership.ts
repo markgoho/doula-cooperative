@@ -27,6 +27,8 @@ export class Membership {
   protected claimInProgress = signal(false);
   protected createProfileInProgress = signal(false);
   protected createProfileError = signal<string | undefined>(undefined);
+  protected newsletterUpdateInProgress = signal(false);
+  protected newsletterUpdateError = signal<string | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
   protected userDocumentResource = this.membershipService.userDocumentResource;
@@ -99,6 +101,30 @@ export class Membership {
     }
     return;
   });
+
+  protected newsletterSubscribed = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.newsletterSubscribed ?? false;
+  });
+
+  protected async onUpdateNewsletterPreference(subscribed: boolean) {
+    this.newsletterUpdateInProgress.set(true);
+    this.newsletterUpdateError.set(undefined);
+
+    try {
+      await this.membershipService.updateNewsletterPreference(subscribed);
+      // Resource will auto-reload via reloadUserDocument() in service
+    } catch (error) {
+      console.error('Error updating newsletter preference:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update newsletter preference. Please try again.';
+      this.newsletterUpdateError.set(errorMessage);
+    } finally {
+      this.newsletterUpdateInProgress.set(false);
+    }
+  }
 
   protected async onClaimProfile() {
     this.claimInProgress.set(true);
