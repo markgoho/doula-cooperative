@@ -131,6 +131,18 @@ export async function addNewsletterSubscriber({
   groupId?: string;
   apiKey: string;
 }): Promise<void> {
+  // Skip actual API calls in emulator mode to prevent test pollution
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    logger.info("Emulator detected, skipping MailerLite API call", {
+      email,
+      hasName: !!name,
+      hasGroupId: !!groupId,
+      subscriptionStart: formatDateForMailerLite(subscriptionStart),
+      membershipExpires: formatDateForMailerLite(membershipExpiresAt),
+    });
+    return;
+  }
+
   try {
     const mailerlite = new MailerLite({
       api_key: apiKey,
@@ -220,6 +232,15 @@ export async function removeNewsletterSubscriber({
   email: string;
   apiKey: string;
 }): Promise<void> {
+  // Skip actual API calls in emulator mode to prevent test pollution
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    logger.info("Emulator detected, skipping MailerLite API call", {
+      email,
+      action: "unsubscribe",
+    });
+    return;
+  }
+
   try {
     const mailerlite = new MailerLite({
       api_key: apiKey,
