@@ -9,7 +9,7 @@
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltLe7QumYcQ5EFiDnqoZXR:password=test1234",
       "salt": "fakeSaltLe7QumYcQ5EFiDnqoZXR",
-      "passwordUpdatedAt": 1765253427273,
+      "passwordUpdatedAt": 1765482985264,
       "customAttributes": "{ \"admin\": true }",
       "providerUserInfo": [
         {
@@ -21,7 +21,7 @@
           "photoUrl": ""
         }
       ],
-      "validSince": "1765253427",
+      "validSince": "1765482985",
       "email": "webmaster@doulacooperative.com",
       "emailVerified": true,
       "disabled": false
@@ -34,7 +34,7 @@
       "photoUrl": "",
       "passwordHash": "fakeHash:salt=fakeSaltyqO4BElrO6rfUb9nw9JV:password=test1234",
       "salt": "fakeSaltyqO4BElrO6rfUb9nw9JV",
-      "passwordUpdatedAt": 1765253427274,
+      "passwordUpdatedAt": 1765482985264,
       "providerUserInfo": [
         {
           "providerId": "password",
@@ -45,11 +45,10 @@
           "photoUrl": ""
         }
       ],
-      "validSince": "1765253427",
+      "validSince": "1765482985",
       "email": "markgoho@gmail.com",
       "emailVerified": true,
-      "disabled": false,
-      "lastRefreshAt": "2025-12-09T04:10:47.547Z"
+      "disabled": false
     }
   ]
 }
