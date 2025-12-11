@@ -36,7 +36,9 @@ export class Membership {
   // Error message for user document loading failures
   protected userDocumentError = computed(() => {
     const error = this.userDocumentResource.error();
-    return error ? 'Unable to load your account details. Please try refreshing the page.' : undefined;
+    return error
+      ? 'Unable to load your account details. Please try refreshing the page.'
+      : undefined;
   });
 
   // Resource automatically loads when user changes
@@ -105,6 +107,11 @@ export class Membership {
   protected newsletterSubscribed = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.newsletterSubscribed ?? false;
+  });
+
+  // Hide newsletter preferences when there's a claimable profile (will be updated on claim)
+  protected hasClaimableProfile = computed(() => {
+    return this.claimableProfileResource.hasValue() && !!this.claimableProfileResource.value();
   });
 
   protected async onUpdateNewsletterPreference(subscribed: boolean) {

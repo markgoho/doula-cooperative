@@ -6,42 +6,45 @@
     @if (claimableProfileResource.error()) {
       <div class="error-banner">
         <h3>Unable to Load Profile Information</h3>
-        <p>We encountered an error while loading your profile information. Please try refreshing the page.</p>
+        <p>
+          We encountered an error while loading your profile information. Please try refreshing the
+          page.
+        </p>
       </div>
     } @else {
       @let claimableProfileData = claimableProfileResource.value();
       @if (claimableProfileData; as profileData) {
-      <div class="claim-profile-banner">
-        <h3>Claim Your Existing Membership</h3>
-        <div><strong>Name:</strong> {{ profileData.name }}</div>
+        <div class="claim-profile-banner">
+          <h3>Claim Your Existing Membership</h3>
+          <div><strong>Name:</strong> {{ profileData.name }}</div>
 
-        <div>
-          <strong>Member Since:</strong>
-          {{ profileData.subscriptionStart | date: 'MMMM yyyy' }}
+          <div>
+            <strong>Member Since:</strong>
+            {{ profileData.subscriptionStart | date: 'MMMM yyyy' }}
+          </div>
+
+          <p>
+            @if (profileData.slug) {
+              We found an existing doula profile associated with your email address. Claim it now to
+              access your full membership details and profile management.
+            } @else {
+              We found an existing membership subscription associated with your email address. Claim
+              it now to access your membership details and set up your doula profile.
+            }
+          </p>
+          <button
+            type="button"
+            class="button"
+            (click)="onClaimProfile()"
+            [disabled]="claimInProgress()"
+          >
+            @if (claimInProgress()) {
+              Claiming Membership...
+            } @else {
+              Claim Membership
+            }
+          </button>
         </div>
-
-        <p>
-          @if (profileData.slug) {
-            We found an existing doula profile associated with your email address. Claim it now to
-            access your full membership details and profile management.
-          } @else {
-            We found an existing membership subscription associated with your email address. Claim
-            it now to access your membership details and set up your doula profile.
-          }
-        </p>
-        <button
-          type="button"
-          class="button"
-          (click)="onClaimProfile()"
-          [disabled]="claimInProgress()"
-        >
-          @if (claimInProgress()) {
-            Claiming Membership...
-          } @else {
-            Claim Membership
-          }
-        </button>
-      </div>
       }
     }
 
@@ -115,38 +118,41 @@
             </div>
           </div>
 
-          <h3>Newsletter Preferences</h3>
-          <div class="membership-details">
-            <div class="detail-item newsletter-preference">
-              <span class="detail-label">Monthly Newsletter:</span>
-              <div class="newsletter-controls">
-                <label class="toggle-label">
-                  <input
-                    type="checkbox"
-                    [checked]="newsletterSubscribed()"
-                    (change)="onUpdateNewsletterPreference(!newsletterSubscribed())"
-                    [disabled]="newsletterUpdateInProgress()"
-                  />
-                  <span class="toggle-text">
-                    @if (newsletterSubscribed()) {
-                      Subscribed
-                    } @else {
-                      Not subscribed
-                    }
-                  </span>
-                </label>
-                @if (newsletterUpdateInProgress()) {
-                  <span class="update-status">Updating...</span>
+          @if (!hasClaimableProfile()) {
+            <h3>Newsletter Preferences</h3>
+            <div class="membership-details">
+              <div class="detail-item newsletter-preference">
+                <span class="detail-label">Monthly Newsletter:</span>
+                <div class="newsletter-controls">
+                  <label class="toggle-label">
+                    <input
+                      type="checkbox"
+                      [checked]="newsletterSubscribed()"
+                      (change)="onUpdateNewsletterPreference(!newsletterSubscribed())"
+                      [disabled]="newsletterUpdateInProgress()"
+                    />
+                    <span class="toggle-text">
+                      @if (newsletterSubscribed()) {
+                        Subscribed
+                      } @else {
+                        Not subscribed
+                      }
+                    </span>
+                  </label>
+                  @if (newsletterUpdateInProgress()) {
+                    <span class="update-status">Updating...</span>
+                  }
+                </div>
+                <p class="newsletter-description">
+                  Receive monthly updates about cooperative news, events, and resources for birth
+                  workers.
+                </p>
+                @if (newsletterUpdateError(); as error) {
+                  <p class="error-message">{{ error }}</p>
                 }
               </div>
-              <p class="newsletter-description">
-                Receive monthly updates about cooperative news, events, and resources for birth workers.
-              </p>
-              @if (newsletterUpdateError(); as error) {
-                <p class="error-message">{{ error }}</p>
-              }
             </div>
-          </div>
+          }
 
           @if (lastPaymentDate() || nextPaymentDate() || membershipExpiresDate()) {
             <h3>Payment Information</h3>
