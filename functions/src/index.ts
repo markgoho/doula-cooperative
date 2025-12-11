@@ -199,10 +199,24 @@ export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
     secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
   },
   async request => {
+    const MAILERLITE_API_KEY = process.env["MAILERLITE_API_KEY"];
+    const MAILGUN_API_KEY = process.env["MAILGUN_API_KEY"];
+
+    if (!MAILERLITE_API_KEY) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Newsletter service not configured. Please contact support.",
+      );
+    }
+
     const { handleUpdateNewsletterPreference } = await import(
       "./update-newsletter-preference/update-newsletter-preference.js"
     );
-    return handleUpdateNewsletterPreference(request);
+    return handleUpdateNewsletterPreference(
+      request,
+      MAILERLITE_API_KEY,
+      MAILGUN_API_KEY,
+    );
   },
 );
 

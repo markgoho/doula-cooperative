@@ -28,14 +28,12 @@ interface UpdateNewsletterPreferenceData {
 interface UpdateNewsletterPreferenceResult {
   success: boolean;
   subscribed: boolean;
-  mailerliteSynced: boolean;
-  warning?: string;
 }
 
 /**
  * Creates HTML for newsletter preference update failure notification email
  */
-function createNewsletterPreferenceFailureEmailHtml(
+function createNewsletterFailureEmailHtml(
   email: string,
   name: string | undefined,
   uid: string,
@@ -44,7 +42,7 @@ function createNewsletterPreferenceFailureEmailHtml(
 ): string {
   const action = subscribed ? "subscribe to" : "unsubscribe from";
   return `
-    <h2>MailerLite Newsletter Preference Update Failed</h2>
+    <h2>MailerLite Newsletter Update Failed</h2>
     <p>A member tried to ${action} the newsletter but the MailerLite API call failed.</p>
 
     <h3>Member Details:</h3>
@@ -58,15 +56,14 @@ function createNewsletterPreferenceFailureEmailHtml(
     <h3>Error Details:</h3>
     <p>${escapeHtml(errorMessage)}</p>
 
-    <p><strong>Action Required:</strong> Manually ${action} this member ${subscribed ? "to" : "from"} the MailerLite newsletter.</p>
-    <p><strong>Note:</strong> The preference has been updated in Firestore, but MailerLite is out of sync.</p>
+    <p><strong>Action Required:</strong> Investigate the error and manually ${action} this member ${subscribed ? "to" : "from"} the MailerLite newsletter if needed.</p>
   `;
 }
 
 /**
- * Sends notification email when MailerLite preference update fails
+ * Sends notification email when newsletter preference update fails
  */
-async function sendNewsletterPreferenceFailureNotification(parameters: {
+async function sendFailureNotification(parameters: {
   email: string;
   name: string | undefined;
   uid: string;
@@ -81,8 +78,8 @@ async function sendNewsletterPreferenceFailureNotification(parameters: {
     const notificationEmail: MailgunMessageData = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
-      subject: "Action Required: Manual Newsletter Preference Update",
-      html: createNewsletterPreferenceFailureEmailHtml(
+      subject: "Newsletter Update Failed - Action May Be Required",
+      html: createNewsletterFailureEmailHtml(
         email,
         name,
         uid,
@@ -92,14 +89,14 @@ async function sendNewsletterPreferenceFailureNotification(parameters: {
     };
 
     await sendEmail(notificationEmail, mailgunKey);
-    logger.info("Sent newsletter preference failure notification email", {
+    logger.info("Sent newsletter failure notification email", {
       uid,
       email,
       subscribed,
     });
   } catch (emailError) {
     logger.error(
-      "CRITICAL: Failed to send newsletter preference failure notification email",
+      "CRITICAL: Failed to send newsletter failure notification email",
       {
         errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_NOTIFICATION_FAILED,
         uid,
@@ -107,11 +104,8 @@ async function sendNewsletterPreferenceFailureNotification(parameters: {
         subscribed,
         error: emailError,
         severity: "CRITICAL",
-        context:
-          "MailerLite sync failed AND notification email failed - admin is unaware of the issue",
-        actionRequired:
-          "Check Sentry alerts immediately and manually sync member to MailerLite",
-        originalMailerLiteError: errorMessage,
+        context: "MailerLite failed AND notification email failed",
+        originalError: errorMessage,
       },
     );
   }
@@ -122,6 +116,8 @@ async function sendNewsletterPreferenceFailureNotification(parameters: {
  */
 export async function handleUpdateNewsletterPreference(
   request: CallableRequest<UpdateNewsletterPreferenceData>,
+  mailerliteApiKey: string,
+  mailgunApiKey: string | undefined,
 ): Promise<UpdateNewsletterPreferenceResult> {
   // 1. Check authentication
   if (!request.auth) {
@@ -188,10 +184,106 @@ export async function handleUpdateNewsletterPreference(
       email,
       subscribed,
     });
-    return { success: true, subscribed, mailerliteSynced: true };
+    return { success: true, subscribed };
   }
 
-  // 5. Update Firestore FIRST (source of truth)
+  // 5. Sync with MailerLite FIRST (source of truth for newsletter subscription)
+  try {
+    if (subscribed) {
+      // Validate member has required subscription dates
+      if (
+        !memberDocument.subscriptionStart ||
+        !memberDocument.membershipExpiresAt
+      ) {
+        const errorMessage = `Member document missing subscription dates (subscriptionStart: ${!!memberDocument.subscriptionStart}, membershipExpiresAt: ${!!memberDocument.membershipExpiresAt})`;
+
+        logger.error(
+          "Cannot subscribe to newsletter - missing subscription dates",
+          {
+            errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES,
+            uid,
+            email,
+            hasSubscriptionStart: !!memberDocument.subscriptionStart,
+            hasMembershipExpiresAt: !!memberDocument.membershipExpiresAt,
+            severity: "HIGH",
+          },
+        );
+
+        // Send notification email if Mailgun is configured
+        if (mailgunApiKey) {
+          await sendFailureNotification({
+            email,
+            name: memberDocument.name,
+            uid,
+            subscribed,
+            errorMessage,
+            mailgunKey: mailgunApiKey,
+          });
+        }
+
+        throw new HttpsError(
+          "failed-precondition",
+          "Your account is missing required membership information. Please contact support.",
+        );
+      }
+
+      // Subscribe to MailerLite
+      await addNewsletterSubscriber({
+        email,
+        ...(memberDocument.name && { name: memberDocument.name }),
+        subscriptionStart: memberDocument.subscriptionStart,
+        membershipExpiresAt: memberDocument.membershipExpiresAt,
+        ...(process.env["MAILERLITE_GROUP_ID"] && {
+          groupId: process.env["MAILERLITE_GROUP_ID"],
+        }),
+        apiKey: mailerliteApiKey,
+      });
+      logger.info("Added subscriber to MailerLite", { uid, email });
+    } else {
+      // Unsubscribe from MailerLite
+      await removeNewsletterSubscriber({
+        email,
+        apiKey: mailerliteApiKey,
+      });
+      logger.info("Removed subscriber from MailerLite", { uid, email });
+    }
+  } catch (error) {
+    // If it's already an HttpsError, rethrow it (notification already sent if needed)
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    // MailerLite API error - log, send notification, and throw user-friendly error
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    logger.error("Failed to sync newsletter preference to MailerLite", {
+      errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MAILERLITE_FAILED,
+      uid,
+      email,
+      subscribed,
+      error,
+    });
+
+    // Send notification email if Mailgun is configured
+    if (mailgunApiKey) {
+      await sendFailureNotification({
+        email,
+        name: memberDocument.name,
+        uid,
+        subscribed,
+        errorMessage,
+        mailgunKey: mailgunApiKey,
+      });
+    }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to update newsletter subscription. Please try again later.",
+    );
+  }
+
+  // 7. Update Firestore to cache the newsletter preference
   const updateData: Partial<MemberDocument> = {
     newsletterSubscribed: subscribed,
   };
@@ -219,116 +311,9 @@ export async function handleUpdateNewsletterPreference(
     });
     throw new HttpsError(
       "internal",
-      "Failed to update newsletter preference. Please try again.",
+      "Failed to save newsletter preference. Please try again.",
     );
   }
 
-  // 6. Try to sync with MailerLite (non-blocking)
-  const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
-  if (mailerliteApiKey) {
-    try {
-      if (subscribed) {
-        // Subscribe to newsletter
-        // Need subscription dates for MailerLite
-        if (
-          !memberDocument.subscriptionStart ||
-          !memberDocument.membershipExpiresAt
-        ) {
-          logger.error(
-            "Cannot sync to MailerLite - missing subscription dates",
-            {
-              errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES,
-              uid,
-              email,
-              hasSubscriptionStart: !!memberDocument.subscriptionStart,
-              hasMembershipExpiresAt: !!memberDocument.membershipExpiresAt,
-              severity: "HIGH",
-              actionRequired: "Investigate member document - missing required subscription dates",
-            },
-          );
-
-          // Send notification email to admin if Mailgun is configured
-          const mailgunApiKey = process.env["MAILGUN_API_KEY"];
-          if (mailgunApiKey) {
-            const errorMessage = `Member document missing subscription dates (subscriptionStart: ${!!memberDocument.subscriptionStart}, membershipExpiresAt: ${!!memberDocument.membershipExpiresAt})`;
-            await sendNewsletterPreferenceFailureNotification({
-              email,
-              name: memberDocument.name,
-              uid,
-              subscribed,
-              errorMessage,
-              mailgunKey: mailgunApiKey,
-            });
-          }
-
-          // Don't fail - Firestore is already updated
-          return {
-            success: true,
-            subscribed,
-            mailerliteSynced: false,
-            warning:
-              "Newsletter preference saved, but your account is missing required information. Please contact support.",
-          };
-        }
-
-        await addNewsletterSubscriber({
-          email,
-          ...(memberDocument.name && { name: memberDocument.name }),
-          subscriptionStart: memberDocument.subscriptionStart,
-          membershipExpiresAt: memberDocument.membershipExpiresAt,
-          ...(process.env["MAILERLITE_GROUP_ID"] && {
-            groupId: process.env["MAILERLITE_GROUP_ID"],
-          }),
-          apiKey: mailerliteApiKey,
-        });
-        logger.info("Added subscriber to MailerLite", { uid, email });
-      } else {
-        // Unsubscribe from newsletter
-        await removeNewsletterSubscriber({
-          email,
-          apiKey: mailerliteApiKey,
-        });
-        logger.info("Removed subscriber from MailerLite", { uid, email });
-      }
-    } catch (mailerliteError) {
-      // Log error and send notification but don't fail - Firestore is already updated
-      const errorMessage =
-        mailerliteError instanceof Error
-          ? mailerliteError.message
-          : "Unknown error";
-
-      logger.error("Failed to sync newsletter preference to MailerLite", {
-        errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MAILERLITE_FAILED,
-        uid,
-        email,
-        subscribed,
-        error: mailerliteError,
-      });
-
-      // Send notification email if Mailgun is configured
-      const mailgunApiKey = process.env["MAILGUN_API_KEY"];
-      if (mailgunApiKey) {
-        await sendNewsletterPreferenceFailureNotification({
-          email,
-          name: memberDocument.name,
-          uid,
-          subscribed,
-          errorMessage,
-          mailgunKey: mailgunApiKey,
-        });
-      }
-
-      // Return with warning - Firestore updated but MailerLite sync failed
-      return {
-        success: true,
-        subscribed,
-        mailerliteSynced: false,
-        warning:
-          "Newsletter preference saved, but sync to mailing list failed. You may not receive newsletters immediately.",
-      };
-    }
-  }
-
-  // Success - both Firestore and MailerLite are in sync
-  return { success: true, subscribed, mailerliteSynced: true };
+  return { success: true, subscribed };
 }
