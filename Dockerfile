@@ -11,13 +11,14 @@ ARG DART_SASS_VERSION=1.93.2
 ARG BUN_VERSION=1.3.4
 ARG PLAYWRIGHT_VERSION=1.52.0
 
-# 1. Install base dependencies
+# 1. Install base dependencies and Java (required for Firebase emulators)
 RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
   wget \
   ca-certificates \
   unzip \
   git \
+  openjdk-17-jre-headless \
   && rm -rf /var/lib/apt/lists/*
 
 # Configure git to trust the workspace directory to avoid ownership errors in GitHub Actions
@@ -53,6 +54,7 @@ RUN echo "Bun version: $(bun --version)"
 RUN echo "Hugo version: $(hugo version)"
 RUN echo "Sass version: $(sass --version)"
 RUN echo "Node.js version: $(node --version)"
+RUN echo "Java version: $(java -version 2>&1 | head -1)"
 RUN bunx playwright@${PLAYWRIGHT_VERSION} --version
 
 # Set the working directory for when the container starts
