@@ -21,13 +21,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   openjdk-17-jre-headless \
   && rm -rf /var/lib/apt/lists/*
 
+# Set JAVA_HOME for Firebase emulators
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 # Configure git to trust the workspace directory to avoid ownership errors in GitHub Actions
 RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooperative && \
   git config --system --add safe.directory /__w/doula-cooperative/doula-cooperative && \
   git config --system --add core.quotepath false
 
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+# Install Node.js 20.x (required by Firebase Functions)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
   && apt-get install -y nodejs
 
 # 2. Install Bun
@@ -54,7 +58,8 @@ RUN echo "Bun version: $(bun --version)"
 RUN echo "Hugo version: $(hugo version)"
 RUN echo "Sass version: $(sass --version)"
 RUN echo "Node.js version: $(node --version)"
-RUN echo "Java version: $(java -version 2>&1 | head -1)"
+RUN echo "Java version:" && java -version
+RUN echo "JAVA_HOME: ${JAVA_HOME}"
 RUN bunx playwright@${PLAYWRIGHT_VERSION} --version
 
 # Set the working directory for when the container starts
