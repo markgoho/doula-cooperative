@@ -82,8 +82,11 @@ test.describe('Newsletter Preferences', () => {
     // Subscribe to newsletter
     await membershipPage.toggleNewsletter();
 
-    // Wait for update to complete
+    // Wait for update to complete - first wait for updating indicator to appear then disappear
     await expect(membershipPage.newsletterUpdating).toBeHidden({ timeout: 10_000 });
+
+    // Wait for status to change (the Firebase function updates Firestore, then the UI reloads the document)
+    await expect(membershipPage.newsletterStatus).not.toContainText('Not subscribed', { timeout: 10_000 });
 
     // Verify state changed
     await expect(membershipPage.newsletterStatus).toContainText('Subscribed');
