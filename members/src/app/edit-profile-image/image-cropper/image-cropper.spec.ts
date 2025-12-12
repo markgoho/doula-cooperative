@@ -1,20 +1,55 @@
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImageCropper, type CropResult } from './image-cropper';
 
-// Mock Cropper.js
-const mockGetData = vi.fn();
-const mockGetCroppedCanvas = vi.fn();
+// Mock the cropperjs module to prevent actual Web Component registration
+vi.mock('cropperjs', () => ({}));
 
-// Mock the entire cropperjs module
-vi.mock('cropperjs', () => ({
-  default: class {
-    getData = mockGetData;
-    destroy = vi.fn();
-    getCroppedCanvas = mockGetCroppedCanvas;
+// Mock custom elements for Cropper.js v2 Web Components
+class MockCropperCanvas extends HTMLElement {}
+class MockCropperImage extends HTMLElement {}
+class MockCropperShade extends HTMLElement {}
+class MockCropperHandle extends HTMLElement {}
+class MockCropperGrid extends HTMLElement {}
+class MockCropperCrosshair extends HTMLElement {}
+
+class MockCropperSelection extends HTMLElement {
+  x = 100;
+  y = 100;
+  width = 300;
+  height = 300;
+
+  $toCanvas = vi.fn(() => ({
+    toDataURL: vi.fn(() => 'data:image/jpeg;base64,mock'),
+  }));
+}
+
+// Register mock custom elements before tests
+beforeAll(() => {
+  if (!customElements.get('cropper-canvas')) {
+    customElements.define('cropper-canvas', MockCropperCanvas);
   }
-}));
+  if (!customElements.get('cropper-image')) {
+    customElements.define('cropper-image', MockCropperImage);
+  }
+  if (!customElements.get('cropper-shade')) {
+    customElements.define('cropper-shade', MockCropperShade);
+  }
+  if (!customElements.get('cropper-handle')) {
+    customElements.define('cropper-handle', MockCropperHandle);
+  }
+  if (!customElements.get('cropper-selection')) {
+    customElements.define('cropper-selection', MockCropperSelection);
+  }
+  if (!customElements.get('cropper-grid')) {
+    customElements.define('cropper-grid', MockCropperGrid);
+  }
+  if (!customElements.get('cropper-crosshair')) {
+    customElements.define('cropper-crosshair', MockCropperCrosshair);
+  }
+});
 
 function createMockFile(name = 'test.jpg', type = 'image/jpeg'): File {
   return new File(['mock-image-data'], name, { type });
@@ -33,41 +68,27 @@ async function setup(options: { sourceImage?: File } = {}) {
       cropConfirmed: onCropConfirmed,
       cancelled: onCancelled,
     },
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   const user = userEvent.setup();
 
-  return { user, onCropConfirmed, onCancelled, sourceImage, unmount: renderResult.fixture.destroy.bind(renderResult.fixture) };
+  return {
+    user,
+    onCropConfirmed,
+    onCancelled,
+    sourceImage,
+    container: renderResult.container,
+    unmount: renderResult.fixture.destroy.bind(renderResult.fixture),
+  };
 }
 
 describe('ImageCropper', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default mock implementation for getData
-    mockGetData.mockReturnValue({
-      x: 100,
-      y: 100,
-      width: 300,
-      height: 300,
-      rotate: 0,
-      scaleX: 1,
-      scaleY: 1,
-    });
-
-    // Default mock implementation for getCroppedCanvas
-    mockGetCroppedCanvas.mockReturnValue({
-      toDataURL: vi.fn().mockReturnValue('data:image/jpeg;base64,mock'),
-    });
   });
 
   describe('rendering', () => {
-    it('should render the cropper heading', async () => {
-      await setup();
-
-      expect(screen.getByRole('heading', { name: /crop your photo/i })).toBeVisible();
-    });
-
     it('should render action buttons', async () => {
       await setup();
 
@@ -86,7 +107,12 @@ describe('ImageCropper', () => {
 
   describe('crop confirmation', () => {
     it('should emit crop data with pixel coordinates when confirmed', async () => {
-      const { user, onCropConfirmed, sourceImage } = await setup();
+      const { user, onCropConfirmed, sourceImage, container } = await setup();
+
+      // Wait for image to load and cropper to render
+      await waitFor(() => {
+        expect(container.querySelector('cropper-selection')).toBeInTheDocument();
+      });
 
       await user.click(screen.getByRole('button', { name: /save photo/i }));
 
@@ -100,17 +126,21 @@ describe('ImageCropper', () => {
     });
 
     it('should round pixel values', async () => {
-      mockGetData.mockReturnValue({
-        x: 100.7,
-        y: 200.3,
-        width: 299.8,
-        height: 301.2,
-        rotate: 0,
-        scaleX: 1,
-        scaleY: 1,
+      const { user, onCropConfirmed, container } = await setup();
+
+      // Wait for cropper to render
+      await waitFor(() => {
+        expect(container.querySelector('cropper-selection')).toBeInTheDocument();
       });
 
-      const { user, onCropConfirmed } = await setup();
+      // Mock selection with decimal values
+      const selection = container.querySelector('cropper-selection') as MockCropperSelection;
+      Object.defineProperties(selection, {
+        x: { value: 100.7, writable: true },
+        y: { value: 200.3, writable: true },
+        width: { value: 299.8, writable: true },
+        height: { value: 301.2, writable: true },
+      });
 
       await user.click(screen.getByRole('button', { name: /save photo/i }));
 
@@ -119,6 +149,38 @@ describe('ImageCropper', () => {
       expect(result.cropData.y).toBe(200);
       expect(result.cropData.width).toBe(300);
       expect(result.cropData.height).toBe(301);
+    });
+
+    it('should include preview data URL in result', async () => {
+      const { user, onCropConfirmed, container } = await setup();
+
+      // Wait for cropper to render
+      await waitFor(() => {
+        expect(container.querySelector('cropper-selection')).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /save photo/i }));
+
+      const result = onCropConfirmed.mock.calls[0]?.[0] as CropResult;
+      expect(result.previewDataUrl).toBe('data:image/jpeg;base64,mock');
+    });
+
+    it('should call $toCanvas with correct dimensions', async () => {
+      const { user, container } = await setup();
+
+      // Wait for cropper to render
+      await waitFor(() => {
+        expect(container.querySelector('cropper-selection')).toBeInTheDocument();
+      });
+
+      const selection = container.querySelector('cropper-selection') as MockCropperSelection;
+
+      await user.click(screen.getByRole('button', { name: /save photo/i }));
+
+      expect(selection.$toCanvas).toHaveBeenCalledWith({
+        width: 1200,
+        height: 1200,
+      });
     });
   });
 

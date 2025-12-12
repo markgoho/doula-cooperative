@@ -109,5 +109,11 @@ export const routes: Routes = [
     loadComponent: () => import('./auth-actions/auth-actions').then((m) => m.AuthActions),
   },
 
+  // Test route for cropper debugging
+  {
+    path: 'cropper-test',
+    loadComponent: () => import('./cropper-test/cropper-test').then((m) => m.CropperTest),
+  },
+
   // future routes can go here
 ];

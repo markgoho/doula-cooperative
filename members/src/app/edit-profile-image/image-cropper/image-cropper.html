@@ -1,45 +1,41 @@
-<div class="cropper-container">
-  <h2 id="cropper-heading">Crop Your Photo</h2>
-  <p class="cropper-instructions">
-    Drag to reposition and resize the square crop box to select the area you want.
-  </p>
-
-  <!-- Cropper Area -->
-  <div class="cropper-wrapper">
-    @if (imageUrl()) {
-      <img
-        #cropperImage
-        [src]="imageUrl()"
-        alt="Image to crop"
-        class="cropper-image"
-      />
-    } @else if (imageLoadError()) {
-      <div class="error">
-        <p>{{ imageLoadError() }}</p>
-      </div>
-    } @else {
-      <div class="loading">
-        <p>Loading image...</p>
-      </div>
-    }
-  </div>
-
-  <!-- Action Buttons -->
-  <div class="actions">
-    <button
-      type="button"
-      class="button button--secondary"
-      (click)="cancel()"
+@if (imageUrl()) {
+  <cropper-canvas background [style.width.px]="canvasWidth()">
+    <cropper-image
+      [attr.src]="imageUrl()"
+      initial-center-size="contain"
+      translatable
+    ></cropper-image>
+    <cropper-shade></cropper-shade>
+    <cropper-selection
+      #cropperSelection
+      aspect-ratio="1"
+      initial-coverage="0.8"
+      movable
+      resizable
+      outlined
     >
-      Cancel
-    </button>
-    <button
-      type="button"
-      class="button button--primary"
-      (click)="confirm()"
-      [disabled]="!imageUrl()"
-    >
-      Save Photo
-    </button>
-  </div>
+      <cropper-grid role="grid" covered></cropper-grid>
+      <cropper-crosshair centered></cropper-crosshair>
+      <cropper-handle action="move" plain></cropper-handle>
+      <cropper-handle action="n-resize"></cropper-handle>
+      <cropper-handle action="e-resize"></cropper-handle>
+      <cropper-handle action="s-resize"></cropper-handle>
+      <cropper-handle action="w-resize"></cropper-handle>
+      <cropper-handle action="ne-resize"></cropper-handle>
+      <cropper-handle action="nw-resize"></cropper-handle>
+      <cropper-handle action="se-resize"></cropper-handle>
+      <cropper-handle action="sw-resize"></cropper-handle>
+    </cropper-selection>
+  </cropper-canvas>
+} @else if (imageLoadError()) {
+  <p>{{ imageLoadError() }}</p>
+} @else {
+  <p>Loading image...</p>
+}
+
+<div class="actions">
+  <button type="button" class="button button--secondary" (click)="cancel()">Cancel</button>
+  <button type="button" class="button button--primary" (click)="confirm()" [disabled]="!imageUrl()">
+    Save Photo
+  </button>
 </div>
