@@ -187,7 +187,48 @@ export async function handleUpdateNewsletterPreference(
     return { success: true, subscribed };
   }
 
-  // 5. Sync with MailerLite FIRST (source of truth for newsletter subscription)
+  // 5. Check if running in emulator - skip external API calls in test environment
+  const isEmulator = !!process.env["FUNCTIONS_EMULATOR"];
+  if (isEmulator) {
+    logger.info(
+      "Running in emulator - skipping MailerLite sync and updating Firestore directly",
+      { uid, email, subscribed },
+    );
+
+    // Update Firestore directly without syncing to MailerLite
+    const updateData: Partial<MemberDocument> = {
+      newsletterSubscribed: subscribed,
+    };
+
+    if (subscribed) {
+      updateData.newsletterSubscribedAt = Timestamp.now();
+    } else {
+      updateData.newsletterUnsubscribedAt = Timestamp.now();
+    }
+
+    try {
+      await memberReference.update(updateData);
+      logger.info(
+        "Updated member document with newsletter preference (emulator mode)",
+        { uid, email, subscribed },
+      );
+      return { success: true, subscribed };
+    } catch (error) {
+      logger.error("Failed to update member document in emulator", {
+        errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_FIRESTORE_UPDATE_ERROR,
+        uid,
+        email,
+        subscribed,
+        error,
+      });
+      throw new HttpsError(
+        "internal",
+        "Failed to save newsletter preference. Please try again.",
+      );
+    }
+  }
+
+  // 6. Sync with MailerLite FIRST (source of truth for newsletter subscription)
   try {
     if (subscribed) {
       // Validate member has required subscription dates
@@ -283,7 +324,7 @@ export async function handleUpdateNewsletterPreference(
     );
   }
 
-  // 7. Update Firestore to cache the newsletter preference
+  // 7. Update Firestore to cache the newsletter preference (production only)
   const updateData: Partial<MemberDocument> = {
     newsletterSubscribed: subscribed,
   };
