@@ -12,6 +12,9 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { windowProvider } from './services/window.token';
 
+// Check if we should use emulators (defaults to true in dev mode)
+const useEmulators = isDevMode() && !import.meta.env['VITE_USE_PRODUCTION'];
+
 export const appConfig: ApplicationConfig = {
   providers: [
     windowProvider,
@@ -32,28 +35,33 @@ export const appConfig: ApplicationConfig = {
 
     provideAuth(() => {
       const auth = getAuth();
-      // Connect to the Auth emulator in development
-      if (isDevMode()) {
+      if (useEmulators) {
         console.log('Connecting to Auth emulator');
         connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+      } else {
+        console.log('Using production Auth');
       }
       return auth;
     }),
 
     provideFirestore(() => {
       const firestore = getFirestore();
-      // Connect to the Firestore emulator in development
-      if (isDevMode()) {
+      if (useEmulators) {
+        console.log('Connecting to Firestore emulator');
         connectFirestoreEmulator(firestore, 'localhost', 8080);
+      } else {
+        console.log('Using production Firestore');
       }
       return firestore;
     }),
 
     provideFunctions(() => {
       const functions = getFunctions();
-      // Connect to the Functions emulator in development
-      if (isDevMode()) {
+      if (useEmulators) {
+        console.log('Connecting to Functions emulator');
         connectFunctionsEmulator(functions, 'localhost', 5001);
+      } else {
+        console.log('Using production Functions');
       }
       return functions;
     }),
