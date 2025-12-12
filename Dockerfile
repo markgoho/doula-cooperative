@@ -1,5 +1,5 @@
-# Dockerfile for Doula Cooperative Hugo builds
-# Start from a stable, minimal base image
+# Dockerfile for Doula Cooperative CI builds
+# Includes tools for Hugo, Angular, Firebase, and Playwright E2E testing
 FROM ubuntu:22.04
 
 # Avoid prompts from apt
@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG HUGO_VERSION=0.152.2
 ARG DART_SASS_VERSION=1.93.2
 ARG BUN_VERSION=1.3.4
+ARG PLAYWRIGHT_VERSION=1.52.0
 
 # 1. Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -44,11 +45,15 @@ RUN wget "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSIO
   && ln -s /usr/local/share/dart-sass/sass /usr/local/bin/sass \
   && rm "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
 
-# 5. Verify installations
+# 5. Install Playwright with Chromium browser and dependencies
+RUN bunx playwright@${PLAYWRIGHT_VERSION} install chromium --with-deps
+
+# 6. Verify installations
 RUN echo "Bun version: $(bun --version)"
 RUN echo "Hugo version: $(hugo version)"
 RUN echo "Sass version: $(sass --version)"
 RUN echo "Node.js version: $(node --version)"
+RUN bunx playwright@${PLAYWRIGHT_VERSION} --version
 
 # Set the working directory for when the container starts
 WORKDIR /workspace
