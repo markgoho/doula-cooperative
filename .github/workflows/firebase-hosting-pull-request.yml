@@ -80,9 +80,6 @@ jobs:
       - name: Install members dependencies
         working-directory: members
         run: bun install
-      - name: Build functions (required for emulators)
-        working-directory: functions
-        run: npm install && npm run build
       - name: Run E2E tests
         working-directory: members
         run: bun run e2e
