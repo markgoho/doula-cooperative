@@ -74,7 +74,7 @@ jobs:
         run: bun install
       - name: Build functions (required for emulators)
         working-directory: functions
-        run: bun install && bun run build
+        run: npm install && npm run build
       - name: Run E2E tests
         working-directory: members
         run: bun run e2e
