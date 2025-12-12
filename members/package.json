@@ -8,7 +8,12 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "lint:e2e": "eslint e2e",
+    "typecheck:e2e": "tsc --project tsconfig.e2e.json --noEmit",
+    "e2e": "bash scripts/run-e2e.sh",
+    "e2e:ui": "bash scripts/run-e2e.sh --ui",
+    "e2e:debug": "bash scripts/run-e2e.sh --debug"
   },
   "prettier": {
     "printWidth": 100,
@@ -42,6 +47,7 @@
     "@angular/cli": "^21.0.3",
     "@angular/compiler-cli": "^21.0.5",
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.57.0",
     "@testing-library/angular": "^18.1.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/user-event": "^14.6.1",

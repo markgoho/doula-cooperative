@@ -102,6 +102,14 @@ export default defineConfig([
     },
   },
   {
+    files: ["members/e2e/**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "members/tsconfig.e2e.json",
+      },
+    },
+  },
+  {
     files: ["**/*.{js,jsx}"],
     ignores: [".angular/**", "members/.angular/**", "**/.angular/**"],
     rules: {
