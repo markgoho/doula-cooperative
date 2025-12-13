@@ -90,7 +90,10 @@ describe('ImageCropper', () => {
 
       await user.click(screen.getByRole('button', { name: /save photo/i }));
 
-      expect(onCropConfirmed).toHaveBeenCalledOnce();
+      await waitFor(() => {
+        expect(onCropConfirmed).toHaveBeenCalledOnce();
+      });
+
       const result = onCropConfirmed.mock.calls[0]?.[0] as CropResult;
       expect(result.file).toBe(sourceImage);
       expect(result.cropData.x).toBe(100);
@@ -113,6 +116,10 @@ describe('ImageCropper', () => {
       const { user, onCropConfirmed } = await setup();
 
       await user.click(screen.getByRole('button', { name: /save photo/i }));
+
+      await waitFor(() => {
+        expect(onCropConfirmed).toHaveBeenCalledOnce();
+      });
 
       const result = onCropConfirmed.mock.calls[0]?.[0] as CropResult;
       expect(result.cropData.x).toBe(101);
