@@ -466,6 +466,47 @@ Context<{ params: Record<"memberId", string> }>
 Context<{ body: { name: string; email: string } }>
 ```
 
+### RouteContext Type Patterns
+
+**Empty params type**: For routes without path parameters (like `GET /admin/members`), use `Record<string, never>` instead of `unknown`:
+
+```typescript
+// ✅ CORRECT - Type-safe empty params
+RouteContext<Record<string, never>, { limit?: number; offset?: number }>
+
+// ❌ WRONG - Causes type errors with TypeScript strict mode
+RouteContext<unknown, { limit?: number; offset?: number }>
+```
+
+**Body type intersection**: Routes with request bodies need to intersect `RouteContext` with a body type:
+
+```typescript
+// ✅ CORRECT - Intersect with body type
+RouteContext<{ memberId: string }> & { body: Partial<MemberDocument> }
+
+// Also valid - No query params generic needed
+RouteContext<{ memberId: string }> & { body: { newExpirationDate: string } }
+```
+
+**Why intersection**: `RouteContext` doesn't include `body` by default, so you must intersect with a separate type that includes it.
+
+**Usage in app.ts**:
+```typescript
+.patch(
+  "/admin/members/:memberId",
+  context =>
+    updateMember(
+      context as unknown as RouteContext<{ memberId: string }> & {
+        body: Record<string, unknown>;
+      },
+    ),
+  {
+    params: t.Object({ memberId: t.String() }),
+    body: t.Object({ name: t.Optional(t.String()) }),
+  },
+)
+```
+
 ## Arrow Functions in Routes
 
 **Always wrap handlers**: Use arrow functions to call route handlers (not direct function references)
