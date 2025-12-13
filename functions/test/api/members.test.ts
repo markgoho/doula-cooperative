@@ -1,11 +1,12 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { createApp } from "../../src/api/app.js";
-import { NotFoundError } from "../../src/api/errors/http-error.js";
+import { NotFoundError, AuthError, ForbiddenError } from "../../src/api/errors/http-error.js";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../src/types/member-document.js";
+import type { DecodedIdToken } from "firebase-admin/auth";
 
 /**
- * Tests for the members endpoint.
+ * Tests for the authenticated members endpoint.
  *
  * Uses createApp() factory with mocked services - routes come from app.ts, no duplication needed
  * Tests run WITHOUT Firebase emulators.
@@ -13,8 +14,8 @@ import type { MemberDocument } from "../../src/types/member-document.js";
  * Run these tests with:
  *   bun test test/api/members.test.ts
  */
-describe("GET /members/:memberId", () => {
-  // Create mock service
+describe("GET /members/:memberId (authenticated)", () => {
+  // Create mock services
   const mockFindById = mock((memberId: string): Promise<MemberDocument> => {
     if (memberId === "test-member-id") {
       return Promise.resolve({
@@ -28,21 +29,114 @@ describe("GET /members/:memberId", () => {
     return Promise.reject(new NotFoundError("Member not found"));
   });
 
-  // Create app with mocked service - routes come from app.ts, no duplication needed
+  const mockVerifyOwnerOrAdmin = mock(
+    (authorizationHeader: string | undefined, memberId: string): Promise<DecodedIdToken> => {
+      if (!authorizationHeader) {
+        return Promise.reject(new AuthError("Missing Authorization header"));
+      }
+
+      if (authorizationHeader === "Bearer valid-owner-token" && memberId === "test-member-id") {
+        return Promise.resolve({
+          uid: "test-member-id",
+          email: "test@example.com",
+        } as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer admin-token") {
+        return Promise.resolve({
+          uid: "admin-user",
+          email: "admin@example.com",
+          admin: true,
+        } as unknown as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer non-owner-token") {
+        return Promise.reject(new ForbiddenError("You can only access your own data"));
+      }
+
+      return Promise.reject(new AuthError("Invalid authentication token"));
+    },
+  );
+
+  // Create app with mocked services - routes come from app.ts, no duplication needed
   const testApp = createApp({
     memberService: {
       findById: mockFindById,
+    },
+    authService: {
+      verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
+      verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
+      verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
     },
   });
 
   beforeEach(() => {
     mockFindById.mockClear();
+    mockVerifyOwnerOrAdmin.mockClear();
+  });
+
+  describe("Authentication", () => {
+    it("should return 401 when no authorization header is provided", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/members/test-member-id"),
+      )) as Response;
+
+      expect(response.status).toBe(401);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Missing Authorization header");
+    });
+
+    it("should return 403 when non-owner tries to access member data", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer non-owner-token",
+          },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(403);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("You can only access your own data");
+    });
+
+    it("should allow owner to access their own member data", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer valid-owner-token",
+          },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as MemberDocument;
+      expect(body.uid).toBe("test-member-id");
+    });
+
+    it("should allow admin to access any member data", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer admin-token",
+          },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as MemberDocument;
+      expect(body.uid).toBe("test-member-id");
+    });
   });
 
   describe("Valid member ID", () => {
     it("should return member data when member exists", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id"),
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer valid-owner-token",
+          },
+        }),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -53,7 +147,11 @@ describe("GET /members/:memberId", () => {
 
     it("should call memberService.findById with correct ID", async () => {
       await testApp.handle(
-        new Request("http://localhost/members/test-member-id"),
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer valid-owner-token",
+          },
+        }),
       );
 
       expect(mockFindById).toHaveBeenCalledTimes(1);
@@ -61,8 +159,21 @@ describe("GET /members/:memberId", () => {
     });
 
     it("should return 404 when member does not exist", async () => {
+      // Mock admin token to access non-existent member
+      mockVerifyOwnerOrAdmin.mockImplementationOnce(() =>
+        Promise.resolve({
+          uid: "admin-user",
+          email: "admin@example.com",
+          admin: true,
+        } as unknown as DecodedIdToken),
+      );
+
       const response = (await testApp.handle(
-        new Request("http://localhost/members/non-existent-id"),
+        new Request("http://localhost/members/non-existent-id", {
+          headers: {
+            Authorization: "Bearer admin-token",
+          },
+        }),
       )) as Response;
 
       expect(response.status).toBe(404);
@@ -106,7 +217,11 @@ describe("GET /members/:memberId", () => {
   describe("Edge cases", () => {
     it("should reject member IDs with URL-encoded forward slashes", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/user%2Fwith%2Fslash"),
+        new Request("http://localhost/members/user%2Fwith%2Fslash", {
+          headers: {
+            Authorization: "Bearer admin-token",
+          },
+        }),
       )) as Response;
 
       // Forward slashes are not valid in Firestore document IDs
@@ -117,7 +232,11 @@ describe("GET /members/:memberId", () => {
   describe("Response format", () => {
     it("should return JSON content type", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id"),
+        new Request("http://localhost/members/test-member-id", {
+          headers: {
+            Authorization: "Bearer valid-owner-token",
+          },
+        }),
       )) as Response;
 
       const contentType = response.headers.get("content-type");
@@ -137,6 +256,16 @@ describe("GET /members/:memberId", () => {
         memberService: {
           findById: mockFindByIdWithError,
         },
+        authService: {
+          verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
+          verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
+          verifyOwnerOrAdmin: mock(() =>
+            Promise.resolve({
+              uid: "test-id",
+              admin: false,
+            } as unknown as DecodedIdToken),
+          ),
+        },
         logger: {
           error: errorMock,
           warn: mock(),
@@ -145,28 +274,33 @@ describe("GET /members/:memberId", () => {
       });
 
       const response = (await testAppWithError.handle(
-        new Request("http://localhost/members/test-id"),
+        new Request("http://localhost/members/test-id", {
+          headers: {
+            Authorization: "Bearer valid-owner-token",
+          },
+        }),
       )) as Response;
 
       // Should return 500 for unexpected errors
       expect(response.status).toBe(500);
 
-      // Should return generic error message
+      // Should return descriptive error message
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toBe("Internal server error");
+      expect(body.error).toBe("Failed to retrieve member data");
 
       // Should have logged the error with context
       expect(errorMock).toHaveBeenCalledTimes(1);
       expect(Array.isArray(errorMock.mock.calls[0])).toBe(true);
-      expect(errorMock.mock.calls[0]?.[0]).toBe(
-        "Unexpected error in getMember route",
-      );
+      expect(errorMock.mock.calls[0]?.[0]).toBe("Failed to fetch member data");
 
-      // Verify error context
-      const context = errorMock.mock.calls[0]?.[1] as Record<string, unknown> | undefined;
+      // Verify error context includes authentication info
+      const context = errorMock.mock.calls[0]?.[1] as
+        | Record<string, unknown>
+        | undefined;
       expect(context).toBeDefined();
       expect(context?.["errorMessage"]).toBe("Database connection timeout");
       expect(context?.["memberId"]).toBe("test-id");
+      expect(context?.["hasAuthorizationHeader"]).toBe(true);
     });
 
     it("should handle HttpError correctly without logging as unexpected", async () => {
@@ -177,6 +311,11 @@ describe("GET /members/:memberId", () => {
         memberService: {
           findById: mockFindById,
         },
+        authService: {
+          verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
+          verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
+          verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
+        },
         logger: {
           error: errorMock,
           warn: mock(),
@@ -185,7 +324,11 @@ describe("GET /members/:memberId", () => {
       });
 
       const response = (await testAppWithLogger.handle(
-        new Request("http://localhost/members/non-existent-id"),
+        new Request("http://localhost/members/non-existent-id", {
+          headers: {
+            Authorization: "Bearer admin-token",
+          },
+        }),
       )) as Response;
 
       // Should return 404 for NotFoundError (which extends HttpError)

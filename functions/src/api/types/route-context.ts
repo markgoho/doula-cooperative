@@ -2,15 +2,21 @@ import type { Services } from "./services.js";
 
 /**
  * Base route context with injected services.
- * Extend this for specific route requirements.
+ * Combines Elysia's context with our injected services.
+ *
+ * @template TParameters - Type of route parameters (e.g., { memberId: string })
  */
-export type RouteContext<TParameters = unknown> = {
+export interface RouteContext<TParameters = unknown> extends Services {
   params: TParameters;
   request: Request;
   set: { status?: number | string };
-} & Services;
+}
 
 /**
- * Context for routes that don't need params.
+ * Context for routes that don't require parameters.
+ * Used for simple endpoints like health checks.
  */
-export type SimpleRouteContext = Omit<RouteContext, "params">;
+export interface SimpleRouteContext extends Services {
+  request: Request;
+  set: { status?: number | string };
+}

@@ -36,20 +36,20 @@ export async function handleApi(
     )) as globalThis.Response;
     await sendWebResponse(webResponse, response);
   } catch (error) {
-    logger.error("Elysia API handler failed", {
-      error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
+    const errorDetails = {
       path: request.url,
       method: request.method,
-    });
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+    };
+
+    logger.error("Elysia API handler failed", errorDetails);
 
     // Only send response if headers haven't been sent yet
     if (!response.headersSent) {
       response.status(500).json({
         error: "Internal server error",
-        message:
-          "An unexpected error occurred while processing your request. Please try again later.",
+        message: "An unexpected error occurred while processing your request. Please try again later.",
       });
     }
   }

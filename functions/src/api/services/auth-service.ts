@@ -4,6 +4,27 @@ import { AuthError, ForbiddenError } from "../errors/http-error.js";
 import type { AuthService as AuthServiceInterface } from "./service-interfaces.js";
 
 /**
+ * Categorize Firebase Auth error messages for appropriate user feedback.
+ * @param errorMessage - Lowercase error message from Firebase
+ * @returns Error category type
+ */
+function categorizeAuthError(errorMessage: string): "expired" | "revoked" | "malformed" | "project_mismatch" | "unknown" {
+  if (errorMessage.includes("token expired") || errorMessage.includes("exp")) {
+    return "expired";
+  }
+  if (errorMessage.includes("token revoked") || errorMessage.includes("revoked")) {
+    return "revoked";
+  }
+  if (errorMessage.includes("invalid token") || errorMessage.includes("malformed") || errorMessage.includes("decode")) {
+    return "malformed";
+  }
+  if (errorMessage.includes("project") || errorMessage.includes("audience")) {
+    return "project_mismatch";
+  }
+  return "unknown";
+}
+
+/**
  * Service for authentication and authorization operations.
  * Decoupled from HTTP framework - does not depend on Elysia Context.
  */
@@ -38,45 +59,45 @@ export const AuthService: AuthServiceInterface = {
       // Categorize errors by type for better user feedback
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
+        const errorType = categorizeAuthError(errorMessage);
 
-        // Token has expired - user needs to sign in again
-        if (errorMessage.includes("token expired") || errorMessage.includes("exp")) {
-          logger.warn("Expired auth token", { errorMessage: error.message });
-          throw new AuthError("Your session has expired. Please sign in again.");
+        switch (errorType) {
+          case "expired": {
+            logger.warn("Expired auth token", { errorMessage: error.message });
+            throw new AuthError("Your session has expired. Please sign in again.");
+          }
+
+          case "revoked": {
+            logger.warn("Revoked auth token", { errorMessage: error.message });
+            throw new AuthError("Your session has been revoked. Please sign in again.");
+          }
+
+          case "malformed": {
+            logger.warn("Malformed auth token", { errorMessage: error.message });
+            throw new AuthError("Invalid authentication token format");
+          }
+
+          case "project_mismatch": {
+            logger.error("Auth token from wrong project", {
+              errorMessage: error.message,
+            });
+            throw new AuthError("Authentication token is not valid for this application");
+          }
+
+          default: {
+            logger.error("Firebase Auth verification failed with unexpected error", {
+              error,
+              errorMessage: error.message,
+              errorStack: error.stack,
+            });
+            throw new AuthError("Unable to verify authentication token. Please try again.");
+          }
         }
-
-        // Token has been revoked - user needs to sign in again
-        if (errorMessage.includes("token revoked") || errorMessage.includes("revoked")) {
-          logger.warn("Revoked auth token", { errorMessage: error.message });
-          throw new AuthError("Your session has been revoked. Please sign in again.");
-        }
-
-        // Malformed token format - invalid format
-        if (errorMessage.includes("invalid token") || errorMessage.includes("malformed") || errorMessage.includes("decode")) {
-          logger.warn("Malformed auth token", { errorMessage: error.message });
-          throw new AuthError("Invalid authentication token format");
-        }
-
-        // Project mismatch - token from different project
-        if (errorMessage.includes("project") || errorMessage.includes("audience")) {
-          logger.error("Auth token from wrong project", {
-            errorMessage: error.message,
-          });
-          throw new AuthError("Authentication token is not valid for this application");
-        }
-
-        // Unexpected errors (Firebase service issues, network problems, etc.)
-        logger.error("Firebase Auth verification failed with unexpected error", {
-          error,
-          errorMessage: error.message,
-          errorStack: error.stack,
-        });
-      } else {
-        logger.error("Firebase Auth verification failed with non-Error object", {
-          error,
-        });
       }
 
+      logger.error("Firebase Auth verification failed with non-Error object", {
+        error,
+      });
       throw new AuthError("Unable to verify authentication token. Please try again.");
     }
   },

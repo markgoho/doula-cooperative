@@ -5,9 +5,8 @@ import type {
 import type { Logger } from "../handler.js";
 
 /**
- * Service keys used for dependency injection.
- * Using constants prevents typos, enables IDE refactoring, and ensures
- * consistency between .decorate() calls and type definitions.
+ * Service keys used for dependency injection via Elysia's decorate.
+ * Constants ensure consistency between registration and usage.
  */
 export const SERVICE_KEYS = {
   MEMBER_SERVICE: "memberService",

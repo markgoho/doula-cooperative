@@ -5,7 +5,11 @@ import { healthRoute } from "./routes/health.js";
 import { getMember } from "./routes/members.js";
 import { MemberService } from "./services/member-service.js";
 import { AuthService } from "./services/auth-service.js";
-import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
+import {
+  SERVICE_KEYS,
+  type PartialServices,
+} from "./types/services.js";
+import type { RouteContext } from "./types/route-context.js";
 
 /**
  * Create Elysia app with injectable dependencies.
@@ -31,7 +35,8 @@ export function createApp(services?: PartialServices) {
     .get("/health", () => healthRoute())
     .get(
       "/members/:memberId",
-      (context) => getMember(context),
+      (context) =>
+        getMember(context as unknown as RouteContext<{ memberId: string }>),
       {
         params: t.Object({
           memberId: t.String({

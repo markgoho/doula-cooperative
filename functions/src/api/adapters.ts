@@ -13,33 +13,54 @@ export function toWebRequest(request: Request): globalThis.Request {
   try {
     const host = request.headers.host ?? "localhost";
     const url = new URL(request.url, `https://${host}`);
-
-    // Normalize headers - handle both string and array values
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(request.headers)) {
-      if (typeof value === "string") {
-        headers.append(key, value);
-      } else if (Array.isArray(value)) {
-        // Handle multi-value headers (e.g., Set-Cookie)
-        for (const v of value) {
-          headers.append(key, v);
-        }
-      }
-      // Skip non-string, non-array values
-    }
+    const headers = normalizeHeaders(request.headers);
+    const body = getRequestBody(request);
 
     return new globalThis.Request(url.toString(), {
       method: request.method,
       headers,
-      body: ["GET", "HEAD"].includes(request.method)
-        ? undefined
-        : (request as Request & { rawBody?: Buffer }).rawBody,
+      body,
     });
   } catch (error) {
-    throw new Error(
-      `Failed to convert Firebase request to Web request: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to convert Firebase request to Web request: ${errorMessage}`);
   }
+}
+
+/**
+ * Normalize headers from Firebase request format to Web Headers.
+ * Handles both string and array header values.
+ */
+function normalizeHeaders(requestHeaders: Request["headers"]): Headers {
+  const headers = new Headers();
+
+  for (const [key, value] of Object.entries(requestHeaders)) {
+    if (typeof value === "string") {
+      headers.append(key, value);
+    } else if (Array.isArray(value)) {
+      // Handle multi-value headers (e.g., Set-Cookie)
+      for (const v of value) {
+        headers.append(key, v);
+      }
+    }
+    // Skip non-string, non-array values
+  }
+
+  return headers;
+}
+
+/**
+ * Extract request body based on HTTP method.
+ * GET and HEAD requests should not have a body.
+ */
+function getRequestBody(request: Request): Buffer | undefined {
+  const methodsWithoutBody = ["GET", "HEAD"];
+
+  if (methodsWithoutBody.includes(request.method)) {
+    return undefined;
+  }
+
+  return (request as Request & { rawBody?: Buffer }).rawBody;
 }
 
 /**
@@ -54,33 +75,39 @@ export async function sendWebResponse(
   webResponse: globalThis.Response,
   response: Response,
 ): Promise<void> {
-  try {
-    response.status(webResponse.status);
+  response.status(webResponse.status);
 
-    // Set response headers
-    for (const [key, value] of webResponse.headers) {
-      response.setHeader(key, value);
-    }
-
-    // Handle binary vs text responses based on content-type
-    // Default to text if no content-type is specified
-    const contentType = webResponse.headers.get("content-type") ?? "text/plain";
-    if (
-      contentType.includes("application/json") ||
-      contentType.includes("text/") ||
-      contentType.includes("application/xml") ||
-      contentType.includes("application/x-www-form-urlencoded")
-    ) {
-      // Text-based content
-      response.send(await webResponse.text());
-    } else {
-      // Binary content (images, PDFs, etc.)
-      const buffer = Buffer.from(await webResponse.arrayBuffer());
-      response.send(buffer);
-    }
-  } catch (error) {
-    throw new Error(
-      `Failed to send Web response to Express: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+  // Set response headers
+  for (const [key, value] of webResponse.headers) {
+    response.setHeader(key, value);
   }
+
+  // Determine response body format based on content type
+  const responseBody = await getResponseBody(webResponse);
+  response.send(responseBody);
+}
+
+/**
+ * Extract response body in appropriate format based on content type.
+ * Text-based content is returned as string, binary content as Buffer.
+ */
+async function getResponseBody(webResponse: globalThis.Response): Promise<string | Buffer> {
+  const contentType = webResponse.headers.get("content-type") ?? "text/plain";
+
+  const textContentTypes = [
+    "application/json",
+    "text/",
+    "application/xml",
+    "application/x-www-form-urlencoded",
+  ];
+
+  const isTextContent = textContentTypes.some((type) => contentType.includes(type));
+
+  if (isTextContent) {
+    return webResponse.text();
+  }
+
+  // Binary content (images, PDFs, etc.)
+  const arrayBuffer = await webResponse.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
