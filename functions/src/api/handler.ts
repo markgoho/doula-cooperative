@@ -1,6 +1,7 @@
-import type { Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import type { Request } from "firebase-functions/v2/https";
+import { ERROR_IDS } from "../constants/error-ids.js";
 
 /**
  * Logger interface for dependency injection.
@@ -37,8 +38,10 @@ export async function handleApi(
     await sendWebResponse(webResponse, response);
   } catch (error) {
     const errorDetails = {
+      errorId: ERROR_IDS.API_HANDLER_FAILED,
       path: request.url,
       method: request.method,
+      error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
     };
@@ -46,10 +49,17 @@ export async function handleApi(
     logger.error("Elysia API handler failed", errorDetails);
 
     // Only send response if headers haven't been sent yet
-    if (!response.headersSent) {
+    if (response.headersSent) {
+      logger.warn("Cannot send error response - headers already sent", {
+        errorId: ERROR_IDS.API_HEADERS_ALREADY_SENT,
+        path: request.url,
+        method: request.method,
+      });
+    } else {
       response.status(500).json({
         error: "Internal server error",
-        message: "An unexpected error occurred while processing your request. Please try again later.",
+        message:
+          "An unexpected error occurred while processing your request. Please try again later.",
       });
     }
   }

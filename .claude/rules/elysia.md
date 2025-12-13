@@ -24,13 +24,24 @@ Organize code by feature with clear separation of concerns:
 
 ```
 src/api/
-├── errors/          # Custom HTTP error classes
-├── services/        # Business logic (decoupled from HTTP)
-├── routes/          # Route handlers (controllers)
-├── adapters.ts      # Firebase ↔ Elysia conversion
-├── app.ts           # App factory with dependency injection
-└── handler.ts       # Main entry point
+├── errors/               # Custom HTTP error classes
+├── services/             # Business logic (decoupled from HTTP)
+│   ├── auth-service/     # Each auth function in separate file
+│   │   ├── verify-token.ts
+│   │   ├── verify-admin.ts
+│   │   ├── verify-owner-or-admin.ts
+│   │   └── index.ts      # Exports AuthService object
+│   └── member-service.ts
+├── routes/               # Route handlers (controllers)
+├── types/                # Type definitions
+│   ├── route-context.ts  # RouteContext type
+│   └── services.ts       # Service constants & types
+├── adapters.ts           # Firebase ↔ Elysia conversion
+├── app.ts                # App factory with dependency injection
+└── handler.ts            # Main entry point
 ```
+
+**IMPORTANT**: Follow CLAUDE.md rule - "one exported function per module". Split services into separate files if they export multiple functions.
 
 ## Route Organization
 
@@ -99,17 +110,36 @@ export async function getMember({
 
 **Services are decoupled from HTTP**: Keep business logic independent of Elysia/HTTP framework
 
+**Use SERVICE_KEYS constants**: Centralize service keys to prevent typos and enable refactoring
+
+```typescript
+// types/services.ts
+export const SERVICE_KEYS = {
+  MEMBER_SERVICE: "memberService",
+  AUTH_SERVICE: "authService",
+  LOGGER: "logger",
+} as const;
+
+export interface Services {
+  [SERVICE_KEYS.MEMBER_SERVICE]: MemberService;
+  [SERVICE_KEYS.AUTH_SERVICE]: AuthService;
+  [SERVICE_KEYS.LOGGER]: Logger;
+}
+
+export type PartialServices = Partial<Services>;
+```
+
 **Use factory pattern with `decorate`**: Create app with injectable dependencies
 
 ```typescript
 // app.ts
-export function createApp(services?: {
-  memberService?: typeof MemberService;
-  authService?: typeof AuthService;
-}) {
+import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
+
+export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
-    .decorate("memberService", services?.memberService ?? MemberService)
-    .decorate("authService", services?.authService ?? AuthService)
+    .decorate(SERVICE_KEYS.MEMBER_SERVICE, services?.memberService ?? MemberService)
+    .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+    .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .get("/members/:memberId", (context) => getMember(context));
 }
 
@@ -120,19 +150,35 @@ export const app = createApp();
 const testApp = createApp({ memberService: mockService });
 ```
 
+**Use RouteContext type for route handlers**:
+
+```typescript
+// types/route-context.ts
+import type { Services } from "./services.js";
+
+export interface RouteContext<TParameters = unknown> {
+  params: TParameters;
+  request: Request;
+  set: { status?: number | string };
+}
+
+// Extend with services for all routes
+export type RouteContextWithServices<TParameters = unknown> = RouteContext<TParameters> & Services;
+```
+
 **Access services in routes**:
 
 ```typescript
 // routes/members.ts
+import type { RouteContext } from "../types/route-context.js";
+import type { MemberDocument } from "../../types/member-document.js";
+
 export async function getMember({
   params,
   memberService,  // Injected via decorate
+  logger,         // Injected via decorate
   set,
-}: {
-  params: { memberId: string };
-  memberService: { findById: (id: string) => Promise<unknown> };
-  set: { status?: number | string };
-}) {
+}: RouteContext<{ memberId: string }>): Promise<MemberDocument | { error: string }> {
   try {
     return await memberService.findById(params.memberId);
   } catch (error) {
@@ -140,6 +186,8 @@ export async function getMember({
       set.status = error.statusCode;
       return { error: error.message };
     }
+
+    logger.error("Unexpected error", { error, memberId: params.memberId });
     set.status = 500;
     return { error: "Internal server error" };
   }
@@ -260,47 +308,104 @@ export const app = new Elysia({ adapter: node() })
 
 ```typescript
 // app.ts
-import { AuthService } from "./services/auth-service.js";
+import { AuthService } from "./services/auth-service/index.js";
 
 export const app = new Elysia({ adapter: node() })
-  .decorate("authService", AuthService)
+  .decorate(SERVICE_KEYS.AUTH_SERVICE, AuthService)
   .get("/protected", (context) => protectedRoute(context));
 ```
 
-**Auth service is decoupled**: Takes only what it needs, not full Context
+**Auth service is split into separate files** (one export per module):
 
 ```typescript
-// services/auth-service.ts
-export const AuthService = {
-  async verifyAuthToken(authHeader: string | undefined) {
-    if (!authHeader) {
-      throw new AuthError("Missing Authorization header");
-    }
+// services/auth-service/verify-token.ts
+import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
+import { logger } from "firebase-functions/v2";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
+import { AuthError } from "../../errors/http-error.js";
 
-    if (!authHeader.startsWith("Bearer ")) {
-      throw new AuthError("Authorization header must use Bearer scheme");
-    }
+export async function verifyAuthToken(
+  authorizationHeader: string | undefined
+): Promise<DecodedIdToken> {
+  if (!authorizationHeader) {
+    throw new AuthError("Missing Authorization header");
+  }
 
-    const token = authHeader.slice(7).trim();
-    if (token.length === 0) {
-      throw new AuthError("Missing auth token");
-    }
+  if (!authorizationHeader.startsWith("Bearer ")) {
+    throw new AuthError("Authorization header must use Bearer scheme");
+  }
 
+  const token = authorizationHeader.slice(7).trim();
+  if (token.length === 0) {
+    throw new AuthError("Missing auth token");
+  }
+
+  try {
     const auth = getAuth();
-    const decodedToken = await auth.verifyIdToken(token);
-    return decodedToken;
-  },
+    return await auth.verifyIdToken(token);
+  } catch (error) {
+    // Use Firebase error codes, NOT string matching on error messages
+    if (error && typeof error === 'object' && 'code' in error) {
+      const firebaseError = error as { code: string };
 
-  async verifyAdmin(authHeader: string | undefined) {
-    const decodedToken = await AuthService.verifyAuthToken(authHeader);
+      switch (firebaseError.code) {
+        case 'auth/id-token-expired':
+          logger.warn("Expired auth token", {
+            errorId: ERROR_IDS.API_AUTH_TOKEN_EXPIRED,
+            errorCode: firebaseError.code,
+          });
+          throw new AuthError("Your session has expired. Please sign in again.");
 
-    if (decodedToken["admin"] !== true) {
-      throw new ForbiddenError("This endpoint requires admin privileges");
+        case 'auth/id-token-revoked':
+          logger.warn("Revoked auth token", {
+            errorId: ERROR_IDS.API_AUTH_TOKEN_REVOKED,
+            errorCode: firebaseError.code,
+          });
+          throw new AuthError("Your session has been revoked. Please sign in again.");
+
+        // ... handle other error codes
+        default:
+          logger.error("Firebase Auth verification failed", {
+            errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
+            error,
+            errorCode: firebaseError.code,
+          });
+          throw new AuthError("Unable to verify authentication token.");
+      }
     }
+    throw new AuthError("Unable to verify authentication token.");
+  }
+}
+```
 
-    return decodedToken;
-  },
+```typescript
+// services/auth-service/index.ts
+import { verifyAuthToken } from "./verify-token.js";
+import { verifyAdmin } from "./verify-admin.js";
+import { verifyOwnerOrAdmin } from "./verify-owner-or-admin.js";
+
+export const AuthService = {
+  verifyAuthToken,
+  verifyAdmin,
+  verifyOwnerOrAdmin,
 };
+
+// Re-export for direct imports
+export { verifyAuthToken, verifyAdmin, verifyOwnerOrAdmin };
+```
+
+**CRITICAL**: Use Firebase error codes, NOT string matching:
+
+```typescript
+// ❌ WRONG - Fragile, breaks with message changes
+if (error.message.includes("expired")) {
+  throw new AuthError("Token expired");
+}
+
+// ✅ CORRECT - Reliable, uses Firebase error codes
+if (error.code === "auth/id-token-expired") {
+  throw new AuthError("Token expired");
+}
 ```
 
 **Usage in routes with injected service**:
@@ -383,6 +488,35 @@ Context<{ body: { name: string; email: string } }>
 ## Testing Patterns
 
 **Test framework**: Elysia uses Bun's native test runner (not a custom framework)
+
+**CRITICAL: Never mock Firebase/Firestore internals**:
+
+```typescript
+// ❌ WRONG - Mocking Firebase internals is an anti-pattern
+mock.module("firebase-admin/firestore", () => ({
+  getFirestore: mockGetFirestore,
+}));
+
+mock.module("firebase-admin/auth", () => ({
+  getAuth: mockGetAuth,
+}));
+
+// ✅ CORRECT - Mock service interfaces at route level
+const mockMemberService = {
+  findById: mock((id) => Promise.resolve({ uid: id, email: "test@example.com" })),
+};
+
+const testApp = createApp({
+  memberService: mockMemberService,
+});
+```
+
+**Why this matters**:
+- Mocking internals couples tests to implementation details
+- Makes refactoring difficult
+- Hides integration issues
+- Violates dependency injection principles
+- Tests should mock at service boundaries, not internal modules
 
 **Use factory pattern for clean testing**: Call `createApp()` with mock services - no duplication!
 
@@ -479,7 +613,21 @@ bun test test/api/health.test.ts
 bun test --watch test/api/
 ```
 
-## Error Handling
+## Error Handling & Logging
+
+**Always include error IDs**: Add error IDs from `constants/error-ids.ts` for Sentry tracking
+
+```typescript
+import { ERROR_IDS } from "../../constants/error-ids.js";
+
+logger.error("Failed to fetch member data", {
+  errorId: ERROR_IDS.API_MEMBER_FETCH_FAILED,
+  error,
+  errorMessage: error instanceof Error ? error.message : "Unknown error",
+  errorStack: error instanceof Error ? error.stack : undefined,
+  memberId,
+});
+```
 
 **Return error objects, don't throw in routes**: Let route handlers catch and convert errors
 

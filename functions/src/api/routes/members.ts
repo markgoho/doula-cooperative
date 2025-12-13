@@ -1,6 +1,7 @@
-import type { RouteContext } from "../types/route-context.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { HttpError } from "../errors/http-error.js";
+import type { RouteContext } from "../types/route-context.js";
 
 /**
  * Get a member by ID (authenticated).
@@ -20,7 +21,9 @@ export async function getMember({
   logger,
   request,
   set,
-}: RouteContext<{ memberId: string }>): Promise<MemberDocument | { error: string }> {
+}: RouteContext<{ memberId: string }>): Promise<
+  MemberDocument | { error: string }
+> {
   const memberId = params.memberId;
   const authorizationHeader = request.headers.get("authorization") ?? undefined;
 
@@ -49,10 +52,13 @@ export async function getMember({
 
     // Log unexpected errors with context
     const errorContext = {
-      memberId,
-      hasAuthorizationHeader: !!authorizationHeader,
+      errorId: ERROR_IDS.API_MEMBER_FETCH_FAILED,
+      error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
+      errorType: error?.constructor?.name,
+      memberId,
+      hasAuthorizationHeader: !!authorizationHeader,
     };
 
     logger.error("Failed to fetch member data", errorContext);
