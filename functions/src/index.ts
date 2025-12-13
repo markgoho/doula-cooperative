@@ -394,3 +394,9 @@ export const adminUpdateMessage = onCall(
     return handleUpdateMessage(request.data, request);
   },
 );
+
+// Elysia API experiment
+export const api = onRequest({ invoker: "public" }, async (request, response) => {
+  const { handleApi } = await import("./api/handler.js");
+  await handleApi(request, response);
+});

@@ -134,6 +134,21 @@ export const ERROR_IDS = {
   DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
     "delete_profile_image_github_rate_limit",
   DELETE_PROFILE_IMAGE_GITHUB_FAILED: "delete_profile_image_github_failed",
+
+  // Elysia API errors
+  API_HANDLER_FAILED: "api_handler_failed",
+  API_ADAPTER_CONVERSION_FAILED: "api_adapter_conversion_failed",
+  API_ADAPTER_MISSING_HOST: "api_adapter_missing_host",
+  API_ADAPTER_RESPONSE_FAILED: "api_adapter_response_failed",
+  API_MEMBER_FETCH_FAILED: "api_member_fetch_failed",
+  API_MEMBER_INVALID_DATA: "api_member_invalid_data",
+  API_MEMBER_MISSING_FIELDS: "api_member_missing_fields",
+  API_AUTH_TOKEN_EXPIRED: "api_auth_token_expired",
+  API_AUTH_TOKEN_REVOKED: "api_auth_token_revoked",
+  API_AUTH_TOKEN_MALFORMED: "api_auth_token_malformed",
+  API_AUTH_TOKEN_WRONG_PROJECT: "api_auth_token_wrong_project",
+  API_AUTH_VERIFICATION_FAILED: "api_auth_verification_failed",
+  API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];
