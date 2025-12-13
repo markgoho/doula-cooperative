@@ -23,7 +23,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: bun install
+
+      - name: Install functions dependencies
         working-directory: ./functions
         run: npm ci
 
