@@ -14,7 +14,7 @@ contact:
   website: "liferoomdoulaservices.godaddysites.com"
   phone: 585-340-7440
   email: "liferoomdoula@gmail.com"
-draft: false
+draft: true
 ---
 
 Joanna discovered her passion for birth work over a decade ago as she served families with multiples in their homes for years! Her sought-after calm confidence, expertise and enthusiastic spirit led Joanna to become a Postpartum Doula (CAPPA, 2017) and a Birth Doula (BAI, 2022) to passionately serve our Greater Rochester, NY birthing community! Joanna believes birth is a normal life event and is a mind, body and spiritual passage that our loved ones have accomplished successfully for generations!
