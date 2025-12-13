@@ -1,12 +1,13 @@
-import { getAuth } from "firebase-admin/auth";
+import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 import { logger } from "firebase-functions/v2";
 import { AuthError, ForbiddenError } from "../errors/http-error.js";
+import type { AuthService as AuthServiceInterface } from "./service-interfaces.js";
 
 /**
  * Service for authentication and authorization operations.
  * Decoupled from HTTP framework - does not depend on Elysia Context.
  */
-export const AuthService = {
+export const AuthService: AuthServiceInterface = {
   /**
    * Extract and verify Firebase Auth token from Authorization header.
    *
@@ -14,7 +15,7 @@ export const AuthService = {
    * @returns Decoded Firebase token with uid and custom claims
    * @throws AuthError if token is missing, invalid, or expired
    */
-  async verifyAuthToken(authHeader: string | undefined) {
+  async verifyAuthToken(authHeader: string | undefined): Promise<DecodedIdToken> {
     if (!authHeader) {
       throw new AuthError("Missing Authorization header");
     }
@@ -34,11 +35,49 @@ export const AuthService = {
       const decodedToken = await auth.verifyIdToken(token);
       return decodedToken;
     } catch (error) {
-      logger.warn("Failed to verify auth token", {
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      });
-      throw new AuthError("Invalid or expired auth token");
+      // Categorize errors by type for better user feedback
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+
+        // Token has expired - user needs to sign in again
+        if (errorMessage.includes("token expired") || errorMessage.includes("exp")) {
+          logger.warn("Expired auth token", { errorMessage: error.message });
+          throw new AuthError("Your session has expired. Please sign in again.");
+        }
+
+        // Token has been revoked - user needs to sign in again
+        if (errorMessage.includes("token revoked") || errorMessage.includes("revoked")) {
+          logger.warn("Revoked auth token", { errorMessage: error.message });
+          throw new AuthError("Your session has been revoked. Please sign in again.");
+        }
+
+        // Malformed token format - invalid format
+        if (errorMessage.includes("invalid token") || errorMessage.includes("malformed") || errorMessage.includes("decode")) {
+          logger.warn("Malformed auth token", { errorMessage: error.message });
+          throw new AuthError("Invalid authentication token format");
+        }
+
+        // Project mismatch - token from different project
+        if (errorMessage.includes("project") || errorMessage.includes("audience")) {
+          logger.error("Auth token from wrong project", {
+            errorMessage: error.message,
+          });
+          throw new AuthError("Authentication token is not valid for this application");
+        }
+
+        // Unexpected errors (Firebase service issues, network problems, etc.)
+        logger.error("Firebase Auth verification failed with unexpected error", {
+          error,
+          errorMessage: error.message,
+          errorStack: error.stack,
+        });
+      } else {
+        logger.error("Firebase Auth verification failed with non-Error object", {
+          error,
+        });
+      }
+
+      throw new AuthError("Unable to verify authentication token. Please try again.");
     }
   },
 
@@ -50,7 +89,7 @@ export const AuthService = {
    * @throws AuthError if not authenticated
    * @throws ForbiddenError if not an admin
    */
-  async verifyAdmin(authHeader: string | undefined) {
+  async verifyAdmin(authHeader: string | undefined): Promise<DecodedIdToken> {
     const decodedToken = await AuthService.verifyAuthToken(authHeader);
 
     const isAdmin = decodedToken["admin"] === true;
@@ -74,7 +113,7 @@ export const AuthService = {
    * @throws AuthError if not authenticated
    * @throws ForbiddenError if not authorized
    */
-  async verifyOwnerOrAdmin(authHeader: string | undefined, resourceUid: string) {
+  async verifyOwnerOrAdmin(authHeader: string | undefined, resourceUid: string): Promise<DecodedIdToken> {
     const decodedToken = await AuthService.verifyAuthToken(authHeader);
 
     const isAdmin = decodedToken["admin"] === true;

@@ -1,20 +1,22 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import { NotFoundError } from "../errors/http-error.js";
+import type { MemberService as MemberServiceInterface } from "./service-interfaces.js";
+import type { MemberDocument } from "../../types/member-document.js";
 
 /**
  * Service for member-related operations.
  * Uses plain object with functions to avoid request dependencies.
  */
-export const MemberService = {
+export const MemberService: MemberServiceInterface = {
   /**
    * Find a member by their ID.
    *
    * @param memberId - The Firestore document ID of the member
-   * @returns Member document data with id
+   * @returns Member document data
    * @throws NotFoundError if member does not exist
    */
-  async findById(memberId: string) {
+  async findById(memberId: string): Promise<MemberDocument> {
     const database = getFirestore();
     const document = await database
       .collection(MEMBERS_COLLECTION)
@@ -25,6 +27,6 @@ export const MemberService = {
       throw new NotFoundError("Member not found");
     }
 
-    return { id: document.id, ...document.data() };
+    return document.data() as MemberDocument;
   },
 };

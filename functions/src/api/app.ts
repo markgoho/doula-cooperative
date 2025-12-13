@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { node } from "@elysiajs/node";
+import { logger as firebaseLogger } from "firebase-functions/v2";
 import { healthRoute } from "./routes/health.js";
 import { getMember } from "./routes/members.js";
 import { MemberService } from "./services/member-service.js";
@@ -13,10 +14,10 @@ import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
  * @returns Configured Elysia app instance
  */
 export function createApp(services?: PartialServices) {
-  // Node adapter required for Firebase Functions (Node.js runtime)
-  // No prefix - Firebase function name already provides /api
+  // Node adapter required because Firebase Functions v2 runs on Node.js runtime (not Bun)
+  // No Elysia prefix needed - Firebase function named "api" already routes requests to /api/*
   return new Elysia({ adapter: node() })
-    // Inject services into context for dependency injection
+    // Register services for dependency injection into route handlers
     .decorate(
       SERVICE_KEYS.MEMBER_SERVICE,
       services?.memberService ?? MemberService,
@@ -25,6 +26,7 @@ export function createApp(services?: PartialServices) {
       SERVICE_KEYS.AUTH_SERVICE,
       services?.authService ?? AuthService,
     )
+    .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     // Routes
     .get("/health", () => healthRoute())
     .get(

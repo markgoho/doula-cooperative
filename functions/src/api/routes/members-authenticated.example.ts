@@ -1,14 +1,15 @@
 import type { RouteContext } from "../types/route-context.js";
 import { HttpError } from "../errors/http-error.js";
-import { logger } from "firebase-functions/v2";
 
 /**
- * Example: Get member with authentication.
- * User can access their own data, or admins can access any member.
+ * Example: Get member with authentication (NOT in production use).
+ * Demonstrates authentication pattern where users can access their own data,
+ * or admins can access any member.
  *
  * Dependencies injected via Elysia's decorate in app.ts:
  * - memberService: Service for member operations
  * - authService: Service for authentication/authorization
+ * - logger: Logger for error tracking and audit logging
  *
  * Usage in app.ts:
  * ```typescript
@@ -19,6 +20,7 @@ export async function getMemberAuthenticated({
   params,
   memberService,
   authService,
+  logger,
   request,
   set,
 }: RouteContext<{ memberId: string }>) {
@@ -32,6 +34,7 @@ export async function getMemberAuthenticated({
       memberId,
     );
 
+    // Audit log successful access
     logger.info("Authorized member access", {
       requestingUser: decodedToken.uid,
       targetMember: memberId,
@@ -47,10 +50,13 @@ export async function getMemberAuthenticated({
       return { error: error.message };
     }
 
-    // Handle unexpected errors
+    // Handle unexpected errors with authentication context
     logger.error("Failed to fetch member data", {
       error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
       memberId,
+      hasAuthHeader: !!authHeader,
     });
     set.status = 500;
     return { error: "Failed to retrieve member data" };

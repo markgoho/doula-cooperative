@@ -341,7 +341,7 @@ export async function getMember({
 const isAdmin = decodedToken["admin"] === true;  // ✅ Required for index signature
 ```
 
-**Note**: Convert `null` to `undefined` when passing to services (headers.get() returns `string | null`)
+**Note**: Convert `null` to `undefined` when passing to services because service method signatures use `string | undefined` for optional parameters (whereas `headers.get()` returns `string | null`)
 
 ```typescript
 const authHeader = request.headers.get("authorization") ?? undefined;

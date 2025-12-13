@@ -190,4 +190,137 @@ describe("Adapters", () => {
       expect(sentBody).toBe(JSON.stringify(jsonData));
     });
   });
+
+  describe("Edge cases", () => {
+    describe("toWebRequest edge cases", () => {
+      it("should handle headers with array values", () => {
+        const firebaseRequest = {
+          method: "GET",
+          url: "/test",
+          headers: {
+            host: "example.com",
+            "set-cookie": ["cookie1=value1", "cookie2=value2"],
+          },
+        } as unknown as FirebaseRequest;
+
+        const webRequest = toWebRequest(firebaseRequest);
+
+        // Should not throw and should create a valid request
+        expect(webRequest).toBeInstanceOf(Request);
+        expect(webRequest.url).toBe("https://example.com/test");
+      });
+
+      it("should skip non-string, non-array header values", () => {
+        const firebaseRequest = {
+          method: "GET",
+          url: "/test",
+          headers: {
+            host: "example.com",
+            "valid-header": "valid-value",
+            "invalid-header": undefined, // Non-string, non-array
+          },
+        } as unknown as FirebaseRequest;
+
+        const webRequest = toWebRequest(firebaseRequest);
+
+        // Should not throw and should create a valid request
+        expect(webRequest).toBeInstanceOf(Request);
+        expect(webRequest.headers.get("valid-header")).toBe("valid-value");
+        expect(webRequest.headers.get("invalid-header")).toBeNull();
+      });
+
+      it("should throw error for invalid URL", () => {
+        const firebaseRequest = {
+          method: "GET",
+          url: "not-a-valid-url-path",
+          headers: {
+            host: "not a valid host!!", // Invalid host
+          },
+        } as unknown as FirebaseRequest;
+
+        expect(() => toWebRequest(firebaseRequest)).toThrow(
+          "Failed to convert Firebase request to Web request",
+        );
+      });
+    });
+
+    describe("sendWebResponse edge cases", () => {
+      it("should handle binary content types", async () => {
+        // Create a mock binary response (image)
+        const binaryData = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0]); // JPEG header
+        const webResponse = new Response(binaryData.buffer, {
+          headers: { "Content-Type": "image/jpeg" },
+        });
+
+        let sentBody: Buffer | undefined;
+        const mockResponse: MockExpressResponse = {
+          status: () => mockResponse as ExpressResponse,
+          setHeader: () => mockResponse as ExpressResponse,
+          send: (body: Buffer) => {
+            sentBody = body;
+            return mockResponse as ExpressResponse;
+          },
+        };
+
+        await sendWebResponse(
+          webResponse,
+          mockResponse as ExpressResponse,
+        );
+
+        // Should send as Buffer for binary content
+        expect(sentBody).toBeInstanceOf(Buffer);
+        expect(sentBody?.length).toBe(4);
+      });
+
+      it("should handle XML content as text", async () => {
+        const xmlContent = '<?xml version="1.0"?><root><item>test</item></root>';
+        const webResponse = new Response(xmlContent, {
+          headers: { "Content-Type": "application/xml" },
+        });
+
+        let sentBody: string | undefined;
+        const mockResponse: MockExpressResponse = {
+          status: () => mockResponse as ExpressResponse,
+          setHeader: () => mockResponse as ExpressResponse,
+          send: (body: string) => {
+            sentBody = body;
+            return mockResponse as ExpressResponse;
+          },
+        };
+
+        await sendWebResponse(
+          webResponse,
+          mockResponse as ExpressResponse,
+        );
+
+        // Should send as text for XML
+        expect(sentBody).toBe(xmlContent);
+      });
+
+      it("should handle responses with no body", async () => {
+        const webResponse = new Response(undefined, {
+          status: 204, // No Content
+          headers: { "Content-Type": "application/json" },
+        });
+
+        let sentBody: string | undefined;
+        const mockResponse: MockExpressResponse = {
+          status: () => mockResponse as ExpressResponse,
+          setHeader: () => mockResponse as ExpressResponse,
+          send: (body: string) => {
+            sentBody = body;
+            return mockResponse as ExpressResponse;
+          },
+        };
+
+        await sendWebResponse(
+          webResponse,
+          mockResponse as ExpressResponse,
+        );
+
+        // Should handle null body gracefully
+        expect(sentBody).toBeDefined();
+      });
+    });
+  });
 });

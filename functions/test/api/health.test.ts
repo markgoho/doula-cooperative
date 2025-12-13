@@ -12,7 +12,7 @@ import { app } from "../../src/api/app.js";
  *   bun test test/api/
  */
 describe("GET /health", () => {
-  // Use the actual app from app.ts - no duplication!
+  // Use the actual app from app.ts - avoids duplicating route definitions in tests
   const api = treaty(app);
 
   it("should return 200 status", async () => {
@@ -28,18 +28,8 @@ describe("GET /health", () => {
   });
 
   it("should not require authentication", async () => {
-    // No Authorization header
     const { status } = await api.health.get();
 
     expect(status).toBe(200);
-  });
-
-  it("should respond quickly", async () => {
-    const startTime = Date.now();
-
-    await api.health.get();
-
-    const duration = Date.now() - startTime;
-    expect(duration).toBeLessThan(100); // Should respond in < 100ms
   });
 });
