@@ -51,6 +51,8 @@ RUN wget "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSIO
   && rm "dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
 
 # 5. Install Playwright with Chromium browser and dependencies
+# Use a fixed path for browsers to avoid HOME directory issues in GitHub Actions
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
 RUN bunx playwright@${PLAYWRIGHT_VERSION} install chromium --with-deps
 
 # 6. Verify installations
