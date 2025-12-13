@@ -24,4 +24,5 @@ export interface DoulaMatchFormRequest extends Request {
 export interface DoulaMatchFormDocument extends DoulaMatchForm {
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }

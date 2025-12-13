@@ -1,0 +1,44 @@
+name: Functions CI
+
+on:
+  push:
+    branches: [trunk]
+    paths:
+      - "functions/**"
+      - ".github/workflows/functions-ci.yml"
+  pull_request:
+    branches: [trunk]
+    paths:
+      - "functions/**"
+      - ".github/workflows/functions-ci.yml"
+
+jobs:
+  build-and-lint:
+    name: Build and Lint Functions
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:trunk
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        working-directory: ./functions
+        run: npm ci
+
+      - name: Lint functions code
+        working-directory: ./functions
+        run: npm run lint
+
+      - name: Typecheck production code
+        working-directory: ./functions
+        run: npm run typecheck
+
+      - name: Build functions
+        working-directory: ./functions
+        run: npm run build
+
+      - name: Typecheck tests
+        working-directory: ./functions
+        run: npm run typecheck:tests

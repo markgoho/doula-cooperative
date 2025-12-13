@@ -86,7 +86,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["functions/test/**/*.ts"],
+    files: ["functions/src/**/*.test.ts", "functions/src/test-utils/**/*.ts"],
     languageOptions: {
       parserOptions: {
         project: "functions/tsconfig.test.json",

@@ -14,4 +14,5 @@ export interface ContactUsFormRequest extends Request {
 export interface ContactUsFormDocument extends ContactUsForm {
   submitted: string;
   sent: boolean;
+  recaptchaScore?: number;
 }
