@@ -1,20 +1,30 @@
-import type { Context } from "elysia";
-import { getFirestore } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../collections/index.js";
+import type { RouteContext } from "../types/route-context.js";
+import { HttpError } from "../errors/http-error.js";
 
+/**
+ * Get a member by ID.
+ *
+ * Dependencies injected via Elysia's decorate in app.ts:
+ * - memberService: Service for member operations
+ *
+ * @returns Member data or error object
+ */
 export async function getMember({
   params,
+  memberService,
   set,
-}: Context<{ params: Record<"memberId", string> }>) {
-  const document = await getFirestore()
-    .collection(MEMBERS_COLLECTION)
-    .doc(params.memberId)
-    .get();
+}: RouteContext<{ memberId: string }>) {
+  try {
+    return await memberService.findById(params.memberId);
+  } catch (error) {
+    // Handle our custom HTTP errors
+    if (error instanceof HttpError) {
+      set.status = error.statusCode;
+      return { error: error.message };
+    }
 
-  if (!document.exists) {
-    set.status = 404;
-    return { error: "Member not found" };
+    // Handle unexpected errors
+    set.status = 500;
+    return { error: "Internal server error" };
   }
-
-  return { id: document.id, ...document.data() };
 }
