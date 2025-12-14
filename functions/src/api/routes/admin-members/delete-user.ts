@@ -1,42 +1,35 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { HttpError } from "../../errors/http-error.js";
-import { type DeleteUserResponse } from "../../schemas/member-schemas.js";
-import type {
-  MemberAdminService,
-  AuthService,
-} from "../../services/service-interfaces.js";
 import type { Logger } from "../../handler.js";
+import { type DeleteUserResponse } from "../../schemas/member-schemas.js";
+import type { MemberAdminService } from "../../services/service-interfaces.js";
 
 /**
  * Delete a user account logic (admin only).
+ * Admin authentication is handled by the plugin guard.
  *
  * @returns Success response or error object
  */
 export async function deleteUserLogic({
   memberId,
+  adminUid,
   memberAdminService,
-  authService,
   logger,
-  authorizationHeader,
   set,
 }: {
   memberId: string;
+  adminUid: string;
   memberAdminService: MemberAdminService;
-  authService: AuthService;
   logger: Logger;
-  authorizationHeader: string | undefined;
   set: { status?: number | string };
 }): Promise<DeleteUserResponse | { error: string }> {
   try {
-    // Verify admin privileges
-    const decodedToken = await authService.verifyAdmin(authorizationHeader);
-
-    // Delete user
-    await memberAdminService.deleteUser(memberId, decodedToken.uid);
+    // Delete user (adminUid is used to prevent self-deletion)
+    await memberAdminService.deleteUser(memberId, adminUid);
 
     // Audit log successful deletion
     logger.info("Admin deleted user", {
-      adminUid: decodedToken.uid,
+      adminUid,
       deletedUid: memberId,
     });
 
@@ -56,7 +49,6 @@ export async function deleteUserLogic({
       errorStack: error instanceof Error ? error.stack : undefined,
       errorType: error?.constructor?.name,
       memberId,
-      hasAuthorizationHeader: !!authorizationHeader,
     };
 
     logger.error("Failed to delete user", errorContext);

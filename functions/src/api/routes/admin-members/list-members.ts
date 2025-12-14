@@ -1,44 +1,37 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { HttpError } from "../../errors/http-error.js";
+import type { Logger } from "../../handler.js";
 import {
   toMemberResponse,
   type ListMembersResponse,
 } from "../../schemas/member-schemas.js";
-import type {
-  MemberAdminService,
-  AuthService,
-} from "../../services/service-interfaces.js";
-import type { Logger } from "../../handler.js";
+import type { MemberAdminService } from "../../services/service-interfaces.js";
 
 /**
  * List all members with pagination logic (admin only).
+ * Admin authentication is handled by the plugin guard.
  *
  * @returns Member list with pagination or error object
  */
 export async function listMembersLogic({
   limit,
   offset,
+  adminUid,
   memberAdminService,
-  authService,
   logger,
-  authorizationHeader,
   set,
 }: {
   limit?: number;
   offset?: number;
+  adminUid: string;
   memberAdminService: MemberAdminService;
-  authService: AuthService;
   logger: Logger;
-  authorizationHeader: string | undefined;
   set: { status?: number | string };
 }): Promise<ListMembersResponse | { error: string }> {
   try {
-    // Verify admin privileges
-    const decodedToken = await authService.verifyAdmin(authorizationHeader);
-
     // Audit log successful access
     logger.info("Admin listed members", {
-      adminUid: decodedToken.uid,
+      adminUid,
       limit,
       offset,
     });
@@ -77,7 +70,6 @@ export async function listMembersLogic({
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
       errorType: error?.constructor?.name,
-      hasAuthorizationHeader: !!authorizationHeader,
       limit,
       offset,
     };

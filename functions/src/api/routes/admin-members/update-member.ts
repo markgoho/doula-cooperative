@@ -1,45 +1,38 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { HttpError } from "../../errors/http-error.js";
+import type { Logger } from "../../handler.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
   type UpdateMemberBody,
 } from "../../schemas/member-schemas.js";
-import type {
-  MemberAdminService,
-  AuthService,
-} from "../../services/service-interfaces.js";
-import type { Logger } from "../../handler.js";
+import type { MemberAdminService } from "../../services/service-interfaces.js";
 
 /**
  * Update a member's fields logic (admin only).
+ * Admin authentication is handled by the plugin guard.
  *
  * @returns Updated member or error object
  */
 export async function updateMemberLogic({
   memberId,
   updates,
+  adminUid,
   memberAdminService,
-  authService,
   logger,
-  authorizationHeader,
   set,
 }: {
   memberId: string;
   updates: UpdateMemberBody;
+  adminUid: string;
   memberAdminService: MemberAdminService;
-  authService: AuthService;
   logger: Logger;
-  authorizationHeader: string | undefined;
   set: { status?: number | string };
 }): Promise<MemberSuccessResponse | { error: string }> {
   try {
-    // Verify admin privileges
-    const decodedToken = await authService.verifyAdmin(authorizationHeader);
-
     // Audit log successful access
     logger.info("Admin updated member", {
-      adminUid: decodedToken.uid,
+      adminUid,
       targetMemberId: memberId,
       updatedFields: Object.keys(updates),
     });
@@ -63,7 +56,6 @@ export async function updateMemberLogic({
       errorStack: error instanceof Error ? error.stack : undefined,
       errorType: error?.constructor?.name,
       memberId,
-      hasAuthorizationHeader: !!authorizationHeader,
       updateFields: Object.keys(updates),
     };
 
