@@ -3,6 +3,7 @@ import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { createAdminMembersPlugin } from "./plugins/admin-members-plugin.js";
 import { createMembersPlugin } from "./plugins/members-plugin.js";
+import { createStripeWebhookPlugin } from "./plugins/stripe-webhook-plugin.js";
 import { healthRoute } from "./routes/health.js";
 import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
 
@@ -27,6 +28,8 @@ export function createApp(services?: PartialServices) {
       .use(createMembersPlugin(services))
       // Admin member management routes plugin (admin guard)
       .use(createAdminMembersPlugin(services))
+      // Stripe webhook plugin (Stripe signature auth)
+      .use(createStripeWebhookPlugin(services))
   );
 }
 

@@ -19,8 +19,8 @@ import {
   PaginationQuerySchema,
   UpdateMemberBodySchema,
 } from "../schemas/member-schemas.js";
-import { AuthService } from "../services/auth-service/index.js";
-import { MemberAdminService } from "../services/member-admin-service/index.js";
+import { MemberAdminService } from "../services/admin-member/index.js";
+import { AuthService } from "../services/auth/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**

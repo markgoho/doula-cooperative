@@ -172,6 +172,21 @@ export const ERROR_IDS = {
   API_FIRESTORE_QUOTA_EXCEEDED: "api_firestore_quota_exceeded",
   API_FIRESTORE_INVALID_DATA: "api_firestore_invalid_data",
   API_FIRESTORE_COUNT_FAILED: "api_firestore_count_failed",
+
+  // Elysia API Stripe webhook errors
+  API_STRIPE_WEBHOOK_MISSING_SIGNATURE: "api_stripe_webhook_missing_signature",
+  API_STRIPE_WEBHOOK_INVALID_SIGNATURE: "api_stripe_webhook_invalid_signature",
+  API_STRIPE_WEBHOOK_MISSING_CONFIG: "api_stripe_webhook_missing_config",
+  API_STRIPE_WEBHOOK_MISSING_EMAIL: "api_stripe_webhook_missing_email",
+  API_STRIPE_WEBHOOK_AUTH_LOOKUP_FAILED:
+    "api_stripe_webhook_auth_lookup_failed",
+  API_STRIPE_WEBHOOK_USER_CREATE_FAILED:
+    "api_stripe_webhook_user_create_failed",
+  API_STRIPE_WEBHOOK_MEMBER_CREATE_FAILED:
+    "api_stripe_webhook_member_create_failed",
+  API_STRIPE_WEBHOOK_MEMBER_UPDATE_FAILED:
+    "api_stripe_webhook_member_update_failed",
+  API_STRIPE_WEBHOOK_UNEXPECTED_ERROR: "api_stripe_webhook_unexpected_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

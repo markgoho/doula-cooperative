@@ -2,8 +2,8 @@ import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { getMemberLogic } from "../routes/members.js";
 import { MemberIdParameterSchema } from "../schemas/member-schemas.js";
-import { AuthService } from "../services/auth-service/index.js";
-import { MemberService } from "../services/member-service.js";
+import { AuthService } from "../services/auth/index.js";
+import { MemberService } from "../services/member/member-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**

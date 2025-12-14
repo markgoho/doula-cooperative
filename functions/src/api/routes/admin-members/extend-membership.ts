@@ -1,11 +1,11 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import type { Logger } from "../../handler.js";
-import { handleRouteError } from "../../utils/route-error-handler.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
 } from "../../schemas/member-schemas.js";
-import type { MemberAdminService } from "../../services/service-interfaces.js";
+import type { MemberAdminService } from "../../services/admin-member/interface.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 
 /**
  * Extend a membership expiration date logic (admin only).

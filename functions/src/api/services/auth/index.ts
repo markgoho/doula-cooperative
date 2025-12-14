@@ -1,4 +1,4 @@
-import type { AuthService as AuthServiceInterface } from "../service-interfaces.js";
+import type { AuthService as AuthServiceInterface } from "./interface.js";
 import { verifyAdmin } from "./verify-admin.js";
 import { verifyOwnerOrAdmin } from "./verify-owner-or-admin.js";
 import { verifyAuthToken } from "./verify-token.js";

@@ -1,8 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../collections/index.js";
-import { NotFoundError } from "../errors/http-error.js";
-import type { MemberService as MemberServiceInterface } from "./service-interfaces.js";
-import type { MemberDocument } from "../../types/member-document.js";
+import { MEMBERS_COLLECTION } from "../../../collections/index.js";
+import type { MemberDocument } from "../../../types/member-document.js";
+import { NotFoundError } from "../../errors/http-error.js";
+import type { MemberService as MemberServiceInterface } from "./interface.js";
 
 /**
  * Service for member-related operations.

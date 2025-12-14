@@ -1,14 +1,12 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../errors/http-error.js";
+import type { Logger } from "../handler.js";
 import {
   toMemberResponse,
   type MemberResponse,
 } from "../schemas/member-schemas.js";
-import type {
-  MemberService,
-  AuthService,
-} from "../services/service-interfaces.js";
-import type { Logger } from "../handler.js";
+import type { AuthService } from "../services/auth/interface.js";
+import type { MemberService } from "../services/member/interface.js";
 
 /**
  * Get a member by ID logic (authenticated).
@@ -31,7 +29,6 @@ export async function getMemberLogic({
   authorizationHeader: string | undefined;
   set: { status?: number | string };
 }): Promise<MemberResponse | { error: string }> {
-
   try {
     // Verify authentication and authorization using injected service
     const decodedToken = await authService.verifyOwnerOrAdmin(

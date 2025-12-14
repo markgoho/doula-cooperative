@@ -3,7 +3,7 @@ import { NotFoundError, AuthError, ForbiddenError } from "../errors/http-error.j
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import { createMembersTestPlugin } from "../test-utils/test-app-factory.js";
+import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
 /**
  * Tests for the authenticated members endpoint.
