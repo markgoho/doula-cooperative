@@ -172,14 +172,14 @@ export function createAdminMembersPlugin(services?: PartialServices) {
 **Compose plugins in app.ts** - Use this pattern when multiple plugins share a single Firebase Function:
 
 ```typescript
-// main-api/app.ts - Multiple plugins in one Firebase Function
-// Firebase rewrite: /main-api/** → mainApi function
+// forms-api/app.ts - Multiple plugins in one Firebase Function
+// Firebase rewrite: /api/forms/** → formsApi function
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .get("/health", () => healthRoute())
-    .use(createContactUsFormPlugin(services)) // Served at /main-api/contact-us-form
-    .use(createDoulaMatchFormPlugin(services)); // Served at /main-api/doula-match-form
+    .use(createContactUsFormPlugin(services)) // Served at /api/forms/contact-us
+    .use(createDoulaMatchFormPlugin(services)); // Served at /api/forms/doula-match
 }
 ```
 

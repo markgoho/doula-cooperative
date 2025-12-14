@@ -29,8 +29,16 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "/main-api/**",
-          "function": "mainApi"
+          "source": "/api/forms/**",
+          "function": "formsApi"
+        },
+        {
+          "source": "/api/stripe/**",
+          "function": "stripeWebhookApi"
+        },
+        {
+          "source": "/api/profile-webhook",
+          "function": "profileWebhookApi"
         },
         {
           "source": "/api/contact-us-form",

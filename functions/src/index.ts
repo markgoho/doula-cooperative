@@ -210,9 +210,8 @@ export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
       );
     }
 
-    const { handleUpdateNewsletterPreference } = await import(
-      "./update-newsletter-preference/update-newsletter-preference.js"
-    );
+    const { handleUpdateNewsletterPreference } =
+      await import("./update-newsletter-preference/update-newsletter-preference.js");
     return handleUpdateNewsletterPreference(
       request,
       MAILERLITE_API_KEY,
@@ -398,38 +397,58 @@ export const adminUpdateMessage = onCall(
 
 // Elysia-based APIs
 
-// Membership APIs (members.doulacooperative.com)
+// Members APIs (members.doulacooperative.com)
 export const membersApi = onRequest(
   { invoker: "public" },
   async (request, response) => {
     const { handleMembersApi } = await import("./members-api/handler.js");
     await handleMembersApi(request, response);
-  }
+  },
 );
 
+// Admin Members APIs (members.doulacooperative.com)
 export const adminMembersApi = onRequest(
   { invoker: "public" },
   async (request, response) => {
-    const { handleAdminMembersApi } = await import("./admin-members-api/handler.js");
+    const { handleAdminMembersApi } =
+      await import("./admin-members-api/handler.js");
     await handleAdminMembersApi(request, response);
-  }
+  },
 );
 
-// Static Site APIs (doulacooperative.com)
-export const mainApi = onRequest(
+// Forms API (doulacooperative.com)
+export const formsApi = onRequest(
+  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
+  async (request, response) => {
+    const { handleFormsApi } = await import("./forms-api/handler.js");
+    await handleFormsApi(request, response);
+  },
+);
+
+// Stripe Webhook API (doulacooperative.com)
+export const stripeWebhookApi = onRequest(
   {
     invoker: "public",
-    secrets: [
-      "RECAPTCHA_SECRET_KEY",
-      "MAILGUN_API_KEY",
-      ...STRIPE_SECRETS,
-      "DEPLOY_WEBHOOK_SECRET",
-    ],
+    secrets: [...STRIPE_SECRETS, "MAILERLITE_API_KEY", "MAILGUN_API_KEY"],
   },
   async (request, response) => {
-    const { handleMainApi } = await import("./main-api/handler.js");
-    await handleMainApi(request, response);
-  }
+    const { handleStripeWebhookApi } =
+      await import("./stripe-webhook-api/handler.js");
+    await handleStripeWebhookApi(request, response);
+  },
+);
+
+// Profile Webhook API (doulacooperative.com)
+export const profileWebhookApi = onRequest(
+  {
+    invoker: "public",
+    secrets: ["DEPLOY_WEBHOOK_SECRET", "MAILGUN_API_KEY"],
+  },
+  async (request, response) => {
+    const { handleProfileWebhookApi } =
+      await import("./profile-webhook-api/handler.js");
+    await handleProfileWebhookApi(request, response);
+  },
 );
 
 // Legacy alias for backward compatibility during migration
