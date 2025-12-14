@@ -29,6 +29,10 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "/main-api/**",
+          "function": "mainApi"
+        },
+        {
           "source": "/api/contact-us-form",
           "function": "contactUsForm"
         },
@@ -587,7 +591,7 @@
       "rewrites": [
         {
           "source": "/api/**",
-          "function": "api"
+          "function": "membersApi"
         },
         {
           "source": "**",

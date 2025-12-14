@@ -19,6 +19,7 @@ import {
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
+import { STRIPE_SECRETS } from "./constants/stripe.js";
 import { type ProfileData } from "./types/profile-data.js";
 
 // Initialize only if not already initialized
@@ -395,8 +396,30 @@ export const adminUpdateMessage = onCall(
   },
 );
 
-// Elysia API experiment
-export const api = onRequest({ invoker: "public" }, async (request, response) => {
-  const { handleApi } = await import("./api/handler.js");
-  await handleApi(request, response);
-});
+// Elysia-based APIs
+export const membersApi = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleMembersApi } = await import("./members-api/handler.js");
+    await handleMembersApi(request, response);
+  }
+);
+
+export const mainApi = onRequest(
+  {
+    invoker: "public",
+    secrets: [
+      "RECAPTCHA_SECRET_KEY",
+      "MAILGUN_API_KEY",
+      ...STRIPE_SECRETS,
+      "DEPLOY_WEBHOOK_SECRET",
+    ],
+  },
+  async (request, response) => {
+    const { handleMainApi } = await import("./main-api/handler.js");
+    await handleMainApi(request, response);
+  }
+);
+
+// Legacy alias for backward compatibility during migration
+export const api = membersApi;

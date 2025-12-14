@@ -75,6 +75,8 @@ import { HttpsError } from "firebase-functions/v2/https";
 import { onCall } from "firebase-functions/https";
 ```
 
+**Exception**: Auth triggers (`createMemberOnUserCreated`, `deleteMemberOnUserDeleted`, `setAutoAdminOnUserCreated`) use Firebase Functions v1 because v2 only provides blocking `beforeUserCreated`/`beforeUserDeleted` which would change semantics (failures would block user creation/deletion). The v1 `auth.user().onCreate()` and `auth.user().onDelete()` triggers are non-blocking and still supported.
+
 **Key Patterns**:
 
 - Always use collection constants from `src/constants/collections.ts` (never hardcode collection names)

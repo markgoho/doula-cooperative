@@ -109,7 +109,26 @@ export const ERROR_IDS = {
     "profile_deploy_webhook_invalid_secret",
   PROFILE_DEPLOY_WEBHOOK_MEMBER_NOT_FOUND:
     "profile_deploy_webhook_member_not_found",
+  PROFILE_DEPLOY_WEBHOOK_MEMBER_LOOKUP_FAILED:
+    "profile_deploy_webhook_member_lookup_failed",
   PROFILE_DEPLOY_WEBHOOK_EMAIL_FAILED: "profile_deploy_webhook_email_failed",
+  PROFILE_DEPLOY_WEBHOOK_PROCESSING_FAILED:
+    "profile_deploy_webhook_processing_failed",
+
+  // reCAPTCHA verification errors
+  RECAPTCHA_VERIFICATION_FAILED: "recaptcha_verification_failed",
+  RECAPTCHA_SECRET_KEY_NOT_CONFIGURED: "recaptcha_secret_key_not_configured",
+  RECAPTCHA_API_ERROR: "recaptcha_api_error",
+  RECAPTCHA_NETWORK_ERROR: "recaptcha_network_error",
+
+  // Form processing errors
+  CONTACT_FORM_PROCESSING_FAILED: "contact_form_processing_failed",
+  CONTACT_FORM_FIRESTORE_WRITE_FAILED: "contact_form_firestore_write_failed",
+  CONTACT_FORM_NETWORK_ERROR: "contact_form_network_error",
+  CONTACT_FORM_QUOTA_EXCEEDED: "contact_form_quota_exceeded",
+  DOULA_MATCH_FORM_PROCESSING_FAILED: "doula_match_form_processing_failed",
+  DOULA_MATCH_FORM_FIRESTORE_WRITE_FAILED:
+    "doula_match_form_firestore_write_failed",
 
   // Upload profile image errors
   UPLOAD_PROFILE_IMAGE_INVALID_DATA: "upload_profile_image_invalid_data",
