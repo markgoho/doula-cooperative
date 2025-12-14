@@ -68,11 +68,12 @@ mock.module("firebase-admin/auth", () => ({
 
 // ✅ CORRECT - Mock service interfaces at route level
 const mockMemberService = {
-  findById: mock((id) => Promise.resolve({ uid: id, email: "test@example.com" })),
+  findById: mock(id => Promise.resolve({ uid: id, email: "test@example.com" })),
 };
 ```
 
 **Why this matters**:
+
 - Mocking internals couples tests to implementation details
 - Makes refactoring difficult
 - Hides integration issues
@@ -112,8 +113,8 @@ export function createAdminTestPlugin(overrides?: {
 
   const defaultAuthService: AuthService = {
     verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
-    verifyAdmin: createMockVerifyAdmin(),  // Uses shared auth mock
-    verifyOwnerOrAdmin: createMockVerifyOwnerOrAdmin(),  // Uses shared auth mock
+    verifyAdmin: createMockVerifyAdmin(), // Uses shared auth mock
+    verifyOwnerOrAdmin: createMockVerifyOwnerOrAdmin(), // Uses shared auth mock
     ...overrides?.authService,
   };
 
@@ -134,7 +135,7 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
 describe("GET /admin/members", () => {
   it("should return members list", async () => {
     const mockListMembers = mock(() =>
-      Promise.resolve({ members: [{ uid: "1" }], total: 1 })
+      Promise.resolve({ members: [{ uid: "1" }], total: 1 }),
     );
 
     // Create plugin with specific mock - only what this test needs
@@ -145,7 +146,7 @@ describe("GET /admin/members", () => {
     const response = (await plugin.handle(
       new Request("http://localhost/admin/members", {
         headers: { Authorization: "Bearer admin-token" },
-      })
+      }),
     )) as Response;
 
     expect(response.status).toBe(200);
@@ -156,7 +157,7 @@ describe("GET /admin/members", () => {
     const plugin = createAdminTestPlugin();
 
     const response = (await plugin.handle(
-      new Request("http://localhost/admin/members")
+      new Request("http://localhost/admin/members"),
       // No authorization header
     )) as Response;
 
@@ -166,6 +167,7 @@ describe("GET /admin/members", () => {
 ```
 
 **Benefits of plugin-based testing**:
+
 - ✅ Faster test execution (no full app overhead)
 - ✅ True isolation - only test one plugin's behavior
 - ✅ Simpler mocks - only need to mock plugin's dependencies
