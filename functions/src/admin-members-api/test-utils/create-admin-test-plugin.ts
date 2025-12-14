@@ -5,15 +5,10 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import { createAdminMembersPlugin } from "../plugins/admin-members-plugin.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { MemberAdminService } from "../services/admin-member/interface.js";
-
-/**
- * Creates mock verifyAdmin that always returns an admin token.
- */
-export function createMockVerifyAdmin() {
-  return mock(() =>
-    Promise.resolve({ uid: "admin-user", admin: true } as unknown as DecodedIdToken),
-  );
-}
+import {
+  createMockVerifyAdmin,
+  createMockVerifyOwnerOrAdmin,
+} from "../../test-utils/auth-mocks.js";
 
 /**
  * Creates the admin-members plugin with default mock services for testing.
@@ -43,9 +38,7 @@ export function createAdminTestPlugin(overrides?: {
   const defaultAuthService: AuthService = {
     verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
     verifyAdmin: createMockVerifyAdmin(),
-    verifyOwnerOrAdmin: mock(() =>
-      Promise.resolve({ uid: "admin-user", admin: true } as unknown as DecodedIdToken),
-    ),
+    verifyOwnerOrAdmin: createMockVerifyOwnerOrAdmin(),
     ...overrides?.authService,
   };
 

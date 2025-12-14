@@ -3,12 +3,12 @@ import type { DecodedIdToken } from "firebase-admin/auth";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
-import type { AuthService } from "../services/auth/interface.js";
+import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { MemberService } from "../services/member/interface.js";
 import {
   createMockVerifyAdmin,
   createMockVerifyOwnerOrAdmin,
-} from "./auth-mocks.js";
+} from "../../test-utils/auth-mocks.js";
 
 /**
  * Creates the members plugin with default mock services for testing.

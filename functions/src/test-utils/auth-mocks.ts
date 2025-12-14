@@ -1,6 +1,6 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import { AuthError, ForbiddenError } from "../../shared-api/errors/http-error.js";
+import { AuthError, ForbiddenError } from "../shared-api/errors/http-error.js";
 
 /**
  * Creates a mock verifyAdmin function that follows the standard test pattern.
