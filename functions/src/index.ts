@@ -397,6 +397,8 @@ export const adminUpdateMessage = onCall(
 );
 
 // Elysia-based APIs
+
+// Membership APIs (members.doulacooperative.com)
 export const membersApi = onRequest(
   { invoker: "public" },
   async (request, response) => {
@@ -405,6 +407,15 @@ export const membersApi = onRequest(
   }
 );
 
+export const adminMembersApi = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleAdminMembersApi } = await import("./admin-members-api/handler.js");
+    await handleAdminMembersApi(request, response);
+  }
+);
+
+// Static Site APIs (doulacooperative.com)
 export const mainApi = onRequest(
   {
     invoker: "public",

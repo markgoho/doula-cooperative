@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { ForbiddenError, NotFoundError } from "../../../shared-api/errors/http-error.js";
-import { createAdminTestPlugin } from "../../test-utils/create-admin-test-plugin.js";
+import { ForbiddenError, NotFoundError } from "../../shared-api/errors/http-error.js";
+import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
  * Tests for DELETE /admin/members/:memberId.

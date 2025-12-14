@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../../types/member-document.js";
-import { createAdminTestPlugin } from "../../test-utils/create-admin-test-plugin.js";
+import type { MemberDocument } from "../../types/member-document.js";
+import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
  * Tests for GET /admin/members (list with pagination).

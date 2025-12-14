@@ -1,0 +1,295 @@
+import { t, type Static } from "elysia";
+import type { Timestamp } from "firebase-admin/firestore";
+import type { MemberDocument } from "../../types/member-document.js";
+
+/**
+ * Subscription status enum for API responses.
+ */
+export const SubscriptionStatusSchema = t.Union([
+  t.Literal("active"),
+  t.Literal("past_due"),
+  t.Literal("canceled"),
+  t.Literal("incomplete"),
+  t.Literal("trialing"),
+  t.Literal("unpaid"),
+]);
+
+/**
+ * Welcome email status enum for API responses.
+ */
+export const WelcomeEmailStatusSchema = t.Union([
+  t.Literal("sent"),
+  t.Literal("failed"),
+  t.Literal("pending"),
+]);
+
+/**
+ * Member response schema - represents a member document as returned by the API.
+ * All Timestamp fields are converted to ISO 8601 strings.
+ */
+export const MemberResponseSchema = t.Object({
+  uid: t.String({
+    description: "User ID (Firestore document ID)",
+  }),
+  email: t.String({
+    format: "email",
+    description: "User email address",
+  }),
+  createdAt: t.String({
+    format: "date-time",
+    description: "Account creation timestamp (ISO 8601)",
+  }),
+  name: t.Optional(
+    t.String({
+      description: "User display name",
+    }),
+  ),
+  subscriptionStart: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Subscription start date (ISO 8601)",
+    }),
+  ),
+  membershipActive: t.Optional(
+    t.Boolean({
+      description: "Whether the membership is currently active",
+    }),
+  ),
+  membershipExpiresAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Membership expiration date (ISO 8601)",
+    }),
+  ),
+  slug: t.Optional(
+    t.String({
+      description: "URL-friendly slug for the member's profile",
+    }),
+  ),
+  profileCreatedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Profile creation timestamp (ISO 8601)",
+    }),
+  ),
+  stripeCustomerId: t.Optional(
+    t.String({
+      description: "Stripe customer ID",
+    }),
+  ),
+  stripeSubscriptionId: t.Optional(
+    t.String({
+      description: "Stripe subscription ID",
+    }),
+  ),
+  subscriptionStatus: t.Optional(SubscriptionStatusSchema),
+  welcomeEmailStatus: t.Optional(WelcomeEmailStatusSchema),
+  welcomeEmailSentAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Welcome email sent timestamp (ISO 8601)",
+    }),
+  ),
+  welcomeEmailError: t.Optional(
+    t.String({
+      description: "Error message if welcome email failed",
+    }),
+  ),
+  newsletterSubscribed: t.Optional(
+    t.Boolean({
+      description: "Whether the user is subscribed to the newsletter",
+    }),
+  ),
+  newsletterSubscribedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Newsletter subscription timestamp (ISO 8601)",
+    }),
+  ),
+  newsletterUnsubscribedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Newsletter unsubscription timestamp (ISO 8601)",
+    }),
+  ),
+});
+
+/**
+ * Inferred TypeScript type for member API responses.
+ */
+export type MemberResponse = Static<typeof MemberResponseSchema>;
+
+/**
+ * Convert a Timestamp to an ISO 8601 string.
+ */
+function timestampToIso(timestamp: Timestamp): string {
+  return timestamp.toDate().toISOString();
+}
+
+/**
+ * Convert a Firestore MemberDocument to an API MemberResponse.
+ * Transforms all Timestamp objects to ISO 8601 strings.
+ */
+export function toMemberResponse(document: MemberDocument): MemberResponse {
+  return {
+    uid: document.uid,
+    email: document.email,
+    createdAt: timestampToIso(document.createdAt),
+    ...(document.name !== undefined && { name: document.name }),
+    ...(document.subscriptionStart !== undefined && {
+      subscriptionStart: timestampToIso(document.subscriptionStart),
+    }),
+    ...(document.membershipActive !== undefined && {
+      membershipActive: document.membershipActive,
+    }),
+    ...(document.membershipExpiresAt !== undefined && {
+      membershipExpiresAt: timestampToIso(document.membershipExpiresAt),
+    }),
+    ...(document.slug !== undefined && { slug: document.slug }),
+    ...(document.profileCreatedAt !== undefined && {
+      profileCreatedAt: timestampToIso(document.profileCreatedAt),
+    }),
+    ...(document.stripeCustomerId !== undefined && {
+      stripeCustomerId: document.stripeCustomerId,
+    }),
+    ...(document.stripeSubscriptionId !== undefined && {
+      stripeSubscriptionId: document.stripeSubscriptionId,
+    }),
+    ...(document.subscriptionStatus !== undefined && {
+      subscriptionStatus: document.subscriptionStatus,
+    }),
+    ...(document.welcomeEmailStatus !== undefined && {
+      welcomeEmailStatus: document.welcomeEmailStatus,
+    }),
+    ...(document.welcomeEmailSentAt !== undefined && {
+      welcomeEmailSentAt: timestampToIso(document.welcomeEmailSentAt),
+    }),
+    ...(document.welcomeEmailError !== undefined && {
+      welcomeEmailError: document.welcomeEmailError,
+    }),
+    ...(document.newsletterSubscribed !== undefined && {
+      newsletterSubscribed: document.newsletterSubscribed,
+    }),
+    ...(document.newsletterSubscribedAt !== undefined && {
+      newsletterSubscribedAt: timestampToIso(document.newsletterSubscribedAt),
+    }),
+    ...(document.newsletterUnsubscribedAt !== undefined && {
+      newsletterUnsubscribedAt: timestampToIso(
+        document.newsletterUnsubscribedAt,
+      ),
+    }),
+  };
+}
+
+/**
+ * List members response schema with pagination metadata.
+ */
+export const ListMembersResponseSchema = t.Object({
+  members: t.Array(MemberResponseSchema),
+  total: t.Number({
+    description: "Total number of members",
+  }),
+  pagination: t.Object({
+    limit: t.Number({
+      description: "Number of items per page",
+    }),
+    offset: t.Number({
+      description: "Number of items skipped",
+    }),
+    hasNext: t.Boolean({
+      description: "Whether there are more items available",
+    }),
+  }),
+});
+
+export type ListMembersResponse = Static<typeof ListMembersResponseSchema>;
+
+/**
+ * Generic success response with member data.
+ */
+export const MemberSuccessResponseSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+});
+
+export type MemberSuccessResponse = Static<typeof MemberSuccessResponseSchema>;
+
+/**
+ * Delete user success response.
+ */
+export const DeleteUserResponseSchema = t.Object({
+  success: t.Literal(true),
+  deletedUid: t.String({
+    description: "UID of the deleted user",
+  }),
+});
+
+export type DeleteUserResponse = Static<typeof DeleteUserResponseSchema>;
+
+/**
+ * Reusable schema for memberId path parameter.
+ */
+export const MemberIdParameterSchema = t.Object({
+  memberId: t.String({
+    minLength: 1,
+    maxLength: 128,
+    description: "The Firestore document ID of the member",
+    error: "Member ID must be a non-empty string (max 128 characters)",
+  }),
+});
+
+/**
+ * Query parameters for listing members with pagination.
+ */
+export const PaginationQuerySchema = t.Object({
+  limit: t.Optional(
+    t.Number({
+      minimum: 1,
+      maximum: 100,
+      description: "Maximum number of members to return",
+      error: "Limit must be between 1 and 100",
+    }),
+  ),
+  offset: t.Optional(
+    t.Number({
+      minimum: 0,
+      description: "Number of members to skip",
+      error: "Offset must be 0 or greater",
+    }),
+  ),
+});
+
+/**
+ * Request body schema for updating member fields.
+ */
+export const UpdateMemberBodySchema = t.Object({
+  name: t.Optional(t.String({ minLength: 1 })),
+  email: t.Optional(t.String({ format: "email" })),
+  subscriptionStart: t.Optional(t.String({ format: "date-time" })),
+  membershipExpiresAt: t.Optional(t.String({ format: "date-time" })),
+  membershipActive: t.Optional(t.Boolean()),
+  slug: t.Optional(t.String({ minLength: 1 })),
+});
+
+export type UpdateMemberBody = Static<typeof UpdateMemberBodySchema>;
+
+/**
+ * Request body schema for activating membership.
+ */
+export const ActivateMembershipBodySchema = t.Optional(
+  t.Object({
+    subscriptionStart: t.Optional(t.String({ format: "date-time" })),
+    membershipExpiresAt: t.Optional(t.String({ format: "date-time" })),
+  }),
+);
+
+/**
+ * Request body schema for extending membership.
+ */
+export const ExtendMembershipBodySchema = t.Object({
+  newExpirationDate: t.String({
+    format: "date-time",
+    description: "New membership expiration date (ISO 8601)",
+    error: "newExpirationDate must be a valid ISO 8601 date-time",
+  }),
+});

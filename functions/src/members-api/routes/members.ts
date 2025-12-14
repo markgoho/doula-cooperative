@@ -5,7 +5,7 @@ import {
   toMemberResponse,
   type MemberResponse,
 } from "../schemas/member-schemas.js";
-import type { AuthService } from "../services/auth/interface.js";
+import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { MemberService } from "../services/member/interface.js";
 
 /**

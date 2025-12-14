@@ -11,7 +11,7 @@ import {
   extendMembershipLogic,
   listMembersLogic,
   updateMemberLogic,
-} from "../routes/admin-members/index.js";
+} from "../routes/index.js";
 import {
   ActivateMembershipBodySchema,
   ExtendMembershipBodySchema,
@@ -20,7 +20,7 @@ import {
   UpdateMemberBodySchema,
 } from "../schemas/member-schemas.js";
 import { MemberAdminService } from "../services/admin-member/index.js";
-import { AuthService } from "../services/auth/index.js";
+import { AuthService } from "../../shared-api/services/auth/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -183,20 +183,22 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     memberAdminService,
                     logger,
                     set,
-                  }) =>
-                    activateMembershipLogic({
+                  }) => {
+                    const typedBody = body as { subscriptionStart?: string; membershipExpiresAt?: string } | undefined;
+                    return activateMembershipLogic({
                       memberId: params.memberId,
-                      ...(body?.subscriptionStart !== undefined && {
-                        subscriptionStart: body.subscriptionStart,
+                      ...(typedBody?.subscriptionStart !== undefined && {
+                        subscriptionStart: typedBody.subscriptionStart,
                       }),
-                      ...(body?.membershipExpiresAt !== undefined && {
-                        membershipExpiresAt: body.membershipExpiresAt,
+                      ...(typedBody?.membershipExpiresAt !== undefined && {
+                        membershipExpiresAt: typedBody.membershipExpiresAt,
                       }),
                       adminUid: getAdminUid(adminToken, logger),
                       memberAdminService,
                       logger,
                       set,
-                    }),
+                    });
+                  },
                   { body: ActivateMembershipBodySchema },
                 )
                 // POST /admin/members/:memberId/membership/deactivate
@@ -227,15 +229,17 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     memberAdminService,
                     logger,
                     set,
-                  }) =>
-                    extendMembershipLogic({
+                  }) => {
+                    const typedBody = body as { newExpirationDate: string };
+                    return extendMembershipLogic({
                       memberId: params.memberId,
-                      newExpirationDate: body.newExpirationDate,
+                      newExpirationDate: typedBody.newExpirationDate,
                       adminUid: getAdminUid(adminToken, logger),
                       memberAdminService,
                       logger,
                       set,
-                    }),
+                    });
+                  },
                   { body: ExtendMembershipBodySchema },
                 ),
             ),

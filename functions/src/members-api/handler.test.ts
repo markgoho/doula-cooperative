@@ -1,6 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
 import { handleMembersApi } from "./handler.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 import type { Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 
@@ -17,8 +16,7 @@ describe("handleMembersApi", () => {
   describe("Error handling", () => {
     it("should handle errors and log them", async () => {
       const errorMock = mock();
-
-      const mockLogger: Logger = {
+      const mockLogger = {
         error: errorMock,
         warn: mock(),
         info: mock(),
@@ -61,8 +59,7 @@ describe("handleMembersApi", () => {
 
     it("should handle successful requests without errors", async () => {
       const errorMock = mock();
-
-      const mockLogger: Logger = {
+      const mockLogger = {
         error: errorMock,
         warn: mock(),
         info: mock(),
@@ -93,8 +90,7 @@ describe("handleMembersApi", () => {
 
     it("should include error stack in logs when available", async () => {
       const errorMock = mock();
-
-      const mockLogger: Logger = {
+      const mockLogger = {
         error: errorMock,
         warn: mock(),
         info: mock(),

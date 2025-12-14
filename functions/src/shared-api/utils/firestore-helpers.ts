@@ -35,7 +35,7 @@ export async function retrieveAndValidateMember({
 
   const memberDocument = await memberReference.get();
   const data = validateDocumentData<MemberDocument>(
-    memberDocument as {
+    memberDocument as unknown as {
       exists: boolean;
       data: () => MemberDocument | undefined;
       id: string;

@@ -66,7 +66,7 @@ export async function activateMembership(
 
   const updatedDocument = await memberReference.get();
   const data = validateDocumentData<MemberDocument>(
-    updatedDocument as {
+    updatedDocument as unknown as {
       exists: boolean;
       data: () => MemberDocument | undefined;
       id: string;

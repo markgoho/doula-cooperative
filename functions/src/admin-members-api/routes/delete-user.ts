@@ -1,8 +1,8 @@
-import { ERROR_IDS } from "../../../constants/error-ids.js";
-import type { Logger } from "../../../shared-api/types/logger.js";
-import { type DeleteUserResponse } from "../../schemas/member-schemas.js";
-import type { MemberAdminService } from "../../services/admin-member/interface.js";
-import { handleRouteError } from "../../../shared-api/utils/route-error-handler.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
+import type { Logger } from "../../shared-api/types/logger.js";
+import { type DeleteUserResponse } from "../schemas/member-schemas.js";
+import type { MemberAdminService } from "../services/admin-member/interface.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 
 /**
  * Delete a user account logic (admin only).

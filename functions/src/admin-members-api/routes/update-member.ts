@@ -1,12 +1,12 @@
-import { ERROR_IDS } from "../../../constants/error-ids.js";
-import type { Logger } from "../../../shared-api/types/logger.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
   type UpdateMemberBody,
-} from "../../schemas/member-schemas.js";
-import type { MemberAdminService } from "../../services/admin-member/interface.js";
-import { handleRouteError } from "../../../shared-api/utils/route-error-handler.js";
+} from "../schemas/member-schemas.js";
+import type { MemberAdminService } from "../services/admin-member/interface.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 
 /**
  * Update a member's fields logic (admin only).

@@ -590,7 +590,11 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "/api/**",
+          "source": "/api/admin/members/**",
+          "function": "adminMembersApi"
+        },
+        {
+          "source": "/api/members/**",
           "function": "membersApi"
         },
         {
