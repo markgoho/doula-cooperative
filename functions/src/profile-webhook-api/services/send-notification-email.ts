@@ -1,6 +1,6 @@
 import type { MailgunMessageData } from "mailgun.js/definitions";
-import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../../constants/index.js";
-import { sendEmail } from "../../../utils/send-email.js";
+import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
+import { sendEmail } from "../../utils/send-email.js";
 import type { NotificationParameters } from "./types.js";
 
 /**
