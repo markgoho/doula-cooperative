@@ -1,6 +1,7 @@
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import type { RecaptchaService } from "../services/recaptcha/interface.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";
+import type { RecaptchaService } from "../services/recaptcha/interface.js";
 
 /**
  * Service keys used for dependency injection via Elysia's decorate.
@@ -9,6 +10,7 @@ import type { FormStorageService } from "../services/form-storage/interface.js";
 export const SERVICE_KEYS = {
   RECAPTCHA_SERVICE: "recaptchaService",
   FORM_STORAGE_SERVICE: "formStorageService",
+  EMAIL_SERVICE: "emailService",
   LOGGER: "logger",
 } as const;
 
@@ -20,6 +22,7 @@ export const SERVICE_KEYS = {
 export interface Services {
   [SERVICE_KEYS.RECAPTCHA_SERVICE]: RecaptchaService;
   [SERVICE_KEYS.FORM_STORAGE_SERVICE]: FormStorageService;
+  [SERVICE_KEYS.EMAIL_SERVICE]: EmailServiceInterface;
   [SERVICE_KEYS.LOGGER]: Logger;
 }
 

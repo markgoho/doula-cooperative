@@ -41,14 +41,6 @@
           "function": "profileWebhookApi"
         },
         {
-          "source": "/api/contact-us-form",
-          "function": "contactUsForm"
-        },
-        {
-          "source": "/api/doula-match-form",
-          "function": "doulaMatchForm"
-        },
-        {
           "source": "/api/stripe-webhook",
           "function": "stripeWebhook"
         },

@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase-admin/firestore";
+
 /**
  * Match requests collection: stores doula match form submissions
  */
@@ -17,7 +19,7 @@ export interface MatchRequestDocument {
   birthLocation: string;
   otherInfo: string;
   insurance: string[];
-  submitted: string;
+  submitted: Timestamp;
   sent: boolean;
   recaptchaScore?: number;
 }

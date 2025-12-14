@@ -9,3 +9,5 @@ paths: *.ts
 - use direct re-exports (`export { foo } from "./foo.js"`) instead of import-then-export to satisfy `unicorn/prefer-export-from` rule
 - files should be short in length and have a single responsibility, typically only exporting a single function
 - UNDER NO CIRCUMSTANCES should you disable any eslint or typescript rules globally for a file
+- objects should always have explicit types
+- avoid inline types, instead declare a type/interface and use that

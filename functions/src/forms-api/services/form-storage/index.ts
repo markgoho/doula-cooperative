@@ -9,9 +9,6 @@ export const FormStorageService = {
 // Re-export for direct imports
 export { saveContactForm } from "./save-contact-form.js";
 export { saveMatchRequest } from "./save-match-request.js";
-export type {
-  ContactFormData,
-  ContactFormDocument,
-  DoulaMatchData,
-  DoulaMatchDocument,
-} from "./types.js";
+export type { ContactFormData, DoulaMatchData } from "./types.js";
+export type { MessageDocument } from "../../../collections/messages.js";
+export type { MatchRequestDocument } from "../../../collections/match-requests.js";

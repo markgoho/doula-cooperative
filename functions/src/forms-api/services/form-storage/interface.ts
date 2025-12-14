@@ -8,20 +8,22 @@ export interface FormStorageService {
   /**
    * Save a contact form submission to Firestore.
    *
-   * @param options - Form data and reCAPTCHA score
+   * @param options - Form data, reCAPTCHA score, and email send status
    */
   saveContactForm(options: {
     data: ContactFormData;
     recaptchaScore: number;
+    emailSent?: boolean;
   }): Promise<void>;
 
   /**
    * Save a doula match request submission to Firestore.
    *
-   * @param options - Match request data and reCAPTCHA score
+   * @param options - Match request data, reCAPTCHA score, and email send status
    */
   saveMatchRequest(options: {
     data: DoulaMatchData;
     recaptchaScore: number;
+    emailSent?: boolean;
   }): Promise<void>;
 }

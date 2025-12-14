@@ -1,15 +1,17 @@
+/**
+ * Contact form input data (without metadata like submitted timestamp).
+ * Used for API validation and as input to saveContactForm.
+ */
 export interface ContactFormData {
   contactName: string;
   email: string;
   message: string;
 }
 
-export interface ContactFormDocument extends ContactFormData {
-  submitted: string;
-  sent: boolean;
-  recaptchaScore: number;
-}
-
+/**
+ * Doula match form input data (without metadata like submitted timestamp).
+ * Used for API validation and as input to saveMatchRequest.
+ */
 export interface DoulaMatchData {
   name: string;
   phone: string;
@@ -24,10 +26,4 @@ export interface DoulaMatchData {
   birthLocation: string;
   otherInfo: string;
   insurance: string[];
-}
-
-export interface DoulaMatchDocument extends DoulaMatchData {
-  submitted: string;
-  sent: boolean;
-  recaptchaScore: number;
 }

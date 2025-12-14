@@ -36,9 +36,9 @@
       class="form"
       novalidate
       data-api-url="{{ if hugo.IsProduction }}
-        /api/contact-us-form
+        /api/forms/contact-us
       {{ else }}
-        http://127.0.0.1:5001/doula-cooperative/us-central1/contactUsForm
+        http://127.0.0.1:5001/doula-cooperative/us-central1/formsApi/contact-us
       {{ end }}"
       data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}">
       <div class="form-group full-width">

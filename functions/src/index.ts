@@ -9,7 +9,6 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import {
   type CallableRequest,
   HttpsError,
@@ -26,58 +25,6 @@ import { type ProfileData } from "./types/profile-data.js";
 if (getApps().length === 0) {
   initializeApp();
 }
-
-export const contactUsForm = onRequest(
-  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
-  async (request, response) => {
-    const RECAPTCHA_SECRET_KEY = process.env["RECAPTCHA_SECRET_KEY"];
-
-    if (!RECAPTCHA_SECRET_KEY) {
-      response.status(500).send({ error: "Server configuration error" });
-      return;
-    }
-
-    const { handleContactUsForm } =
-      await import("./contact-us-form/contact-us-form.js");
-    await handleContactUsForm(request, response, RECAPTCHA_SECRET_KEY);
-  },
-);
-
-export const doulaMatchForm = onRequest(
-  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
-  async (request, response) => {
-    const RECAPTCHA_SECRET_KEY = process.env["RECAPTCHA_SECRET_KEY"];
-
-    if (!RECAPTCHA_SECRET_KEY) {
-      response.status(500).send({ error: "Server configuration error" });
-      return;
-    }
-
-    const { handleDoulaMatchForm } =
-      await import("./doula-match-form/doula-match-form.js");
-    await handleDoulaMatchForm(request, response, RECAPTCHA_SECRET_KEY);
-  },
-);
-
-export const emailContactForm = onDocumentCreated(
-  { document: "messages/{messageId}", secrets: ["MAILGUN_API_KEY"] },
-  async event => {
-    const apiKey = process.env["MAILGUN_API_KEY"];
-    const { handleDocumentCreated } =
-      await import("./contact-us-form/email-contact-form.js");
-    await handleDocumentCreated(event, apiKey);
-  },
-);
-
-export const emailDoulaMatch = onDocumentCreated(
-  { document: "matchRequests/{matchRequestId}", secrets: ["MAILGUN_API_KEY"] },
-  async event => {
-    const apiKey = process.env["MAILGUN_API_KEY"];
-    const { handleDocumentCreated } =
-      await import("./doula-match-form/email-doula-match.js");
-    await handleDocumentCreated(event, apiKey);
-  },
-);
 
 export const createMemberOnUserCreated = auth.user().onCreate(async user => {
   const { handleUserCreated } =
@@ -418,7 +365,7 @@ export const adminMembersApi = onRequest(
 
 // Forms API (doulacooperative.com)
 export const formsApi = onRequest(
-  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY"] },
+  { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY", "MAILGUN_API_KEY"] },
   async (request, response) => {
     const { handleFormsApi } = await import("./forms-api/handler.js");
     await handleFormsApi(request, response);

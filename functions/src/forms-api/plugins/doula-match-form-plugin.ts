@@ -1,8 +1,9 @@
 import { Elysia, t } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { handleMatchFormLogic } from "../routes/handle-match-form.js";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { FormStorageService } from "../services/form-storage/index.js";
 import { RecaptchaService } from "../services/recaptcha/index.js";
+import { handleMatchFormLogic } from "../routes/handle-match-form.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -27,11 +28,23 @@ export function createDoulaMatchFormPlugin(services?: PartialServices) {
       SERVICE_KEYS.FORM_STORAGE_SERVICE,
       services?.formStorageService ?? FormStorageService,
     )
+    .decorate(
+      SERVICE_KEYS.EMAIL_SERVICE,
+      services?.emailService ?? EmailService,
+    )
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .post(
       "/doula-match",
-      async ({ body, recaptchaService, formStorageService, logger, set }) => {
+      async ({
+        body,
+        recaptchaService,
+        formStorageService,
+        emailService,
+        logger,
+        set,
+      }) => {
         const recaptchaSecretKey = process.env["RECAPTCHA_SECRET_KEY"];
+        const mailgunApiKey = process.env["MAILGUN_API_KEY"];
 
         if (!recaptchaSecretKey) {
           logger.error("RECAPTCHA_SECRET_KEY not configured");
@@ -52,6 +65,8 @@ export function createDoulaMatchFormPlugin(services?: PartialServices) {
           recaptchaSecretKey,
           recaptchaService,
           formStorageService,
+          emailService,
+          mailgunApiKey,
           logger,
           set,
         });
