@@ -149,6 +149,29 @@ export const ERROR_IDS = {
   API_AUTH_TOKEN_WRONG_PROJECT: "api_auth_token_wrong_project",
   API_AUTH_VERIFICATION_FAILED: "api_auth_verification_failed",
   API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
+
+  // Admin member management operations
+  API_ADMIN_LIST_MEMBERS_FAILED: "api_admin_list_members_failed",
+  API_ADMIN_UPDATE_MEMBER_FAILED: "api_admin_update_member_failed",
+  API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED: "api_admin_activate_membership_failed",
+  API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED:
+    "api_admin_deactivate_membership_failed",
+  API_ADMIN_EXTEND_MEMBERSHIP_FAILED: "api_admin_extend_membership_failed",
+  API_ADMIN_DELETE_USER_FAILED: "api_admin_delete_user_failed",
+
+  // Specific admin error scenarios
+  API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",
+  API_ADMIN_SELF_DELETE_ATTEMPT: "api_admin_self_delete_attempt",
+  API_ADMIN_DELETE_ADMIN_ATTEMPT: "api_admin_delete_admin_attempt",
+
+  // Firestore infrastructure errors
+  API_FIRESTORE_UPDATE_FAILED: "api_firestore_update_failed",
+  API_FIRESTORE_READ_FAILED: "api_firestore_read_failed",
+  API_FIRESTORE_PERMISSION_DENIED: "api_firestore_permission_denied",
+  API_FIRESTORE_NOT_FOUND: "api_firestore_not_found",
+  API_FIRESTORE_QUOTA_EXCEEDED: "api_firestore_quota_exceeded",
+  API_FIRESTORE_INVALID_DATA: "api_firestore_invalid_data",
+  API_FIRESTORE_COUNT_FAILED: "api_firestore_count_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

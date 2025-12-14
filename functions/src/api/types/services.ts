@@ -1,5 +1,6 @@
 import type {
   MemberService,
+  MemberAdminService,
   AuthService,
 } from "../services/service-interfaces.js";
 import type { Logger } from "../handler.js";
@@ -10,6 +11,7 @@ import type { Logger } from "../handler.js";
  */
 export const SERVICE_KEYS = {
   MEMBER_SERVICE: "memberService",
+  MEMBER_ADMIN_SERVICE: "memberAdminService",
   AUTH_SERVICE: "authService",
   LOGGER: "logger",
 } as const;
@@ -21,6 +23,7 @@ export const SERVICE_KEYS = {
  */
 export interface Services {
   [SERVICE_KEYS.MEMBER_SERVICE]: MemberService;
+  [SERVICE_KEYS.MEMBER_ADMIN_SERVICE]: MemberAdminService;
   [SERVICE_KEYS.AUTH_SERVICE]: AuthService;
   [SERVICE_KEYS.LOGGER]: Logger;
 }

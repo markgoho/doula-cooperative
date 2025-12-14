@@ -1,18 +1,16 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { createApp } from "../app.js";
 import { NotFoundError, AuthError, ForbiddenError } from "../errors/http-error.js";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { DecodedIdToken } from "firebase-admin/auth";
+import { createMembersTestPlugin } from "../test-utils/test-app-factory.js";
 
 /**
  * Tests for the authenticated members endpoint.
  *
- * Uses createApp() factory with mocked services - routes come from app.ts, no duplication needed
+ * Uses createMembersTestPlugin() factory with mocked services.
+ * Tests only the members plugin in isolation - no full app composition needed.
  * Tests run WITHOUT Firebase emulators.
- *
- * Run these tests with:
- *   bun test test/api/members.test.ts
  */
 describe("GET /members/:memberId (authenticated)", () => {
   // Create mock services
@@ -58,14 +56,12 @@ describe("GET /members/:memberId (authenticated)", () => {
     },
   );
 
-  // Create app with mocked services - routes come from app.ts, no duplication needed
-  const testApp = createApp({
+  // Create plugin with mocked services - tests only the members plugin in isolation
+  const testApp = createMembersTestPlugin({
     memberService: {
       findById: mockFindById,
     },
     authService: {
-      verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
-      verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
       verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
     },
   });
@@ -252,13 +248,11 @@ describe("GET /members/:memberId (authenticated)", () => {
         throw new Error("Database connection timeout");
       });
 
-      const testAppWithError = createApp({
+      const testAppWithError = createMembersTestPlugin({
         memberService: {
           findById: mockFindByIdWithError,
         },
         authService: {
-          verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
-          verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
           verifyOwnerOrAdmin: mock(() =>
             Promise.resolve({
               uid: "test-id",
@@ -307,13 +301,11 @@ describe("GET /members/:memberId (authenticated)", () => {
       const errorMock = mock();
 
       // HttpError should be handled normally without triggering unexpected error logging
-      const testAppWithLogger = createApp({
+      const testAppWithLogger = createMembersTestPlugin({
         memberService: {
           findById: mockFindById,
         },
         authService: {
-          verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
-          verifyAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
           verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
         },
         logger: {

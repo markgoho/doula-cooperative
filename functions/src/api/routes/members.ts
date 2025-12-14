@@ -1,31 +1,36 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { MemberDocument } from "../../types/member-document.js";
 import { HttpError } from "../errors/http-error.js";
-import type { RouteContext } from "../types/route-context.js";
+import {
+  toMemberResponse,
+  type MemberResponse,
+} from "../schemas/member-schemas.js";
+import type {
+  MemberService,
+  AuthService,
+} from "../services/service-interfaces.js";
+import type { Logger } from "../handler.js";
 
 /**
- * Get a member by ID (authenticated).
+ * Get a member by ID logic (authenticated).
  * Requires authentication - users can access their own data, or admins can access any member.
- *
- * Dependencies injected via Elysia's decorate in app.ts:
- * - memberService: Service for member operations
- * - authService: Service for authentication/authorization
- * - logger: Logger for error tracking and audit logging
  *
  * @returns Member data or error object
  */
-export async function getMember({
-  params,
+export async function getMemberLogic({
+  memberId,
   memberService,
   authService,
   logger,
-  request,
+  authorizationHeader,
   set,
-}: RouteContext<{ memberId: string }>): Promise<
-  MemberDocument | { error: string }
-> {
-  const memberId = params.memberId;
-  const authorizationHeader = request.headers.get("authorization") ?? undefined;
+}: {
+  memberId: string;
+  memberService: MemberService;
+  authService: AuthService;
+  logger: Logger;
+  authorizationHeader: string | undefined;
+  set: { status?: number | string };
+}): Promise<MemberResponse | { error: string }> {
 
   try {
     // Verify authentication and authorization using injected service
@@ -42,7 +47,8 @@ export async function getMember({
     });
 
     // Fetch member data using injected service
-    return await memberService.findById(memberId);
+    const member = await memberService.findById(memberId);
+    return toMemberResponse(member);
   } catch (error) {
     // Handle our custom HTTP errors
     if (error instanceof HttpError) {
