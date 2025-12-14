@@ -5,9 +5,12 @@ import type { Services } from "./services.js";
  * Combines Elysia's context with our injected services.
  *
  * @template TParameters - Type of route parameters (e.g., { memberId: string })
+ * @template TQuery - Type of query parameters (e.g., { limit?: number; offset?: number })
  */
-export interface RouteContext<TParameters = unknown> extends Services {
+export interface RouteContext<TParameters = unknown, TQuery = unknown>
+  extends Services {
   params: TParameters;
+  query: TQuery;
   request: Request;
   set: { status?: number | string };
 }

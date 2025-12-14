@@ -1,11 +1,26 @@
 import { node } from "@elysiajs/node";
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { healthRoute } from "./routes/health.js";
-import { getMember } from "./routes/members.js";
+import {
+  listMembersLogic,
+  updateMemberLogic,
+  activateMembershipLogic,
+  deactivateMembershipLogic,
+  extendMembershipLogic,
+  deleteUserLogic,
+} from "./routes/admin-members/index.js";
+import { getMemberLogic } from "./routes/members.js";
+import {
+  MemberIdParameterSchema,
+  PaginationQuerySchema,
+  UpdateMemberBodySchema,
+  ActivateMembershipBodySchema,
+  ExtendMembershipBodySchema,
+} from "./schemas/member-schemas.js";
 import { AuthService } from "./services/auth-service/index.js";
+import { MemberAdminService } from "./services/member-admin-service/index.js";
 import { MemberService } from "./services/member-service.js";
-import type { RouteContext } from "./types/route-context.js";
 import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
 
 /**
@@ -24,24 +39,131 @@ export function createApp(services?: PartialServices) {
         SERVICE_KEYS.MEMBER_SERVICE,
         services?.memberService ?? MemberService,
       )
+      .decorate(
+        SERVICE_KEYS.MEMBER_ADMIN_SERVICE,
+        services?.memberAdminService ?? MemberAdminService,
+      )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-      // Routes
+      // Health check route
       .get("/health", () => healthRoute())
+      // Member routes
       .get(
         "/members/:memberId",
-        context =>
-          getMember(context as unknown as RouteContext<{ memberId: string }>),
-        {
-          params: t.Object({
-            memberId: t.String({
-              minLength: 1,
-              maxLength: 128,
-              description: "The Firestore document ID of the member",
-              error:
-                "Member ID must be a non-empty string (max 128 characters)",
-            }),
+        async ({ params, memberService, authService, logger, request, set }) =>
+          getMemberLogic({
+            memberId: params.memberId,
+            memberService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
           }),
+        {
+          params: MemberIdParameterSchema,
+        },
+      )
+      // Admin member management routes
+      .get(
+        "/admin/members",
+        async ({ query, memberAdminService, authService, logger, request, set }) =>
+          listMembersLogic({
+            ...(query.limit !== undefined && { limit: query.limit }),
+            ...(query.offset !== undefined && { offset: query.offset }),
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          query: PaginationQuerySchema,
+        },
+      )
+      .patch(
+        "/admin/members/:memberId",
+        async ({ params, body, memberAdminService, authService, logger, request, set }) =>
+          updateMemberLogic({
+            memberId: params.memberId,
+            updates: body,
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: UpdateMemberBodySchema,
+        },
+      )
+      .post(
+        "/admin/members/:memberId/membership/activate",
+        async ({ params, body, memberAdminService, authService, logger, request, set }) =>
+          activateMembershipLogic({
+            memberId: params.memberId,
+            ...(body?.subscriptionStart !== undefined && {
+              subscriptionStart: body.subscriptionStart,
+            }),
+            ...(body?.membershipExpiresAt !== undefined && {
+              membershipExpiresAt: body.membershipExpiresAt,
+            }),
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: ActivateMembershipBodySchema,
+        },
+      )
+      .post(
+        "/admin/members/:memberId/membership/deactivate",
+        async ({ params, memberAdminService, authService, logger, request, set }) =>
+          deactivateMembershipLogic({
+            memberId: params.memberId,
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+        },
+      )
+      .post(
+        "/admin/members/:memberId/membership/extend",
+        async ({ params, body, memberAdminService, authService, logger, request, set }) =>
+          extendMembershipLogic({
+            memberId: params.memberId,
+            newExpirationDate: body.newExpirationDate,
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: ExtendMembershipBodySchema,
+        },
+      )
+      .delete(
+        "/admin/members/:memberId",
+        async ({ params, memberAdminService, authService, logger, request, set }) =>
+          deleteUserLogic({
+            memberId: params.memberId,
+            memberAdminService,
+            authService,
+            logger,
+            authorizationHeader: request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
         },
       )
   );

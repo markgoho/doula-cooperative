@@ -47,64 +47,85 @@ src/api/
 
 **Use factory pattern for testability**: Export `createApp()` function that accepts injectable dependencies
 
+### Extracted Logic Functions (Best Practice)
+
+Following Elysia best practice: "DON'T pass entire Context to controllers". Extract logic to separate functions, destructure context in app.ts:
+
 ```typescript
-// app.ts - Factory with dependency injection
-import { Elysia, t } from "elysia";
+// app.ts - Destructure context, pass specific values
+import { Elysia } from "elysia";
 import { node } from "@elysiajs/node";
-import { healthRoute } from "./routes/health.js";
-import { getMember } from "./routes/members.js";
+import { getMemberLogic } from "./routes/members.js";
+import { MemberIdParameterSchema } from "./schemas/member-schemas.js";
 import { MemberService } from "./services/member-service.js";
 import { AuthService } from "./services/auth-service.js";
 
-export function createApp(services?: {
-  memberService?: typeof MemberService;
-  authService?: typeof AuthService;
-}) {
+export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
-    .decorate("memberService", services?.memberService ?? MemberService)
-    .decorate("authService", services?.authService ?? AuthService)
-    .get("/health", () => healthRoute())
+    .decorate(SERVICE_KEYS.MEMBER_SERVICE, services?.memberService ?? MemberService)
+    .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
     .get(
       "/members/:memberId",
-      (context) => getMember(context),
-      {
-        params: t.Object({
-          memberId: t.String({
-            minLength: 1,
-            maxLength: 128,
-            error: "Member ID must be a non-empty string (max 128 characters)",
-          }),
+      async ({ params, memberService, authService, logger, request, set }) =>
+        getMemberLogic({
+          memberId: params.memberId,  // Extract specific values
+          memberService,
+          authService,
+          logger,
+          authorizationHeader: request.headers.get("authorization") ?? undefined,
+          set,
         }),
+      {
+        params: MemberIdParameterSchema,
       },
     );
 }
-
-// Export default app instance for production
-export const app = createApp();
 ```
 
 ```typescript
-// routes/members.ts - Lightweight controller
-import type { Context } from "elysia";
-import { MemberService } from "../services/member-service.js";
+// routes/members.ts - Logic function (NOT an HTTP handler)
 import { HttpError } from "../errors/http-error.js";
+import { toMemberResponse, type MemberResponse } from "../schemas/member-schemas.js";
+import type { MemberService, AuthService } from "../services/service-interfaces.js";
+import type { Logger } from "../handler.js";
 
-export async function getMember({
-  params,
+export async function getMemberLogic({
+  memberId,
+  memberService,
+  authService,
+  logger,
+  authorizationHeader,
   set,
-}: Context<{ params: Record<"memberId", string> }>) {
+}: {
+  memberId: string;  // Explicit types, no Context coupling
+  memberService: MemberService;
+  authService: AuthService;
+  logger: Logger;
+  authorizationHeader: string | undefined;
+  set: { status?: number | string };
+}): Promise<MemberResponse | { error: string }> {
   try {
-    return await MemberService.findById(params.memberId);
+    const decodedToken = await authService.verifyOwnerOrAdmin(authorizationHeader, memberId);
+    const member = await memberService.findById(memberId);
+    return toMemberResponse(member);
   } catch (error) {
     if (error instanceof HttpError) {
       set.status = error.statusCode;
       return { error: error.message };
     }
     set.status = 500;
-    return { error: "Internal server error" };
+    return { error: "Internal error" };
   }
 }
 ```
+
+**Why this pattern?**
+- ✅ No Context coupling (follows Elysia best practices)
+- ✅ No type assertions needed
+- ✅ Full type safety with explicit types
+- ✅ Elysia's automatic type inference in app.ts
+- ✅ Logic functions are testable and reusable
+- ✅ Clear separation: routing config vs business logic
 
 ## Service Layer & Dependency Injection
 
@@ -490,34 +511,133 @@ RouteContext<{ memberId: string }> & { body: { newExpirationDate: string } }
 
 **Why intersection**: `RouteContext` doesn't include `body` by default, so you must intersect with a separate type that includes it.
 
-**Usage in app.ts**:
+### Use Schema Constants for DRY Routes
+
+Extract all validation schemas to constants in `schemas/` directory:
+
+```typescript
+// schemas/member-schemas.ts
+export const MemberIdParameterSchema = t.Object({
+  memberId: t.String({
+    minLength: 1,
+    maxLength: 128,
+    description: "The Firestore document ID of the member",
+    error: "Member ID must be a non-empty string (max 128 characters)",
+  }),
+});
+
+export const UpdateMemberBodySchema = t.Object({
+  name: t.Optional(t.String({ minLength: 1 })),
+  email: t.Optional(t.String({ format: "email" })),
+  // ...
+});
+```
+
+**Usage in app.ts** - Clean and DRY:
 ```typescript
 .patch(
   "/admin/members/:memberId",
-  context =>
-    updateMember(
-      context as unknown as RouteContext<{ memberId: string }> & {
-        body: Record<string, unknown>;
-      },
-    ),
+  context => updateMember(context as unknown as RouteContext<{ memberId: string }> & {
+    body: Record<string, unknown>;
+  }),
   {
-    params: t.Object({ memberId: t.String() }),
-    body: t.Object({ name: t.Optional(t.String()) }),
+    params: MemberIdParameterSchema,  // Reusable schema constant
+    body: UpdateMemberBodySchema,      // Reusable schema constant
   },
 )
 ```
 
-## Arrow Functions in Routes
+**Benefits:**
+- Single source of truth for validation rules
+- Consistent error messages across routes
+- Easy to update validation in one place
+- Self-documenting API contracts
 
-**Always wrap handlers**: Use arrow functions to call route handlers (not direct function references)
+## Schema-First API Design
+
+### Separate API and Firestore Types
+
+Use Elysia schemas as source of truth for API contracts, keep Firestore types separate:
 
 ```typescript
-// ✅ Correct - allows transformation/middleware
-.get("/path", (context) => handler(context))
+// schemas/member-schemas.ts
 
-// ❌ Wrong - loses flexibility
-.get("/path", handler)
+// API response schema (uses ISO 8601 date strings)
+export const MemberResponseSchema = t.Object({
+  uid: t.String(),
+  email: t.String({ format: "email" }),
+  createdAt: t.String({ format: "date-time" }),  // ISO string for JSON
+  // ...
+});
+
+export type MemberResponse = Static<typeof MemberResponseSchema>;
+
+// Firestore document type (uses Timestamp objects)
+import type { Timestamp } from "firebase-admin/firestore";
+
+export interface MemberDocument {
+  uid: string;
+  email: string;
+  createdAt: Timestamp;  // Firestore Timestamp object
+  // ...
+}
+
+// Conversion utility (Firestore → API)
+export function toMemberResponse(doc: MemberDocument): MemberResponse {
+  return {
+    ...doc,
+    createdAt: doc.createdAt.toDate().toISOString(),
+    // ... convert all Timestamp fields to ISO strings
+  };
+}
 ```
+
+**Why separate types?**
+- HTTP APIs speak JSON (ISO date strings)
+- Firestore speaks Timestamps (not JSON-serializable)
+- Clear boundary where serialization happens
+- Schemas define the API contract, not storage format
+
+**Usage in routes:**
+```typescript
+const member = await memberService.findById(memberId);  // Returns MemberDocument
+return toMemberResponse(member);  // Convert to MemberResponse for API
+```
+
+## Handler Patterns
+
+### Extracted Handlers Require Arrow Wrappers
+
+When using extracted handlers with dependency injection, wrap them in arrow functions with type assertions:
+
+```typescript
+// ✅ CORRECT - Arrow wrapper with type assertion for extracted handlers
+.get(
+  "/members/:memberId",
+  context => getMember(context as unknown as RouteContext<{ memberId: string }>),
+  { params: MemberIdParameterSchema }
+)
+
+// ❌ WRONG - Direct reference breaks Elysia's type inference
+.get("/members/:memberId", getMember, { params: MemberIdParameterSchema })
+```
+
+### Inline Handlers Get Automatic Type Inference
+
+For inline handlers, Elysia automatically infers all types from `decorate`:
+
+```typescript
+// ✅ Fully type-safe with no assertions needed
+.get("/members/:memberId", async ({ params, memberService, authService }) => {
+  // params.memberId is typed automatically
+  // memberService and authService are fully typed
+  return await memberService.findById(params.memberId);
+})
+```
+
+**When to use each:**
+- **Extracted handlers**: Use for complex logic that needs testing, reusability, or would make app.ts too large
+- **Inline handlers**: Use for simple operations or when automatic type inference is critical
 
 ## Dependencies
 
