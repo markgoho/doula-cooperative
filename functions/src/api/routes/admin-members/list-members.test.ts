@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../../types/member-document.js";
-import { createAdminTestApp } from "../../test-utils/test-app-factory.js";
+import { createAdminTestPlugin } from "../../test-utils/test-app-factory.js";
 
 /**
  * Tests for GET /admin/members (list with pagination).
@@ -34,7 +34,7 @@ describe("GET /admin/members", () => {
     });
   });
 
-  const testApp = createAdminTestApp({
+  const testApp = createAdminTestPlugin({
     memberAdminService: {
       listMembers: mockListMembers,
     },

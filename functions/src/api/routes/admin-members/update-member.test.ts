@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import { NotFoundError, ValidationError } from "../../errors/http-error.js";
 import type { MemberDocument } from "../../../types/member-document.js";
-import { createAdminTestApp } from "../../test-utils/test-app-factory.js";
+import { createAdminTestPlugin } from "../../test-utils/test-app-factory.js";
 
 /**
  * Tests for PATCH /admin/members/:memberId.
@@ -43,7 +43,7 @@ describe("PATCH /admin/members/:memberId", () => {
     },
   );
 
-  const testApp = createAdminTestApp({
+  const testApp = createAdminTestPlugin({
     memberAdminService: {
       updateMember: mockUpdateMember,
     },

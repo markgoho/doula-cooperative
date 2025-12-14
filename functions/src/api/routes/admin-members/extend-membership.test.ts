@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import { NotFoundError } from "../../errors/http-error.js";
 import type { MemberDocument } from "../../../types/member-document.js";
-import { createAdminTestApp } from "../../test-utils/test-app-factory.js";
+import { createAdminTestPlugin } from "../../test-utils/test-app-factory.js";
 
 /**
  * Tests for POST /admin/members/:memberId/membership/extend.
@@ -26,7 +26,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     },
   );
 
-  const testApp = createAdminTestApp({
+  const testApp = createAdminTestPlugin({
     memberAdminService: {
       extendMembership: mockExtendMembership,
     },

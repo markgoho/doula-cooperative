@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { ForbiddenError, NotFoundError } from "../../errors/http-error.js";
-import { createAdminTestApp } from "../../test-utils/test-app-factory.js";
+import { createAdminTestPlugin } from "../../test-utils/test-app-factory.js";
 
 /**
  * Tests for DELETE /admin/members/:memberId.
@@ -30,7 +30,7 @@ describe("DELETE /admin/members/:memberId", () => {
     },
   );
 
-  const testApp = createAdminTestApp({
+  const testApp = createAdminTestPlugin({
     memberAdminService: {
       deleteUser: mockDeleteUser,
     },
