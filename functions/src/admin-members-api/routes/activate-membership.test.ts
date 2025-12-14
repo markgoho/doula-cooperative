@@ -5,12 +5,12 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for POST /admin/members/:memberId/membership/activate.
+ * Tests for POST /:memberId/membership/activate.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /admin/members/:memberId/membership/activate", () => {
+describe("POST /:memberId/membership/activate", () => {
   const mockActivateMembership = mock(
     (memberId: string): Promise<MemberDocument> => {
       if (memberId === "non-existent-id") {
@@ -41,7 +41,7 @@ describe("POST /admin/members/:memberId/membership/activate", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/activate",
+          "http://localhost/test-id/membership/activate",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -56,7 +56,7 @@ describe("POST /admin/members/:memberId/membership/activate", () => {
     it("should return 403 when non-admin tries to activate", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/activate",
+          "http://localhost/test-id/membership/activate",
           {
             method: "POST",
             headers: {
@@ -76,7 +76,7 @@ describe("POST /admin/members/:memberId/membership/activate", () => {
     it("should activate membership with default dates when no dates provided", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/activate",
+          "http://localhost/test-id/membership/activate",
           {
             method: "POST",
             headers: {
@@ -105,7 +105,7 @@ describe("POST /admin/members/:memberId/membership/activate", () => {
 
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/activate",
+          "http://localhost/test-id/membership/activate",
           {
             method: "POST",
             headers: {
@@ -129,7 +129,7 @@ describe("POST /admin/members/:memberId/membership/activate", () => {
     it("should return 404 for non-existent member", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/non-existent-id/membership/activate",
+          "http://localhost/non-existent-id/membership/activate",
           {
             method: "POST",
             headers: {

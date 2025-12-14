@@ -8,14 +8,95 @@ paths: functions/src/api/**.ts
 
 **Required adapter**: Use `@elysiajs/node` adapter for Node.js compatibility (Firebase Functions runs on Node.js, not Bun)
 
-**No prefix needed**: Firebase function name already provides the path prefix
+**No prefix needed**: Firebase rewrites already provide the path prefix for each function
 
 ```typescript
 import { Elysia } from "elysia";
 import { node } from "@elysiajs/node";
 
-// Firebase function named "api" provides /api prefix
 export const app = new Elysia({ adapter: node() });
+```
+
+### Firebase Rewrite Pattern
+
+Each Elysia plugin is deployed as a **separate Firebase Function** with its own path prefix defined in `firebase.json`:
+
+```json
+// firebase.json
+{
+  "hosting": [{
+    "rewrites": [
+      {
+        "source": "/api/members/**",
+        "function": "membersApi"
+      },
+      {
+        "source": "/api/admin/members/**",
+        "function": "adminMembersApi"
+      }
+    ]
+  }]
+}
+```
+
+**IMPORTANT**: Plugins define routes **without** the Firebase rewrite prefix:
+
+```typescript
+// ✅ CORRECT - Plugin defines route from its "root"
+// Firebase serves this at /api/members/:memberId
+export function createMembersPlugin() {
+  return new Elysia({ name: "members" })
+    .get("/:memberId", handler);  // NOT /members/:memberId
+}
+
+// ❌ WRONG - Don't repeat the Firebase path prefix
+export function createMembersPlugin() {
+  return new Elysia({ name: "members" })
+    .get("/members/:memberId", handler);  // Would become /api/members/members/:memberId
+}
+```
+
+**Why this pattern:**
+- ✅ Each plugin is a separate Cloud Function (better cold start, independent scaling)
+- ✅ Firebase handles routing to the correct function
+- ✅ Plugin routes are clean and relative to their function's base path
+- ✅ Easy to understand: `/api/members/**` → `membersApi` function → plugin routes start from `/`
+
+### Complete Routing Flow Examples
+
+**Example 1: Members API**
+```
+User Request:     GET /api/members/user123
+                       ↓
+Firebase Rewrite: /api/members/** → membersApi function
+                       ↓
+Elysia Plugin:    GET /:memberId (matches with memberId = "user123")
+                       ↓
+Final Route:      ✅ Successfully handled
+```
+
+**Example 2: Admin Members API with nested routes**
+```
+User Request:     POST /api/admin/members/user123/membership/activate
+                       ↓
+Firebase Rewrite: /api/admin/members/** → adminMembersApi function
+                       ↓
+Elysia Plugin:    POST /:memberId/membership/activate (matches with memberId = "user123")
+                       ↓
+Final Route:      ✅ Successfully handled
+```
+
+**Example 3: Wrong approach (DON'T DO THIS)**
+```
+User Request:     GET /api/members/user123
+                       ↓
+Firebase Rewrite: /api/members/** → membersApi function
+                       ↓
+Elysia Plugin:    GET /members/:memberId ❌ WRONG!
+                       ↓
+Attempted Match:  GET /members/user123 (but Firebase sent "/user123")
+                       ↓
+Final Route:      ❌ 404 Not Found
 ```
 
 ## Folder Structure
@@ -56,47 +137,69 @@ src/api/
 // plugins/admin-members-plugin.ts
 import { Elysia } from "elysia";
 
+// Firebase rewrite: /api/admin/members/** → adminMembersApi function
+// Plugin routes start from "/" (Firebase already provides /api/admin/members prefix)
 export function createAdminMembersPlugin(services?: PartialServices) {
   return new Elysia({ name: "admin-members" })
     .decorate(SERVICE_KEYS.MEMBER_ADMIN_SERVICE, services?.memberAdminService ?? MemberAdminService)
     .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
     // Plugin-specific decorations only - don't decorate services other plugins need
-    .group("/admin/members", app =>
+    .get("/", handler)  // Served at /api/admin/members/
+    .group("/:memberId", { params: MemberIdParameterSchema }, app =>
       app
-        .get("/", handler)
-        .group("/:memberId", { params: MemberIdParameterSchema }, app =>
+        .patch("/", updateHandler)       // Served at /api/admin/members/:memberId
+        .delete("/", deleteHandler)      // Served at /api/admin/members/:memberId
+        .group("/membership", app =>
           app
-            .patch("/", updateHandler)
-            .delete("/", deleteHandler)
-            .group("/membership", app =>
-              app
-                .post("/activate", activateHandler)
-                .post("/deactivate", deactivateHandler)
-            )
+            .post("/activate", activateHandler)      // Served at /api/admin/members/:memberId/membership/activate
+            .post("/deactivate", deactivateHandler)  // Served at /api/admin/members/:memberId/membership/deactivate
         )
     );
 }
 ```
 
-**Compose plugins in app.ts** - keeps orchestration clean:
+**Compose plugins in app.ts** - Use this pattern when multiple plugins share a single Firebase Function:
 
 ```typescript
-// app.ts
+// main-api/app.ts - Multiple plugins in one Firebase Function
+// Firebase rewrite: /main-api/** → mainApi function
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .get("/health", () => healthRoute())
-    .use(createMembersPlugin(services))
-    .use(createAdminMembersPlugin(services));
+    .use(createContactUsFormPlugin(services))     // Served at /main-api/contact-us-form
+    .use(createDoulaMatchFormPlugin(services));   // Served at /main-api/doula-match-form
 }
 ```
 
-**Benefits**:
+**One plugin per Firebase Function** - Use this pattern for isolated APIs with separate scaling:
+
+```typescript
+// members-api/app.ts - Single plugin, dedicated Firebase Function
+// Firebase rewrite: /api/members/** → membersApi function
+export function createApp(services?: PartialServices) {
+  return new Elysia({ adapter: node() })
+    .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+    .use(createMembersPlugin(services));  // Routes start from /
+}
+
+// admin-members-api/app.ts - Single plugin, dedicated Firebase Function
+// Firebase rewrite: /api/admin/members/** → adminMembersApi function
+export function createApp(services?: PartialServices) {
+  return new Elysia({ adapter: node() })
+    .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+    .use(createAdminMembersPlugin(services));  // Routes start from /
+}
+```
+
+**Benefits of plugin pattern**:
 - ✅ Route groups isolated in separate files
 - ✅ Each plugin only decorates its needed services
 - ✅ Nested `.group()` for hierarchical route organization
 - ✅ Plugins can have their own guards (see below)
 - ✅ Plugins are testable in isolation
+- ✅ One plugin per function enables independent scaling and cold start optimization
+- ✅ Multiple plugins per function reduces infrastructure complexity when routes share dependencies
 
 ## Authentication Guards with derive + onBeforeHandle
 
@@ -127,6 +230,7 @@ function getAdminUid(adminToken: DecodedIdToken | undefined): string {
   return adminToken.uid;
 }
 
+// Firebase rewrite: /api/admin/members/** → adminMembersApi function
 export function createAdminMembersPlugin(services?: PartialServices) {
   return new Elysia({ name: "admin-members" })
     .decorate(/* ... */)
@@ -158,15 +262,14 @@ export function createAdminMembersPlugin(services?: PartialServices) {
         return undefined;  // Continue to route handler
       },
     )
-    .group("/admin/members", app =>
-      app.get("/", async ({ adminToken, memberAdminService, logger, set }) =>
-        listMembersLogic({
-          adminUid: getAdminUid(adminToken),  // Safe - guard ensures token exists
-          memberAdminService,
-          logger,
-          set,
-        })
-      )
+    // Routes start from "/" - Firebase provides /api/admin/members prefix
+    .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
+      listMembersLogic({
+        adminUid: getAdminUid(adminToken),  // Safe - guard ensures token exists
+        memberAdminService,
+        logger,
+        set,
+      })
     );
 }
 ```

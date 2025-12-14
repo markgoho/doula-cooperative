@@ -12,7 +12,7 @@ import { createMembersTestPlugin } from "../test-utils/create-members-test-plugi
  * Tests only the members plugin in isolation - no full app composition needed.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("GET /members/:memberId (authenticated)", () => {
+describe("GET /:memberId (authenticated)", () => {
   // Create mock services
   const mockFindById = mock((memberId: string): Promise<MemberDocument> => {
     if (memberId === "test-member-id") {
@@ -74,7 +74,7 @@ describe("GET /members/:memberId (authenticated)", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id"),
+        new Request("http://localhost/test-member-id"),
       )) as Response;
 
       expect(response.status).toBe(401);
@@ -84,7 +84,7 @@ describe("GET /members/:memberId (authenticated)", () => {
 
     it("should return 403 when non-owner tries to access member data", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer non-owner-token",
           },
@@ -98,7 +98,7 @@ describe("GET /members/:memberId (authenticated)", () => {
 
     it("should allow owner to access their own member data", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer valid-owner-token",
           },
@@ -112,7 +112,7 @@ describe("GET /members/:memberId (authenticated)", () => {
 
     it("should allow admin to access any member data", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -128,7 +128,7 @@ describe("GET /members/:memberId (authenticated)", () => {
   describe("Valid member ID", () => {
     it("should return member data when member exists", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer valid-owner-token",
           },
@@ -143,7 +143,7 @@ describe("GET /members/:memberId (authenticated)", () => {
 
     it("should call memberService.findById with correct ID", async () => {
       await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer valid-owner-token",
           },
@@ -165,7 +165,7 @@ describe("GET /members/:memberId (authenticated)", () => {
       );
 
       const response = (await testApp.handle(
-        new Request("http://localhost/members/non-existent-id", {
+        new Request("http://localhost/non-existent-id", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -182,7 +182,7 @@ describe("GET /members/:memberId (authenticated)", () => {
   describe("Input validation", () => {
     it("should reject empty member ID", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/"),
+        new Request("http://localhost/"),
       )) as Response;
 
       expect(response.status).toBe(404);
@@ -191,7 +191,7 @@ describe("GET /members/:memberId (authenticated)", () => {
     it("should reject member IDs longer than 128 characters", async () => {
       const longId = "a".repeat(129);
       const response = (await testApp.handle(
-        new Request(`http://localhost/members/${longId}`),
+        new Request(`http://localhost/${longId}`),
       )) as Response;
 
       expect(response.status).toBe(422);
@@ -202,7 +202,7 @@ describe("GET /members/:memberId (authenticated)", () => {
       mockFindById.mockClear();
 
       await testApp.handle(
-        new Request(`http://localhost/members/${longId}`),
+        new Request(`http://localhost/${longId}`),
       );
 
       // Service should not be called when validation fails before route handler executes
@@ -213,7 +213,7 @@ describe("GET /members/:memberId (authenticated)", () => {
   describe("Edge cases", () => {
     it("should reject member IDs with URL-encoded forward slashes", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/user%2Fwith%2Fslash", {
+        new Request("http://localhost/user%2Fwith%2Fslash", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -228,7 +228,7 @@ describe("GET /members/:memberId (authenticated)", () => {
   describe("Response format", () => {
     it("should return JSON content type", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           headers: {
             Authorization: "Bearer valid-owner-token",
           },
@@ -268,7 +268,7 @@ describe("GET /members/:memberId (authenticated)", () => {
       });
 
       const response = (await testAppWithError.handle(
-        new Request("http://localhost/members/test-id", {
+        new Request("http://localhost/test-id", {
           headers: {
             Authorization: "Bearer valid-owner-token",
           },
@@ -316,7 +316,7 @@ describe("GET /members/:memberId (authenticated)", () => {
       });
 
       const response = (await testAppWithLogger.handle(
-        new Request("http://localhost/members/non-existent-id", {
+        new Request("http://localhost/non-existent-id", {
           headers: {
             Authorization: "Bearer admin-token",
           },

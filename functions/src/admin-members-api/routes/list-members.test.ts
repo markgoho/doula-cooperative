@@ -4,12 +4,13 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for GET /admin/members (list with pagination).
+ * Tests for GET / (list with pagination).
+ * Served at /api/admin/members/ via Firebase rewrite.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("GET /admin/members", () => {
+describe("GET / (list members)", () => {
   const mockMembers: MemberDocument[] = [
     {
       uid: "member-1",
@@ -47,7 +48,7 @@ describe("GET /admin/members", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members"),
+        new Request("http://localhost/"),
       )) as Response;
 
       expect(response.status).toBe(401);
@@ -57,7 +58,7 @@ describe("GET /admin/members", () => {
 
     it("should return 403 when non-admin user tries to access", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members", {
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer non-admin-token",
           },
@@ -71,7 +72,7 @@ describe("GET /admin/members", () => {
 
     it("should allow admin to list members", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members", {
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -85,7 +86,7 @@ describe("GET /admin/members", () => {
   describe("Pagination", () => {
     it("should use default pagination when no query params provided", async () => {
       await testApp.handle(
-        new Request("http://localhost/admin/members", {
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -101,7 +102,7 @@ describe("GET /admin/members", () => {
 
     it("should pass limit and offset to service", async () => {
       await testApp.handle(
-        new Request("http://localhost/admin/members?limit=25&offset=10", {
+        new Request("http://localhost/?limit=25&offset=10", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -117,7 +118,7 @@ describe("GET /admin/members", () => {
 
     it("should reject limit greater than 100", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members?limit=101", {
+        new Request("http://localhost/?limit=101", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -129,7 +130,7 @@ describe("GET /admin/members", () => {
 
     it("should reject negative offset", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members?offset=-1", {
+        new Request("http://localhost/?offset=-1", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -141,7 +142,7 @@ describe("GET /admin/members", () => {
 
     it("should return pagination metadata with hasNext flag", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members?limit=2&offset=0", {
+        new Request("http://localhost/?limit=2&offset=0", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -162,7 +163,7 @@ describe("GET /admin/members", () => {
   describe("Response format", () => {
     it("should return members array with total count", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members", {
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer admin-token",
           },
@@ -181,7 +182,7 @@ describe("GET /admin/members", () => {
 
     it("should convert Timestamp fields to ISO strings", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members", {
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer admin-token",
           },

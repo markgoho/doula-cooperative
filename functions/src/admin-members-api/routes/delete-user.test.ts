@@ -3,12 +3,12 @@ import { ForbiddenError, NotFoundError } from "../../shared-api/errors/http-erro
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for DELETE /admin/members/:memberId.
+ * Tests for DELETE /:memberId.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("DELETE /admin/members/:memberId", () => {
+describe("DELETE /:memberId", () => {
   const mockDeleteUser = mock(
     (memberId: string, requestingAdminUid: string): Promise<void> => {
       if (memberId === requestingAdminUid) {
@@ -43,7 +43,7 @@ describe("DELETE /admin/members/:memberId", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "DELETE",
         }),
       )) as Response;
@@ -55,7 +55,7 @@ describe("DELETE /admin/members/:memberId", () => {
 
     it("should return 403 when non-admin user tries to delete", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer non-admin-token",
@@ -72,7 +72,7 @@ describe("DELETE /admin/members/:memberId", () => {
   describe("Deletion guards", () => {
     it("should prevent self-deletion", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/admin-user", {
+        new Request("http://localhost/admin-user", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer admin-token",
@@ -87,7 +87,7 @@ describe("DELETE /admin/members/:memberId", () => {
 
     it("should prevent deleting other admin users", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/admin-member-id", {
+        new Request("http://localhost/admin-member-id", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer admin-token",
@@ -106,7 +106,7 @@ describe("DELETE /admin/members/:memberId", () => {
   describe("Successful deletion", () => {
     it("should delete user and return success response", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer admin-token",
@@ -125,7 +125,7 @@ describe("DELETE /admin/members/:memberId", () => {
 
     it("should call deleteUser service with admin UID", async () => {
       await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer admin-token",
@@ -142,7 +142,7 @@ describe("DELETE /admin/members/:memberId", () => {
   describe("Error handling", () => {
     it("should return 404 when member not found", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/non-existent-id", {
+        new Request("http://localhost/non-existent-id", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer admin-token",

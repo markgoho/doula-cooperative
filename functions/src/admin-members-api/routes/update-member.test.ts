@@ -5,12 +5,12 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for PATCH /admin/members/:memberId.
+ * Tests for PATCH /:memberId.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("PATCH /admin/members/:memberId", () => {
+describe("PATCH /:memberId", () => {
   const mockUpdateMember = mock(
     (
       memberId: string,
@@ -56,7 +56,7 @@ describe("PATCH /admin/members/:memberId", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: "New Name" }),
@@ -70,7 +70,7 @@ describe("PATCH /admin/members/:memberId", () => {
 
     it("should return 403 when non-admin user tries to update", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -89,7 +89,7 @@ describe("PATCH /admin/members/:memberId", () => {
   describe("Input validation", () => {
     it("should reject updates with invalid email format", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -104,7 +104,7 @@ describe("PATCH /admin/members/:memberId", () => {
 
     it("should reject empty name strings", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +119,7 @@ describe("PATCH /admin/members/:memberId", () => {
 
     it("should reject invalid date-time format", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-id", {
+        new Request("http://localhost/test-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -136,7 +136,7 @@ describe("PATCH /admin/members/:memberId", () => {
   describe("Successful updates", () => {
     it("should update member and return updated document", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -158,7 +158,7 @@ describe("PATCH /admin/members/:memberId", () => {
 
     it("should call updateMember service with correct parameters", async () => {
       await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -185,7 +185,7 @@ describe("PATCH /admin/members/:memberId", () => {
   describe("Error handling", () => {
     it("should return 404 when member not found", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/non-existent-id", {
+        new Request("http://localhost/non-existent-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -206,7 +206,7 @@ describe("PATCH /admin/members/:memberId", () => {
       mockUpdateMember.mockClear();
 
       await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -230,7 +230,7 @@ describe("PATCH /admin/members/:memberId", () => {
   describe("Response format", () => {
     it("should convert Timestamp fields to ISO strings", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/admin/members/test-member-id", {
+        new Request("http://localhost/test-member-id", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

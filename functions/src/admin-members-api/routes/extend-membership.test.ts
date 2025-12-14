@@ -5,12 +5,12 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for POST /admin/members/:memberId/membership/extend.
+ * Tests for POST /:memberId/membership/extend.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /admin/members/:memberId/membership/extend", () => {
+describe("POST /:memberId/membership/extend", () => {
   const mockExtendMembership = mock(
     (memberId: string, newExpirationDate: string): Promise<MemberDocument> => {
       if (memberId === "non-existent-id") {
@@ -40,7 +40,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/extend",
+          "http://localhost/test-id/membership/extend",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -57,7 +57,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     it("should return 403 when non-admin tries to extend", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/extend",
+          "http://localhost/test-id/membership/extend",
           {
             method: "POST",
             headers: {
@@ -79,7 +79,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     it("should require newExpirationDate in request body", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/extend",
+          "http://localhost/test-id/membership/extend",
           {
             method: "POST",
             headers: {
@@ -97,7 +97,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     it("should reject invalid date format", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/extend",
+          "http://localhost/test-id/membership/extend",
           {
             method: "POST",
             headers: {
@@ -118,7 +118,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
       const newDate = "2026-01-01T00:00:00.000Z";
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/extend",
+          "http://localhost/test-id/membership/extend",
           {
             method: "POST",
             headers: {
@@ -139,7 +139,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
       const newDate = "2026-01-01T00:00:00.000Z";
       await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-member-id/membership/extend",
+          "http://localhost/test-member-id/membership/extend",
           {
             method: "POST",
             headers: {
@@ -161,7 +161,7 @@ describe("POST /admin/members/:memberId/membership/extend", () => {
     it("should return 404 for non-existent member", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/non-existent-id/membership/extend",
+          "http://localhost/non-existent-id/membership/extend",
           {
             method: "POST",
             headers: {

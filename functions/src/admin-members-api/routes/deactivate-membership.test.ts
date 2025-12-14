@@ -5,12 +5,12 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for POST /admin/members/:memberId/membership/deactivate.
+ * Tests for POST /:memberId/membership/deactivate.
  *
  * Uses createApp() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /admin/members/:memberId/membership/deactivate", () => {
+describe("POST /:memberId/membership/deactivate", () => {
   const mockDeactivateMembership = mock(
     (memberId: string): Promise<MemberDocument> => {
       if (memberId === "non-existent-id") {
@@ -39,7 +39,7 @@ describe("POST /admin/members/:memberId/membership/deactivate", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/deactivate",
+          "http://localhost/test-id/membership/deactivate",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -53,7 +53,7 @@ describe("POST /admin/members/:memberId/membership/deactivate", () => {
     it("should return 403 when non-admin tries to deactivate", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/deactivate",
+          "http://localhost/test-id/membership/deactivate",
           {
             method: "POST",
             headers: {
@@ -72,7 +72,7 @@ describe("POST /admin/members/:memberId/membership/deactivate", () => {
     it("should deactivate membership successfully", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-id/membership/deactivate",
+          "http://localhost/test-id/membership/deactivate",
           {
             method: "POST",
             headers: {
@@ -95,7 +95,7 @@ describe("POST /admin/members/:memberId/membership/deactivate", () => {
     it("should call deactivateMembership service with correct ID", async () => {
       await testApp.handle(
         new Request(
-          "http://localhost/admin/members/test-member-id/membership/deactivate",
+          "http://localhost/test-member-id/membership/deactivate",
           {
             method: "POST",
             headers: {
@@ -116,7 +116,7 @@ describe("POST /admin/members/:memberId/membership/deactivate", () => {
     it("should return 404 for non-existent member", async () => {
       const response = (await testApp.handle(
         new Request(
-          "http://localhost/admin/members/non-existent-id/membership/deactivate",
+          "http://localhost/non-existent-id/membership/deactivate",
           {
             method: "POST",
             headers: {

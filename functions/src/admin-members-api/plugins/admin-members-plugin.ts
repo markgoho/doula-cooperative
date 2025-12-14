@@ -57,10 +57,13 @@ function getAdminUid(
  * Create admin members plugin with centralized authentication guard.
  * All routes in this plugin require admin privileges.
  *
+ * Firebase rewrite: /api/admin/members/** → adminMembersApi function
+ * Plugin routes start from "/" - Firebase already provides /api/admin/members prefix
+ *
  * Routes are organized hierarchically:
- * - /admin/members           - List all members
- * - /admin/members/:memberId - Member-specific operations
- *   - /membership/*          - Membership management
+ * - /                  - List all members (served at /api/admin/members/)
+ * - /:memberId         - Member-specific operations (served at /api/admin/members/:memberId)
+ *   - /membership/*    - Membership management
  *
  * @param services - Optional services to inject (defaults to real implementations)
  * @returns Configured Elysia plugin with admin routes
@@ -118,28 +121,62 @@ export function createAdminMembersPlugin(services?: PartialServices) {
         return undefined;
       },
     )
-    .group("/admin/members", app =>
+    // GET / - List all members (served at /api/admin/members/)
+    .get(
+      "/",
+      async ({ query, adminToken, memberAdminService, logger, set }) =>
+        listMembersLogic({
+          ...(query.limit !== undefined && { limit: query.limit }),
+          ...(query.offset !== undefined && { offset: query.offset }),
+          adminUid: getAdminUid(adminToken, logger),
+          memberAdminService,
+          logger,
+          set,
+        }),
+      { query: PaginationQuerySchema },
+    )
+    // Member-specific routes under /:memberId (served at /api/admin/members/:memberId)
+    .group("/:memberId", { params: MemberIdParameterSchema }, app =>
       app
-        // GET /admin/members - List all members
-        .get(
+        // PATCH /:memberId - Update member (served at /api/admin/members/:memberId)
+        .patch(
           "/",
-          async ({ query, adminToken, memberAdminService, logger, set }) =>
-            listMembersLogic({
-              ...(query.limit !== undefined && { limit: query.limit }),
-              ...(query.offset !== undefined && { offset: query.offset }),
+          async ({
+            params,
+            body,
+            adminToken,
+            memberAdminService,
+            logger,
+            set,
+          }) =>
+            updateMemberLogic({
+              memberId: params.memberId,
+              updates: body,
               adminUid: getAdminUid(adminToken, logger),
               memberAdminService,
               logger,
               set,
             }),
-          { query: PaginationQuerySchema },
+          { body: UpdateMemberBodySchema },
         )
-        // Member-specific routes under /:memberId
-        .group("/:memberId", { params: MemberIdParameterSchema }, app =>
+        // DELETE /:memberId - Delete user (served at /api/admin/members/:memberId)
+        .delete(
+          "/",
+          async ({ params, adminToken, memberAdminService, logger, set }) =>
+            deleteUserLogic({
+              memberId: params.memberId,
+              adminUid: getAdminUid(adminToken, logger),
+              memberAdminService,
+              logger,
+              set,
+            }),
+        )
+        // Membership management routes under /:memberId/membership
+        .group("/membership", app =>
           app
-            // PATCH /admin/members/:memberId - Update member
-            .patch(
-              "/",
+            // POST /:memberId/membership/activate (served at /api/admin/members/:memberId/membership/activate)
+            .post(
+              "/activate",
               async ({
                 params,
                 body,
@@ -147,22 +184,35 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 memberAdminService,
                 logger,
                 set,
+              }) => {
+                const typedBody = body as { subscriptionStart?: string; membershipExpiresAt?: string } | undefined;
+                return activateMembershipLogic({
+                  memberId: params.memberId,
+                  ...(typedBody?.subscriptionStart !== undefined && {
+                    subscriptionStart: typedBody.subscriptionStart,
+                  }),
+                  ...(typedBody?.membershipExpiresAt !== undefined && {
+                    membershipExpiresAt: typedBody.membershipExpiresAt,
+                  }),
+                  adminUid: getAdminUid(adminToken, logger),
+                  memberAdminService,
+                  logger,
+                  set,
+                });
+              },
+              { body: ActivateMembershipBodySchema },
+            )
+            // POST /:memberId/membership/deactivate (served at /api/admin/members/:memberId/membership/deactivate)
+            .post(
+              "/deactivate",
+              async ({
+                params,
+                adminToken,
+                memberAdminService,
+                logger,
+                set,
               }) =>
-                updateMemberLogic({
-                  memberId: params.memberId,
-                  updates: body,
-                  adminUid: getAdminUid(adminToken, logger),
-                  memberAdminService,
-                  logger,
-                  set,
-                }),
-              { body: UpdateMemberBodySchema },
-            )
-            // DELETE /admin/members/:memberId - Delete user
-            .delete(
-              "/",
-              async ({ params, adminToken, memberAdminService, logger, set }) =>
-                deleteUserLogic({
+                deactivateMembershipLogic({
                   memberId: params.memberId,
                   adminUid: getAdminUid(adminToken, logger),
                   memberAdminService,
@@ -170,78 +220,28 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   set,
                 }),
             )
-            // Membership management routes under /membership
-            .group("/membership", app =>
-              app
-                // POST /admin/members/:memberId/membership/activate
-                .post(
-                  "/activate",
-                  async ({
-                    params,
-                    body,
-                    adminToken,
-                    memberAdminService,
-                    logger,
-                    set,
-                  }) => {
-                    const typedBody = body as { subscriptionStart?: string; membershipExpiresAt?: string } | undefined;
-                    return activateMembershipLogic({
-                      memberId: params.memberId,
-                      ...(typedBody?.subscriptionStart !== undefined && {
-                        subscriptionStart: typedBody.subscriptionStart,
-                      }),
-                      ...(typedBody?.membershipExpiresAt !== undefined && {
-                        membershipExpiresAt: typedBody.membershipExpiresAt,
-                      }),
-                      adminUid: getAdminUid(adminToken, logger),
-                      memberAdminService,
-                      logger,
-                      set,
-                    });
-                  },
-                  { body: ActivateMembershipBodySchema },
-                )
-                // POST /admin/members/:memberId/membership/deactivate
-                .post(
-                  "/deactivate",
-                  async ({
-                    params,
-                    adminToken,
-                    memberAdminService,
-                    logger,
-                    set,
-                  }) =>
-                    deactivateMembershipLogic({
-                      memberId: params.memberId,
-                      adminUid: getAdminUid(adminToken, logger),
-                      memberAdminService,
-                      logger,
-                      set,
-                    }),
-                )
-                // POST /admin/members/:memberId/membership/extend
-                .post(
-                  "/extend",
-                  async ({
-                    params,
-                    body,
-                    adminToken,
-                    memberAdminService,
-                    logger,
-                    set,
-                  }) => {
-                    const typedBody = body as { newExpirationDate: string };
-                    return extendMembershipLogic({
-                      memberId: params.memberId,
-                      newExpirationDate: typedBody.newExpirationDate,
-                      adminUid: getAdminUid(adminToken, logger),
-                      memberAdminService,
-                      logger,
-                      set,
-                    });
-                  },
-                  { body: ExtendMembershipBodySchema },
-                ),
+            // POST /:memberId/membership/extend (served at /api/admin/members/:memberId/membership/extend)
+            .post(
+              "/extend",
+              async ({
+                params,
+                body,
+                adminToken,
+                memberAdminService,
+                logger,
+                set,
+              }) => {
+                const typedBody = body as { newExpirationDate: string };
+                return extendMembershipLogic({
+                  memberId: params.memberId,
+                  newExpirationDate: typedBody.newExpirationDate,
+                  adminUid: getAdminUid(adminToken, logger),
+                  memberAdminService,
+                  logger,
+                  set,
+                });
+              },
+              { body: ExtendMembershipBodySchema },
             ),
         ),
     );
