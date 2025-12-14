@@ -1,6 +1,6 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../errors/http-error.js";
 import type { Logger } from "../../handler.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 import {
   toMemberResponse,
   type ListMembersResponse,
@@ -29,17 +29,17 @@ export async function listMembersLogic({
   set: { status?: number | string };
 }): Promise<ListMembersResponse | { error: string }> {
   try {
-    // Audit log successful access
+    const { members, total } = await memberAdminService.listMembers({
+      ...(limit !== undefined && { limit }),
+      ...(offset !== undefined && { offset }),
+      logger,
+    });
+
     logger.info("Admin listed members", {
       adminUid,
       limit,
       offset,
-    });
-
-    // Fetch member list
-    const { members, total } = await memberAdminService.listMembers({
-      ...(limit !== undefined && { limit }),
-      ...(offset !== undefined && { offset }),
+      resultCount: members.length,
     });
 
     // Calculate pagination metadata
@@ -57,26 +57,13 @@ export async function listMembersLogic({
       },
     };
   } catch (error) {
-    // Handle our custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode;
-      return { error: error.message };
-    }
-
-    // Log unexpected errors with context
-    const errorContext = {
-      errorId: ERROR_IDS.API_ADMIN_LIST_MEMBERS_FAILED,
+    return handleRouteError({
       error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      limit,
-      offset,
-    };
-
-    logger.error("Failed to list members", errorContext);
-
-    set.status = 500;
-    return { error: "Failed to list members" };
+      operation: "list members",
+      errorId: ERROR_IDS.API_ADMIN_LIST_MEMBERS_FAILED,
+      logger,
+      set,
+      context: { limit, offset },
+    });
   }
 }

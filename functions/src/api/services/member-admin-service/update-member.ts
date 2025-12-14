@@ -1,7 +1,10 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../../collections/index.js";
 import type { MemberDocument } from "../../../types/member-document.js";
 import { ValidationError } from "../../errors/http-error.js";
+import {
+  validateAndConvertDate,
+  validateMembershipDates,
+} from "../../utils/date-validator.js";
+import { updateMemberWithValidation } from "../../utils/firestore-helpers.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**
@@ -26,10 +29,8 @@ export async function updateMember(
     slug?: string;
   },
 ): Promise<MemberDocument> {
-  // Verify member exists first
   await verifyMemberExists(memberId);
 
-  // Prevent updating protected fields
   const protectedFields = ["uid", "createdAt"];
   for (const field of protectedFields) {
     if (field in updates) {
@@ -37,40 +38,35 @@ export async function updateMember(
     }
   }
 
-  // Convert date strings to Timestamps and build Firestore update
+  validateMembershipDates(
+    updates.subscriptionStart,
+    updates.membershipExpiresAt,
+  );
+
   const processedUpdates: Partial<MemberDocument> = {};
 
-  // Copy non-date fields
   if (updates.name !== undefined) processedUpdates.name = updates.name;
   if (updates.email !== undefined) processedUpdates.email = updates.email;
   if (updates.membershipActive !== undefined)
     processedUpdates.membershipActive = updates.membershipActive;
   if (updates.slug !== undefined) processedUpdates.slug = updates.slug;
 
-  // Convert date strings to Timestamps
   if (updates.subscriptionStart !== undefined) {
-    processedUpdates.subscriptionStart = Timestamp.fromDate(
-      new Date(updates.subscriptionStart),
+    processedUpdates.subscriptionStart = validateAndConvertDate(
+      updates.subscriptionStart,
+      "subscriptionStart",
     );
   }
   if (updates.membershipExpiresAt !== undefined) {
-    processedUpdates.membershipExpiresAt = Timestamp.fromDate(
-      new Date(updates.membershipExpiresAt),
+    processedUpdates.membershipExpiresAt = validateAndConvertDate(
+      updates.membershipExpiresAt,
+      "membershipExpiresAt",
     );
   }
 
-  const firestore = getFirestore();
-  const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(memberId);
-
-  // Update the document
-  await memberReference.update(processedUpdates);
-
-  // Fetch and return the updated document
-  const updatedDocument = await memberReference.get();
-  const data = updatedDocument.data() as MemberDocument;
-
-  return {
-    ...data,
-    uid: updatedDocument.id,
-  };
+  return updateMemberWithValidation({
+    memberId,
+    updates: processedUpdates,
+    operation: "update member",
+  });
 }

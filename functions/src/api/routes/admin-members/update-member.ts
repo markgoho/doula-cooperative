@@ -1,6 +1,6 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../errors/http-error.js";
 import type { Logger } from "../../handler.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
@@ -30,38 +30,23 @@ export async function updateMemberLogic({
   set: { status?: number | string };
 }): Promise<MemberSuccessResponse | { error: string }> {
   try {
-    // Audit log successful access
+    const member = await memberAdminService.updateMember(memberId, updates);
+
     logger.info("Admin updated member", {
       adminUid,
       targetMemberId: memberId,
       updatedFields: Object.keys(updates),
     });
 
-    // Update member
-    const member = await memberAdminService.updateMember(memberId, updates);
-
     return { success: true, member: toMemberResponse(member) };
   } catch (error) {
-    // Handle our custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode;
-      return { error: error.message };
-    }
-
-    // Log unexpected errors with context
-    const errorContext = {
-      errorId: ERROR_IDS.API_ADMIN_UPDATE_MEMBER_FAILED,
+    return handleRouteError({
       error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      memberId,
-      updateFields: Object.keys(updates),
-    };
-
-    logger.error("Failed to update member", errorContext);
-
-    set.status = 500;
-    return { error: "Failed to update member" };
+      operation: "update member",
+      errorId: ERROR_IDS.API_ADMIN_UPDATE_MEMBER_FAILED,
+      logger,
+      set,
+      context: { memberId, updateFields: Object.keys(updates) },
+    });
   }
 }

@@ -1,7 +1,9 @@
 import { Elysia } from "elysia";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { HttpError } from "../errors/http-error.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
+import { AuthError, HttpError } from "../errors/http-error.js";
+import type { Logger } from "../handler.js";
 import {
   activateMembershipLogic,
   deactivateMembershipLogic,
@@ -32,12 +34,21 @@ interface AuthResult {
 }
 
 /**
- * Extract admin UID from token, throwing if token is missing.
- * This should never throw in practice since onBeforeHandle validates the token.
+ * Extract admin UID from token. Assumes onBeforeHandle guard validated the token.
+ * @throws AuthError if adminToken is undefined
  */
-function getAdminUid(adminToken: DecodedIdToken | undefined): string {
+function getAdminUid(
+  adminToken: DecodedIdToken | undefined,
+  logger: Logger,
+): string {
   if (!adminToken) {
-    throw new Error("Admin token missing - this should not happen");
+    logger.error("Admin token missing in route handler", {
+      errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
+      message: "This indicates a bug in the authentication guard",
+    });
+    throw new AuthError(
+      "Authentication token missing. This is a server error, please try again.",
+    );
   }
   return adminToken.uid;
 }
@@ -62,7 +73,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
     )
     .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-    .derive(async ({ request, authService }): Promise<AuthResult> => {
+    .derive(async ({ request, authService, logger }): Promise<AuthResult> => {
       const authorizationHeader =
         request.headers.get("authorization") ?? undefined;
       try {
@@ -72,9 +83,24 @@ export function createAdminMembersPlugin(services?: PartialServices) {
         if (error instanceof HttpError) {
           return { adminToken: undefined, authError: error };
         }
+
+        logger.error("Unexpected error during admin authentication", {
+          errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
+          error,
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          errorStack: error instanceof Error ? error.stack : undefined,
+          errorType: error?.constructor?.name,
+          hasAuthHeader: Boolean(authorizationHeader),
+        });
+
+        const infrastructureError = new HttpError(
+          "Authentication service temporarily unavailable. Please try again.",
+          503,
+        );
         return {
           adminToken: undefined,
-          authError: new HttpError("Authentication failed", 401),
+          authError: infrastructureError,
         };
       }
     })
@@ -101,7 +127,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
             listMembersLogic({
               ...(query.limit !== undefined && { limit: query.limit }),
               ...(query.offset !== undefined && { offset: query.offset }),
-              adminUid: getAdminUid(adminToken),
+              adminUid: getAdminUid(adminToken, logger),
               memberAdminService,
               logger,
               set,
@@ -125,7 +151,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 updateMemberLogic({
                   memberId: params.memberId,
                   updates: body,
-                  adminUid: getAdminUid(adminToken),
+                  adminUid: getAdminUid(adminToken, logger),
                   memberAdminService,
                   logger,
                   set,
@@ -138,7 +164,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               async ({ params, adminToken, memberAdminService, logger, set }) =>
                 deleteUserLogic({
                   memberId: params.memberId,
-                  adminUid: getAdminUid(adminToken),
+                  adminUid: getAdminUid(adminToken, logger),
                   memberAdminService,
                   logger,
                   set,
@@ -166,7 +192,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                       ...(body?.membershipExpiresAt !== undefined && {
                         membershipExpiresAt: body.membershipExpiresAt,
                       }),
-                      adminUid: getAdminUid(adminToken),
+                      adminUid: getAdminUid(adminToken, logger),
                       memberAdminService,
                       logger,
                       set,
@@ -185,7 +211,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   }) =>
                     deactivateMembershipLogic({
                       memberId: params.memberId,
-                      adminUid: getAdminUid(adminToken),
+                      adminUid: getAdminUid(adminToken, logger),
                       memberAdminService,
                       logger,
                       set,
@@ -205,7 +231,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     extendMembershipLogic({
                       memberId: params.memberId,
                       newExpirationDate: body.newExpirationDate,
-                      adminUid: getAdminUid(adminToken),
+                      adminUid: getAdminUid(adminToken, logger),
                       memberAdminService,
                       logger,
                       set,

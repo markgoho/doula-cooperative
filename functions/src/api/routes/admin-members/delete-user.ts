@@ -1,6 +1,6 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../errors/http-error.js";
 import type { Logger } from "../../handler.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 import { type DeleteUserResponse } from "../../schemas/member-schemas.js";
 import type { MemberAdminService } from "../../services/service-interfaces.js";
 
@@ -35,25 +35,13 @@ export async function deleteUserLogic({
 
     return { success: true, deletedUid: memberId };
   } catch (error) {
-    // Handle our custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode;
-      return { error: error.message };
-    }
-
-    // Log unexpected errors with context
-    const errorContext = {
-      errorId: ERROR_IDS.API_ADMIN_DELETE_USER_FAILED,
+    return handleRouteError({
       error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      memberId,
-    };
-
-    logger.error("Failed to delete user", errorContext);
-
-    set.status = 500;
-    return { error: "Failed to delete user" };
+      operation: "delete user",
+      errorId: ERROR_IDS.API_ADMIN_DELETE_USER_FAILED,
+      logger,
+      set,
+      context: { memberId },
+    });
   }
 }

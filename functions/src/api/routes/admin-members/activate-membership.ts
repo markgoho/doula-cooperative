@@ -1,6 +1,6 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../errors/http-error.js";
 import type { Logger } from "../../handler.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
@@ -31,41 +31,27 @@ export async function activateMembershipLogic({
   set: { status?: number | string };
 }): Promise<MemberSuccessResponse | { error: string }> {
   try {
-    // Audit log successful access
-    logger.info("Admin activated membership", {
-      adminUid,
-      targetMemberId: memberId,
-      subscriptionStart,
-      membershipExpiresAt,
-    });
-
-    // Activate membership
     const member = await memberAdminService.activateMembership(memberId, {
       ...(subscriptionStart !== undefined && { subscriptionStart }),
       ...(membershipExpiresAt !== undefined && { membershipExpiresAt }),
     });
 
+    logger.info("Admin activated membership", {
+      adminUid,
+      targetMemberId: memberId,
+      subscriptionStart: member.subscriptionStart,
+      membershipExpiresAt: member.membershipExpiresAt,
+    });
+
     return { success: true, member: toMemberResponse(member) };
   } catch (error) {
-    // Handle our custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode;
-      return { error: error.message };
-    }
-
-    // Log unexpected errors with context
-    const errorContext = {
-      errorId: ERROR_IDS.API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED,
+    return handleRouteError({
       error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      memberId,
-    };
-
-    logger.error("Failed to activate membership", errorContext);
-
-    set.status = 500;
-    return { error: "Failed to activate membership" };
+      operation: "activate membership",
+      errorId: ERROR_IDS.API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED,
+      logger,
+      set,
+      context: { memberId },
+    });
   }
 }

@@ -1,5 +1,6 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { Logger } from "../handler.js";
 
 /**
  * Service interface for member-related operations.
@@ -78,6 +79,7 @@ export interface MemberAdminService {
   listMembers(options: {
     limit?: number;
     offset?: number;
+    logger: Logger;
   }): Promise<{
     members: MemberDocument[];
     total: number;
@@ -153,8 +155,5 @@ export interface MemberAdminService {
    * @throws NotFoundError if user does not exist
    * @throws ForbiddenError if trying to delete self or another admin
    */
-  deleteUser(
-    memberId: string,
-    requestingAdminUid: string,
-  ): Promise<void>;
+  deleteUser(memberId: string, requestingAdminUid: string): Promise<void>;
 }

@@ -1,16 +1,31 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { MEMBERS_COLLECTION } from "../../../collections/index.js";
 import type { MemberDocument } from "../../../types/member-document.js";
+import {
+  validateAndConvertDate,
+  validateMembershipDates,
+} from "../../utils/date-validator.js";
+import {
+  handleFirestoreError,
+  validateDocumentData,
+  validateRequiredFields,
+} from "../../utils/firestore-error-handler.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**
  * Activate a membership with optional start and expiration dates.
- * Defaults: subscriptionStart = now, membershipExpiresAt = +1 year
+ *
+ * Default membership period is 1 year (365 days) from start date.
+ * This aligns with the annual subscription model in Stripe checkout.
+ * For leap years or subscription alignment, custom dates should be provided.
  *
  * @param memberId - The Firestore document ID
- * @param options - Optional subscription start and expiration dates (ISO 8601)
+ * @param options - Optional subscription start and expiration dates
+ *   Format: ISO 8601 with time and timezone (e.g., "2025-01-01T00:00:00.000Z")
+ *   Timezone: Will be parsed by JavaScript Date constructor, recommend UTC (Z suffix)
  * @returns Promise resolving to updated member document
  * @throws NotFoundError if member does not exist
+ * @throws ValidationError if dates are invalid or in wrong order
  */
 export async function activateMembership(
   memberId: string,
@@ -19,33 +34,53 @@ export async function activateMembership(
     membershipExpiresAt?: string;
   },
 ): Promise<MemberDocument> {
-  // Verify member exists first
   await verifyMemberExists(memberId);
 
-  // Use provided dates or defaults
+  validateMembershipDates(
+    options?.subscriptionStart,
+    options?.membershipExpiresAt,
+  );
+
   const startDate = options?.subscriptionStart
-    ? Timestamp.fromDate(new Date(options.subscriptionStart))
+    ? validateAndConvertDate(options.subscriptionStart, "subscriptionStart")
     : Timestamp.now();
 
   const expiresAt = options?.membershipExpiresAt
-    ? Timestamp.fromDate(new Date(options.membershipExpiresAt))
-    : Timestamp.fromDate(
-        new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // One year from now
-      );
+    ? validateAndConvertDate(options.membershipExpiresAt, "membershipExpiresAt")
+    : Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
 
   const firestore = getFirestore();
-  const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(memberId);
+  const memberReference = firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(memberId);
 
-  // Update the member document
-  await memberReference.update({
-    membershipActive: true,
-    subscriptionStart: startDate,
-    membershipExpiresAt: expiresAt,
-  });
+  try {
+    await memberReference.update({
+      membershipActive: true,
+      subscriptionStart: startDate,
+      membershipExpiresAt: expiresAt,
+    });
+  } catch (error) {
+    handleFirestoreError(error, "activate membership", memberId);
+  }
 
-  // Fetch and return the updated document
   const updatedDocument = await memberReference.get();
-  const data = updatedDocument.data() as MemberDocument;
+  const data = validateDocumentData<MemberDocument>(
+    updatedDocument as {
+      exists: boolean;
+      data: () => MemberDocument | undefined;
+      id: string;
+    },
+    "Member",
+    memberId,
+  );
+
+  validateRequiredFields(
+    data as unknown as Record<string, unknown>,
+    ["email", "createdAt"],
+    "Member",
+    memberId,
+  );
 
   return {
     ...data,

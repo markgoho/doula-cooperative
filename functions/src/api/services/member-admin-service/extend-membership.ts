@@ -1,7 +1,6 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../../collections/index.js";
 import type { MemberDocument } from "../../../types/member-document.js";
-import { ValidationError } from "../../errors/http-error.js";
+import { validateAndConvertDate } from "../../utils/date-validator.js";
+import { updateMemberWithValidation } from "../../utils/firestore-helpers.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**
@@ -17,31 +16,18 @@ export async function extendMembership(
   memberId: string,
   newExpirationDate: string,
 ): Promise<MemberDocument> {
-  // Verify member exists first
   await verifyMemberExists(memberId);
 
-  // Validate and convert date
-  const date = new Date(newExpirationDate);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError("Invalid date format for newExpirationDate");
-  }
+  const expiresAt = validateAndConvertDate(
+    newExpirationDate,
+    "newExpirationDate",
+  );
 
-  const expiresAt = Timestamp.fromDate(date);
-
-  const firestore = getFirestore();
-  const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(memberId);
-
-  // Update the member document
-  await memberReference.update({
-    membershipExpiresAt: expiresAt,
+  return updateMemberWithValidation({
+    memberId,
+    updates: {
+      membershipExpiresAt: expiresAt,
+    },
+    operation: "extend membership",
   });
-
-  // Fetch and return the updated document
-  const updatedDocument = await memberReference.get();
-  const data = updatedDocument.data() as MemberDocument;
-
-  return {
-    ...data,
-    uid: updatedDocument.id,
-  };
 }

@@ -94,7 +94,9 @@ describe("GET /admin/members", () => {
 
       // Should call service with no limit/offset (defaults handled by service)
       expect(mockListMembers).toHaveBeenCalledTimes(1);
-      expect(mockListMembers).toHaveBeenCalledWith({});
+      expect(mockListMembers).toHaveBeenCalledWith({
+        logger: expect.any(Object) as unknown,
+      });
     });
 
     it("should pass limit and offset to service", async () => {
@@ -109,6 +111,7 @@ describe("GET /admin/members", () => {
       expect(mockListMembers).toHaveBeenCalledWith({
         limit: 25,
         offset: 10,
+        logger: expect.any(Object) as unknown,
       });
     });
 

@@ -1,6 +1,6 @@
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../errors/http-error.js";
 import type { Logger } from "../../handler.js";
+import { handleRouteError } from "../../utils/route-error-handler.js";
 import {
   toMemberResponse,
   type MemberSuccessResponse,
@@ -27,36 +27,22 @@ export async function deactivateMembershipLogic({
   set: { status?: number | string };
 }): Promise<MemberSuccessResponse | { error: string }> {
   try {
-    // Audit log successful access
+    const member = await memberAdminService.deactivateMembership(memberId);
+
     logger.info("Admin deactivated membership", {
       adminUid,
       targetMemberId: memberId,
     });
 
-    // Deactivate membership
-    const member = await memberAdminService.deactivateMembership(memberId);
-
     return { success: true, member: toMemberResponse(member) };
   } catch (error) {
-    // Handle our custom HTTP errors
-    if (error instanceof HttpError) {
-      set.status = error.statusCode;
-      return { error: error.message };
-    }
-
-    // Log unexpected errors with context
-    const errorContext = {
-      errorId: ERROR_IDS.API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED,
+    return handleRouteError({
       error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      memberId,
-    };
-
-    logger.error("Failed to deactivate membership", errorContext);
-
-    set.status = 500;
-    return { error: "Failed to deactivate membership" };
+      operation: "deactivate membership",
+      errorId: ERROR_IDS.API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED,
+      logger,
+      set,
+      context: { memberId },
+    });
   }
 }
