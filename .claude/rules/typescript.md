@@ -8,3 +8,4 @@ paths: *.ts
 - with `exactOptionalPropertyTypes: true`, use spread operators to forward optional properties: `...(value !== undefined && { key: value })` instead of passing `{ key: value }` where value may be undefined
 - use direct re-exports (`export { foo } from "./foo.js"`) instead of import-then-export to satisfy `unicorn/prefer-export-from` rule
 - modules should only export a single function
+- disabling eslint rules should be an absolutely last resort, consider other solutions before disabling a rule
