@@ -1,0 +1,9 @@
+{
+  "name": "auto-lint",
+  "version": "0.1.0",
+  "description": "Automatically runs lint:fix after editing TypeScript files in the doula-cooperative project",
+  "author": {
+    "name": "Mark Goho",
+    "email": "markgoho@gmail.com"
+  }
+}

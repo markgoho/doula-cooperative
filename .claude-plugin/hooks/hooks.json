@@ -1,0 +1,17 @@
+{
+  "description": "Auto-lint TypeScript files after editing",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You just completed a Write or Edit operation. Analyze the following:\n\n1. Check if the modified file is a TypeScript file (.ts extension)\n2. Evaluate whether this appears to be a logical stopping point (completed a feature, fixed a bug, finished refactoring) rather than mid-work (rapid iteration, incomplete changes)\n3. If BOTH conditions are true:\n   - Determine which directory the file is in:\n     * If in functions/ directory: run 'cd functions && bun run lint'\n     * If in members/ directory: run 'cd members && bun run lint'\n     * Otherwise: run 'bun run lint'\n   - Use the Bash tool to run the appropriate command\n   - If the command succeeds, briefly report what was fixed (if anything)\n   - If the command fails, report the error\n4. If either condition is false, do nothing (no output needed)\n\nTool information:\n- Tool name: $TOOL_NAME\n- File path: $TOOL_INPUT\n\nBe concise in your output. Only speak up if you ran lint and found issues to fix.",
+            "timeout": 45
+          }
+        ]
+      }
+    ]
+  }
+}
