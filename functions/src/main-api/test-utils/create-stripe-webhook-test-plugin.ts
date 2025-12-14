@@ -22,7 +22,7 @@ export function createStripeWebhookTestPlugin(overrides?: {
         customer_details: { email: "test@example.com" },
       }),
     ),
-    checkIdempotency: mock(() => Promise.resolve({ shouldProcess: true })),
+    isEventProcessed: mock(() => Promise.resolve(false)),
     markEventProcessed: mock(() => Promise.resolve(true)), // Returns true = event was newly marked
     processCheckoutCompleted: mock(() =>
       Promise.resolve({
