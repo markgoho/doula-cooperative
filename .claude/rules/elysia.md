@@ -1,5 +1,5 @@
 ---
-paths: functions/src/api/**.ts
+paths: functions/src/**/*-api/**/*.ts
 ---
 
 # Elysia.js API Patterns
@@ -24,18 +24,20 @@ Each Elysia plugin is deployed as a **separate Firebase Function** with its own 
 ```json
 // firebase.json
 {
-  "hosting": [{
-    "rewrites": [
-      {
-        "source": "/api/members/**",
-        "function": "membersApi"
-      },
-      {
-        "source": "/api/admin/members/**",
-        "function": "adminMembersApi"
-      }
-    ]
-  }]
+  "hosting": [
+    {
+      "rewrites": [
+        {
+          "source": "/api/members/**",
+          "function": "membersApi"
+        },
+        {
+          "source": "/api/admin/members/**",
+          "function": "adminMembersApi"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -45,18 +47,17 @@ Each Elysia plugin is deployed as a **separate Firebase Function** with its own 
 // ✅ CORRECT - Plugin defines route from its "root"
 // Firebase serves this at /api/members/:memberId
 export function createMembersPlugin() {
-  return new Elysia({ name: "members" })
-    .get("/:memberId", handler);  // NOT /members/:memberId
+  return new Elysia({ name: "members" }).get("/:memberId", handler); // NOT /members/:memberId
 }
 
 // ❌ WRONG - Don't repeat the Firebase path prefix
 export function createMembersPlugin() {
-  return new Elysia({ name: "members" })
-    .get("/members/:memberId", handler);  // Would become /api/members/members/:memberId
+  return new Elysia({ name: "members" }).get("/members/:memberId", handler); // Would become /api/members/members/:memberId
 }
 ```
 
 **Why this pattern:**
+
 - ✅ Each plugin is a separate Cloud Function (better cold start, independent scaling)
 - ✅ Firebase handles routing to the correct function
 - ✅ Plugin routes are clean and relative to their function's base path
@@ -65,6 +66,7 @@ export function createMembersPlugin() {
 ### Complete Routing Flow Examples
 
 **Example 1: Members API**
+
 ```
 User Request:     GET /api/members/user123
                        ↓
@@ -76,6 +78,7 @@ Final Route:      ✅ Successfully handled
 ```
 
 **Example 2: Admin Members API with nested routes**
+
 ```
 User Request:     POST /api/admin/members/user123/membership/activate
                        ↓
@@ -87,6 +90,7 @@ Final Route:      ✅ Successfully handled
 ```
 
 **Example 3: Wrong approach (DON'T DO THIS)**
+
 ```
 User Request:     GET /api/members/user123
                        ↓
@@ -140,21 +144,28 @@ import { Elysia } from "elysia";
 // Firebase rewrite: /api/admin/members/** → adminMembersApi function
 // Plugin routes start from "/" (Firebase already provides /api/admin/members prefix)
 export function createAdminMembersPlugin(services?: PartialServices) {
-  return new Elysia({ name: "admin-members" })
-    .decorate(SERVICE_KEYS.MEMBER_ADMIN_SERVICE, services?.memberAdminService ?? MemberAdminService)
-    .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
-    // Plugin-specific decorations only - don't decorate services other plugins need
-    .get("/", handler)  // Served at /api/admin/members/
-    .group("/:memberId", { params: MemberIdParameterSchema }, app =>
-      app
-        .patch("/", updateHandler)       // Served at /api/admin/members/:memberId
-        .delete("/", deleteHandler)      // Served at /api/admin/members/:memberId
-        .group("/membership", app =>
-          app
-            .post("/activate", activateHandler)      // Served at /api/admin/members/:memberId/membership/activate
-            .post("/deactivate", deactivateHandler)  // Served at /api/admin/members/:memberId/membership/deactivate
-        )
-    );
+  return (
+    new Elysia({ name: "admin-members" })
+      .decorate(
+        SERVICE_KEYS.MEMBER_ADMIN_SERVICE,
+        services?.memberAdminService ?? MemberAdminService,
+      )
+      .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      // Plugin-specific decorations only - don't decorate services other plugins need
+      .get("/", handler) // Served at /api/admin/members/
+      .group("/:memberId", { params: MemberIdParameterSchema }, app =>
+        app
+          .patch("/", updateHandler) // Served at /api/admin/members/:memberId
+          .delete("/", deleteHandler) // Served at /api/admin/members/:memberId
+          .group(
+            "/membership",
+            app =>
+              app
+                .post("/activate", activateHandler) // Served at /api/admin/members/:memberId/membership/activate
+                .post("/deactivate", deactivateHandler), // Served at /api/admin/members/:memberId/membership/deactivate
+          ),
+      )
+  );
 }
 ```
 
@@ -167,8 +178,8 @@ export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .get("/health", () => healthRoute())
-    .use(createContactUsFormPlugin(services))     // Served at /main-api/contact-us-form
-    .use(createDoulaMatchFormPlugin(services));   // Served at /main-api/doula-match-form
+    .use(createContactUsFormPlugin(services)) // Served at /main-api/contact-us-form
+    .use(createDoulaMatchFormPlugin(services)); // Served at /main-api/doula-match-form
 }
 ```
 
@@ -180,7 +191,7 @@ export function createApp(services?: PartialServices) {
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-    .use(createMembersPlugin(services));  // Routes start from /
+    .use(createMembersPlugin(services)); // Routes start from /
 }
 
 // admin-members-api/app.ts - Single plugin, dedicated Firebase Function
@@ -188,11 +199,12 @@ export function createApp(services?: PartialServices) {
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-    .use(createAdminMembersPlugin(services));  // Routes start from /
+    .use(createAdminMembersPlugin(services)); // Routes start from /
 }
 ```
 
 **Benefits of plugin pattern**:
+
 - ✅ Route groups isolated in separate files
 - ✅ Each plugin only decorates its needed services
 - ✅ Nested `.group()` for hierarchical route organization
@@ -215,7 +227,7 @@ import { HttpError } from "../errors/http-error.js";
  * IMPORTANT: Index signature required for Elysia's derive return type.
  */
 interface AuthResult {
-  [key: string]: unknown;  // Required by Elysia's type system
+  [key: string]: unknown; // Required by Elysia's type system
   adminToken: DecodedIdToken | undefined;
   authError: HttpError | undefined;
 }
@@ -232,49 +244,56 @@ function getAdminUid(adminToken: DecodedIdToken | undefined): string {
 
 // Firebase rewrite: /api/admin/members/** → adminMembersApi function
 export function createAdminMembersPlugin(services?: PartialServices) {
-  return new Elysia({ name: "admin-members" })
-    .decorate(/* ... */)
-    // derive() runs first - adds adminToken to context
-    .derive(async ({ request, authService }): Promise<AuthResult> => {
-      const authorizationHeader = request.headers.get("authorization") ?? undefined;
-      try {
-        const token = await authService.verifyAdmin(authorizationHeader);
-        return { adminToken: token, authError: undefined };
-      } catch (error) {
-        if (error instanceof HttpError) {
-          return { adminToken: undefined, authError: error };
+  return (
+    new Elysia({ name: "admin-members" })
+      .decorate(/* ... */)
+      // derive() runs first - adds adminToken to context
+      .derive(async ({ request, authService }): Promise<AuthResult> => {
+        const authorizationHeader =
+          request.headers.get("authorization") ?? undefined;
+        try {
+          const token = await authService.verifyAdmin(authorizationHeader);
+          return { adminToken: token, authError: undefined };
+        } catch (error) {
+          if (error instanceof HttpError) {
+            return { adminToken: undefined, authError: error };
+          }
+          return {
+            adminToken: undefined,
+            authError: new HttpError("Authentication failed", 401),
+          };
         }
-        return { adminToken: undefined, authError: new HttpError("Authentication failed", 401) };
-      }
-    })
-    // onBeforeHandle() runs after derive - blocks unauthorized requests
-    .onBeforeHandle(
-      { as: "local" },  // Only applies to routes in this plugin
-      ({ adminToken, authError, set }): { error: string } | undefined => {
-        if (!adminToken && authError) {
-          set.status = authError.statusCode;  // Preserves 401 vs 403
-          return { error: authError.message };
-        }
-        if (!adminToken) {
-          set.status = 401;
-          return { error: "Unauthorized" };
-        }
-        return undefined;  // Continue to route handler
-      },
-    )
-    // Routes start from "/" - Firebase provides /api/admin/members prefix
-    .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
-      listMembersLogic({
-        adminUid: getAdminUid(adminToken),  // Safe - guard ensures token exists
-        memberAdminService,
-        logger,
-        set,
       })
-    );
+      // onBeforeHandle() runs after derive - blocks unauthorized requests
+      .onBeforeHandle(
+        { as: "local" }, // Only applies to routes in this plugin
+        ({ adminToken, authError, set }): { error: string } | undefined => {
+          if (!adminToken && authError) {
+            set.status = authError.statusCode; // Preserves 401 vs 403
+            return { error: authError.message };
+          }
+          if (!adminToken) {
+            set.status = 401;
+            return { error: "Unauthorized" };
+          }
+          return undefined; // Continue to route handler
+        },
+      )
+      // Routes start from "/" - Firebase provides /api/admin/members prefix
+      .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
+        listMembersLogic({
+          adminUid: getAdminUid(adminToken), // Safe - guard ensures token exists
+          memberAdminService,
+          logger,
+          set,
+        }),
+      )
+  );
 }
 ```
 
 **Why this pattern?**
+
 - ✅ Auth checked once per plugin, not in every route
 - ✅ Route logic functions don't need auth code (DRY)
 - ✅ `derive` adds `adminToken` to context for all routes
@@ -294,7 +313,7 @@ interface AuthResult {
 
 // ✅ CORRECT - Include index signature
 interface AuthResult {
-  [key: string]: unknown;  // Required for Elysia's derive
+  [key: string]: unknown; // Required for Elysia's derive
   adminToken: DecodedIdToken | undefined;
 }
 ```
@@ -308,14 +327,14 @@ With auth handled by the plugin guard, route logic functions are simpler:
 export async function listMembersLogic({
   limit,
   offset,
-  adminUid,        // Already verified by guard
+  adminUid, // Already verified by guard
   memberAdminService,
   logger,
   set,
 }: {
   limit?: number;
   offset?: number;
-  adminUid: string;  // Not optional - guard guarantees it
+  adminUid: string; // Not optional - guard guarantees it
   memberAdminService: MemberAdminService;
   logger: Logger;
   set: { status?: number | string };
@@ -336,12 +355,14 @@ export async function listMembersLogic({
 ```
 
 **What's removed from logic functions when using guards**:
+
 - ❌ `authorizationHeader` parameter
 - ❌ `authService` parameter
 - ❌ `authService.verifyAdmin()` call
 - ❌ Auth error handling (401/403)
 
 **What's added**:
+
 - ✅ `adminUid: string` parameter (already verified)
 
 ## Route Organization
@@ -363,17 +384,21 @@ import { AuthService } from "./services/auth-service.js";
 
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
-    .decorate(SERVICE_KEYS.MEMBER_SERVICE, services?.memberService ?? MemberService)
+    .decorate(
+      SERVICE_KEYS.MEMBER_SERVICE,
+      services?.memberService ?? MemberService,
+    )
     .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
     .get(
       "/members/:memberId",
       async ({ params, memberService, authService, logger, request, set }) =>
         getMemberLogic({
-          memberId: params.memberId,  // Extract specific values
+          memberId: params.memberId, // Extract specific values
           memberService,
           authService,
           logger,
-          authorizationHeader: request.headers.get("authorization") ?? undefined,
+          authorizationHeader:
+            request.headers.get("authorization") ?? undefined,
           set,
         }),
       {
@@ -386,8 +411,14 @@ export function createApp(services?: PartialServices) {
 ```typescript
 // routes/members.ts - Logic function (NOT an HTTP handler)
 import { HttpError } from "../errors/http-error.js";
-import { toMemberResponse, type MemberResponse } from "../schemas/member-schemas.js";
-import type { MemberService, AuthService } from "../services/service-interfaces.js";
+import {
+  toMemberResponse,
+  type MemberResponse,
+} from "../schemas/member-schemas.js";
+import type {
+  MemberService,
+  AuthService,
+} from "../services/service-interfaces.js";
 import type { Logger } from "../handler.js";
 
 export async function getMemberLogic({
@@ -398,7 +429,7 @@ export async function getMemberLogic({
   authorizationHeader,
   set,
 }: {
-  memberId: string;  // Explicit types, no Context coupling
+  memberId: string; // Explicit types, no Context coupling
   memberService: MemberService;
   authService: AuthService;
   logger: Logger;
@@ -406,7 +437,10 @@ export async function getMemberLogic({
   set: { status?: number | string };
 }): Promise<MemberResponse | { error: string }> {
   try {
-    const decodedToken = await authService.verifyOwnerOrAdmin(authorizationHeader, memberId);
+    const decodedToken = await authService.verifyOwnerOrAdmin(
+      authorizationHeader,
+      memberId,
+    );
     const member = await memberService.findById(memberId);
     return toMemberResponse(member);
   } catch (error) {
@@ -421,6 +455,7 @@ export async function getMemberLogic({
 ```
 
 **Why this pattern?**
+
 - ✅ No Context coupling (follows Elysia best practices)
 - ✅ No type assertions needed
 - ✅ Full type safety with explicit types
@@ -459,10 +494,13 @@ import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
 
 export function createApp(services?: PartialServices) {
   return new Elysia({ adapter: node() })
-    .decorate(SERVICE_KEYS.MEMBER_SERVICE, services?.memberService ?? MemberService)
+    .decorate(
+      SERVICE_KEYS.MEMBER_SERVICE,
+      services?.memberService ?? MemberService,
+    )
     .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-    .get("/members/:memberId", (context) => getMember(context));
+    .get("/members/:memberId", context => getMember(context));
 }
 
 // Production uses real services
@@ -485,7 +523,8 @@ export interface RouteContext<TParameters = unknown> {
 }
 
 // Extend with services for all routes
-export type RouteContextWithServices<TParameters = unknown> = RouteContext<TParameters> & Services;
+export type RouteContextWithServices<TParameters = unknown> =
+  RouteContext<TParameters> & Services;
 ```
 
 **Access services in routes**:
@@ -497,10 +536,12 @@ import type { MemberDocument } from "../../types/member-document.js";
 
 export async function getMember({
   params,
-  memberService,  // Injected via decorate
-  logger,         // Injected via decorate
+  memberService, // Injected via decorate
+  logger, // Injected via decorate
   set,
-}: RouteContext<{ memberId: string }>): Promise<MemberDocument | { error: string }> {
+}: RouteContext<{ memberId: string }>): Promise<
+  MemberDocument | { error: string }
+> {
   try {
     return await memberService.findById(params.memberId);
   } catch (error) {
@@ -521,12 +562,16 @@ export async function getMember({
 ```typescript
 // ✅ Correct - Plain object
 export const MemberService = {
-  async findById(id: string) { /* ... */ }
+  async findById(id: string) {
+    /* ... */
+  },
 };
 
 // ❌ Avoid - Class with only static methods (lint error)
 export class MemberService {
-  static async findById(id: string) { /* ... */ }
+  static async findById(id: string) {
+    /* ... */
+  }
 }
 ```
 
@@ -537,7 +582,10 @@ export class MemberService {
 ```typescript
 // errors/http-error.ts
 export class HttpError extends Error {
-  constructor(message: string, public readonly statusCode: number) {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -592,33 +640,26 @@ try {
 import { Elysia, t } from "elysia";
 
 export const app = new Elysia({ adapter: node() })
-  .get(
-    "/members/:memberId",
-    (context) => getMember(context),
-    {
-      params: t.Object({
-        memberId: t.String({
-          minLength: 1,
-          maxLength: 128,
-          description: "The Firestore document ID",
-          error: "Member ID must be a non-empty string",
-        }),
+  .get("/members/:memberId", context => getMember(context), {
+    params: t.Object({
+      memberId: t.String({
+        minLength: 1,
+        maxLength: 128,
+        description: "The Firestore document ID",
+        error: "Member ID must be a non-empty string",
       }),
-    },
-  )
-  .post(
-    "/members",
-    (context) => createMember(context),
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 100 }),
-        email: t.String({ format: "email" }),
-      }),
-    },
-  );
+    }),
+  })
+  .post("/members", context => createMember(context), {
+    body: t.Object({
+      name: t.String({ minLength: 1, maxLength: 100 }),
+      email: t.String({ format: "email" }),
+    }),
+  });
 ```
 
 **Benefits**:
+
 - Automatic validation before handler runs
 - Returns 422 status code on validation failure
 - Type inference from schema
@@ -634,7 +675,7 @@ import { AuthService } from "./services/auth-service/index.js";
 
 export const app = new Elysia({ adapter: node() })
   .decorate(SERVICE_KEYS.AUTH_SERVICE, AuthService)
-  .get("/protected", (context) => protectedRoute(context));
+  .get("/protected", context => protectedRoute(context));
 ```
 
 **Auth service is split into separate files** (one export per module):
@@ -647,7 +688,7 @@ import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { AuthError } from "../../errors/http-error.js";
 
 export async function verifyAuthToken(
-  authorizationHeader: string | undefined
+  authorizationHeader: string | undefined,
 ): Promise<DecodedIdToken> {
   if (!authorizationHeader) {
     throw new AuthError("Missing Authorization header");
@@ -667,23 +708,27 @@ export async function verifyAuthToken(
     return await auth.verifyIdToken(token);
   } catch (error) {
     // Use Firebase error codes, NOT string matching on error messages
-    if (error && typeof error === 'object' && 'code' in error) {
+    if (error && typeof error === "object" && "code" in error) {
       const firebaseError = error as { code: string };
 
       switch (firebaseError.code) {
-        case 'auth/id-token-expired':
+        case "auth/id-token-expired":
           logger.warn("Expired auth token", {
             errorId: ERROR_IDS.API_AUTH_TOKEN_EXPIRED,
             errorCode: firebaseError.code,
           });
-          throw new AuthError("Your session has expired. Please sign in again.");
+          throw new AuthError(
+            "Your session has expired. Please sign in again.",
+          );
 
-        case 'auth/id-token-revoked':
+        case "auth/id-token-revoked":
           logger.warn("Revoked auth token", {
             errorId: ERROR_IDS.API_AUTH_TOKEN_REVOKED,
             errorCode: firebaseError.code,
           });
-          throw new AuthError("Your session has been revoked. Please sign in again.");
+          throw new AuthError(
+            "Your session has been revoked. Please sign in again.",
+          );
 
         // ... handle other error codes
         default:
@@ -742,7 +787,12 @@ export async function getMember({
 }: {
   params: { memberId: string };
   memberService: { findById: (id: string) => Promise<unknown> };
-  authService: { verifyOwnerOrAdmin: (authHeader: string | undefined, resourceUid: string) => Promise<{ uid: string }> };
+  authService: {
+    verifyOwnerOrAdmin: (
+      authHeader: string | undefined,
+      resourceUid: string,
+    ) => Promise<{ uid: string }>;
+  };
   request: Request;
   set: { status?: number | string };
 }) {
@@ -765,7 +815,7 @@ export async function getMember({
 
 ```typescript
 // services/auth-service.ts
-const isAdmin = decodedToken["admin"] === true;  // ✅ Required for index signature
+const isAdmin = decodedToken["admin"] === true; // ✅ Required for index signature
 ```
 
 **Note**: Convert `null` to `undefined` when passing to services because service method signatures use `string | undefined` for optional parameters (whereas `headers.get()` returns `string | null`)
@@ -782,10 +832,10 @@ const authHeader = request.headers.get("authorization") ?? undefined;
 import type { Context } from "elysia";
 
 // For routes with params
-Context<{ params: Record<"memberId", string> }>
+Context<{ params: Record<"memberId", string> }>;
 
 // For routes with body
-Context<{ body: { name: string; email: string } }>
+Context<{ body: { name: string; email: string } }>;
 ```
 
 ### RouteContext Type Patterns
@@ -794,20 +844,20 @@ Context<{ body: { name: string; email: string } }>
 
 ```typescript
 // ✅ CORRECT - Type-safe empty params
-RouteContext<Record<string, never>, { limit?: number; offset?: number }>
+RouteContext<Record<string, never>, { limit?: number; offset?: number }>;
 
 // ❌ WRONG - Causes type errors with TypeScript strict mode
-RouteContext<unknown, { limit?: number; offset?: number }>
+RouteContext<unknown, { limit?: number; offset?: number }>;
 ```
 
 **Body type intersection**: Routes with request bodies need to intersect `RouteContext` with a body type:
 
 ```typescript
 // ✅ CORRECT - Intersect with body type
-RouteContext<{ memberId: string }> & { body: Partial<MemberDocument> }
+RouteContext<{ memberId: string }> & { body: Partial<MemberDocument> };
 
 // Also valid - No query params generic needed
-RouteContext<{ memberId: string }> & { body: { newExpirationDate: string } }
+RouteContext<{ memberId: string }> & { body: { newExpirationDate: string } };
 ```
 
 **Why intersection**: `RouteContext` doesn't include `body` by default, so you must intersect with a separate type that includes it.
@@ -835,6 +885,7 @@ export const UpdateMemberBodySchema = t.Object({
 ```
 
 **Usage in app.ts** - Clean and DRY:
+
 ```typescript
 .patch(
   "/admin/members/:memberId",
@@ -849,6 +900,7 @@ export const UpdateMemberBodySchema = t.Object({
 ```
 
 **Benefits:**
+
 - Single source of truth for validation rules
 - Consistent error messages across routes
 - Easy to update validation in one place
@@ -867,7 +919,7 @@ Use Elysia schemas as source of truth for API contracts, keep Firestore types se
 export const MemberResponseSchema = t.Object({
   uid: t.String(),
   email: t.String({ format: "email" }),
-  createdAt: t.String({ format: "date-time" }),  // ISO string for JSON
+  createdAt: t.String({ format: "date-time" }), // ISO string for JSON
   // ...
 });
 
@@ -879,7 +931,7 @@ import type { Timestamp } from "firebase-admin/firestore";
 export interface MemberDocument {
   uid: string;
   email: string;
-  createdAt: Timestamp;  // Firestore Timestamp object
+  createdAt: Timestamp; // Firestore Timestamp object
   // ...
 }
 
@@ -894,15 +946,17 @@ export function toMemberResponse(doc: MemberDocument): MemberResponse {
 ```
 
 **Why separate types?**
+
 - HTTP APIs speak JSON (ISO date strings)
 - Firestore speaks Timestamps (not JSON-serializable)
 - Clear boundary where serialization happens
 - Schemas define the API contract, not storage format
 
 **Usage in routes:**
+
 ```typescript
-const member = await memberService.findById(memberId);  // Returns MemberDocument
-return toMemberResponse(member);  // Convert to MemberResponse for API
+const member = await memberService.findById(memberId); // Returns MemberDocument
+return toMemberResponse(member); // Convert to MemberResponse for API
 ```
 
 ## Handler Patterns
@@ -937,218 +991,17 @@ For inline handlers, Elysia automatically infers all types from `decorate`:
 ```
 
 **When to use each:**
+
 - **Extracted handlers**: Use for complex logic that needs testing, reusability, or would make app.ts too large
 - **Inline handlers**: Use for simple operations or when automatic type inference is critical
 
 ## Dependencies
 
 **Reduce Express reliance**:
+
 - Import `Request` from `firebase-functions/v2/https` (not `express`)
 - `Response` currently still from `express` (Firebase v2 limitation)
 - Long-term goal: eliminate Express dependency entirely
-
-## Testing Patterns
-
-**Test framework**: Elysia uses Bun's native test runner (not a custom framework)
-
-**CRITICAL: Never mock Firebase/Firestore internals**:
-
-```typescript
-// ❌ WRONG - Mocking Firebase internals is an anti-pattern
-mock.module("firebase-admin/firestore", () => ({
-  getFirestore: mockGetFirestore,
-}));
-
-mock.module("firebase-admin/auth", () => ({
-  getAuth: mockGetAuth,
-}));
-
-// ✅ CORRECT - Mock service interfaces at route level
-const mockMemberService = {
-  findById: mock((id) => Promise.resolve({ uid: id, email: "test@example.com" })),
-};
-```
-
-**Why this matters**:
-- Mocking internals couples tests to implementation details
-- Makes refactoring difficult
-- Hides integration issues
-- Violates dependency injection principles
-- Tests should mock at service boundaries, not internal modules
-
-### Plugin-Based Testing (Recommended)
-
-**Test plugins in isolation** - don't create the full app for unit tests:
-
-```typescript
-// test-utils/test-app-factory.ts
-import { mock } from "bun:test";
-import type { DecodedIdToken } from "firebase-admin/auth";
-import { createAdminMembersPlugin } from "../plugins/admin-members-plugin.js";
-import { createMockVerifyAdmin } from "./auth-mocks.js";
-
-/**
- * Creates the admin-members plugin with default mock services for testing.
- * Tests only the admin plugin in isolation - no full app composition needed.
- */
-export function createAdminTestPlugin(overrides?: {
-  memberAdminService?: Partial<MemberAdminService>;
-  authService?: Partial<AuthService>;
-  logger?: Logger;
-}) {
-  const defaultMemberAdminService: MemberAdminService = {
-    verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
-    listMembers: mock(() => Promise.resolve({ members: [], total: 0 })),
-    updateMember: mock(() => Promise.resolve({} as MemberDocument)),
-    // ... other methods
-    ...overrides?.memberAdminService,
-  };
-
-  const defaultAuthService: AuthService = {
-    verifyAuthToken: mock(() => Promise.resolve({} as DecodedIdToken)),
-    verifyAdmin: createMockVerifyAdmin(),  // Returns valid admin token by default
-    verifyOwnerOrAdmin: mock(() => Promise.resolve({} as DecodedIdToken)),
-    ...overrides?.authService,
-  };
-
-  return createAdminMembersPlugin({
-    memberAdminService: defaultMemberAdminService,
-    authService: defaultAuthService,
-    ...(overrides?.logger !== undefined && { logger: overrides.logger }),
-  });
-}
-```
-
-**Usage in tests**:
-
-```typescript
-import { describe, expect, it, mock } from "bun:test";
-import { createAdminTestPlugin } from "../test-utils/test-app-factory.js";
-import { NotFoundError } from "../errors/http-error.js";
-
-describe("GET /admin/members", () => {
-  it("should return members list", async () => {
-    const mockListMembers = mock(() =>
-      Promise.resolve({ members: [{ uid: "1" }], total: 1 })
-    );
-
-    // Create plugin with specific mock - only what this test needs
-    const plugin = createAdminTestPlugin({
-      memberAdminService: { listMembers: mockListMembers },
-    });
-
-    const response = await plugin.handle(
-      new Request("http://localhost/admin/members", {
-        headers: { authorization: "Bearer valid-token" },
-      })
-    ) as Response;
-
-    expect(response.status).toBe(200);
-    expect(mockListMembers).toHaveBeenCalled();
-  });
-
-  it("should return 401 without auth header", async () => {
-    const plugin = createAdminTestPlugin();
-
-    const response = await plugin.handle(
-      new Request("http://localhost/admin/members")
-      // No authorization header
-    ) as Response;
-
-    expect(response.status).toBe(401);
-  });
-});
-```
-
-**Benefits of plugin-based testing**:
-- ✅ Faster test execution (no full app overhead)
-- ✅ True isolation - only test one plugin's behavior
-- ✅ Simpler mocks - only need to mock plugin's dependencies
-- ✅ Clearer test failures - easier to pinpoint issues
-- ✅ Matches plugin architecture
-
-### Auth Mock Utilities
-
-Create reusable auth mocks that default to successful authentication:
-
-```typescript
-// test-utils/auth-mocks.ts
-import { mock } from "bun:test";
-import type { DecodedIdToken } from "firebase-admin/auth";
-import { AuthError, ForbiddenError } from "../errors/http-error.js";
-
-/**
- * Creates a mock verifyAdmin that succeeds with a default admin token.
- */
-export function createMockVerifyAdmin(options?: {
-  uid?: string;
-  shouldFail?: boolean;
-  failWithForbidden?: boolean;
-}) {
-  return mock((authorizationHeader: string | undefined) => {
-    if (!authorizationHeader) {
-      return Promise.reject(new AuthError("Missing Authorization header"));
-    }
-    if (options?.shouldFail) {
-      return Promise.reject(new AuthError("Invalid token"));
-    }
-    if (options?.failWithForbidden) {
-      return Promise.reject(new ForbiddenError("Not an admin"));
-    }
-    return Promise.resolve({
-      uid: options?.uid ?? "admin-user-123",
-      admin: true,
-    } as DecodedIdToken);
-  });
-}
-```
-
-**Use Eden Treaty for simple routes**:
-
-```typescript
-import { treaty } from "@elysiajs/eden";
-import { app } from "../../src/api/app.js";
-
-const api = treaty(app);
-
-it("should return status ok", async () => {
-  const { data, status } = await api.health.get();
-
-  expect(status).toBe(200);
-  expect(data).toEqual({ status: "ok" });
-});
-```
-
-**Testing services independently**:
-
-```typescript
-import { AuthService } from "../../src/api/services/auth-service.js";
-import { AuthError } from "../../src/api/errors/http-error.js";
-
-it("should throw AuthError for missing header", async () => {
-  try {
-    await AuthService.verifyAuthToken(undefined);
-    throw new Error("Should have thrown");
-  } catch (error) {
-    expect(error).toBeInstanceOf(AuthError);
-    if (error instanceof AuthError) {
-      expect(error.statusCode).toBe(401);
-    }
-  }
-});
-```
-
-**Running tests**:
-```bash
-# All API tests
-bun test test/api/
-
-# Specific test file
-bun test test/api/health.test.ts
-
-# Watch mode
-bun test --watch test/api/
-```
 
 ## Error Handling & Logging
 
@@ -1191,7 +1044,7 @@ export const MemberService = {
       throw new NotFoundError("Member not found");
     }
     return doc.data();
-  }
+  },
 };
 ```
 
