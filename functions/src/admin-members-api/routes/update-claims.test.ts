@@ -18,7 +18,6 @@ describe("PATCH /:memberId/claims", () => {
       uid,
       claims,
       requestingAdminUid,
-      logger: _logger,
     }: {
       uid: string;
       claims: { admin?: boolean };
