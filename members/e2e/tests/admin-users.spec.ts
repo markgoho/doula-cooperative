@@ -52,7 +52,7 @@ test.describe('Admin Users Page', () => {
 
   test('admin views member list and verifies data display', async ({ authenticatedAdminPage }) => {
     // Set up mock with page.route() for reliable mocking
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await (route.request().method() === 'GET'
         ? route.fulfill({
             status: 200,
@@ -109,7 +109,7 @@ test.describe('Admin Users Page', () => {
   // when using page object locators. The unclaimed-profiles sorting test uses inline locators
   // and works correctly. This may be related to zoneless change detection timing.
   test.skip('tests sorting functionality', async ({ authenticatedAdminPage }) => {
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await (route.request().method() === 'GET'
         ? route.fulfill({
             status: 200,
@@ -169,7 +169,7 @@ test.describe('Admin Users Page', () => {
     };
 
     // Use page.route() instead of context.route() for more reliable mocking
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -197,7 +197,7 @@ test.describe('Admin Users Page', () => {
   // receiving the mocked 500 error. This may be related to request timing or caching.
   test.skip('handles API error with user-friendly message', async ({ authenticatedAdminPage }) => {
     // Mock 500 error response - use page.route() for more reliable mocking
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',

@@ -38,8 +38,8 @@ interface AuthEmulatorFixtures {
  *
  * @example
  * test('admin can view users', async ({ authenticatedAdminPage }) => {
- *   // Set up API mocks BEFORE navigating
- *   await authenticatedAdminPage.route('** /api/admin/members/', async (route) => {
+ *   // Set up API mocks BEFORE navigating (use regex to match with/without query params)
+ *   await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
  *     await route.fulfill({
  *       status: 200,
  *       contentType: 'application/json',

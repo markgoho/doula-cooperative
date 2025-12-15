@@ -78,8 +78,8 @@ test.describe('Admin Member Detail Page', () => {
         return;
       }
 
-      // GET members list (for redirect)
-      if (url.endsWith('/api/admin/members/') && method === 'GET') {
+      // GET members list (for redirect) - matches /api/admin/members or /api/admin/members?...
+      if (/\/api\/admin\/members(\?|$)/.test(url) && method === 'GET') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',

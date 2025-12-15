@@ -55,7 +55,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     authenticatedAdminPage,
   }) => {
     // Set up mocks for both members and unclaimed profiles
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await (route.request().method() === 'GET'
         ? route.fulfill({
             status: 200,
@@ -172,7 +172,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
   test.skip('handles API error with user-friendly message', async ({ authenticatedAdminPage }) => {
     // Set up mocks exactly like the first test
-    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
       await (route.request().method() === 'GET'
         ? route.fulfill({
             status: 200,

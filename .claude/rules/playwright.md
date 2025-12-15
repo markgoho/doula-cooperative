@@ -17,12 +17,12 @@ import { test } from "../fixtures/auth-emulator.fixture";
 import { expect } from "@playwright/test";
 
 test("admin views users", async ({ authenticatedAdminPage }) => {
-  // Set up API mocks BEFORE navigating
-  await authenticatedAdminPage.route("**/api/admin/users/", async (route) => {
+  // Set up API mocks BEFORE navigating (use regex to match with/without query params)
+  await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ users: [], total: 0 }),
+      body: JSON.stringify({ members: [], total: 0 }),
     });
   });
 
@@ -39,14 +39,14 @@ The fixture handles sign-in via Firebase Auth emulator with seeded credentials.
 
 ```typescript
 // ✅ GOOD - Route set up before navigation
-await authenticatedAdminPage.route("**/api/admin/members/", async (route) => {
+await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
   await route.fulfill({ status: 200, body: JSON.stringify(mockData) });
 });
 await page.goto("/admin/users"); // Route is ready to intercept
 
 // ❌ BAD - Route set up after navigation (requests already made)
 await page.goto("/admin/users");
-await page.route("**/api/admin/members/", /* ... */); // Too late!
+await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Too late!
 ```
 
 **Use `page.route()` not `context.route()`** for more reliable interception.
@@ -54,18 +54,18 @@ await page.route("**/api/admin/members/", /* ... */); // Too late!
 **Glob vs Regex patterns**:
 
 ```typescript
-// Glob patterns - `?` is a wildcard character!
-await page.route("**/api/users/", /* ... */); // Matches /api/users/
+// Glob patterns - `?` is a wildcard character, so avoid for URLs with query params
 await page.route("**/api/users/*", /* ... */); // Matches /api/users/123
 
-// Use regex when URL contains literal `?` (query params)
-await page.route(/\/api\/users(\?|$)/, /* ... */); // Matches /api/users or /api/users?limit=10
+// Use regex for list endpoints (matches path with or without query params)
+await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Matches /api/admin/members or /api/admin/members?limit=10
+await page.route(/\/api\/admin\/unclaimed-profiles(\?|$)/, /* ... */); // Same pattern for other list endpoints
 ```
 
 **Handle both GET and other methods**:
 
 ```typescript
-await page.route("**/api/admin/members/", async (route) => {
+await page.route(/\/api\/admin\/members(\?|$)/, async (route) => {
   await (route.request().method() === "GET"
     ? route.fulfill({
         status: 200,
