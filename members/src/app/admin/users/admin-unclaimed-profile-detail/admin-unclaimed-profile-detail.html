@@ -7,13 +7,13 @@
 }
 
 @if (service.actionError(); as message) {
-  <div class="error">{{ message }}</div>
+  <div class="error" role="alert">{{ message }}</div>
 }
 
 @if (profileResource.isLoading()) {
   <p class="loading">Loading details...</p>
 } @else if (service.errorMessage(); as errorMessage) {
-  <p class="error">{{ errorMessage }}</p>
+  <p class="error" role="alert">{{ errorMessage }}</p>
 } @else if (profileResource.value(); as profile) {
   <section class="user-info-card">
     <h2>Unclaimed Profile Information</h2>
