@@ -1,0 +1,57 @@
+import { getFirestore } from "firebase-admin/firestore";
+import { MESSAGES_COLLECTION } from "../../collections/messages.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
+import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import type { Logger } from "../../shared-api/types/logger.js";
+
+export async function updateMessage(options: {
+  messageId: string;
+  sent: boolean;
+  logger: Logger;
+}): Promise<{ success: true }> {
+  const { messageId, sent, logger } = options;
+
+  try {
+    const firestore = getFirestore();
+    const documentReference = firestore
+      .collection(MESSAGES_COLLECTION)
+      .doc(messageId);
+
+    // Verify document exists
+    const document = await documentReference.get();
+    if (!document.exists) {
+      logger.warn("Cannot update - message not found", {
+        errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+        messageId,
+      });
+      throw new NotFoundError(`Message with ID ${messageId} not found`);
+    }
+
+    // Update the sent status
+    await documentReference.update({ sent });
+
+    logger.info("Message status updated", {
+      messageId,
+      sent,
+      status: sent ? "processed" : "pending",
+    });
+
+    return { success: true };
+  } catch (error) {
+    // If it's already a NotFoundError, re-throw it
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
+
+    // Log unexpected Firestore errors
+    logger.error("Failed to update message in Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      messageId,
+      sent,
+    });
+    throw error;
+  }
+}

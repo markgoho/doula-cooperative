@@ -215,74 +215,33 @@ export function createApp(services?: PartialServices) {
 
 ## Authentication Guards with derive + onBeforeHandle
 
-**Centralize authentication in plugin guards** instead of checking auth in every route handler:
+**Centralize authentication in plugin guards** instead of checking auth in every route handler.
+
+### Using Shared Admin Auth Utilities
+
+**RECOMMENDED**: Use the shared `adminDerive` and `adminGuard` utilities for admin authentication:
 
 ```typescript
 // plugins/admin-members-plugin.ts
-import type { DecodedIdToken } from "firebase-admin/auth";
-import { HttpError } from "../errors/http-error.js";
-
-/**
- * Auth result from derive - either a token or an error.
- * IMPORTANT: Index signature required for Elysia's derive return type.
- */
-interface AuthResult {
-  [key: string]: unknown; // Required by Elysia's type system
-  adminToken: DecodedIdToken | undefined;
-  authError: HttpError | undefined;
-}
-
-/**
- * Helper to extract admin UID - avoids non-null assertions in route handlers.
- */
-function getAdminUid(adminToken: DecodedIdToken | undefined): string {
-  if (!adminToken) {
-    throw new Error("Admin token missing - should not happen after guard");
-  }
-  return adminToken.uid;
-}
+import { adminDerive } from "../../shared-api/utils/admin-derive.js";
+import { adminGuard } from "../../shared-api/utils/admin-guard.js";
+import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 
 // Firebase rewrite: /api/admin/members/** → adminMembersApi function
 export function createAdminMembersPlugin(services?: PartialServices) {
   return (
     new Elysia({ name: "admin-members" })
-      .decorate(/* ... */)
-      // derive() runs first - adds adminToken to context
-      .derive(async ({ request, authService }): Promise<AuthResult> => {
-        const authorizationHeader =
-          request.headers.get("authorization") ?? undefined;
-        try {
-          const token = await authService.verifyAdmin(authorizationHeader);
-          return { adminToken: token, authError: undefined };
-        } catch (error) {
-          if (error instanceof HttpError) {
-            return { adminToken: undefined, authError: error };
-          }
-          return {
-            adminToken: undefined,
-            authError: new HttpError("Authentication failed", 401),
-          };
-        }
-      })
-      // onBeforeHandle() runs after derive - blocks unauthorized requests
-      .onBeforeHandle(
-        { as: "local" }, // Only applies to routes in this plugin
-        ({ adminToken, authError, set }): { error: string } | undefined => {
-          if (!adminToken && authError) {
-            set.status = authError.statusCode; // Preserves 401 vs 403
-            return { error: authError.message };
-          }
-          if (!adminToken) {
-            set.status = 401;
-            return { error: "Unauthorized" };
-          }
-          return undefined; // Continue to route handler
-        },
-      )
+      .decorate(SERVICE_KEYS.MEMBER_ADMIN_SERVICE, services?.memberAdminService ?? MemberAdminService)
+      .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+      // Verify admin authentication and add adminToken to context
+      .derive(adminDerive)
+      // Block requests without valid admin token
+      .onBeforeHandle({ as: "local" }, adminGuard)
       // Routes start from "/" - Firebase provides /api/admin/members prefix
       .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
         listMembersLogic({
-          adminUid: getAdminUid(adminToken), // Safe - guard ensures token exists
+          adminUid: getAdminUid(adminToken, logger), // Safe - guard ensures token exists
           memberAdminService,
           logger,
           set,
@@ -291,6 +250,37 @@ export function createAdminMembersPlugin(services?: PartialServices) {
   );
 }
 ```
+
+**Benefits of shared utilities:**
+- ✅ DRY - Authentication logic in one place
+- ✅ Consistency across all admin APIs
+- ✅ Bug fixes apply to all APIs automatically
+- ✅ Proper error handling guaranteed (see Error Handling section)
+
+### Understanding the Flow
+
+```typescript
+Request comes in
+    ↓
+adminDerive() runs        ← Verifies admin token, adds to context
+    ↓
+adminGuard() runs         ← Blocks if no valid token
+    ↓
+Route handler runs        ← Has access to adminToken
+    ↓
+Response sent
+```
+
+The `adminDerive` function (from `shared-api/utils/admin-derive.ts`):
+- Extracts Authorization header
+- Calls `authService.verifyAdmin()`
+- Returns `{ adminToken, authError }` for the guard to check
+- Re-throws unexpected errors (see Error Handling section for why this is critical)
+
+The `adminGuard` function (from `shared-api/utils/admin-guard.ts`):
+- Checks if `adminToken` exists
+- Returns error response if not (401/403 based on `authError`)
+- Allows request to proceed if token is valid
 
 **Why this pattern?**
 
@@ -1004,6 +994,152 @@ For inline handlers, Elysia automatically infers all types from `decorate`:
 - Long-term goal: eliminate Express dependency entirely
 
 ## Error Handling & Logging
+
+### Service Layer Error Handling
+
+**CRITICAL**: Always wrap Firestore operations in try-catch blocks. Firestore operations can fail due to network issues, permission errors, or service disruptions. Without proper error handling, these failures are invisible in logs.
+
+```typescript
+// ✅ CORRECT - Wrap Firestore operations with error handling
+export async function getMessage(options: {
+  messageId: string;
+  logger: Logger;
+}): Promise<MessageResponse> {
+  const { messageId, logger } = options;
+
+  try {
+    const firestore = getFirestore();
+    const documentReference = firestore
+      .collection(MESSAGES_COLLECTION)
+      .doc(messageId);
+    const document = await documentReference.get();
+
+    if (!document.exists) {
+      logger.warn("Message not found", {
+        errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+        messageId,
+      });
+      throw new NotFoundError(`Message with ID ${messageId} not found`);
+    }
+
+    return toMessageResponse(document.id, document.data() as MessageDocument);
+  } catch (error) {
+    // Re-throw known errors (NotFoundError, ValidationError, etc.)
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    // Log and re-throw unexpected Firestore errors
+    logger.error("Failed to read message from Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      messageId,
+    });
+    throw error;
+  }
+}
+
+// ❌ WRONG - No error handling around Firestore operations
+export async function getMessage(options: {
+  messageId: string;
+  logger: Logger;
+}): Promise<MessageResponse> {
+  const firestore = getFirestore();
+  const document = await firestore.collection(MESSAGES_COLLECTION).doc(messageId).get();
+  // If Firestore fails, error propagates with no logging
+  return toMessageResponse(document.id, document.data() as MessageDocument);
+}
+```
+
+### Derive Error Handling
+
+**CRITICAL**: In `derive()` functions, only catch expected errors. Re-throw unexpected errors to prevent masking programming bugs as authentication failures.
+
+```typescript
+// ✅ CORRECT - Re-throw unexpected errors
+.derive(async ({ request, authService, logger }): Promise<AuthResult> => {
+  const authorizationHeader = request.headers.get("authorization") ?? undefined;
+  try {
+    const token = await authService.verifyAdmin(authorizationHeader);
+    return { adminToken: token, authError: undefined };
+  } catch (error) {
+    // Known HTTP errors from auth service (401, 403)
+    if (error instanceof HttpError) {
+      return { adminToken: undefined, authError: error };
+    }
+
+    // Unexpected errors (programming bugs, network failures, etc.)
+    logger.error("CRITICAL: Unexpected error in admin authentication", {
+      errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      errorType: error?.constructor?.name,
+      hasAuthHeader: Boolean(authorizationHeader),
+    });
+
+    // Re-throw to let Elysia's error handler return proper 500 response
+    // This prevents programming bugs from being masked as "auth unavailable"
+    throw error;
+  }
+})
+
+// ❌ WRONG - Masking all errors as authentication failures
+.derive(async ({ request, authService }): Promise<AuthResult> => {
+  try {
+    const token = await authService.verifyAdmin(authorizationHeader);
+    return { adminToken: token, authError: undefined };
+  } catch (error) {
+    // This catches EVERYTHING, including programming bugs
+    return {
+      adminToken: undefined,
+      authError: new HttpError("Authentication failed", 503)
+    };
+  }
+})
+```
+
+### Route Error Context
+
+**Always include request context in error handlers**: Add relevant parameters to help debugging.
+
+```typescript
+// ✅ CORRECT - Include context for debugging
+try {
+  const result = await messageAdminService.listMessages({
+    limit,
+    offset,
+    status,
+    logger,
+  });
+  return result;
+} catch (error: unknown) {
+  return handleRouteError({
+    error,
+    operation: "list messages",
+    errorId: ERROR_IDS.API_ADMIN_LIST_MESSAGES_FAILED,
+    logger,
+    set,
+    context: { limit, offset, status, adminUid }, // Include request params
+  });
+}
+
+// ❌ WRONG - No context for debugging
+catch (error: unknown) {
+  return handleRouteError({
+    error,
+    operation: "list messages",
+    errorId: ERROR_IDS.API_ADMIN_LIST_MESSAGES_FAILED,
+    logger,
+    set,
+    // Missing context - can't reproduce issues
+  });
+}
+```
+
+### Error IDs and Logging
 
 **Always include error IDs**: Add error IDs from `constants/error-ids.ts` for Sentry tracking
 

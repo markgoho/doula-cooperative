@@ -186,6 +186,12 @@ export const ERROR_IDS = {
     "api_admin_update_match_request_failed",
   API_MATCH_REQUEST_NOT_FOUND: "api_match_request_not_found",
 
+  // Admin message management operations
+  API_ADMIN_LIST_MESSAGES_FAILED: "api_admin_list_messages_failed",
+  API_ADMIN_GET_MESSAGE_FAILED: "api_admin_get_message_failed",
+  API_ADMIN_UPDATE_MESSAGE_FAILED: "api_admin_update_message_failed",
+  API_MESSAGE_NOT_FOUND: "api_message_not_found",
+
   // Specific admin error scenarios
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",
   API_ADMIN_SELF_DELETE_ATTEMPT: "api_admin_self_delete_attempt",

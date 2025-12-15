@@ -3,7 +3,7 @@
   @if (messagesResource().isLoading()) {
     <p class="loading">Loading messages...</p>
   } @else if (error(); as errorMessage) {
-    <p class="error">{{ errorMessage }}</p>
+    <p class="error" role="alert">{{ errorMessage }}</p>
   } @else {
     <table class="messages-table">
       <thead>

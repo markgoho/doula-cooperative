@@ -276,30 +276,6 @@ export const adminSendInvitation = onCall(
   },
 );
 
-export const adminListMessages = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleListMessages } = await import("./admin/list-messages.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleListMessages(request.data, request);
-  },
-);
-
-export const adminGetMessage = onCall({ invoker: "public" }, async request => {
-  const { handleGetMessage } = await import("./admin/get-message.js");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return handleGetMessage(request.data, request);
-});
-
-export const adminUpdateMessage = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleUpdateMessage } = await import("./admin/update-message.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleUpdateMessage(request.data, request);
-  },
-);
-
 // Elysia-based APIs
 
 // Members APIs (members.doulacooperative.com)
@@ -328,6 +304,16 @@ export const adminMatchRequestsApi = onRequest(
     const { handleAdminMatchRequestsApi } =
       await import("./admin-match-requests-api/handler.js");
     await handleAdminMatchRequestsApi(request, response);
+  },
+);
+
+// Admin Messages API (members.doulacooperative.com)
+export const adminMessagesApi = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleAdminMessagesApi } =
+      await import("./admin-messages-api/handler.js");
+    await handleAdminMessagesApi(request, response);
   },
 );
 
