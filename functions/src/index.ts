@@ -179,18 +179,6 @@ export const removeAdminClaim = onCall({ invoker: "public" }, async request => {
   return handleRemoveAdminClaim(request.data as { uid: string }, request);
 });
 
-export const adminListMembers = onCall({ invoker: "public" }, async request => {
-  const { handleListMembers } = await import("./admin/list-members.js");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return handleListMembers(request.data, request);
-});
-
-export const adminGetMember = onCall({ invoker: "public" }, async request => {
-  const { handleGetMember } = await import("./admin/get-member.js");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return handleGetMember(request.data, request);
-});
-
 export const adminUpdateMember = onCall(
   { invoker: "public" },
   async request => {
