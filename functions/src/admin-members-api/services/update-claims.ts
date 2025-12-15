@@ -1,9 +1,11 @@
 import { getAuth } from "firebase-admin/auth";
+import { ERROR_IDS } from "../../constants/error-ids.js";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 
 interface FirebaseAuthError {
   code: string;
@@ -26,6 +28,7 @@ function isAuthError(error: unknown): error is FirebaseAuthError {
  * @param uid - The UID of the user to update claims for
  * @param claims - Claims to update (e.g., { admin: true })
  * @param requestingAdminUid - The UID of the admin making the request
+ * @param logger - Logger instance for error logging
  * @returns Promise resolving when claims are updated
  * @throws NotFoundError if user does not exist
  * @throws ForbiddenError if trying to modify own admin claim
@@ -36,10 +39,12 @@ export async function updateClaims({
   uid,
   claims,
   requestingAdminUid,
+  logger,
 }: {
   uid: string;
   claims: { admin?: boolean };
   requestingAdminUid: string;
+  logger: Logger;
 }): Promise<void> {
   if (!uid) {
     throw new ValidationError("UID is required");
@@ -64,8 +69,29 @@ export async function updateClaims({
       if (error.code === "auth/invalid-uid") {
         throw new ValidationError(`Invalid user ID format: ${uid}`);
       }
+
+      // Handle other Firebase Auth errors
+      logger.error("Unexpected Firebase Auth error during getUser", {
+        errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
+        error,
+        errorMessage: error.message,
+        errorCode: error.code,
+        uid,
+        requestingAdminUid,
+      });
+      throw error;
     }
 
+    // Completely unexpected error type
+    logger.error("CRITICAL: Non-Firebase error during getUser", {
+      errorId: ERROR_IDS.API_ADMIN_SET_ADMIN_CLAIM_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      errorType: error?.constructor?.name,
+      uid,
+      requestingAdminUid,
+    });
     throw error;
   }
 
@@ -85,5 +111,20 @@ export async function updateClaims({
     }
   }
 
-  await auth.setCustomUserClaims(uid, updatedClaims);
+  try {
+    await auth.setCustomUserClaims(uid, updatedClaims);
+  } catch (error) {
+    // Log Firebase Auth errors during claim update
+    logger.error("Failed to update user custom claims in Firebase Auth", {
+      errorId: ERROR_IDS.API_ADMIN_SET_ADMIN_CLAIM_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      uid,
+      claims,
+      requestingAdminUid,
+      updatedClaims,
+    });
+    throw error;
+  }
 }

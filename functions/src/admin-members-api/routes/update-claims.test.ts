@@ -18,10 +18,12 @@ describe("PATCH /:memberId/claims", () => {
       uid,
       claims,
       requestingAdminUid,
+      logger: _logger,
     }: {
       uid: string;
       claims: { admin?: boolean };
       requestingAdminUid: string;
+      logger: unknown;
     }): Promise<void> => {
       if (uid === requestingAdminUid && claims.admin !== undefined) {
         return Promise.reject(

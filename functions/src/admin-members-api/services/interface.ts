@@ -103,7 +103,7 @@ export interface MemberAdminService {
    * Update custom claims for a user.
    * Claims are merged with existing claims. Set a claim to false to remove it.
    *
-   * @param options - Object containing user ID, claims to update, and requesting admin UID
+   * @param options - Object containing user ID, claims to update, requesting admin UID, and logger
    * @returns Promise resolving when claims are updated
    * @throws NotFoundError if user does not exist
    * @throws ForbiddenError if trying to modify own admin claim
@@ -113,5 +113,6 @@ export interface MemberAdminService {
     uid: string;
     claims: { admin?: boolean };
     requestingAdminUid: string;
+    logger: Logger;
   }): Promise<void>;
 }

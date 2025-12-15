@@ -30,6 +30,7 @@ export async function updateClaimsLogic({
       uid,
       claims,
       requestingAdminUid: adminUid,
+      logger,
     });
 
     logger.info("Admin updated custom claims for user", {
@@ -46,7 +47,7 @@ export async function updateClaimsLogic({
       errorId: ERROR_IDS.API_ADMIN_SET_ADMIN_CLAIM_FAILED,
       logger,
       set,
-      context: { uid, claims },
+      context: { uid, claims, adminUid },
     });
   }
 }
