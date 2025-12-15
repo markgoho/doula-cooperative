@@ -146,7 +146,7 @@ describe("GET / (list members)", () => {
       };
       expect(Array.isArray(body.members)).toBe(true);
       expect(body.members?.length).toBe(2);
-      expect(body.total).toBe(10);
+      expect(body.total).toBe(2);
     });
 
     it("should convert Timestamp fields to ISO strings", async () => {

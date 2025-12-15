@@ -217,7 +217,13 @@ describe("POST /doula-match", () => {
     });
 
     it("should save form and return warning when email send fails", async () => {
-      const mockSaveMatchRequest = mock(() => Promise.resolve());
+      const mockSaveMatchRequest = mock(
+        (_options: {
+          data: unknown;
+          recaptchaScore: number;
+          emailSent?: boolean;
+        }) => Promise.resolve(),
+      );
       const mockSendEmail = mock(() =>
         Promise.reject(new Error("Mailgun timeout")),
       );
@@ -248,7 +254,11 @@ describe("POST /doula-match", () => {
       );
       // CRITICAL: Form should still be saved even when email fails
       expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
-      const [callArguments] = mockSaveMatchRequest.mock.calls[0];
+      const firstCall = mockSaveMatchRequest.mock.calls[0];
+      if (!firstCall) {
+        throw new Error("Expected mockSaveMatchRequest to be called");
+      }
+      const [callArguments] = firstCall;
       expect(callArguments).toMatchObject({
         recaptchaScore: 0.9,
         emailSent: false, // CRITICAL: Must be false

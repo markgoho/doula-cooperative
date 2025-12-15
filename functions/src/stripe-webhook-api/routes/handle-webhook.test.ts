@@ -10,18 +10,18 @@ import { createStripeWebhookTestPlugin } from "../test-utils/create-stripe-webho
 import { createMockStripeEvent } from "../test-utils/stripe-mocks.js";
 
 /**
- * Tests for POST /stripe/webhook.
+ * Tests for POST /webhook.
  *
  * Uses createStripeWebhookTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /stripe/webhook", () => {
+describe("POST /webhook", () => {
   describe("Signature validation", () => {
     it("should return 400 when stripe-signature header is missing", async () => {
       const testApp = createStripeWebhookTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           body: JSON.stringify({ test: true }),
         }),
@@ -48,7 +48,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "invalid_sig",
@@ -78,7 +78,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "test_sig",
@@ -108,7 +108,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "test_sig",
@@ -138,7 +138,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -193,7 +193,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -236,7 +236,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -276,7 +276,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -312,7 +312,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -340,7 +340,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -374,7 +374,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       const response = (await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -407,7 +407,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "test_signature_value",
@@ -435,7 +435,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
@@ -472,7 +472,7 @@ describe("POST /stripe/webhook", () => {
       });
 
       await testApp.handle(
-        new Request("http://localhost/stripe/webhook", {
+        new Request("http://localhost/webhook", {
           method: "POST",
           headers: {
             "stripe-signature": "valid_sig",
