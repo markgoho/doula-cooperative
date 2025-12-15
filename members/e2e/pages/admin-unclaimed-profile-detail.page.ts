@@ -28,8 +28,8 @@ export class AdminUnclaimedProfileDetailPage {
     this.pageHeading = page.getByRole('heading', { name: 'Unclaimed Profile Details', level: 1 });
     this.sectionHeading = page.getByRole('heading', { name: 'Unclaimed Profile Information', level: 2 });
 
-    // Actions
-    this.sendInvitationButton = page.getByRole('button', { name: /Send Invitation/ });
+    // Actions - matches both "Send Invitation" and "Invitation Already Sent"
+    this.sendInvitationButton = page.getByRole('button', { name: /Invitation/ });
 
     // Status messages
     this.loadingText = page.getByText('Loading details...');

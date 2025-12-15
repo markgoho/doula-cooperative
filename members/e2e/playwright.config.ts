@@ -2,17 +2,15 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 // Root of the monorepo (parent of members/)
-// Used as cwd for emulator commands which need access to firebase.json and functions/
 const rootDirectory = path.resolve(import.meta.dirname, '../..');
 
 export default defineConfig({
   testDir: './tests',
-  // Run tests serially since they share emulator state
-  // Parallel execution would cause race conditions when clearing/seeding test data
-  fullyParallel: false,
+  // Tests can run in parallel - each test mocks its own API responses
+  fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
-  workers: 1, // Single worker to avoid emulator state conflicts between tests
+  ...(process.env['CI'] && { workers: 2 }),
   reporter: [['html', { outputFolder: '../playwright-report', open: 'never' }]],
 
   use: {
@@ -28,19 +26,23 @@ export default defineConfig({
     },
   ],
 
+  // Start Angular dev server and Auth emulator
+  // - Angular connects to Auth emulator for real authentication
+  // - API calls are mocked via Playwright page.route()
+  // - --configuration=e2e: Use empty proxy config so Playwright can intercept API calls
   webServer: [
     {
-      command: 'bun run emulators:e2e',
+      // Firebase Auth emulator only (no Firestore, no Functions)
+      // Uses seeded auth data from auth-export/ directory
+      command: 'firebase emulators:start --only auth --import=./members/e2e/auth-export',
       cwd: rootDirectory,
-      url: 'http://localhost:9099', // Auth emulator health check
+      url: 'http://localhost:9099',
       reuseExistingServer: !process.env['CI'],
       timeout: 60_000,
     },
     {
-      // Only start Angular - emulators are started above
-      // Using 'bun run start' would start emulators twice causing port conflicts
-      // angular:start script is in root package.json and handles 'cd members' internally
-      command: 'bun run angular:start',
+      // Angular dev server connecting to Auth emulator
+      command: 'cd members && ng serve --configuration=e2e',
       cwd: rootDirectory,
       url: 'http://localhost:4200',
       reuseExistingServer: !process.env['CI'],

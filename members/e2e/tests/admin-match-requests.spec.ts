@@ -1,4 +1,5 @@
-import { test, expect } from '../fixtures/admin-auth.fixture';
+import { test } from '../fixtures/auth-emulator.fixture';
+import { expect } from '@playwright/test';
 import type { MatchRequest } from '../../src/app/admin/admin.types';
 
 /**

@@ -53,19 +53,19 @@ export class AdminUsersPage {
     // Header stats - use text-based selectors
     this.totalMembersText = page.getByText(/Total Members:/);
     this.totalUnclaimedText = page.getByText(/Unclaimed Profiles:/);
-    // Header stats container - scope by finding the region containing both stats
-    this.headerStats = this.totalMembersText.locator('xpath=./..').filter({ has: this.totalUnclaimedText });
+    // Header stats container - use CSS class since no better semantic selector available
+    this.headerStats = page.locator('.header-stats');
 
-    // Members table - scoped to Active Members section by finding the section with that heading
-    // Use the heading to identify the correct section without relying on CSS classes
-    const activeMembersSection = this.activeMembersHeading.locator('xpath=./..');
-    this.membersTable = activeMembersSection.getByRole('table');
+    // Members table - use Angular component selector for reliable scoping
+    // This targets the active-members-table component specifically
+    const activeMembersTable = page.locator('app-active-members-table');
+    this.membersTable = activeMembersTable.getByRole('table');
     this.membersTableHeaders = this.membersTable.getByRole('columnheader');
     this.membersTableRows = this.membersTable.getByRole('row').filter({ has: page.getByRole('cell') });
 
     // Loading and error states - text-based
-    this.loadingMessage = activeMembersSection.getByText('Loading members...');
-    this.errorMessage = activeMembersSection.getByText(/Failed to load members/i);
+    this.loadingMessage = activeMembersTable.getByText('Loading members...');
+    this.errorMessage = activeMembersTable.getByText(/Failed to load members/i);
 
     // Table column headers - scoped to members table to avoid confusion with unclaimed profiles table
     this.nameHeader = this.membersTable.getByRole('columnheader', { name: /Name/i });
@@ -127,13 +127,13 @@ export class AdminUsersPage {
 
   /**
    * Sort the table by a specific column.
+   * Waits for the sort indicator to appear on the clicked column.
    *
    * @param column - The column to sort by ('Name', 'Email', 'Membership', 'Created')
    *
    * @example
    * await adminUsersPage.sortBy('Name');
-   * // Verify sort indicator
-   * await expect(adminUsersPage.nameHeader).toContainText('↑');
+   * // Sort indicator is already visible after sortBy returns
    */
   async sortBy(column: 'Name' | 'Email' | 'Membership' | 'Created') {
     const headerMap = {
@@ -143,6 +143,11 @@ export class AdminUsersPage {
       Created: this.createdHeader,
     };
 
-    await headerMap[column].click();
+    const header = headerMap[column];
+    await header.click();
+
+    // Wait for Angular to process the click and update the DOM
+    // The sort indicator should appear on this column
+    await header.locator('.sort-indicator').waitFor({ state: 'visible', timeout: 5000 });
   }
 }

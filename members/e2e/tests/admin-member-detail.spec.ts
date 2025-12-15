@@ -1,4 +1,5 @@
-import { test, expect } from '../fixtures/admin-auth.fixture';
+import { test } from '../fixtures/auth-emulator.fixture';
+import { expect } from '@playwright/test';
 import type { ApiMemberResponse } from '../../src/app/admin/api-types/admin-members-api.types';
 import { AdminMemberDetailPage } from '../pages/admin-member-detail.page';
 
