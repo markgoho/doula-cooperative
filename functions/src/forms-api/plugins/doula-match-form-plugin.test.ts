@@ -248,12 +248,18 @@ describe("POST /doula-match", () => {
       );
       // CRITICAL: Form should still be saved even when email fails
       expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
-      const firstCall = mockSaveMatchRequest.mock.calls[0];
-      if (!firstCall) {
-        throw new Error("Expected mockSaveMatchRequest to be called");
-      }
-      const [callArguments] = firstCall;
-      expect(callArguments).toMatchObject({
+      expect(mockSaveMatchRequest).toHaveBeenCalledWith({
+        data: {
+          name: validMatchFormData.name,
+          phone: validMatchFormData.phone,
+          email: validMatchFormData.email,
+          zipcode: validMatchFormData.zipcode,
+          estimatedDueDate: validMatchFormData.estimatedDueDate,
+          services: validMatchFormData.services,
+          birthLocation: validMatchFormData.birthLocation,
+          otherInfo: validMatchFormData.otherInfo,
+          insurance: validMatchFormData.insurance,
+        },
         recaptchaScore: 0.9,
         emailSent: false, // CRITICAL: Must be false
       });
