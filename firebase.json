@@ -29,15 +29,15 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "/api/forms/**",
+          "source": "/api/forms{,/**}",
           "function": "formsApi"
         },
         {
-          "source": "/api/stripe/**",
+          "source": "/api/stripe{,/**}",
           "function": "stripeWebhookApi"
         },
         {
-          "source": "/api/profile-webhook",
+          "source": "/api/profile-webhook{,/**}",
           "function": "profileWebhookApi"
         },
         {
@@ -590,23 +590,23 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "/api/admin/messages/**",
+          "source": "/api/admin/messages{,/**}",
           "function": "adminMessagesApi"
         },
         {
-          "source": "/api/admin/unclaimed-profiles/**",
+          "source": "/api/admin/unclaimed-profiles{,/**}",
           "function": "adminUnclaimedProfilesApi"
         },
         {
-          "source": "/api/admin/match-requests/**",
+          "source": "/api/admin/match-requests{,/**}",
           "function": "adminMatchRequestsApi"
         },
         {
-          "source": "/api/admin/members/**",
+          "source": "/api/admin/members{,/**}",
           "function": "adminMembersApi"
         },
         {
-          "source": "/api/members/**",
+          "source": "/api/members{,/**}",
           "function": "membersApi"
         },
         {
