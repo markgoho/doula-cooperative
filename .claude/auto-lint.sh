@@ -19,7 +19,7 @@ fi
 # Determine which lint command to run based on directory
 if [[ "$file_path" == functions/* ]]; then
   echo "🔍 Running ESLint on functions/..."
-  (cd "${CLAUDE_PROJECT_DIR}/functions" && bun run lint 2>&1) || true
+  (cd "${CLAUDE_PROJECT_DIR}/functions" && bun run lint && bun run typecheck:tests 2>&1) || true
   echo "✅ Linted functions/"
 elif [[ "$file_path" == members/e2e/* ]]; then
   echo "🔍 Running typecheck and lint on members/e2e/..."
