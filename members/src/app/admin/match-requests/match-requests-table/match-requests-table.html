@@ -3,7 +3,7 @@
   @if (requestsResource().isLoading()) {
     <p class="loading">Loading match requests...</p>
   } @else if (error(); as errorMessage) {
-    <p class="error">{{ errorMessage }}</p>
+    <p class="error" role="alert">{{ errorMessage }}</p>
   } @else {
     <table class="requests-table">
       <thead>

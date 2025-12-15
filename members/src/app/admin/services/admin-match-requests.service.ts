@@ -1,44 +1,40 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
 import type { ListMatchRequestsResponse, MatchRequest } from '../admin.types';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminMatchRequestsService {
-  private functions = inject(Functions);
+  private readonly httpClient = inject(HttpClient);
+  private readonly baseUrl = '/api/admin/match-requests';
 
   async listMatchRequests(
     limit = 50,
     offset = 0,
     status: 'pending' | 'processed' | 'all' = 'all',
   ): Promise<ListMatchRequestsResponse> {
-    const listMatchRequestsCallable = httpsCallable<
-      { limit?: number; offset?: number; status?: 'pending' | 'processed' | 'all' },
-      ListMatchRequestsResponse
-    >(this.functions, 'adminListMatchRequests');
+    // Authorization header added automatically by authInterceptor
+    const parameters = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString())
+      .set('status', status);
 
-    const result = await listMatchRequestsCallable({ limit, offset, status });
-    return result.data;
+    return firstValueFrom(
+      this.httpClient.get<ListMatchRequestsResponse>(this.baseUrl, { params: parameters }),
+    );
   }
 
   async getMatchRequest(id: string): Promise<MatchRequest> {
-    const getMatchRequestCallable = httpsCallable<{ id: string }, MatchRequest>(
-      this.functions,
-      'adminGetMatchRequest',
-    );
-
-    const result = await getMatchRequestCallable({ id });
-    return result.data;
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(this.httpClient.get<MatchRequest>(`${this.baseUrl}/${id}`));
   }
 
   async updateMatchRequestStatus(id: string, sent: boolean): Promise<{ success: boolean }> {
-    const updateMatchRequestCallable = httpsCallable<
-      { id: string; sent: boolean },
-      { success: boolean }
-    >(this.functions, 'adminUpdateMatchRequest');
-
-    const result = await updateMatchRequestCallable({ id, sent });
-    return result.data;
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.patch<{ success: boolean }>(`${this.baseUrl}/${id}`, { sent }),
+    );
   }
 }

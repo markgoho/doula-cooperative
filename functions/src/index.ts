@@ -276,36 +276,6 @@ export const adminSendInvitation = onCall(
   },
 );
 
-export const adminListMatchRequests = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleListMatchRequests } =
-      await import("./admin/list-match-requests.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleListMatchRequests(request.data, request);
-  },
-);
-
-export const adminGetMatchRequest = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleGetMatchRequest } =
-      await import("./admin/get-match-request.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleGetMatchRequest(request.data, request);
-  },
-);
-
-export const adminUpdateMatchRequest = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleUpdateMatchRequest } =
-      await import("./admin/update-match-request.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleUpdateMatchRequest(request.data, request);
-  },
-);
-
 export const adminListMessages = onCall(
   { invoker: "public" },
   async request => {
@@ -348,6 +318,16 @@ export const adminMembersApi = onRequest(
     const { handleAdminMembersApi } =
       await import("./admin-members-api/handler.js");
     await handleAdminMembersApi(request, response);
+  },
+);
+
+// Admin Match Requests API (members.doulacooperative.com)
+export const adminMatchRequestsApi = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleAdminMatchRequestsApi } =
+      await import("./admin-match-requests-api/handler.js");
+    await handleAdminMatchRequestsApi(request, response);
   },
 );
 
