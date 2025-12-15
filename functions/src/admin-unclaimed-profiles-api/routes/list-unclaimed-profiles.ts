@@ -44,6 +44,7 @@ export async function listUnclaimedProfilesLogic({
       errorId: ERROR_IDS.API_ADMIN_LIST_UNCLAIMED_PROFILES_FAILED,
       logger,
       set,
+      context: { limit, offset, adminUid },
     });
   }
 }

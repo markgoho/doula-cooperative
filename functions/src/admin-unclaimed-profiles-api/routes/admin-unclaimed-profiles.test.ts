@@ -47,6 +47,48 @@ describe("Admin Unclaimed Profiles API", () => {
       expect(body.profiles).toHaveLength(1);
       expect(body.total).toBe(1);
     });
+
+    describe("Query Parameter Validation", () => {
+      it("should reject limit below minimum (1)", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/?limit=0", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(422);
+      });
+
+      it("should reject limit above maximum (100)", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/?limit=101", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(422);
+      });
+
+      it("should reject negative offset", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/?offset=-1", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(422);
+      });
+
+      it("should accept valid limit and offset", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/?limit=50&offset=10", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(200);
+      });
+    });
   });
 
   describe("GET /:email (get)", () => {
@@ -90,6 +132,30 @@ describe("Admin Unclaimed Profiles API", () => {
       )) as Response;
 
       expect(response.status).toBe(404);
+    });
+
+    describe("Email Parameter Validation", () => {
+      it("should reject invalid email format", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/not-an-email", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(422);
+      });
+
+      it("should accept valid email format", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/valid@example.com", {
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(200);
+        const body = (await response.json()) as UnclaimedProfileResponse;
+        expect(body.email).toBe("test@example.com");
+      });
     });
   });
 });

@@ -33,6 +33,7 @@ export async function getUnclaimedProfileLogic({
       errorId: ERROR_IDS.API_ADMIN_GET_UNCLAIMED_PROFILE_FAILED,
       logger,
       set,
+      context: { email, adminUid },
     });
   }
 }
