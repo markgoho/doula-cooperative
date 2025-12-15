@@ -3,35 +3,35 @@
 @let memberResource = service.memberResource;
 
 @if (service.successMessage(); as message) {
-  <div class="success-message">{{ message }}</div>
+  <div class="success-message" role="status">{{ message }}</div>
 }
 
 @if (service.actionError(); as message) {
-  <div class="error">{{ message }}</div>
+  <div class="error" role="alert">{{ message }}</div>
 }
 
 @if (memberResource.isLoading()) {
   <p class="loading">Loading details...</p>
 } @else if (service.errorMessage(); as errorMessage) {
-  <p class="error">{{ errorMessage }}</p>
+  <p class="error" role="alert">{{ errorMessage }}</p>
 } @else if (memberResource.value(); as member) {
   <section class="user-info-card">
     <h2>Account Information</h2>
     <dl class="info-grid">
-      <dt>Name:</dt>
-      <dd>{{ member.name || '—' }}</dd>
+      <dt id="member-name-label">Name:</dt>
+      <dd aria-labelledby="member-name-label">{{ member.name || '—' }}</dd>
 
-      <dt>Email:</dt>
-      <dd>{{ member.email }}</dd>
+      <dt id="member-email-label">Email:</dt>
+      <dd aria-labelledby="member-email-label">{{ member.email }}</dd>
 
-      <dt>UID:</dt>
-      <dd class="monospace">{{ member.uid }}</dd>
+      <dt id="member-uid-label">UID:</dt>
+      <dd class="monospace" aria-labelledby="member-uid-label">{{ member.uid }}</dd>
 
-      <dt>Account Created:</dt>
-      <dd>{{ member.createdAt | date: 'MMM d, yyyy h:mm a' }}</dd>
+      <dt id="member-created-label">Account Created:</dt>
+      <dd aria-labelledby="member-created-label">{{ member.createdAt | date: 'MMM d, yyyy h:mm a' }}</dd>
 
-      <dt>Membership:</dt>
-      <dd>
+      <dt id="member-membership-label">Membership:</dt>
+      <dd aria-labelledby="member-membership-label">
         <span [class]="'status-badge ' + (member.membershipActive ? 'active' : 'inactive')">
           {{ member.membershipActive ? 'Active' : 'Inactive' }}
         </span>
@@ -197,9 +197,9 @@
   }
 }
 
-<dialog #confirmDialog class="confirm-dialog">
+<dialog #confirmDialog class="confirm-dialog" aria-labelledby="confirm-dialog-title">
   <div class="dialog-content">
-    <h3>Confirm Action</h3>
+    <h3 id="confirm-dialog-title">Confirm Action</h3>
     <p>{{ getConfirmMessage() }}</p>
     <div class="dialog-actions">
       <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>

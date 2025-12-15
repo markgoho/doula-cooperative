@@ -14,8 +14,8 @@ import type {
   providedIn: 'root',
 })
 export class AdminMembersService {
-  private functions = inject(Functions);
   private httpClient = inject(HttpClient);
+  private functions = inject(Functions);
 
   async listMembers(): Promise<ListMembersResponse> {
     // Authorization header added automatically by authInterceptor
@@ -59,13 +59,10 @@ export class AdminMembersService {
   }
 
   async updateMember(uid: string, updates: Partial<Member>): Promise<{ success: boolean }> {
-    const updateMemberCallable = httpsCallable<
-      { uid: string; updates: Partial<Member> },
-      { success: boolean }
-    >(this.functions, 'adminUpdateMember');
-
-    const result = await updateMemberCallable({ uid, updates });
-    return result.data;
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.patch<{ success: boolean }>(`/api/admin/members/${uid}`, updates),
+    );
   }
 
   async activateMembership(
@@ -73,42 +70,37 @@ export class AdminMembersService {
     subscriptionStart?: string,
     membershipExpiresAt?: string,
   ): Promise<{ success: boolean }> {
-    const activateCallable = httpsCallable<
-      { uid: string; subscriptionStart?: string; membershipExpiresAt?: string },
-      { success: boolean }
-    >(this.functions, 'adminActivateMembership');
-
-    const parameters: { uid: string; subscriptionStart?: string; membershipExpiresAt?: string } = {
-      uid,
+    // Authorization header added automatically by authInterceptor
+    const body = {
+      ...(subscriptionStart !== undefined && { subscriptionStart }),
+      ...(membershipExpiresAt !== undefined && { membershipExpiresAt }),
     };
-    if (subscriptionStart !== undefined) {
-      parameters.subscriptionStart = subscriptionStart;
-    }
-    if (membershipExpiresAt !== undefined) {
-      parameters.membershipExpiresAt = membershipExpiresAt;
-    }
-    const result = await activateCallable(parameters);
-    return result.data;
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean }>(
+        `/api/admin/members/${uid}/membership/activate`,
+        body,
+      ),
+    );
   }
 
   async deactivateMembership(uid: string): Promise<{ success: boolean }> {
-    const deactivateCallable = httpsCallable<{ uid: string }, { success: boolean }>(
-      this.functions,
-      'adminDeactivateMembership',
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean }>(
+        `/api/admin/members/${uid}/membership/deactivate`,
+        {},
+      ),
     );
-
-    const result = await deactivateCallable({ uid });
-    return result.data;
   }
 
   async extendMembership(uid: string, newExpirationDate: string): Promise<{ success: boolean }> {
-    const extendCallable = httpsCallable<
-      { uid: string; newExpirationDate: string },
-      { success: boolean }
-    >(this.functions, 'adminExtendMembership');
-
-    const result = await extendCallable({ uid, newExpirationDate });
-    return result.data;
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean }>(
+        `/api/admin/members/${uid}/membership/extend`,
+        { newExpirationDate },
+      ),
+    );
   }
 
   async readMemberProfile(uid: string): Promise<{ content: string; image?: string; slug: string }> {
@@ -182,13 +174,10 @@ export class AdminMembersService {
   }
 
   async deleteUser(uid: string): Promise<{ success: boolean }> {
-    const deleteUserCallable = httpsCallable<{ uid: string }, { success: boolean }>(
-      this.functions,
-      'adminDeleteUser',
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.delete<{ success: boolean }>(`/api/admin/members/${uid}`),
     );
-
-    const result = await deleteUserCallable({ uid });
-    return result.data;
   }
 
   async sendInvitation(email: string): Promise<{ success: boolean }> {
