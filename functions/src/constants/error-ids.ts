@@ -179,6 +179,13 @@ export const ERROR_IDS = {
   API_ADMIN_EXTEND_MEMBERSHIP_FAILED: "api_admin_extend_membership_failed",
   API_ADMIN_DELETE_USER_FAILED: "api_admin_delete_user_failed",
 
+  // Admin match request management operations
+  API_ADMIN_LIST_MATCH_REQUESTS_FAILED: "api_admin_list_match_requests_failed",
+  API_ADMIN_GET_MATCH_REQUEST_FAILED: "api_admin_get_match_request_failed",
+  API_ADMIN_UPDATE_MATCH_REQUEST_FAILED:
+    "api_admin_update_match_request_failed",
+  API_MATCH_REQUEST_NOT_FOUND: "api_match_request_not_found",
+
   // Specific admin error scenarios
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",
   API_ADMIN_SELF_DELETE_ATTEMPT: "api_admin_self_delete_attempt",

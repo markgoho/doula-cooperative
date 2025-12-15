@@ -2,9 +2,10 @@ import { Elysia } from "elysia";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { AuthError, HttpError } from "../../shared-api/errors/http-error.js";
+import { HttpError } from "../../shared-api/errors/http-error.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import { adminGuard } from "../../shared-api/utils/admin-guard.js";
+import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   activateMembershipLogic,
   deactivateMembershipLogic,
@@ -31,26 +32,6 @@ interface AuthResult {
   [key: string]: unknown;
   adminToken: DecodedIdToken | undefined;
   authError: HttpError | undefined;
-}
-
-/**
- * Extract admin UID from token. Assumes onBeforeHandle guard validated the token.
- * @throws AuthError if adminToken is undefined
- */
-function getAdminUid(
-  adminToken: DecodedIdToken | undefined,
-  logger: Logger,
-): string {
-  if (!adminToken) {
-    logger.error("Admin token missing in route handler", {
-      errorId: ERROR_IDS.API_AUTH_VERIFICATION_FAILED,
-      message: "This indicates a bug in the authentication guard",
-    });
-    throw new AuthError(
-      "Authentication token missing. This is a server error, please try again.",
-    );
-  }
-  return adminToken.uid;
 }
 
 /**
@@ -108,20 +89,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
           };
         }
       })
-      .onBeforeHandle(
-        { as: "local" },
-        ({ adminToken, authError, set }): { error: string } | undefined => {
-          if (!adminToken && authError) {
-            set.status = authError.statusCode;
-            return { error: authError.message };
-          }
-          if (!adminToken) {
-            set.status = 401;
-            return { error: "Unauthorized" };
-          }
-          return undefined;
-        },
-      )
+      .onBeforeHandle({ as: "local" }, adminGuard)
       // GET / - List all members (served at /api/admin/members/)
       .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
         listMembersLogic({

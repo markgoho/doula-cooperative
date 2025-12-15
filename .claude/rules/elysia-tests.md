@@ -34,6 +34,66 @@ Use the create\*TestPlugin factories to test Elysia plugins in isolation:
 
 These factories inject mocked services and use the shared auth mocks by default.
 
+## Testing HTTP Contracts (Not Implementation Details)
+
+**Test the HTTP contract** - given this request, verify this response. Do not test:
+- How the service is called internally
+- What arguments are passed to mocked functions
+- Third-party code behavior (Elysia framework, Firebase SDK, etc.)
+
+**Example**:
+```typescript
+// ✅ GOOD - Test HTTP contract (request → response)
+it("should return match request when authorized", async () => {
+  const response = (await testApp.handle(
+    new Request("http://localhost/request-123", {
+      headers: { Authorization: "Bearer admin-token" },
+    }),
+  )) as Response;
+
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.id).toBe("request-123");
+  expect(body.email).toBe("test@example.com");
+});
+
+// ✅ GOOD - Test authentication (part of HTTP contract)
+it("should return 401 when not authenticated", async () => {
+  const response = (await testApp.handle(
+    new Request("http://localhost/request-123"),
+  )) as Response;
+
+  expect(response.status).toBe(401);
+  expect((await response.json()).error).toBe("Missing Authorization header");
+});
+
+// ❌ BAD - Testing implementation details
+it("should pass requestId to service", async () => {
+  await testApp.handle(new Request("http://localhost/request-123"));
+
+  const callArguments = mockService.mock.calls[0]?.[0]; // Implementation detail!
+  expect(callArguments.requestId).toBe("request-123"); // Who cares how service is called?
+});
+
+// ❌ BAD - Testing third-party code
+it("should call Elysia's set.status method", async () => {
+  // Testing framework internals - not our code!
+});
+```
+
+**What to test**:
+- Authentication/authorization (401, 403)
+- Input validation (422, 400)
+- Success responses (200, structure, data format)
+- Error responses (404, 500, error messages)
+- That service was invoked (optional, for critical operations)
+
+**What NOT to test**:
+- Internal function arguments
+- How services are called
+- Framework behavior
+- Third-party library internals
+
 ## Testing Routes
 
 Test routes by calling testApp.handle(new Request(...)) directly:

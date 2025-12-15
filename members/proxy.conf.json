@@ -1,4 +1,12 @@
 {
+  "/api/admin/match-requests": {
+    "target": "http://localhost:5001/doula-cooperative/us-central1/adminMatchRequestsApi",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/admin/match-requests": ""
+    }
+  },
   "/api/admin/members": {
     "target": "http://localhost:5001/doula-cooperative/us-central1/adminMembersApi",
     "secure": false,

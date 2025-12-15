@@ -590,6 +590,10 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "/api/admin/match-requests/**",
+          "function": "adminMatchRequestsApi"
+        },
+        {
           "source": "/api/admin/members/**",
           "function": "adminMembersApi"
         },
