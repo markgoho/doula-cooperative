@@ -1,9 +1,8 @@
 import { test, expect } from '../fixtures/admin-auth.fixture';
 import type {
-  UnclaimedProfile,
-  ListUnclaimedProfilesResponse,
-} from '../../src/app/admin/admin.types';
-import { Timestamp } from '@angular/fire/firestore';
+  ApiUnclaimedProfileResponse,
+  ApiListUnclaimedProfilesResponse,
+} from '../../src/app/admin/api-types/admin-unclaimed-profiles-api.types';
 import { AdminUnclaimedProfileDetailPage } from '../pages/admin-unclaimed-profile-detail.page';
 import { AdminUsersPage } from '../pages/admin-users.page';
 
@@ -11,35 +10,35 @@ import { AdminUsersPage } from '../pages/admin-users.page';
  * Mock data for testing admin unclaimed profiles.
  * These represent the expected API responses that would come from the backend.
  */
-const mockUnclaimedProfiles: UnclaimedProfile[] = [
+const mockUnclaimedProfiles: ApiUnclaimedProfileResponse[] = [
   {
     email: 'alice.unclaimed@example.com',
     name: 'Alice Unclaimed',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-01-15T10:30:00.000Z')),
-    lastPayment: Timestamp.fromDate(new Date('2024-01-15T10:30:00.000Z')),
-    nextPayment: Timestamp.fromDate(new Date('2025-01-15T10:30:00.000Z')),
+    subscriptionStart: '2024-01-15T10:30:00.000Z',
+    lastPayment: '2024-01-15T10:30:00.000Z',
+    nextPayment: '2025-01-15T10:30:00.000Z',
     slug: 'alice-unclaimed',
     invitationEmailStatus: 'sent',
-    invitationEmailSentAt: Timestamp.fromDate(new Date('2024-01-16T10:00:00.000Z')),
+    invitationEmailSentAt: '2024-01-16T10:00:00.000Z',
   },
   {
     email: 'bob.unclaimed@example.com',
     name: 'Bob Unclaimed',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-02-20T14:15:00.000Z')),
-    lastPayment: Timestamp.fromDate(new Date('2024-02-20T14:15:00.000Z')),
-    nextPayment: Timestamp.fromDate(new Date('2025-02-20T14:15:00.000Z')),
+    subscriptionStart: '2024-02-20T14:15:00.000Z',
+    lastPayment: '2024-02-20T14:15:00.000Z',
+    nextPayment: '2025-02-20T14:15:00.000Z',
   },
   {
     email: 'charlie.unclaimed@example.com',
     name: 'Charlie Unclaimed',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-03-10T09:00:00.000Z')),
-    lastPayment: Timestamp.fromDate(new Date('2024-03-10T09:00:00.000Z')),
-    nextPayment: Timestamp.fromDate(new Date('2025-03-10T09:00:00.000Z')),
+    subscriptionStart: '2024-03-10T09:00:00.000Z',
+    lastPayment: '2024-03-10T09:00:00.000Z',
+    nextPayment: '2025-03-10T09:00:00.000Z',
     slug: 'charlie-unclaimed',
   },
 ];
 
-const mockListUnclaimedProfilesResponse: ListUnclaimedProfilesResponse = {
+const mockListUnclaimedProfilesResponse: ApiListUnclaimedProfilesResponse = {
   profiles: mockUnclaimedProfiles,
   total: 3,
 };
@@ -225,16 +224,7 @@ test.describe('Admin Unclaimed Profiles', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            email: mockProfile.email,
-            name: mockProfile.name,
-            subscriptionStart: mockProfile.subscriptionStart.toDate().toISOString(),
-            lastPayment: mockProfile.lastPayment?.toDate().toISOString(),
-            nextPayment: mockProfile.nextPayment?.toDate().toISOString(),
-            slug: mockProfile.slug,
-            invitationEmailStatus: mockProfile.invitationEmailStatus,
-            invitationEmailSentAt: mockProfile.invitationEmailSentAt?.toDate().toISOString(),
-          }),
+          body: JSON.stringify(mockProfile),
         });
         return;
       }
@@ -290,13 +280,7 @@ test.describe('Admin Unclaimed Profiles', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            email: mockProfile.email,
-            name: mockProfile.name,
-            subscriptionStart: mockProfile.subscriptionStart.toDate().toISOString(),
-            lastPayment: mockProfile.lastPayment?.toDate().toISOString(),
-            nextPayment: mockProfile.nextPayment?.toDate().toISOString(),
-          }),
+          body: JSON.stringify(mockProfile),
         });
         return;
       }
@@ -362,12 +346,12 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('displays profile with failed invitation status', async ({ authenticatedAdminPage }) => {
-    const profileWithFailedInvitation: UnclaimedProfile = {
+    const profileWithFailedInvitation: ApiUnclaimedProfileResponse = {
       email: 'failed.invitation@example.com',
       name: 'Failed Invitation',
-      subscriptionStart: Timestamp.fromDate(new Date('2024-04-01T10:00:00.000Z')),
-      lastPayment: Timestamp.fromDate(new Date('2024-04-01T10:00:00.000Z')),
-      nextPayment: Timestamp.fromDate(new Date('2025-04-01T10:00:00.000Z')),
+      subscriptionStart: '2024-04-01T10:00:00.000Z',
+      lastPayment: '2024-04-01T10:00:00.000Z',
+      nextPayment: '2025-04-01T10:00:00.000Z',
       invitationEmailStatus: 'failed',
       invitationEmailError: 'Email service temporarily unavailable',
     };
@@ -376,15 +360,7 @@ test.describe('Admin Unclaimed Profiles', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          email: profileWithFailedInvitation.email,
-          name: profileWithFailedInvitation.name,
-          subscriptionStart: profileWithFailedInvitation.subscriptionStart.toDate().toISOString(),
-          lastPayment: profileWithFailedInvitation.lastPayment?.toDate().toISOString(),
-          nextPayment: profileWithFailedInvitation.nextPayment?.toDate().toISOString(),
-          invitationEmailStatus: profileWithFailedInvitation.invitationEmailStatus,
-          invitationEmailError: profileWithFailedInvitation.invitationEmailError,
-        }),
+        body: JSON.stringify(profileWithFailedInvitation),
       });
     });
 
