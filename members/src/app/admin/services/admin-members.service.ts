@@ -23,7 +23,7 @@ export class AdminMembersService {
 
   async listMembers(): Promise<ListMembersResponse> {
     // Authorization header added automatically by authInterceptor
-    return firstValueFrom(this.httpClient.get<ListMembersResponse>('/api/admin/members/'));
+    return firstValueFrom(this.httpClient.get<ListMembersResponse>('/api/admin/members'));
   }
 
   async getMember(uid: string): Promise<Member> {

@@ -15,8 +15,12 @@ import { SERVICE_KEYS, type PartialServices } from "./types/services.js";
 export function createApp(services?: PartialServices) {
   // Node adapter required because Firebase Functions v2 runs on Node.js runtime (not Bun)
   // Firebase hosting routes /api/admin/members/** to this function
+  //
+  // IMPORTANT: Firebase Hosting sends the FULL path (doesn't strip prefix)
+  // Angular proxy.conf.json is configured to also send the full path (no pathRewrite)
+  // This ensures local and production behave identically
   return (
-    new Elysia({ adapter: node() })
+    new Elysia({ adapter: node(), prefix: "/api/admin/members" })
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       // Health check route (public)
       .get("/health", () => healthRoute())

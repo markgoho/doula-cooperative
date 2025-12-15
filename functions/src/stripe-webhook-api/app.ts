@@ -23,8 +23,10 @@ function healthRoute() {
  */
 export function createApp(services?: PartialServices) {
   // Node adapter required because Firebase Functions v2 runs on Node.js runtime (not Bun)
+  // Firebase hosting routes /api/stripe/** to this function
+  // IMPORTANT: Firebase Hosting sends the FULL path (doesn't strip prefix)
   return (
-    new Elysia({ adapter: node() })
+    new Elysia({ adapter: node(), prefix: "/api/stripe" })
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       // Health check route (public)
       .get("/health", () => healthRoute())

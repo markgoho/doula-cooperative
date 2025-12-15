@@ -8,13 +8,26 @@ paths: functions/src/**/*-api/**/*.ts
 
 **Required adapter**: Use `@elysiajs/node` adapter for Node.js compatibility (Firebase Functions runs on Node.js, not Bun)
 
-**No prefix needed**: Firebase rewrites already provide the path prefix for each function
+**CRITICAL: Prefix ALWAYS required**: Firebase Hosting does NOT strip the path prefix when routing to functions. You must use the `prefix` option in `createApp()`:
 
 ```typescript
 import { Elysia } from "elysia";
 import { node } from "@elysiajs/node";
 
-export const app = new Elysia({ adapter: node() });
+// ✅ CORRECT - Include prefix to match Firebase rewrite path
+export function createApp() {
+  return new Elysia({
+    adapter: node(),
+    prefix: "/api/admin/members"  // Must match firebase.json rewrite source
+  })
+    .use(createAdminMembersPlugin());
+}
+
+// ❌ WRONG - Missing prefix causes 404s
+export function createApp() {
+  return new Elysia({ adapter: node() })
+    .use(createAdminMembersPlugin());
+}
 ```
 
 ### Firebase Rewrite Pattern
@@ -41,7 +54,33 @@ Each Elysia plugin is deployed as a **separate Firebase Function** with its own 
 }
 ```
 
-**IMPORTANT**: Plugins define routes **without** the Firebase rewrite prefix:
+**Path Handling: Production & Local Development**
+
+Firebase Hosting does NOT strip the path prefix, so Elysia apps must use the `prefix` option. Local development must match this behavior:
+
+- **Production** (Firebase Hosting): Sends full path
+  - Request: `GET /api/admin/members/`
+  - Function receives: `GET /api/admin/members/`
+  - Elysia `prefix` strips it: matches `GET /`
+
+- **Local development** (proxy.conf.json): Must NOT use `pathRewrite`
+  ```json
+  {
+    "/api/admin/members": {
+      "target": "http://localhost:5001/.../adminMembersApi",
+      "secure": false,
+      "changeOrigin": true
+      // ✅ NO pathRewrite - send full path like production
+    }
+  }
+  ```
+  - Request: `GET /api/admin/members/`
+  - Function receives: `GET /api/admin/members/`
+  - Elysia `prefix` strips it: matches `GET /`
+
+**Why no pathRewrite locally?** So local development matches production behavior exactly.
+
+**IMPORTANT**: Plugins define routes **without** the Firebase rewrite prefix (the app prefix handles it):
 
 ```typescript
 // ✅ CORRECT - Plugin defines route from its "root"
@@ -65,42 +104,52 @@ export function createMembersPlugin() {
 
 ### Complete Routing Flow Examples
 
-**Example 1: Members API**
+**Example 1: Admin Members API (with prefix)**
 
 ```
-User Request:     GET /api/members/user123
+User Request:     GET /api/admin/members/user123
                        ↓
-Firebase Rewrite: /api/members/** → membersApi function
+Firebase Rewrite: /api/admin/members/** → adminMembersApi function
+                       ↓
+Function Receives: GET /api/admin/members/user123 (full path, NOT stripped!)
+                       ↓
+Elysia App:       prefix: "/api/admin/members" strips prefix
                        ↓
 Elysia Plugin:    GET /:memberId (matches with memberId = "user123")
                        ↓
 Final Route:      ✅ Successfully handled
 ```
 
-**Example 2: Admin Members API with nested routes**
+**Example 2: Nested routes with prefix**
 
 ```
 User Request:     POST /api/admin/members/user123/membership/activate
                        ↓
 Firebase Rewrite: /api/admin/members/** → adminMembersApi function
                        ↓
-Elysia Plugin:    POST /:memberId/membership/activate (matches with memberId = "user123")
+Function Receives: POST /api/admin/members/user123/membership/activate (full path!)
+                       ↓
+Elysia App:       prefix: "/api/admin/members" strips prefix
+                       ↓
+Elysia Plugin:    POST /:memberId/membership/activate
                        ↓
 Final Route:      ✅ Successfully handled
 ```
 
-**Example 3: Wrong approach (DON'T DO THIS)**
+**Example 3: Wrong - Missing prefix (DON'T DO THIS)**
 
 ```
-User Request:     GET /api/members/user123
+User Request:     GET /api/admin/members/
                        ↓
-Firebase Rewrite: /api/members/** → membersApi function
+Firebase Rewrite: /api/admin/members/** → adminMembersApi function
                        ↓
-Elysia Plugin:    GET /members/:memberId ❌ WRONG!
+Function Receives: GET /api/admin/members/ (full path!)
                        ↓
-Attempted Match:  GET /members/user123 (but Firebase sent "/user123")
+Elysia App:       No prefix configured ❌
                        ↓
-Final Route:      ❌ 404 Not Found
+Elysia Plugin:    Tries to match GET / against /api/admin/members/
+                       ↓
+Final Route:      ❌ 404 Not Found - paths don't match!
 ```
 
 ## Folder Structure
