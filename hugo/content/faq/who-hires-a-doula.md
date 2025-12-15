@@ -1,7 +1,7 @@
 ---
 title: "Who typically hires a doula?"
 draft: false
-summary: "Learn about the diverse range of individuals and families who choose to hire a doula to enhance their birth and postpartum experience, regardless of their birthing choices."
+summary: "Learn about diverse ranges of individuals and families who choose to hire a doula to enhance their birth and postpartum experience, regardless of their birthing choices."
 ---
 
 The short answer is anybody who is preparing to have a baby or who has a baby at home!
