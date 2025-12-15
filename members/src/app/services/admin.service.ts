@@ -1,12 +1,13 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminService {
-  private functions = inject(Functions);
+  private httpClient = inject(HttpClient);
   private authService = inject(AuthService);
 
   // Expose admin status from AuthService
@@ -16,34 +17,26 @@ export class AdminService {
    * Grant admin privileges to a user by UID
    */
   async setAdminClaim(uid: string): Promise<void> {
-    const setAdminClaimCallable = httpsCallable<{ uid: string }, { success: boolean }>(
-      this.functions,
-      'setAdminClaim',
+    // Authorization header added automatically by authInterceptor
+    await firstValueFrom(
+      this.httpClient.patch<{ success: boolean; uid: string }>(
+        `/api/admin/members/${uid}/claims`,
+        { admin: true },
+      ),
     );
-
-    try {
-      await setAdminClaimCallable({ uid });
-    } catch (error) {
-      console.error('Error setting admin claim:', error);
-      throw error;
-    }
   }
 
   /**
    * Revoke admin privileges from a user by UID
    */
   async removeAdminClaim(uid: string): Promise<void> {
-    const removeAdminClaimCallable = httpsCallable<{ uid: string }, { success: boolean }>(
-      this.functions,
-      'removeAdminClaim',
+    // Authorization header added automatically by authInterceptor
+    await firstValueFrom(
+      this.httpClient.patch<{ success: boolean; uid: string }>(
+        `/api/admin/members/${uid}/claims`,
+        { admin: false },
+      ),
     );
-
-    try {
-      await removeAdminClaimCallable({ uid });
-    } catch (error) {
-      console.error('Error removing admin claim:', error);
-      throw error;
-    }
   }
 
   /**

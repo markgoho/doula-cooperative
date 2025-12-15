@@ -289,3 +289,29 @@ export const ExtendMembershipBodySchema = t.Object({
     error: "newExpirationDate must be a valid ISO 8601 date-time",
   }),
 });
+
+/**
+ * Request body schema for updating custom claims.
+ * Set to true to grant, false/omit to revoke.
+ */
+export const UpdateClaimsBodySchema = t.Object({
+  admin: t.Optional(
+    t.Boolean({
+      description: "Set to true to grant admin privileges, false to revoke",
+    }),
+  ),
+});
+
+export type UpdateClaimsBody = Static<typeof UpdateClaimsBodySchema>;
+
+/**
+ * Success response for updating custom claims.
+ */
+export const UpdateClaimsResponseSchema = t.Object({
+  success: t.Literal(true),
+  uid: t.String({
+    description: "UID of the user whose claims were updated",
+  }),
+});
+
+export type UpdateClaimsResponse = Static<typeof UpdateClaimsResponseSchema>;

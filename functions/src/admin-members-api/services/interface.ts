@@ -98,4 +98,20 @@ export interface MemberAdminService {
    * @throws ForbiddenError if trying to delete self or another admin
    */
   deleteUser(memberId: string, requestingAdminUid: string): Promise<void>;
+
+  /**
+   * Update custom claims for a user.
+   * Claims are merged with existing claims. Set a claim to false to remove it.
+   *
+   * @param options - Object containing user ID, claims to update, and requesting admin UID
+   * @returns Promise resolving when claims are updated
+   * @throws NotFoundError if user does not exist
+   * @throws ForbiddenError if trying to modify own admin claim
+   * @throws ValidationError if UID format is invalid
+   */
+  updateClaims(options: {
+    uid: string;
+    claims: { admin?: boolean };
+    requestingAdminUid: string;
+  }): Promise<void>;
 }

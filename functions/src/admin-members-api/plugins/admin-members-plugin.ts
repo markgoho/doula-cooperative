@@ -13,12 +13,14 @@ import {
   extendMembershipLogic,
   getMemberLogic,
   listMembersLogic,
+  updateClaimsLogic,
   updateMemberLogic,
 } from "../routes/index.js";
 import {
   ActivateMembershipBodySchema,
   ExtendMembershipBodySchema,
   MemberIdParameterSchema,
+  UpdateClaimsBodySchema,
   UpdateMemberBodySchema,
 } from "../schemas/member-schemas.js";
 import { MemberAdminService } from "../services/index.js";
@@ -224,6 +226,29 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 },
                 { body: ExtendMembershipBodySchema },
               ),
+          )
+          // PATCH /:memberId/claims - Update custom claims (served at /api/admin/members/:memberId/claims)
+          .patch(
+            "/claims",
+            async ({
+              params,
+              body,
+              adminToken,
+              memberAdminService,
+              logger,
+              set,
+            }) => {
+              const typedBody = body as { admin?: boolean };
+              return updateClaimsLogic({
+                uid: params.memberId,
+                claims: typedBody,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              });
+            },
+            { body: UpdateClaimsBodySchema },
           ),
       )
   );

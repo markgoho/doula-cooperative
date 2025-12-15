@@ -168,17 +168,6 @@ export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
 );
 
 // Admin functions
-export const setAdminClaim = onCall({ invoker: "public" }, async request => {
-  const { handleSetAdminClaim } = await import("./admin/set-admin-claim.js");
-  return handleSetAdminClaim(request.data as { uid: string }, request);
-});
-
-export const removeAdminClaim = onCall({ invoker: "public" }, async request => {
-  const { handleRemoveAdminClaim } =
-    await import("./admin/remove-admin-claim.js");
-  return handleRemoveAdminClaim(request.data as { uid: string }, request);
-});
-
 export const adminUpdateMember = onCall(
   { invoker: "public" },
   async request => {

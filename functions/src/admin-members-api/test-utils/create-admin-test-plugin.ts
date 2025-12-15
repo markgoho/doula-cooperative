@@ -31,6 +31,7 @@ export function createAdminTestPlugin(overrides?: {
     deactivateMembership: mock(() => Promise.resolve({} as MemberDocument)),
     extendMembership: mock(() => Promise.resolve({} as MemberDocument)),
     deleteUser: mock(() => Promise.resolve()),
+    updateClaims: mock(() => Promise.resolve()),
     verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
     ...overrides?.memberAdminService,
   };

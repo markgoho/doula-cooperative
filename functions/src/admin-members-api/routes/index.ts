@@ -5,3 +5,4 @@ export { activateMembershipLogic } from "./activate-membership.js";
 export { deactivateMembershipLogic } from "./deactivate-membership.js";
 export { extendMembershipLogic } from "./extend-membership.js";
 export { deleteUserLogic } from "./delete-user.js";
+export { updateClaimsLogic } from "./update-claims.js";
