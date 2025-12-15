@@ -114,32 +114,34 @@ export class AdminMembersService {
   }
 
   async listUnclaimedProfiles(limit = 50, offset = 0): Promise<ListUnclaimedProfilesResponse> {
-    const listUnclaimedProfilesCallable = httpsCallable<
-      { limit?: number; offset?: number },
-      ListUnclaimedProfilesResponse
-    >(this.functions, 'adminListUnclaimedProfiles');
+    // Authorization header added automatically by authInterceptor
+    const parameters = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
 
-    const result = await listUnclaimedProfilesCallable({ limit, offset });
+    const result = await firstValueFrom(
+      this.httpClient.get<ListUnclaimedProfilesResponse>('/api/admin/unclaimed-profiles', {
+        params: parameters,
+      }),
+    );
 
-    // Convert timestamp objects to Timestamp instances
-    const profiles = result.data.profiles.map((profile) =>
+    // Convert ISO string timestamps to Timestamp instances
+    const profiles = result.profiles.map((profile) =>
       this.convertUnclaimedProfileTimestamps(profile),
     );
 
     return {
       profiles,
-      total: result.data.total,
+      total: result.total,
     };
   }
 
   async getUnclaimedProfile(email: string): Promise<UnclaimedProfile> {
-    const getUnclaimedProfileCallable = httpsCallable<{ email: string }, UnclaimedProfile>(
-      this.functions,
-      'adminGetUnclaimedProfile',
+    // Authorization header added automatically by authInterceptor
+    const result = await firstValueFrom(
+      this.httpClient.get<UnclaimedProfile>(`/api/admin/unclaimed-profiles/${email}`),
     );
-
-    const result = await getUnclaimedProfileCallable({ email });
-    return this.convertUnclaimedProfileTimestamps(result.data);
+    return this.convertUnclaimedProfileTimestamps(result);
   }
 
   private convertUnclaimedProfileTimestamps(profile: UnclaimedProfile): UnclaimedProfile {
