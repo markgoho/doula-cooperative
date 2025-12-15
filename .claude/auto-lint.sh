@@ -21,6 +21,10 @@ if [[ "$file_path" == functions/* ]]; then
   echo "🔍 Running ESLint on functions/..."
   (cd "${CLAUDE_PROJECT_DIR}/functions" && bun run lint 2>&1) || true
   echo "✅ Linted functions/"
+elif [[ "$file_path" == members/e2e/* ]]; then
+  echo "🔍 Running typecheck and lint on members/e2e/..."
+  (cd "${CLAUDE_PROJECT_DIR}/members" && bun run typecheck:e2e && bun run lint:e2e 2>&1) || true
+  echo "✅ Typechecked and linted members/e2e/"
 elif [[ "$file_path" == members/* ]]; then
   echo "🔍 Running ESLint on members/..."
   (cd "${CLAUDE_PROJECT_DIR}/members" && bun run lint 2>&1) || true
