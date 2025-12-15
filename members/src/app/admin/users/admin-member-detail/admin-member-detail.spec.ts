@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import { AdminMembersService } from '../../services/admin-members.service';
 import type { Member } from '../../admin.types';
 import { AdminMemberDetail } from './admin-member-detail';
@@ -63,7 +62,7 @@ describe('AdminUserDetail', () => {
   it('should display formatted account creation date', async () => {
     // Arrange
     const member = createMockMember({
-      createdAt: Timestamp.fromDate(new Date('2024-03-15T14:30:00')),
+      createdAt: '2024-03-15T14:30:00.000Z',
     });
 
     // Act
@@ -98,9 +97,9 @@ describe('AdminUserDetail', () => {
   it('should display subscription dates', async () => {
     // Arrange
     const member = createMockMember({
-      createdAt: Timestamp.fromDate(new Date('2024-01-01T10:30:00')),
-      subscriptionStart: Timestamp.fromDate(new Date('2024-01-15T12:00:00')),
-      membershipExpiresAt: Timestamp.fromDate(new Date('2025-01-15T12:00:00')),
+      createdAt: '2024-01-01T10:30:00.000Z',
+      subscriptionStart: '2024-01-15T12:00:00.000Z',
+      membershipExpiresAt: '2025-01-15T12:00:00.000Z',
     });
 
     // Act
@@ -466,10 +465,10 @@ function createMockMember(overrides: Partial<Member> = {}): Member {
     uid: 'test-uid-123',
     email: 'test@example.com',
     name: 'Test User',
-    createdAt: Timestamp.fromDate(new Date('2024-01-15T10:30:00')),
+    createdAt: '2024-01-15T10:30:00.000Z',
     membershipActive: false,
-    subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
-    membershipExpiresAt: Timestamp.fromDate(new Date('2025-01-01')),
+    subscriptionStart: '2024-01-01T00:00:00.000Z',
+    membershipExpiresAt: '2025-01-01T00:00:00.000Z',
     ...overrides,
   };
 }

@@ -2,7 +2,6 @@ import { signal, type ResourceRef } from '@angular/core';
 import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import type { ListMembersResponse, Member } from '../../admin.types';
 import { ActiveMembersTable } from './active-members-table';
 
@@ -10,7 +9,7 @@ function createMockMember(overrides: Partial<Member> = {}): Member {
   return {
     uid: 'test-uid-123',
     email: 'test@example.com',
-    createdAt: Timestamp.fromDate(new Date('2024-01-15')),
+    createdAt: '2024-01-15T00:00:00.000Z',
     membershipActive: false,
     ...overrides,
   };
@@ -118,17 +117,17 @@ describe('ActiveMembersTable', () => {
         createMockMember({
           uid: '1',
           email: 'user1@example.com',
-          createdAt: Timestamp.fromDate(new Date('2024-06-01')),
+          createdAt: '2024-06-01T00:00:00.000Z',
         }),
         createMockMember({
           uid: '2',
           email: 'user2@example.com',
-          createdAt: Timestamp.fromDate(new Date('2024-01-01')),
+          createdAt: '2024-01-01T00:00:00.000Z',
         }),
         createMockMember({
           uid: '3',
           email: 'user3@example.com',
-          createdAt: Timestamp.fromDate(new Date('2024-03-01')),
+          createdAt: '2024-03-01T00:00:00.000Z',
         }),
       ];
       const { user } = await setup({ members });

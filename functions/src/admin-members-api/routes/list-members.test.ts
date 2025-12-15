@@ -7,7 +7,7 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests for GET / (list with pagination).
  * Served at /api/admin/members/ via Firebase rewrite.
  *
- * Uses createApp() factory with mocked services.
+ * Uses createAdminTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET / (list members)", () => {
@@ -31,7 +31,7 @@ describe("GET / (list members)", () => {
   const mockListMembers = mock(() => {
     return Promise.resolve({
       members: mockMembers,
-      total: 10,
+      total: 2,
     });
   });
 
@@ -83,8 +83,8 @@ describe("GET / (list members)", () => {
     });
   });
 
-  describe("Pagination", () => {
-    it("should use default pagination when no query params provided", async () => {
+  describe("Service invocation", () => {
+    it("should call service with logger", async () => {
       await testApp.handle(
         new Request("http://localhost/", {
           headers: {
@@ -93,70 +93,39 @@ describe("GET / (list members)", () => {
         }),
       );
 
-      // Should call service with no limit/offset (defaults handled by service)
       expect(mockListMembers).toHaveBeenCalledTimes(1);
       expect(mockListMembers).toHaveBeenCalledWith({
         logger: expect.any(Object) as unknown,
       });
     });
+  });
 
-    it("should pass limit and offset to service", async () => {
-      await testApp.handle(
-        new Request("http://localhost/?limit=25&offset=10", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      );
-
-      expect(mockListMembers).toHaveBeenCalledWith({
-        limit: 25,
-        offset: 10,
-        logger: expect.any(Object) as unknown,
+  describe("Error handling", () => {
+    it("should return 500 when service throws unexpected error", async () => {
+      const mockUnexpectedError = mock(() => {
+        return Promise.reject(new Error("Firestore quota exceeded"));
       });
-    });
 
-    it("should reject limit greater than 100", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/?limit=101", {
+      const errorTestApp = createAdminTestPlugin({
+        memberAdminService: {
+          listMembers: mockUnexpectedError,
+        },
+      });
+
+      const response = (await errorTestApp.handle(
+        new Request("http://localhost/", {
           headers: {
             Authorization: "Bearer admin-token",
           },
         }),
       )) as Response;
 
-      expect(response.status).toBe(422);
-    });
-
-    it("should reject negative offset", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/?offset=-1", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
-
-      expect(response.status).toBe(422);
-    });
-
-    it("should return pagination metadata with hasNext flag", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/?limit=2&offset=0", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
-
-      expect(response.status).toBe(200);
-      const body = (await response.json()) as {
-        pagination?: { limit: number; offset: number; hasNext: boolean };
-      };
-      expect(body.pagination).toBeDefined();
-      expect(body.pagination?.limit).toBe(2);
-      expect(body.pagination?.offset).toBe(0);
-      expect(body.pagination?.hasNext).toBe(true); // 0 + 2 < 10
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBeDefined();
+      // Should NOT expose internal error details
+      expect(body.error).not.toContain("Firestore quota");
+      expect(body.error).toContain("list members");
     });
   });
 

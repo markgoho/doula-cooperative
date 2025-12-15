@@ -1,5 +1,5 @@
-import type { MemberDocument } from "../../../types/member-document.js";
-import type { Logger } from "../../../shared-api/types/logger.js";
+import type { Logger } from "../../shared-api/types/logger.js";
+import type { MemberDocument } from "../../types/member-document.js";
 
 /**
  * Service interface for admin member management operations.
@@ -16,18 +16,15 @@ export interface MemberAdminService {
   verifyMemberExists(memberId: string): Promise<MemberDocument>;
 
   /**
-   * List all members with pagination.
+   * List all members.
    *
-   * @param options - Pagination options (limit, offset)
-   * @returns Promise resolving to members array and total count
+   * @param options - Logger for error reporting
+   * @returns Promise resolving to members array, total count, and optional warning
    */
-  listMembers(options: {
-    limit?: number;
-    offset?: number;
-    logger: Logger;
-  }): Promise<{
+  listMembers(options: { logger: Logger }): Promise<{
     members: MemberDocument[];
     total: number;
+    warning?: string;
   }>;
 
   /**

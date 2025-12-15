@@ -1,3 +1,4 @@
+export { getMemberLogic } from "./get-member.js";
 export { listMembersLogic } from "./list-members.js";
 export { updateMemberLogic } from "./update-member.js";
 export { activateMembershipLogic } from "./activate-membership.js";

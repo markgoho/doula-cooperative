@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../../collections/index.js";
-import type { MemberDocument } from "../../../types/member-document.js";
-import { NotFoundError } from "../../../shared-api/errors/http-error.js";
+import { MEMBERS_COLLECTION } from "../../collections/index.js";
+import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import type { MemberDocument } from "../../types/member-document.js";
 
 /**
  * Verify that a member exists in Firestore.
@@ -14,7 +14,9 @@ export async function verifyMemberExists(
   memberId: string,
 ): Promise<MemberDocument> {
   const firestore = getFirestore();
-  const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(memberId);
+  const memberReference = firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(memberId);
 
   const memberDocument = await memberReference.get();
 

@@ -193,6 +193,51 @@ export async function createAuthUser(user: MockUser): Promise<string> {
 }
 
 /**
+ * Set custom claims on a Firebase Auth user in the emulator.
+ *
+ * Uses the Auth emulator REST API to set custom claims like admin privileges.
+ * Note: The Auth emulator has limited support for custom claims via REST API.
+ * This function uses the emulator-specific endpoint format.
+ *
+ * @param uid - The user's Firebase Auth UID
+ * @param customClaims - Custom claims object (e.g., { admin: true })
+ * @throws Error if the Auth emulator API returns a non-200 response
+ *
+ * @example
+ * await setCustomClaims('test-uid-123', { admin: true });
+ */
+export async function setCustomClaims(
+  uid: string,
+  customClaims: Record<string, unknown>,
+): Promise<void> {
+  const apiContext = await request.newContext();
+
+  try {
+    // Use the emulator's internal API to update user account with custom attributes
+    const response = await apiContext.post(
+      `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/accounts:update?key=fake-api-key`,
+      {
+        data: {
+          localId: uid,
+          customAttributes: JSON.stringify(customClaims),
+        },
+        timeout: REQUEST_TIMEOUT_MS,
+      },
+    );
+
+    if (!response.ok()) {
+      const text = await response.text();
+      throw new Error(
+        `Failed to set custom claims for uid ${uid}: ${text}. ` +
+          `Verify the Auth emulator is running on ${AUTH_EMULATOR_URL}.`,
+      );
+    }
+  } finally {
+    await apiContext.dispose();
+  }
+}
+
+/**
  * Create a member document in the Firestore emulator.
  *
  * Uses the Firestore REST API with 'Bearer owner' auth token to bypass

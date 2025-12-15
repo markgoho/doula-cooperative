@@ -1,0 +1,10 @@
+{
+  "/api/admin/members": {
+    "target": "http://localhost:5001/doula-cooperative/us-central1/adminMembersApi",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/admin/members": ""
+    }
+  }
+}

@@ -28,7 +28,7 @@
       <dd class="monospace">{{ member.uid }}</dd>
 
       <dt>Account Created:</dt>
-      <dd>{{ member.createdAt.toDate() | date: 'MMM d, yyyy h:mm a' }}</dd>
+      <dd>{{ member.createdAt | date: 'MMM d, yyyy h:mm a' }}</dd>
 
       <dt>Membership:</dt>
       <dd>
@@ -44,18 +44,12 @@
     <dl class="info-grid">
       <dt>Subscription Start:</dt>
       <dd>
-        {{
-          member.subscriptionStart ? (member.subscriptionStart.toDate() | date: 'MMM d, yyyy') : '—'
-        }}
+{{ member.subscriptionStart ? (member.subscriptionStart | date: 'MMM d, yyyy') : '—' }}
       </dd>
 
       <dt>Membership Expires:</dt>
       <dd>
-        {{
-          member.membershipExpiresAt
-            ? (member.membershipExpiresAt.toDate() | date: 'MMM d, yyyy')
-            : '—'
-        }}
+{{ member.membershipExpiresAt ? (member.membershipExpiresAt | date: 'MMM d, yyyy') : '—' }}
       </dd>
 
       @if (member.stripeCustomerId) {

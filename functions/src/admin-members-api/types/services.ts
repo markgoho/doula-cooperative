@@ -1,6 +1,6 @@
-import type { Logger } from "../../shared-api/types/logger.js";
-import type { MemberAdminService } from "../services/admin-member/interface.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { Logger } from "../../shared-api/types/logger.js";
+import type { MemberAdminService } from "../services/interface.js";
 
 /**
  * Service keys used for dependency injection via Elysia's decorate.

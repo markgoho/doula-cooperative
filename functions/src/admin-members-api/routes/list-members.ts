@@ -1,69 +1,58 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import {
   toMemberResponse,
   type ListMembersResponse,
 } from "../schemas/member-schemas.js";
-import type { MemberAdminService } from "../services/admin-member/interface.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { MemberAdminService } from "../services/interface.js";
 
 /**
- * List all members with pagination logic (admin only).
+ * List all members (admin only).
  * Admin authentication is handled by the plugin guard.
  *
- * @returns Member list with pagination or error object
+ * @returns Member list or error object
  */
 export async function listMembersLogic({
-  limit,
-  offset,
   adminUid,
   memberAdminService,
   logger,
   set,
 }: {
-  limit?: number;
-  offset?: number;
   adminUid: string;
   memberAdminService: MemberAdminService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ListMembersResponse | { error: string }> {
   try {
-    const { members, total } = await memberAdminService.listMembers({
-      ...(limit !== undefined && { limit }),
-      ...(offset !== undefined && { offset }),
-      logger,
-    });
+    const result = await memberAdminService.listMembers({ logger });
 
-    logger.info("Admin listed members", {
+    const logContext: Record<string, unknown> = {
       adminUid,
-      limit,
-      offset,
-      resultCount: members.length,
-    });
-
-    // Calculate pagination metadata
-    const effectiveLimit = limit ?? 50;
-    const effectiveOffset = offset ?? 0;
-    const hasNext = effectiveOffset + members.length < total;
-
-    return {
-      members: members.map(member => toMemberResponse(member)),
-      total,
-      pagination: {
-        limit: effectiveLimit,
-        offset: effectiveOffset,
-        hasNext,
-      },
+      resultCount: result.members.length,
     };
-  } catch (error) {
+    if (result.warning !== undefined) {
+      logContext["warning"] = result.warning;
+    }
+    logger.info("Admin listed members", logContext);
+
+    const response: ListMembersResponse = {
+      members: result.members.map(member => toMemberResponse(member)),
+      total: result.total,
+    };
+
+    if (result.warning !== undefined) {
+      (response as { warning?: string }).warning = result.warning;
+    }
+
+    return response;
+  } catch (error: unknown) {
     return handleRouteError({
       error,
       operation: "list members",
       errorId: ERROR_IDS.API_ADMIN_LIST_MEMBERS_FAILED,
       logger,
       set,
-      context: { limit, offset },
     });
   }
 }

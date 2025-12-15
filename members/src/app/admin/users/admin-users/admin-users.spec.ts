@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import { AdminMembersService } from '../../services/admin-members.service';
 import type { Member } from '../../admin.types';
 import { AdminUsers } from './admin-users';
@@ -55,7 +54,7 @@ describe('AdminUsers', () => {
     return {
       uid: 'test-uid-123',
       email: 'test@example.com',
-      createdAt: Timestamp.fromDate(new Date('2024-01-15')),
+      createdAt: '2024-01-15T00:00:00.000Z',
       membershipActive: false,
       ...overrides,
     };
@@ -154,7 +153,7 @@ describe('AdminUsers', () => {
     // Arrange
     const members = [
       createMockMember({
-        createdAt: Timestamp.fromDate(new Date('2024-03-15T12:00:00')),
+        createdAt: '2024-03-15T12:00:00.000Z',
       }),
     ];
 

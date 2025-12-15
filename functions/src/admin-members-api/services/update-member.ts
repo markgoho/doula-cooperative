@@ -1,10 +1,10 @@
-import type { MemberDocument } from "../../../types/member-document.js";
-import { ValidationError } from "../../../shared-api/errors/http-error.js";
+import { ValidationError } from "../../shared-api/errors/http-error.js";
 import {
   validateAndConvertDate,
   validateMembershipDates,
-} from "../../../shared-api/utils/date-validator.js";
-import { updateMemberWithValidation } from "../../../shared-api/utils/firestore-helpers.js";
+} from "../../shared-api/utils/date-validator.js";
+import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
+import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**

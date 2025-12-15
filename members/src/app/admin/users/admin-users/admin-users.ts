@@ -13,15 +13,19 @@ export class AdminUsers {
   private adminMembersService = inject(AdminMembersService);
 
   protected membersResource = resource({
-    loader: () => this.adminMembersService.listMembers(100, 0),
+    loader: () => this.adminMembersService.listMembers(),
   });
 
   protected totalMembers = computed(() => {
     return this.membersResource.hasValue() ? (this.membersResource.value()?.total ?? 0) : 0;
   });
 
+  protected membersWarning = computed(() => {
+    return this.membersResource.hasValue() ? this.membersResource.value()?.warning : undefined;
+  });
+
   protected unclaimedResource = resource({
-    loader: () => this.adminMembersService.listUnclaimedProfiles(100, 0),
+    loader: () => this.adminMembersService.listUnclaimedProfiles(),
   });
 
   protected totalUnclaimed = computed(() => this.unclaimedResource.value()?.total ?? 0);

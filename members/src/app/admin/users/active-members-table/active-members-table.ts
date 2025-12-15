@@ -61,7 +61,8 @@ export class ActiveMembersTable {
           break;
         }
         case 'created': {
-          comparison = a.createdAt.toMillis() - b.createdAt.toMillis();
+          // ISO 8601 strings are lexicographically sortable
+          comparison = a.createdAt.localeCompare(b.createdAt);
           break;
         }
       }

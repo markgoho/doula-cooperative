@@ -182,24 +182,20 @@ export function toMemberResponse(document: MemberDocument): MemberResponse {
 }
 
 /**
- * List members response schema with pagination metadata.
+ * List members response schema for the GET /api/admin/members endpoint.
+ * Returns an array of members with pagination metadata.
  */
 export const ListMembersResponseSchema = t.Object({
   members: t.Array(MemberResponseSchema),
   total: t.Number({
-    description: "Total number of members",
+    description: "Total number of members matching the query",
   }),
-  pagination: t.Object({
-    limit: t.Number({
-      description: "Number of items per page",
+  warning: t.Optional(
+    t.String({
+      description:
+        "Warning message if some members were excluded due to invalid data",
     }),
-    offset: t.Number({
-      description: "Number of items skipped",
-    }),
-    hasNext: t.Boolean({
-      description: "Whether there are more items available",
-    }),
-  }),
+  ),
 });
 
 export type ListMembersResponse = Static<typeof ListMembersResponseSchema>;

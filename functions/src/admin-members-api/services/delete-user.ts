@@ -3,7 +3,7 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "../../../shared-api/errors/http-error.js";
+} from "../../shared-api/errors/http-error.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 interface FirebaseAuthError {

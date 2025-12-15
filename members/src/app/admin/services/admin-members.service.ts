@@ -1,6 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
 import type {
   ListMembersResponse,
   ListUnclaimedProfilesResponse,
@@ -13,46 +15,16 @@ import type {
 })
 export class AdminMembersService {
   private functions = inject(Functions);
+  private httpClient = inject(HttpClient);
 
-  async listMembers(limit = 50, offset = 0): Promise<ListMembersResponse> {
-    const listMembersCallable = httpsCallable<
-      { limit?: number; offset?: number },
-      ListMembersResponse
-    >(this.functions, 'adminListMembers');
-
-    const result = await listMembersCallable({ limit, offset });
-
-    // Convert timestamp objects to Timestamp instances
-    const members = result.data.members.map((member) => this.convertMemberTimestamps(member));
-
-    return {
-      members,
-      total: result.data.total,
-    };
+  async listMembers(): Promise<ListMembersResponse> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(this.httpClient.get<ListMembersResponse>('/api/admin/members/'));
   }
 
   async getMember(uid: string): Promise<Member> {
-    const getMemberCallable = httpsCallable<{ uid: string }, Member>(
-      this.functions,
-      'adminGetMember',
-    );
-
-    const result = await getMemberCallable({ uid });
-    return this.convertMemberTimestamps(result.data);
-  }
-
-  private convertMemberTimestamps(member: Member): Member {
-    const result: Member = {
-      ...member,
-      createdAt: this.toTimestamp(member.createdAt),
-    };
-    if (member.subscriptionStart) {
-      result.subscriptionStart = this.toTimestamp(member.subscriptionStart);
-    }
-    if (member.membershipExpiresAt) {
-      result.membershipExpiresAt = this.toTimestamp(member.membershipExpiresAt);
-    }
-    return result;
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(this.httpClient.get<Member>(`/api/admin/members/${uid}`));
   }
 
   private toTimestamp(

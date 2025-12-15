@@ -1,15 +1,15 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../../collections/index.js";
-import type { MemberDocument } from "../../../types/member-document.js";
+import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import {
   validateAndConvertDate,
   validateMembershipDates,
-} from "../../../shared-api/utils/date-validator.js";
+} from "../../shared-api/utils/date-validator.js";
 import {
   handleFirestoreError,
   validateDocumentData,
   validateRequiredFields,
-} from "../../../shared-api/utils/firestore-error-handler.js";
+} from "../../shared-api/utils/firestore-error-handler.js";
+import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**

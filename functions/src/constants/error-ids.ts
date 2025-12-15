@@ -170,6 +170,7 @@ export const ERROR_IDS = {
   API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
 
   // Admin member management operations
+  API_ADMIN_GET_MEMBER_FAILED: "api_admin_get_member_failed",
   API_ADMIN_LIST_MEMBERS_FAILED: "api_admin_list_members_failed",
   API_ADMIN_UPDATE_MEMBER_FAILED: "api_admin_update_member_failed",
   API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED: "api_admin_activate_membership_failed",

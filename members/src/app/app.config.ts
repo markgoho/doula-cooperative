@@ -1,3 +1,4 @@
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
   type ApplicationConfig,
   isDevMode,
@@ -10,6 +11,7 @@ import { connectFirestoreEmulator, getFirestore, provideFirestore } from '@angul
 import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { windowProvider } from './services/window.token';
 
 // Check if we should use emulators (defaults to true in dev mode)
@@ -20,6 +22,7 @@ export const appConfig: ApplicationConfig = {
     windowProvider,
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
     // Firebase providers
     provideFirebaseApp(() =>

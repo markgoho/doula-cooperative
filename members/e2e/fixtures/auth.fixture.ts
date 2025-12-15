@@ -1,4 +1,4 @@
-import { test as base, type Page, request } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 import {
   createAuthUser,
   createMemberDocument,

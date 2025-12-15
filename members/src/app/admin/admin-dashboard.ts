@@ -17,19 +17,19 @@ export class AdminDashboard {
 
   // Load stats for the dashboard cards
   protected membersResource = resource({
-    loader: () => this.adminMembersService.listMembers(1, 0),
+    loader: () => this.adminMembersService.listMembers(),
   });
 
   protected unclaimedResource = resource({
-    loader: () => this.adminMembersService.listUnclaimedProfiles(1, 0),
+    loader: () => this.adminMembersService.listUnclaimedProfiles(),
   });
 
   protected matchRequestsResource = resource({
-    loader: () => this.adminMatchRequestsService.listMatchRequests(1, 0, 'all'),
+    loader: () => this.adminMatchRequestsService.listMatchRequests(),
   });
 
   protected messagesResource = resource({
-    loader: () => this.adminMessagesService.listMessages(1, 0, 'all'),
+    loader: () => this.adminMessagesService.listMessages(),
   });
 
   protected totalMembers = computed(() => {

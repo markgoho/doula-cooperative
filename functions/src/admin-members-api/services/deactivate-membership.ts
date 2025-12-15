@@ -1,5 +1,5 @@
-import type { MemberDocument } from "../../../types/member-document.js";
-import { updateMemberWithValidation } from "../../../shared-api/utils/firestore-helpers.js";
+import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
+import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**

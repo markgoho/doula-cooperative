@@ -1,25 +1,17 @@
 import { Timestamp } from '@angular/fire/firestore';
+import type { ApiMemberResponse } from './api-types/admin-members-api.types';
 
-export type SubscriptionStatus =
-  | 'active'
-  | 'past_due'
-  | 'canceled'
-  | 'incomplete'
-  | 'trialing'
-  | 'unpaid';
+// Re-export types from API types for convenience
+export type { SubscriptionStatus, WelcomeEmailStatus } from './api-types/admin-members-api.types';
 
-export interface Member {
-  createdAt: Timestamp;
-  email: string;
-  uid: string;
-  name?: string;
-  subscriptionStart?: Timestamp;
-  membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
-  slug?: string;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
-  subscriptionStatus?: SubscriptionStatus;
+/**
+ * Member domain model for the Angular admin application.
+ * Extends the API response type with frontend-specific fields.
+ *
+ * Note: isAdmin is a frontend-only field not included in API responses.
+ * Components should handle its absence gracefully.
+ */
+export interface Member extends ApiMemberResponse {
   isAdmin?: boolean;
 }
 
@@ -35,9 +27,13 @@ export interface UnclaimedProfile {
   invitationEmailError?: string;
 }
 
+/**
+ * List members response - matches API but uses frontend Member type.
+ */
 export interface ListMembersResponse {
   members: Member[];
   total: number;
+  warning?: string;
 }
 
 export interface ListUnclaimedProfilesResponse {

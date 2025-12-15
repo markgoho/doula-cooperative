@@ -43,7 +43,7 @@
             <td>
               <app-tag [label]="member.membershipActive ? 'Active' : 'Inactive'" size="small" />
             </td>
-            <td>{{ member.createdAt.toDate() | date: 'MMM d, yyyy' }}</td>
+            <td>{{ member.createdAt | date: 'MMM d, yyyy' }}</td>
             <td>
               <a [routerLink]="['/admin/users/member', member.uid]" class="button small">View</a>
             </td>

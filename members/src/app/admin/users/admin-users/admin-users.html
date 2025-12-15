@@ -1,4 +1,11 @@
 <h1>User Management</h1>
+
+@if (membersWarning(); as warning) {
+  <div class="warning-banner" role="alert">
+    {{ warning }}
+  </div>
+}
+
 <div class="header-stats">
   <span>Total Members: {{ totalMembers() }}</span>
   <span>Unclaimed Profiles: {{ totalUnclaimed() }}</span>

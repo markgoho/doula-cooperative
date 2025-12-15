@@ -3,52 +3,46 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import {
   toMemberResponse,
-  type MemberSuccessResponse,
+  type MemberResponse,
 } from "../schemas/member-schemas.js";
 import type { MemberAdminService } from "../services/interface.js";
 
 /**
- * Extend a membership expiration date logic (admin only).
+ * Get a single member by ID (admin only).
  * Admin authentication is handled by the plugin guard.
  *
- * @returns Updated member or error object
+ * @returns Member data or error object
  */
-export async function extendMembershipLogic({
+export async function getMemberLogic({
   memberId,
-  newExpirationDate,
   adminUid,
   memberAdminService,
   logger,
   set,
 }: {
   memberId: string;
-  newExpirationDate: string;
   adminUid: string;
   memberAdminService: MemberAdminService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<MemberSuccessResponse | { error: string }> {
+}): Promise<MemberResponse | { error: string }> {
   try {
-    const member = await memberAdminService.extendMembership(
-      memberId,
-      newExpirationDate,
-    );
+    const member = await memberAdminService.verifyMemberExists(memberId);
 
-    logger.info("Admin extended membership", {
+    logger.info("Admin retrieved member", {
       adminUid,
       targetMemberId: memberId,
-      newExpirationDate: member.membershipExpiresAt,
     });
 
-    return { success: true, member: toMemberResponse(member) };
+    return toMemberResponse(member);
   } catch (error) {
     return handleRouteError({
       error,
-      operation: "extend membership",
-      errorId: ERROR_IDS.API_ADMIN_EXTEND_MEMBERSHIP_FAILED,
+      operation: "get member",
+      errorId: ERROR_IDS.API_ADMIN_GET_MEMBER_FAILED,
       logger,
       set,
-      context: { memberId, newExpirationDate },
+      context: { memberId },
     });
   }
 }
