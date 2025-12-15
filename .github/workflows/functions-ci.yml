@@ -45,3 +45,24 @@ jobs:
       - name: Typecheck tests
         working-directory: ./functions
         run: npm run typecheck:tests
+
+  test-api-endpoints:
+    name: Test Elysia API Endpoints
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:trunk
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install root dependencies
+        run: bun install
+
+      - name: Install functions dependencies
+        working-directory: ./functions
+        run: npm ci
+
+      - name: Run API endpoint tests
+        working-directory: ./functions
+        run: bun test src/admin-members-api/ src/shared-api/ src/members-api/ src/stripe-webhook-api/ src/profile-webhook-api/ src/forms-api/
