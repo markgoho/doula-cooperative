@@ -51,24 +51,27 @@ export class AdminUsersPage {
     this.unclaimedProfilesHeading = page.getByRole('heading', { name: 'Unclaimed Profiles', level: 2 });
 
     // Header stats - use text-based selectors
-    this.headerStats = page.getByText(/Total Members:|Unclaimed Profiles:/).first().locator('..');
     this.totalMembersText = page.getByText(/Total Members:/);
     this.totalUnclaimedText = page.getByText(/Unclaimed Profiles:/);
+    // Header stats container - scope by finding the region containing both stats
+    this.headerStats = this.totalMembersText.locator('xpath=./..').filter({ has: this.totalUnclaimedText });
 
-    // Members table - use role-based selector for table
-    this.membersTable = page.getByRole('table').first();
-    this.membersTableHeaders = page.getByRole('columnheader');
-    this.membersTableRows = page.getByRole('row').filter({ has: page.getByRole('cell') });
+    // Members table - scoped to Active Members section by finding the section with that heading
+    // Use the heading to identify the correct section without relying on CSS classes
+    const activeMembersSection = this.activeMembersHeading.locator('xpath=./..');
+    this.membersTable = activeMembersSection.getByRole('table');
+    this.membersTableHeaders = this.membersTable.getByRole('columnheader');
+    this.membersTableRows = this.membersTable.getByRole('row').filter({ has: page.getByRole('cell') });
 
     // Loading and error states - text-based
-    this.loadingMessage = page.getByText('Loading members...');
-    this.errorMessage = page.getByText(/Failed to load|error/i);
+    this.loadingMessage = activeMembersSection.getByText('Loading members...');
+    this.errorMessage = activeMembersSection.getByText(/Failed to load members/i);
 
-    // Table column headers - use role-based with accessible names
-    this.nameHeader = page.getByRole('columnheader', { name: /Name/i });
-    this.emailHeader = page.getByRole('columnheader', { name: /Email/i });
-    this.membershipHeader = page.getByRole('columnheader', { name: /Membership/i });
-    this.createdHeader = page.getByRole('columnheader', { name: /Created/i });
+    // Table column headers - scoped to members table to avoid confusion with unclaimed profiles table
+    this.nameHeader = this.membersTable.getByRole('columnheader', { name: /Name/i });
+    this.emailHeader = this.membersTable.getByRole('columnheader', { name: /Email/i });
+    this.membershipHeader = this.membersTable.getByRole('columnheader', { name: /Membership/i });
+    this.createdHeader = this.membersTable.getByRole('columnheader', { name: /Created/i });
   }
 
   /**

@@ -217,13 +217,7 @@ describe("POST /doula-match", () => {
     });
 
     it("should save form and return warning when email send fails", async () => {
-      const mockSaveMatchRequest = mock(
-        (_options: {
-          data: unknown;
-          recaptchaScore: number;
-          emailSent?: boolean;
-        }) => Promise.resolve(),
-      );
+      const mockSaveMatchRequest = mock(() => Promise.resolve());
       const mockSendEmail = mock(() =>
         Promise.reject(new Error("Mailgun timeout")),
       );

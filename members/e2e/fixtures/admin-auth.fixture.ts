@@ -132,12 +132,10 @@ export const test = base.extend<AdminAuthFixtures>({
       // Wait for redirect to membership page first
       await page.waitForURL('/membership', { timeout: 10_000 });
 
-      // Phase 6: Navigate to admin users page
-      await page.goto('/admin/users');
-      // Don't wait for networkidle - tests will mock API responses as needed
+      // Tests will set up API mocks and navigate to /admin/users
     } catch (error) {
       throw new Error(
-        `Failed during admin test setup (authentication/navigation): ${(error as Error).message}`,
+        `Failed during admin test setup (authentication): ${(error as Error).message}`,
       );
     }
 

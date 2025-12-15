@@ -1,5 +1,5 @@
 ---
-paths: members/e2e/*.ts
+paths: members/e2e/**/*.spec.ts
 ---
 
-- page locators MUST use user-facing selectors like getByRole, getByLabelText, getByPlaceholderText, getByText, etc.
+- playwright tests should NOT look like unit tests, they should have many assertions and cover full user flows

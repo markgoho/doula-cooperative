@@ -46,25 +46,25 @@ test.describe('Admin Users Page', () => {
   /**
    * These tests use:
    * - Real Firebase Auth from emulators (with webmaster@doulacooperative.com auto-admin)
-   * - Mocked API responses for controlled test data
+   * - Mocked API responses for controlled test data via page.route()
    */
-  test.beforeEach(async ({ context }) => {
-    // Mock the admin members API endpoint with controlled test data
-    await context.route('**/api/admin/members/', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(mockListMembersResponse),
-        });
-      }
-    });
-  });
 
   test('admin views member list, verifies data, and tests sorting functionality', async ({
     authenticatedAdminPage,
   }) => {
+    // Set up mock with page.route() for reliable mocking
+    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
+      await (route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockListMembersResponse),
+          })
+        : route.continue());
+    });
+
     const adminUsersPage = new AdminUsersPage(authenticatedAdminPage);
+    await adminUsersPage.goto();
     await adminUsersPage.waitForMembersTable();
 
     // === Page Structure and Initial Display ===
@@ -141,7 +141,6 @@ test.describe('Admin Users Page', () => {
 
   test('displays warning when API returns invalid member data', async ({
     authenticatedAdminPage,
-    context,
   }) => {
     // Mock response with warning about data corruption
     const responseWithWarning: ApiListMembersResponse = {
@@ -151,7 +150,8 @@ test.describe('Admin Users Page', () => {
         'Warning: 2 member(s) have invalid data and were excluded. Contact support to investigate.',
     };
 
-    await context.route('**/api/admin/members/', async (route) => {
+    // Use page.route() instead of context.route() for more reliable mocking
+    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -174,9 +174,9 @@ test.describe('Admin Users Page', () => {
     await expect(adminUsersPage.totalMembersText).toContainText('Total Members: 3');
   });
 
-  test('handles API error with user-friendly message', async ({ authenticatedAdminPage, context }) => {
-    // Mock 500 error response
-    await context.route('**/api/admin/members/', async (route) => {
+  test('handles API error with user-friendly message', async ({ authenticatedAdminPage }) => {
+    // Mock 500 error response - use page.route() for more reliable mocking
+    await authenticatedAdminPage.route('**/api/admin/members/', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
