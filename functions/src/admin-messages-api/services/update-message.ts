@@ -11,29 +11,47 @@ export async function updateMessage(options: {
 }): Promise<{ success: true }> {
   const { messageId, sent, logger } = options;
 
-  const firestore = getFirestore();
-  const documentReference = firestore
-    .collection(MESSAGES_COLLECTION)
-    .doc(messageId);
+  try {
+    const firestore = getFirestore();
+    const documentReference = firestore
+      .collection(MESSAGES_COLLECTION)
+      .doc(messageId);
 
-  // Verify document exists
-  const document = await documentReference.get();
-  if (!document.exists) {
-    logger.warn("Cannot update - message not found", {
-      errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+    // Verify document exists
+    const document = await documentReference.get();
+    if (!document.exists) {
+      logger.warn("Cannot update - message not found", {
+        errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+        messageId,
+      });
+      throw new NotFoundError(`Message with ID ${messageId} not found`);
+    }
+
+    // Update the sent status
+    await documentReference.update({ sent });
+
+    logger.info("Message status updated", {
       messageId,
+      sent,
+      status: sent ? "processed" : "pending",
     });
-    throw new NotFoundError(`Message with ID ${messageId} not found`);
+
+    return { success: true };
+  } catch (error) {
+    // If it's already a NotFoundError, re-throw it
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
+
+    // Log unexpected Firestore errors
+    logger.error("Failed to update message in Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
+      messageId,
+      sent,
+    });
+    throw error;
   }
-
-  // Update the sent status
-  await documentReference.update({ sent });
-
-  logger.info("Message status updated", {
-    messageId,
-    sent,
-    status: sent ? "processed" : "pending",
-  });
-
-  return { success: true };
 }

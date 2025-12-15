@@ -33,6 +33,7 @@ export async function getMessageLogic({
       errorId: ERROR_IDS.API_ADMIN_GET_MESSAGE_FAILED,
       logger,
       set,
+      context: { messageId, adminUid },
     });
   }
 }

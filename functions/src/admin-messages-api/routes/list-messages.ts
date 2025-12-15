@@ -49,6 +49,7 @@ export async function listMessagesLogic({
       errorId: ERROR_IDS.API_ADMIN_LIST_MESSAGES_FAILED,
       logger,
       set,
+      context: { limit, offset, status, adminUid },
     });
   }
 }

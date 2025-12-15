@@ -17,19 +17,36 @@ export async function getMessage(options: {
 }): Promise<MessageResponse> {
   const { messageId, logger } = options;
 
-  const firestore = getFirestore();
-  const documentReference = firestore
-    .collection(MESSAGES_COLLECTION)
-    .doc(messageId);
-  const document = await documentReference.get();
+  try {
+    const firestore = getFirestore();
+    const documentReference = firestore
+      .collection(MESSAGES_COLLECTION)
+      .doc(messageId);
+    const document = await documentReference.get();
 
-  if (!document.exists) {
-    logger.warn("Message not found", {
-      errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+    if (!document.exists) {
+      logger.warn("Message not found", {
+        errorId: ERROR_IDS.API_MESSAGE_NOT_FOUND,
+        messageId,
+      });
+      throw new NotFoundError(`Message with ID ${messageId} not found`);
+    }
+
+    return toMessageResponse(document.id, document.data() as MessageDocument);
+  } catch (error) {
+    // If it's already a NotFoundError, re-throw it
+    if (error instanceof NotFoundError) {
+      throw error;
+    }
+
+    // Log unexpected Firestore errors
+    logger.error("Failed to read message from Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
       messageId,
     });
-    throw new NotFoundError(`Message with ID ${messageId} not found`);
+    throw error;
   }
-
-  return toMessageResponse(document.id, document.data() as MessageDocument);
 }

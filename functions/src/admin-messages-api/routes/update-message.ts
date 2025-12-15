@@ -40,6 +40,7 @@ export async function updateMessageLogic({
       errorId: ERROR_IDS.API_ADMIN_UPDATE_MESSAGE_FAILED,
       logger,
       set,
+      context: { messageId, sent, adminUid },
     });
   }
 }

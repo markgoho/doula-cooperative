@@ -236,7 +236,38 @@ describe("GET /admin/members", () => {
 
 ## Testing Services Independently
 
-Test services without HTTP framework involvement:
+Test services without HTTP framework involvement. **Service layer tests are CRITICAL** because route tests mock services and don't exercise actual error handling code.
+
+### Testing Firestore Operations
+
+**IMPORTANT**: Service tests should verify error handling around Firestore operations:
+
+```typescript
+import { describe, expect, it } from "bun:test";
+import { getMessage } from "./get-message.js";
+import { NotFoundError } from "../../shared-api/errors/http-error.js";
+
+describe("getMessage service", () => {
+  it("should throw NotFoundError when message doesn't exist", async () => {
+    const mockLogger = { warn: () => {}, error: () => {}, info: () => {} };
+
+    try {
+      await getMessage({
+        messageId: "non-existent-id",
+        logger: mockLogger,
+      });
+      throw new Error("Should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(NotFoundError);
+    }
+  });
+
+  // Note: Testing Firestore network failures requires Firebase emulator or mocking
+  // These tests verify the error handling path exists and logs correctly
+});
+```
+
+### Testing Auth Services
 
 ```typescript
 import { AuthService } from "../../shared-api/services/auth/index.js";
@@ -254,6 +285,19 @@ it("should throw AuthError for missing header", async () => {
   }
 });
 ```
+
+### Why Service Tests Matter
+
+Route tests mock services, so they don't catch:
+- Missing try-catch blocks around Firestore operations
+- Incorrect error logging (missing error IDs, wrong context)
+- Service-level business logic bugs
+- Improper error type handling
+
+Always add service tests when:
+- Creating new service methods
+- Adding Firestore operations
+- Changing error handling logic
 
 ## Running Tests
 
