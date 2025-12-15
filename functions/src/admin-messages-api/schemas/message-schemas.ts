@@ -1,5 +1,6 @@
 import { t, type Static } from "elysia";
 import type { MessageDocument } from "../../collections/messages.js";
+import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 
 /**
  * Message response schema (API representation with ISO dates)
@@ -91,7 +92,7 @@ export function toMessageResponse(
     contactName: document.contactName,
     email: document.email,
     message: document.message,
-    submitted: document.submitted.toDate().toISOString(),
+    submitted: timestampToIso(document.submitted),
     sent: document.sent,
     ...(document.recaptchaScore !== undefined && {
       recaptchaScore: document.recaptchaScore,

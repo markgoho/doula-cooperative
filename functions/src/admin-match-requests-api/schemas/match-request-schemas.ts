@@ -1,5 +1,6 @@
 import { t, type Static } from "elysia";
 import type { MatchRequestDocument } from "../../collections/match-requests.js";
+import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 
 /**
  * Match request response schema (API representation with ISO dates)
@@ -115,7 +116,7 @@ export function toMatchRequestResponse(
     birthLocation: document.birthLocation,
     otherInfo: document.otherInfo,
     insurance: document.insurance,
-    submitted: document.submitted.toDate().toISOString(),
+    submitted: timestampToIso(document.submitted),
     sent: document.sent,
     ...(document.recaptchaScore !== undefined && {
       recaptchaScore: document.recaptchaScore,
