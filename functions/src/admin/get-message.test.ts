@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import type { CallableRequest } from "firebase-functions/v2/https";
 import { MESSAGES_COLLECTION } from "../collections/messages.js";
 import { adminGetMessage } from "../index.js";
@@ -103,11 +103,12 @@ describe("adminGetMessage", () => {
   it("should return all message fields", async () => {
     const firestore = getFirestore();
 
+    const submittedDate = Timestamp.now();
     const testData = {
       contactName: "Test User",
       email: "test-fields@example.com",
       message: "This is a comprehensive test message with all fields",
-      submitted: new Date().toISOString(),
+      submitted: submittedDate,
       sent: false,
     };
 
@@ -123,7 +124,7 @@ describe("adminGetMessage", () => {
     expect(result.contactName).toBe(testData.contactName);
     expect(result.email).toBe(testData.email);
     expect(result.message).toBe(testData.message);
-    expect(result.submitted).toBe(testData.submitted);
+    expect(result.submitted).toEqual(testData.submitted);
     expect(result.sent).toBe(testData.sent);
   });
 });
