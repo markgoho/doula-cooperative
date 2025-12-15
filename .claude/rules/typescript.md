@@ -157,6 +157,53 @@ const config = {
 }; // Type is inferred, not explicit
 ```
 
+## Error Types
+
+**Use `TypeError` for type validation errors** instead of generic `Error`. This provides better semantic meaning and satisfies the `unicorn/prefer-type-error` ESLint rule:
+
+**Example**:
+```typescript
+// ✅ GOOD - TypeError for type validation
+function processValue(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new TypeError(`Expected string, got ${typeof value}`);
+  }
+  return value;
+}
+
+// ✅ GOOD - TypeError for missing required properties
+function validateConfig(config: unknown): Config {
+  if (typeof config !== "object" || config === null) {
+    throw new TypeError("Config must be an object");
+  }
+  if (!("apiKey" in config)) {
+    throw new TypeError("Config missing required property: apiKey");
+  }
+  return config as Config;
+}
+
+// ❌ BAD - Generic Error for type checks
+function processValue(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new Error(`Expected string, got ${typeof value}`); // ESLint: unicorn/prefer-type-error
+  }
+  return value;
+}
+
+// ✅ GOOD - Error for non-type-related issues
+async function fetchUser(userId: string): Promise<User> {
+  const response = await fetch(`/api/users/${userId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user: ${response.statusText}`); // Not a type issue
+  }
+  return response.json();
+}
+```
+
+**When to use each error type**:
+- `TypeError`: Type checks (`typeof`, `instanceof`), missing properties, invalid type conversions
+- `Error` (or custom subclasses): Business logic errors, network failures, validation errors (non-type)
+
 ## ESLint Rules
 
 **NEVER disable ESLint or TypeScript rules** globally for a file. If a rule is triggering, reconsider your approach or use a more specific local suppression with a comment explaining why:

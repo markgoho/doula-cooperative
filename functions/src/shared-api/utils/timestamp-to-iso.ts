@@ -16,8 +16,8 @@ export function timestampToIso(
   }
 
   // Must be an object at this point for 'in' operator to work
-  if (typeof timestamp !== "object" || timestamp === null) {
-    throw new Error(
+  if (typeof timestamp !== "object") {
+    throw new TypeError(
       `Invalid timestamp format: expected Timestamp, emulator object, or string, got ${typeof timestamp}`,
     );
   }
@@ -30,12 +30,12 @@ export function timestampToIso(
   // Handle emulator format (plain object with _seconds and _nanoseconds)
   if ("_seconds" in timestamp && "_nanoseconds" in timestamp) {
     const milliseconds =
-      timestamp._seconds * 1000 + timestamp._nanoseconds / 1000000;
+      timestamp._seconds * 1000 + timestamp._nanoseconds / 1_000_000;
     return new Date(milliseconds).toISOString();
   }
 
   // This shouldn't happen with proper TypeScript types, but handle it gracefully
-  throw new Error(
+  throw new TypeError(
     `Invalid timestamp format: expected Timestamp or emulator object, got ${JSON.stringify(timestamp)}`,
   );
 }
