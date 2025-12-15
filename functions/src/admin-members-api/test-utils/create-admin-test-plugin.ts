@@ -31,6 +31,24 @@ export function createAdminTestPlugin(overrides?: {
     deactivateMembership: mock(() => Promise.resolve({} as MemberDocument)),
     extendMembership: mock(() => Promise.resolve({} as MemberDocument)),
     deleteUser: mock(() => Promise.resolve()),
+    updateClaims: mock(
+      (options: {
+        uid: string;
+        claims: { admin?: boolean };
+        requestingAdminUid: string;
+        logger: Logger;
+      }) => {
+        if (
+          options.uid === options.requestingAdminUid &&
+          options.claims.admin !== undefined
+        ) {
+          return Promise.reject(
+            new Error("Cannot modify your own admin privileges"),
+          );
+        }
+        return Promise.resolve();
+      },
+    ),
     verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
     ...overrides?.memberAdminService,
   };

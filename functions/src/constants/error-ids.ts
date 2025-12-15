@@ -203,6 +203,8 @@ export const ERROR_IDS = {
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",
   API_ADMIN_SELF_DELETE_ATTEMPT: "api_admin_self_delete_attempt",
   API_ADMIN_DELETE_ADMIN_ATTEMPT: "api_admin_delete_admin_attempt",
+  API_ADMIN_SET_ADMIN_CLAIM_FAILED: "api_admin_set_admin_claim_failed",
+  API_ADMIN_REMOVE_ADMIN_CLAIM_FAILED: "api_admin_remove_admin_claim_failed",
 
   // Firestore infrastructure errors
   API_FIRESTORE_UPDATE_FAILED: "api_firestore_update_failed",
