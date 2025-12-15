@@ -37,11 +37,13 @@ These factories inject mocked services and use the shared auth mocks by default.
 ## Testing HTTP Contracts (Not Implementation Details)
 
 **Test the HTTP contract** - given this request, verify this response. Do not test:
+
 - How the service is called internally
 - What arguments are passed to mocked functions
 - Third-party code behavior (Elysia framework, Firebase SDK, etc.)
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Test HTTP contract (request → response)
 it("should return match request when authorized", async () => {
@@ -82,6 +84,7 @@ it("should call Elysia's set.status method", async () => {
 ```
 
 **What to test**:
+
 - Authentication/authorization (401, 403)
 - Input validation (422, 400)
 - Success responses (200, structure, data format)
@@ -89,6 +92,7 @@ it("should call Elysia's set.status method", async () => {
 - That service was invoked (optional, for critical operations)
 
 **What NOT to test**:
+
 - Internal function arguments
 - How services are called
 - Framework behavior
@@ -289,12 +293,14 @@ it("should throw AuthError for missing header", async () => {
 ### Why Service Tests Matter
 
 Route tests mock services, so they don't catch:
+
 - Missing try-catch blocks around Firestore operations
 - Incorrect error logging (missing error IDs, wrong context)
 - Service-level business logic bugs
 - Improper error type handling
 
 Always add service tests when:
+
 - Creating new service methods
 - Adding Firestore operations
 - Changing error handling logic

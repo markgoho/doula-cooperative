@@ -1,0 +1,80 @@
+import { Elysia } from "elysia";
+import { logger as firebaseLogger } from "firebase-functions/v2";
+import { AuthService } from "../../shared-api/services/auth/index.js";
+import { adminDerive } from "../../shared-api/utils/admin-derive.js";
+import { adminGuard } from "../../shared-api/utils/admin-guard.js";
+import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
+import {
+  getUnclaimedProfileLogic,
+  listUnclaimedProfilesLogic,
+} from "../routes/index.js";
+import {
+  EmailParameterSchema,
+  ListUnclaimedProfilesQuerySchema,
+} from "../schemas/unclaimed-profile-schemas.js";
+import { UnclaimedProfileAdminService } from "../services/index.js";
+import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
+
+/**
+ * Create admin unclaimed profiles plugin with centralized authentication guard.
+ * All routes in this plugin require admin privileges.
+ *
+ * Firebase rewrite: /api/admin/unclaimed-profiles/** → adminUnclaimedProfilesApi function
+ * Plugin routes start from "/" - Firebase already provides /api/admin/unclaimed-profiles prefix
+ *
+ * @param services - Optional services to inject (defaults to real implementations)
+ * @returns Configured Elysia plugin with admin routes
+ */
+export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
+  return (
+    new Elysia({ name: "admin-unclaimed-profiles" })
+      .decorate(
+        SERVICE_KEYS.UNCLAIMED_PROFILE_ADMIN_SERVICE,
+        services?.unclaimedProfileAdminService ??
+          UnclaimedProfileAdminService,
+      )
+      .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+      .derive(adminDerive)
+      .onBeforeHandle({ as: "local" }, adminGuard)
+      // GET / - List unclaimed profiles (served at /api/admin/unclaimed-profiles/)
+      .get(
+        "/",
+        async ({
+          query,
+          adminToken,
+          unclaimedProfileAdminService,
+          logger,
+          set,
+        }) =>
+          listUnclaimedProfilesLogic({
+            ...(query.limit !== undefined && { limit: query.limit }),
+            ...(query.offset !== undefined && { offset: query.offset }),
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        { query: ListUnclaimedProfilesQuerySchema },
+      )
+      // GET /:email - Get unclaimed profile by email
+      .get(
+        "/:email",
+        async ({
+          params,
+          adminToken,
+          unclaimedProfileAdminService,
+          logger,
+          set,
+        }) =>
+          getUnclaimedProfileLogic({
+            email: params.email,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        { params: EmailParameterSchema },
+      )
+  );
+}

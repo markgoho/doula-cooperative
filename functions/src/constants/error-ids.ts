@@ -192,6 +192,13 @@ export const ERROR_IDS = {
   API_ADMIN_UPDATE_MESSAGE_FAILED: "api_admin_update_message_failed",
   API_MESSAGE_NOT_FOUND: "api_message_not_found",
 
+  // Admin unclaimed profile management operations
+  API_ADMIN_LIST_UNCLAIMED_PROFILES_FAILED:
+    "api_admin_list_unclaimed_profiles_failed",
+  API_ADMIN_GET_UNCLAIMED_PROFILE_FAILED:
+    "api_admin_get_unclaimed_profile_failed",
+  API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
+
   // Specific admin error scenarios
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",
   API_ADMIN_SELF_DELETE_ATTEMPT: "api_admin_self_delete_attempt",

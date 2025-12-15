@@ -7,16 +7,17 @@ paths: *.ts
 **Use fully expressive variable names** that clearly communicate intent without abbreviations:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Expressive, unambiguous names
 const authorizationHeader = request.headers.authorization;
 type TParameters = { userId: string; email: string };
-const document = firestore.collection('users').doc(userId);
+const document = firestore.collection("users").doc(userId);
 
 // ❌ BAD - Abbreviated or unclear names
 const authHeader = request.headers.authorization;
 type TParams = { userId: string; email: string };
-const doc = firestore.collection('users').doc(userId); // ESLint: unicorn/prevent-abbreviations
+const doc = firestore.collection("users").doc(userId); // ESLint: unicorn/prevent-abbreviations
 ```
 
 ## Function Return Types
@@ -24,9 +25,14 @@ const doc = firestore.collection('users').doc(userId); // ESLint: unicorn/preven
 **Always include explicit return types** on functions to improve type safety and documentation. Leave complex types inferred only when the explicit type becomes unwieldy:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Explicit return type
-async function getUserProfile({ userId }: { userId: string }): Promise<UserProfile> {
+async function getUserProfile({
+  userId,
+}: {
+  userId: string;
+}): Promise<UserProfile> {
   const user = await fetchUser(userId);
   return user;
 }
@@ -35,7 +41,7 @@ async function getUserProfile({ userId }: { userId: string }): Promise<UserProfi
 function transformData(input: ComplexType) {
   return {
     field1: input.a.b.c,
-    field2: input.d.e.f.map(x => ({ ...x, computed: x.val * 2 }))
+    field2: input.d.e.f.map(x => ({ ...x, computed: x.val * 2 })),
   };
 }
 
@@ -51,9 +57,14 @@ async function getUserProfile({ userId }: { userId: string }) {
 **Use a single object parameter** with named properties instead of multiple positional parameters. This improves readability and makes the function call self-documenting:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Single object parameter
-function sendEmail({ to, subject, body }: {
+function sendEmail({
+  to,
+  subject,
+  body,
+}: {
   to: string;
   subject: string;
   body: string;
@@ -62,9 +73,9 @@ function sendEmail({ to, subject, body }: {
 }
 
 await sendEmail({
-  to: 'user@example.com',
-  subject: 'Welcome',
-  body: 'Hello!'
+  to: "user@example.com",
+  subject: "Welcome",
+  body: "Hello!",
 });
 
 // ❌ BAD - Multiple positional parameters
@@ -72,7 +83,7 @@ function sendEmail(to: string, subject: string, body: string): Promise<void> {
   // Implementation
 }
 
-await sendEmail('user@example.com', 'Welcome', 'Hello!'); // What does each parameter mean?
+await sendEmail("user@example.com", "Welcome", "Hello!"); // What does each parameter mean?
 ```
 
 ## Optional Properties
@@ -80,17 +91,18 @@ await sendEmail('user@example.com', 'Welcome', 'Hello!'); // What does each para
 **With `exactOptionalPropertyTypes: true`**, use spread operators to forward optional properties instead of passing potentially undefined values:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Use spread operator for optional properties
 const options = {
-  required: 'value',
-  ...(optionalValue !== undefined && { optional: optionalValue })
+  required: "value",
+  ...(optionalValue !== undefined && { optional: optionalValue }),
 };
 
 // ❌ BAD - Passing undefined violates exactOptionalPropertyTypes
 const options = {
-  required: 'value',
-  optional: optionalValue // Error if optionalValue is undefined
+  required: "value",
+  optional: optionalValue, // Error if optionalValue is undefined
 };
 ```
 
@@ -99,6 +111,7 @@ const options = {
 **Keep files short and focused** with a single responsibility. Typically, each file should export only one function:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Single responsibility, one export
 // send-welcome-email.ts
@@ -127,6 +140,7 @@ export function sendNotificationEmail(...) { }
 **Declare explicit types** for all objects and avoid inline types. This improves reusability and makes types easier to maintain:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Explicit, named type
 type UserProfile = {
@@ -140,12 +154,14 @@ function updateProfile({ profile }: { profile: UserProfile }): Promise<void> {
 }
 
 // ❌ BAD - Inline type definition
-function updateProfile({ profile }: {
+function updateProfile({
+  profile,
+}: {
   profile: {
     userId: string;
     email: string;
     displayName: string;
-  }
+  };
 }): Promise<void> {
   // Implementation
 }
@@ -153,7 +169,7 @@ function updateProfile({ profile }: {
 // ❌ BAD - Object without explicit type
 const config = {
   apiKey: process.env.API_KEY,
-  timeout: 5000
+  timeout: 5000,
 }; // Type is inferred, not explicit
 ```
 
@@ -162,6 +178,7 @@ const config = {
 **Use `TypeError` for type validation errors** instead of generic `Error`. This provides better semantic meaning and satisfies the `unicorn/prefer-type-error` ESLint rule:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - TypeError for type validation
 function processValue(value: unknown): string {
@@ -201,6 +218,7 @@ async function fetchUser(userId: string): Promise<User> {
 ```
 
 **When to use each error type**:
+
 - `TypeError`: Type checks (`typeof`, `instanceof`), missing properties, invalid type conversions
 - `Error` (or custom subclasses): Business logic errors, network failures, validation errors (non-type)
 
@@ -209,6 +227,7 @@ async function fetchUser(userId: string): Promise<User> {
 **NEVER disable ESLint or TypeScript rules** globally for a file. If a rule is triggering, reconsider your approach or use a more specific local suppression with a comment explaining why:
 
 **Example**:
+
 ```typescript
 // ✅ GOOD - Fix the issue instead of disabling the rule
 const authorizationHeader = request.headers.authorization;

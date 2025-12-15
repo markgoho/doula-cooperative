@@ -231,7 +231,10 @@ import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 export function createAdminMembersPlugin(services?: PartialServices) {
   return (
     new Elysia({ name: "admin-members" })
-      .decorate(SERVICE_KEYS.MEMBER_ADMIN_SERVICE, services?.memberAdminService ?? MemberAdminService)
+      .decorate(
+        SERVICE_KEYS.MEMBER_ADMIN_SERVICE,
+        services?.memberAdminService ?? MemberAdminService,
+      )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       // Verify admin authentication and add adminToken to context
@@ -252,6 +255,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
 ```
 
 **Benefits of shared utilities:**
+
 - ✅ DRY - Authentication logic in one place
 - ✅ Consistency across all admin APIs
 - ✅ Bug fixes apply to all APIs automatically
@@ -272,12 +276,14 @@ Response sent
 ```
 
 The `adminDerive` function (from `shared-api/utils/admin-derive.ts`):
+
 - Extracts Authorization header
 - Calls `authService.verifyAdmin()`
 - Returns `{ adminToken, authError }` for the guard to check
 - Re-throws unexpected errors (see Error Handling section for why this is critical)
 
 The `adminGuard` function (from `shared-api/utils/admin-guard.ts`):
+
 - Checks if `adminToken` exists
 - Returns error response if not (401/403 based on `authError`)
 - Allows request to proceed if token is valid
@@ -1047,7 +1053,10 @@ export async function getMessage(options: {
   logger: Logger;
 }): Promise<MessageResponse> {
   const firestore = getFirestore();
-  const document = await firestore.collection(MESSAGES_COLLECTION).doc(messageId).get();
+  const document = await firestore
+    .collection(MESSAGES_COLLECTION)
+    .doc(messageId)
+    .get();
   // If Firestore fails, error propagates with no logging
   return toMessageResponse(document.id, document.data() as MessageDocument);
 }

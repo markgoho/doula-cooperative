@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
@@ -9,6 +9,10 @@ import type {
   Member,
   UnclaimedProfile,
 } from '../admin.types';
+import type {
+  ApiListUnclaimedProfilesResponse,
+  ApiUnclaimedProfileResponse,
+} from '../api-types/admin-unclaimed-profiles-api.types';
 
 @Injectable({
   providedIn: 'root',
@@ -30,12 +34,13 @@ export class AdminMembersService {
   private toTimestamp(
     value:
       | Timestamp
+      | string
       | { seconds: number; nanoseconds: number }
       | { _seconds: number; _nanoseconds: number },
   ): Timestamp {
     if (value === null || value === undefined) {
       throw new Error(
-        `Timestamp value is ${value === null ? 'null' : 'undefined'}. Expected a valid Timestamp object.`,
+        `Timestamp value is ${value === null ? 'null' : 'undefined'}. Expected a valid Timestamp object or ISO string.`,
       );
     }
 
@@ -43,11 +48,13 @@ export class AdminMembersService {
       return value;
     }
 
-    // Validate that value is an object
-    if (typeof value !== 'object') {
-      throw new TypeError(
-        `Expected Timestamp object but received ${typeof value}: ${JSON.stringify(value)}`,
-      );
+    // Handle ISO 8601 string format from Elysia API
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        throw new TypeError(`Invalid date string: ${value}`);
+      }
+      return Timestamp.fromDate(date);
     }
 
     // Handle both formats that Firebase might return
@@ -114,52 +121,60 @@ export class AdminMembersService {
   }
 
   async listUnclaimedProfiles(limit = 50, offset = 0): Promise<ListUnclaimedProfilesResponse> {
-    const listUnclaimedProfilesCallable = httpsCallable<
-      { limit?: number; offset?: number },
-      ListUnclaimedProfilesResponse
-    >(this.functions, 'adminListUnclaimedProfiles');
+    // Authorization header added automatically by authInterceptor
+    const parameters = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
 
-    const result = await listUnclaimedProfilesCallable({ limit, offset });
+    const result = await firstValueFrom(
+      this.httpClient.get<ApiListUnclaimedProfilesResponse>('/api/admin/unclaimed-profiles', {
+        params: parameters,
+      }),
+    );
 
-    // Convert timestamp objects to Timestamp instances
-    const profiles = result.data.profiles.map((profile) =>
+    // Convert ISO string timestamps to Timestamp instances
+    const profiles = result.profiles.map((profile) =>
       this.convertUnclaimedProfileTimestamps(profile),
     );
 
     return {
       profiles,
-      total: result.data.total,
+      total: result.total,
     };
   }
 
   async getUnclaimedProfile(email: string): Promise<UnclaimedProfile> {
-    const getUnclaimedProfileCallable = httpsCallable<{ email: string }, UnclaimedProfile>(
-      this.functions,
-      'adminGetUnclaimedProfile',
+    // Authorization header added automatically by authInterceptor
+    const result = await firstValueFrom(
+      this.httpClient.get<ApiUnclaimedProfileResponse>(`/api/admin/unclaimed-profiles/${email}`),
     );
-
-    const result = await getUnclaimedProfileCallable({ email });
-    return this.convertUnclaimedProfileTimestamps(result.data);
+    return this.convertUnclaimedProfileTimestamps(result);
   }
 
-  private convertUnclaimedProfileTimestamps(profile: UnclaimedProfile): UnclaimedProfile {
+  private convertUnclaimedProfileTimestamps(profile: ApiUnclaimedProfileResponse): UnclaimedProfile {
     try {
       const result: UnclaimedProfile = {
-        ...profile,
+        email: profile.email,
+        name: profile.name,
         subscriptionStart: this.toTimestamp(profile.subscriptionStart),
+        ...(profile.slug !== undefined && { slug: profile.slug }),
+        ...(profile.invitationEmailStatus !== undefined && {
+          invitationEmailStatus: profile.invitationEmailStatus,
+        }),
+        ...(profile.invitationEmailError !== undefined && {
+          invitationEmailError: profile.invitationEmailError,
+        }),
+        ...(profile.lastPayment !== undefined && {
+          lastPayment: this.toTimestamp(profile.lastPayment),
+        }),
+        ...(profile.nextPayment !== undefined && {
+          nextPayment: this.toTimestamp(profile.nextPayment),
+        }),
+        ...(profile.invitationEmailSentAt !== undefined && {
+          invitationEmailSentAt: this.toTimestamp(profile.invitationEmailSentAt),
+        }),
       };
 
-      if (profile.lastPayment) {
-        result.lastPayment = this.toTimestamp(profile.lastPayment);
-      }
-
-      if (profile.nextPayment) {
-        result.nextPayment = this.toTimestamp(profile.nextPayment);
-      }
-
-      if (profile.invitationEmailSentAt) {
-        result.invitationEmailSentAt = this.toTimestamp(profile.invitationEmailSentAt);
-      }
       return result;
     } catch (error) {
       console.error(

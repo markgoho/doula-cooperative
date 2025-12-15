@@ -1,0 +1,30 @@
+{
+  "kind": "identitytoolkit#DownloadAccountResponse",
+  "users": [
+    {
+      "localId": "F5Ix9aGo9TGRmbKW1wTYi1uzoHJ7",
+      "lastLoginAt": "1765825512517",
+      "displayName": "Webmaster",
+      "photoUrl": "",
+      "emailVerified": true,
+      "email": "webmaster@doulacooperative.com",
+      "salt": "fakeSaltAzJaiADcwlN222RVTFx5",
+      "passwordHash": "fakeHash:salt=fakeSaltAzJaiADcwlN222RVTFx5:password=test1234",
+      "passwordUpdatedAt": 1765825512517,
+      "validSince": "1765825512",
+      "mfaInfo": [],
+      "createdAt": "1765825512517",
+      "providerUserInfo": [
+        {
+          "providerId": "password",
+          "email": "webmaster@doulacooperative.com",
+          "federatedId": "webmaster@doulacooperative.com",
+          "rawId": "webmaster@doulacooperative.com",
+          "displayName": "Webmaster",
+          "photoUrl": ""
+        }
+      ],
+      "customAttributes": "{ \"admin\": true }"
+    }
+  ]
+}

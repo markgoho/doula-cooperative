@@ -7,6 +7,14 @@
       "^/api/admin/messages": ""
     }
   },
+  "/api/admin/unclaimed-profiles": {
+    "target": "http://localhost:5001/doula-cooperative/us-central1/adminUnclaimedProfilesApi",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/admin/unclaimed-profiles": ""
+    }
+  },
   "/api/admin/match-requests": {
     "target": "http://localhost:5001/doula-cooperative/us-central1/adminMatchRequestsApi",
     "secure": false,

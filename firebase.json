@@ -594,6 +594,10 @@
           "function": "adminMessagesApi"
         },
         {
+          "source": "/api/admin/unclaimed-profiles/**",
+          "function": "adminUnclaimedProfilesApi"
+        },
+        {
           "source": "/api/admin/match-requests/**",
           "function": "adminMatchRequestsApi"
         },

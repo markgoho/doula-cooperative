@@ -13,7 +13,6 @@
     "index": "bunx pagefind --site hugo/public",
     "build:search": "bun run build && bun run index",
     "emulators:start": "firebase emulators:start --only functions,firestore,auth --import=emulator-seed-data",
-    "emulators:e2e": "firebase emulators:start --only functions,firestore,auth",
     "emulators:export": "firebase emulators:export emulator-seed-data",
     "angular:start": "cd members && bun start",
     "functions:start": "cd functions && bun run build:watch",
