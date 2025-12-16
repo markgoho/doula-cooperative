@@ -1,4 +1,4 @@
-import { test } from '../fixtures/auth-emulator.fixture';
+import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
 import type { Message } from '../../src/app/admin/admin.types';
 
@@ -120,7 +120,9 @@ test.describe('Admin Messages Page', () => {
     await expect(authenticatedAdminPage.getByText(firstMessage.email)).toBeVisible();
 
     // Verify message content section
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Message', level: 2 })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Message', level: 2 }),
+    ).toBeVisible();
     await expect(authenticatedAdminPage.getByText(firstMessage.message)).toBeVisible();
 
     // Verify status tag shows "Pending" for unsent messages
@@ -190,6 +192,8 @@ test.describe('Admin Messages Page', () => {
     await authenticatedAdminPage.goto(`/admin/messages/${messageId}`);
 
     // Verify error message appears
-    await expect(authenticatedAdminPage.getByText('Failed to load message details. Please try again.')).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByText('Failed to load message details. Please try again.'),
+    ).toBeVisible();
   });
 });

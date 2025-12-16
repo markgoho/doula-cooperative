@@ -1,4 +1,4 @@
-import { test } from '../fixtures/auth-emulator.fixture';
+import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
 import type { MatchRequest } from '../../src/app/admin/admin.types';
 
@@ -59,7 +59,9 @@ test.describe('Admin Match Requests Page', () => {
     await authenticatedAdminPage.goto('/admin/match-requests');
 
     // Verify page heading
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Match Requests', level: 1 })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Match Requests', level: 1 }),
+    ).toBeVisible();
 
     // Verify table has data
     const table = authenticatedAdminPage.getByRole('table');

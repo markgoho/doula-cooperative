@@ -215,6 +215,16 @@ export const ERROR_IDS = {
   API_FIRESTORE_INVALID_DATA: "api_firestore_invalid_data",
   API_FIRESTORE_COUNT_FAILED: "api_firestore_count_failed",
 
+  // Profiles API errors
+  API_PROFILE_NOT_FOUND: "api_profile_not_found",
+  API_PROFILE_READ_FAILED: "api_profile_read_failed",
+  API_PROFILE_WRITE_FAILED: "api_profile_write_failed",
+  API_PROFILE_CREATE_FAILED: "api_profile_create_failed",
+  API_PROFILE_SLUG_CHECK_FAILED: "api_profile_slug_check_failed",
+  API_PROFILE_SLUG_SET_FAILED: "api_profile_slug_set_failed",
+  API_PROFILE_CLAIM_FAILED: "api_profile_claim_failed",
+  API_GITHUB_READ_FAILED: "api_github_read_failed",
+
   // Elysia API Stripe webhook errors
   API_STRIPE_WEBHOOK_MISSING_SIGNATURE: "api_stripe_webhook_missing_signature",
   API_STRIPE_WEBHOOK_INVALID_SIGNATURE: "api_stripe_webhook_invalid_signature",

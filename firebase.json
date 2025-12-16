@@ -606,6 +606,10 @@
           "function": "adminMembersApi"
         },
         {
+          "source": "/api/profiles{,/**}",
+          "function": "profilesApi"
+        },
+        {
           "source": "/api/members{,/**}",
           "function": "membersApi"
         },

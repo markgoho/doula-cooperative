@@ -1,4 +1,4 @@
-import { test } from '../fixtures/auth-emulator.fixture';
+import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
 import type { ApiMemberResponse } from '../../src/app/admin/api-types/admin-members-api.types';
 import { AdminMemberDetailPage } from '../pages/admin-member-detail.page';
@@ -17,7 +17,9 @@ const mockMember: ApiMemberResponse = {
 };
 
 test.describe('Admin Member Detail Page', () => {
-  test('admin views member details with proper data display', async ({ authenticatedAdminPage }) => {
+  test('admin views member details with proper data display', async ({
+    authenticatedAdminPage,
+  }) => {
     // Mock GET endpoint
     await authenticatedAdminPage.route('**/api/admin/**', async (route) => {
       const url = route.request().url();
@@ -101,7 +103,9 @@ test.describe('Admin Member Detail Page', () => {
 
     // Verify redirect to users list
     await authenticatedAdminPage.waitForURL('**/admin/users');
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'User Management' })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'User Management' }),
+    ).toBeVisible();
   });
 
   test('admin cancels user deletion', async ({ authenticatedAdminPage }) => {

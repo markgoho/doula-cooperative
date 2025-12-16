@@ -1,4 +1,4 @@
-import { test } from '../fixtures/auth-emulator.fixture';
+import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
 import type {
   ApiUnclaimedProfileResponse,
