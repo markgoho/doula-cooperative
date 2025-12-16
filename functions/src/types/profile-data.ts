@@ -3,6 +3,9 @@
  * That version is derived from Elysia validation schemas (source of truth).
  *
  * This interface is kept for backward compatibility with legacy callable functions.
+ *
+ * Legacy callable function directories (read-profile/, write-profile/, create-profile/)
+ * intentionally use this type and have eslint deprecation warnings disabled.
  */
 export interface ProfileData {
   /** Required: The doula's display name */

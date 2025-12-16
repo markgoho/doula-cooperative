@@ -11,8 +11,8 @@ import {
   ConflictError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
+import { serializeToMarkdown } from "../../utils/markdown-serialization.js";
 import type { WriteProfileResponse } from "./interface.js";
-import { serializeToMarkdown } from "../../../write-profile/index.js";
 
 /**
  * Get authenticated Octokit instance using GitHub App credentials.

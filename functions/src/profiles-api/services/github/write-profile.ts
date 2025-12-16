@@ -12,11 +12,11 @@ import {
   ConflictError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
-import type { WriteProfileResponse } from "./interface.js";
 import {
-  serializeToMarkdown,
   parseExistingMetadata,
-} from "../../../write-profile/index.js";
+  serializeToMarkdown,
+} from "../../utils/markdown-serialization.js";
+import type { WriteProfileResponse } from "./interface.js";
 
 /**
  * Get authenticated Octokit instance using GitHub App credentials.

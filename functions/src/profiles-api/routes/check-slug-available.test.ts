@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { HttpError } from "../../shared-api/errors/http-error.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
