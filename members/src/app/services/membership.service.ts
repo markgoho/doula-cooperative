@@ -157,7 +157,7 @@ export class MembershipService {
   async updateMemberSlug(slug: string): Promise<void> {
     try {
       await firstValueFrom(
-        this.http.post<{ success: boolean; slug: string }>('/api/profiles/slugs/me', { slug }),
+        this.http.post<{ success: boolean; slug: string }>('/api/profiles/slugs', { slug }),
       );
 
       // Trigger reload of user document

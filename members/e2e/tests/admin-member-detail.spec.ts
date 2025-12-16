@@ -14,6 +14,20 @@ const mockMember: ApiMemberResponse = {
   membershipActive: true,
   subscriptionStart: '2024-01-15T10:30:00.000Z',
   membershipExpiresAt: '2025-01-15T10:30:00.000Z',
+  slug: 'test-member',
+};
+
+const mockProfileData = {
+  title: 'Test Member - Birth Doula',
+  bio: 'This is my bio as a birth doula. I have been supporting families for 5 years.',
+  credentials: 'CD(DONA), CPD',
+  pronouns: 'she/her',
+  tags: ['birth-doula', 'postpartum-support'],
+  contact: {
+    email: 'test.doula@example.com',
+    phone: '555-0123',
+  },
+  image: 'https://example.com/profile-image.jpg',
 };
 
 test.describe('Admin Member Detail Page', () => {
@@ -101,10 +115,10 @@ test.describe('Admin Member Detail Page', () => {
     // Click delete button
     await memberDetailPage.deleteUser();
 
-    // Verify redirect to users list
-    await authenticatedAdminPage.waitForURL('**/admin/users');
+    // Verify redirect to members list
+    await authenticatedAdminPage.waitForURL('**/admin/members');
     await expect(
-      authenticatedAdminPage.getByRole('heading', { name: 'User Management' }),
+      authenticatedAdminPage.getByRole('heading', { name: 'Members', level: 1 }),
     ).toBeVisible();
   });
 
@@ -144,7 +158,7 @@ test.describe('Admin Member Detail Page', () => {
 
     // Verify dialog is closed and we're still on the detail page
     await expect(memberDetailPage.confirmDialog).not.toBeVisible();
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/users\/member\/test-member-123/);
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/members\/test-member-123/);
     await expect(memberDetailPage.pageHeading).toBeVisible();
   });
 
@@ -186,7 +200,71 @@ test.describe('Admin Member Detail Page', () => {
     await expect(authenticatedAdminPage.getByText('Failed to delete user')).toBeVisible();
 
     // Verify we're still on the detail page (not redirected)
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/users\/member\/test-member-123/);
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/members\/test-member-123/);
     await expect(memberDetailPage.pageHeading).toBeVisible();
   });
+
+  test('admin views member profile content', async ({ authenticatedAdminPage }) => {
+    // Mock GET member endpoint
+    await authenticatedAdminPage.route('**/api/admin/members/test-member-123', async (route) => {
+      await (route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockMember),
+          })
+        : route.continue());
+    });
+
+    // Mock GET profile by slug endpoint (public endpoint)
+    await authenticatedAdminPage.route('**/api/profiles/test-member', async (route) => {
+      await (route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfileData),
+          })
+        : route.continue());
+    });
+
+    const memberDetailPage = new AdminMemberDetailPage(authenticatedAdminPage);
+    await memberDetailPage.goto('test-member-123');
+    await memberDetailPage.waitForMemberDetails();
+
+    // === Profile Section ===
+    // Initially, profile content should not be visible
+    const profileSection = authenticatedAdminPage.getByRole('heading', { name: 'Profile' });
+    await expect(profileSection).toBeVisible();
+
+    // Verify "View Profile Content" button is visible
+    const viewProfileButton = authenticatedAdminPage.getByRole('button', {
+      name: /View Profile Content/i,
+    });
+    await expect(viewProfileButton).toBeVisible();
+
+    // === Load Profile ===
+    // Click button to load profile
+    await viewProfileButton.click();
+
+    // === Profile Content Display ===
+    // Wait for profile content to load (loading happens too fast with mocked data)
+    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Profile Content' })).toBeVisible();
+
+    // Verify profile image is displayed
+    const profileImage = authenticatedAdminPage.getByRole('img', { name: /Test Member|Profile image/i });
+    await expect(profileImage).toBeVisible();
+    await expect(profileImage).toHaveAttribute('src', mockProfileData.image);
+
+    // Verify profile data fields are displayed
+    await expect(authenticatedAdminPage.getByText(mockProfileData.title)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText(mockProfileData.bio)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText(mockProfileData.credentials)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText(mockProfileData.pronouns)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText('birth-doula, postpartum-support')).toBeVisible();
+
+    // Verify contact information
+    await expect(authenticatedAdminPage.getByText('test.doula@example.com')).toBeVisible();
+    await expect(authenticatedAdminPage.getByText('555-0123')).toBeVisible();
+  });
+
 });

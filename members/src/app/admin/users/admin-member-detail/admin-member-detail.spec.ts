@@ -435,7 +435,11 @@ async function setup({
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
     readMemberProfile: vi.fn().mockResolvedValue({
-      content: 'Mock profile content',
+      title: 'Test Doula',
+      bio: 'Mock profile content',
+      credentials: 'CD(DONA)',
+      pronouns: 'she/her',
+      tags: ['birth-doula'],
       image: 'https://example.com/image.jpg',
       slug: 'test-slug',
     }),

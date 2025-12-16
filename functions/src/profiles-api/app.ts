@@ -23,7 +23,7 @@ export function createApp(services?: PartialServices) {
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     // Health check route (public)
     .get("/health", () => healthRoute())
-    // Profile management routes plugin (user auth guard)
+    // Profile management routes plugin (includes both public and authenticated routes)
     .use(createProfilesPlugin(services));
 }
 

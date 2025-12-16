@@ -46,7 +46,7 @@ export class AdminMemberDetailPage {
   }
 
   async goto(uid: string): Promise<void> {
-    await this.page.goto(`/admin/users/member/${uid}`);
+    await this.page.goto(`/admin/members/${uid}`);
   }
 
   async waitForMemberDetails(): Promise<void> {

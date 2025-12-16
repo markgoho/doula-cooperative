@@ -15,7 +15,7 @@ import {
  * Actual GitHub deletion logic is tested in integration tests
  * that run with mocked GitHub API.
  */
-describe("DELETE /me/image (delete profile image)", () => {
+describe("DELETE /:slug/image (delete profile image)", () => {
   const testApp = createProfilesTestPlugin();
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe("DELETE /me/image (delete profile image)", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "DELETE",
         }),
       )) as Response;
@@ -37,7 +37,7 @@ describe("DELETE /me/image (delete profile image)", () => {
 
     it("should return 401 when token is invalid", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer invalid-token",
@@ -52,7 +52,7 @@ describe("DELETE /me/image (delete profile image)", () => {
 
     it("should return 401 when token is expired", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer expired-token",
@@ -79,7 +79,7 @@ describe("DELETE /me/image (delete profile image)", () => {
       });
 
       const response = (await noSlugTestApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer valid-token",
@@ -104,7 +104,7 @@ describe("DELETE /me/image (delete profile image)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "DELETE",
           headers: {
             Authorization: "Bearer valid-token",

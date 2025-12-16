@@ -8,7 +8,7 @@ import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plu
  * Uses createProfilesTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /me/claim (claim profile)", () => {
+describe("POST /:slug/claim (claim profile)", () => {
   const testApp = createProfilesTestPlugin();
 
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe("POST /me/claim (claim profile)", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/claim", {
+        new Request("http://localhost/test-user/claim", {
           method: "POST",
         }),
       )) as Response;
@@ -30,7 +30,7 @@ describe("POST /me/claim (claim profile)", () => {
 
     it("should return 401 when token is invalid", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/claim", {
+        new Request("http://localhost/test-user/claim", {
           method: "POST",
           headers: {
             Authorization: "Bearer invalid-token",
@@ -45,7 +45,7 @@ describe("POST /me/claim (claim profile)", () => {
 
     it("should return 401 when token is expired", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/claim", {
+        new Request("http://localhost/test-user/claim", {
           method: "POST",
           headers: {
             Authorization: "Bearer expired-token",
@@ -62,7 +62,7 @@ describe("POST /me/claim (claim profile)", () => {
   describe("Email verification", () => {
     it("should return 428 when email is not verified", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/claim", {
+        new Request("http://localhost/test-user/claim", {
           method: "POST",
           headers: {
             Authorization: "Bearer unverified-email-token",
@@ -77,7 +77,7 @@ describe("POST /me/claim (claim profile)", () => {
 
     it("should return 400 when email is missing from token", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/claim", {
+        new Request("http://localhost/test-user/claim", {
           method: "POST",
           headers: {
             Authorization: "Bearer no-email-token",

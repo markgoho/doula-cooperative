@@ -89,11 +89,15 @@ describe('AdminDashboard', () => {
     expect(await screen.findByText('77')).toBeVisible();
   });
 
-  it('has a link to user management page', async () => {
+  it('has links to members and unclaimed profiles pages', async () => {
     await setup();
 
-    const userManagementCard = screen.getByRole('link', { name: /User Management/i });
-    expect(userManagementCard).toHaveAttribute('href', '/admin/users');
+    // Use more specific matcher - the card contains both "Members" heading and description
+    const membersCard = screen.getByRole('link', { name: /Manage member accounts/i });
+    expect(membersCard).toHaveAttribute('href', '/admin/members');
+
+    const unclaimedCard = screen.getByRole('link', { name: /Members with profiles who haven't created accounts/i });
+    expect(unclaimedCard).toHaveAttribute('href', '/admin/unclaimed');
   });
 
   it('displays placeholder cards for future features', async () => {

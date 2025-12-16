@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for GET /slugs/check (check slug availability).
+ * Tests for GET /slugs/check (check slug availability) - PUBLIC endpoint.
  * Served at /api/profiles/slugs/check?slug=jane-doe via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
@@ -15,36 +15,11 @@ describe("GET /slugs/check (check slug availability)", () => {
     // Reset mocks before each test
   });
 
-  describe("Authentication", () => {
-    it("should return 401 when no authorization header is provided", async () => {
+  describe("Public access", () => {
+    it("should allow access without authentication", async () => {
       const response = (await testApp.handle(
         new Request("http://localhost/slugs/check?slug=test-slug"),
-      )) as Response;
-
-      expect(response.status).toBe(401);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toBe("Missing Authorization header");
-    });
-
-    it("should return 401 when token is invalid", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs/check?slug=test-slug", {
-          headers: {
-            Authorization: "Bearer invalid-token",
-          },
-        }),
-      )) as Response;
-
-      expect(response.status).toBe(401);
-    });
-
-    it("should allow authenticated user to check slug", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs/check?slug=test-slug", {
-          headers: {
-            Authorization: "Bearer valid-token",
-          },
-        }),
+        // No authorization header
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -62,11 +37,7 @@ describe("GET /slugs/check (check slug availability)", () => {
       });
 
       const response = (await availableTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=available-slug", {
-          headers: {
-            Authorization: "Bearer valid-token",
-          },
-        }),
+        new Request("http://localhost/slugs/check?slug=available-slug"),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -84,11 +55,7 @@ describe("GET /slugs/check (check slug availability)", () => {
       });
 
       const response = (await takenTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=taken-slug", {
-          headers: {
-            Authorization: "Bearer valid-token",
-          },
-        }),
+        new Request("http://localhost/slugs/check?slug=taken-slug"),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -110,11 +77,7 @@ describe("GET /slugs/check (check slug availability)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=test-slug", {
-          headers: {
-            Authorization: "Bearer valid-token",
-          },
-        }),
+        new Request("http://localhost/slugs/check?slug=test-slug"),
       )) as Response;
 
       expect(response.status).toBe(500);

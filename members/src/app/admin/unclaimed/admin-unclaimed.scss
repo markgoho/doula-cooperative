@@ -1,0 +1,12 @@
+// Page-level styles for admin unclaimed profiles page
+
+.header-stats {
+  font-size: var(--step-0);
+  color: var(--brown-450);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-l);
+}

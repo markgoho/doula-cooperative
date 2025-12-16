@@ -8,7 +8,7 @@ import type {
 
 /**
  * Route logic for setting the current user's profile slug.
- * POST /api/profiles/slugs/me
+ * POST /api/profiles/slugs
  */
 export async function setSlugLogic({
   uid,

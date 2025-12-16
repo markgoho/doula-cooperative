@@ -1,31 +1,28 @@
 import { type Page, type Locator } from '@playwright/test';
 
 /**
- * Page Object Model for the Admin Users page (/admin/users).
+ * Page Object Model for the Admin Members page (/admin/members).
  *
  * Encapsulates all locators and actions for interacting with the admin
- * user management dashboard, including the active members table and
- * unclaimed profiles table. Uses accessibility-first selectors (roles, labels)
+ * members list page. Uses accessibility-first selectors (roles, labels)
  * to ensure tests break if accessibility is compromised.
  *
  * @example
- * const adminUsersPage = new AdminUsersPage(page);
- * await adminUsersPage.goto();
- * await adminUsersPage.waitForMembersTable();
- * await expect(adminUsersPage.membersTable).toBeVisible();
+ * const adminMembersPage = new AdminMembersPage(page);
+ * await adminMembersPage.goto();
+ * await adminMembersPage.waitForMembersTable();
+ * await expect(adminMembersPage.membersTable).toBeVisible();
  */
-export class AdminUsersPage {
+export class AdminMembersPage {
   readonly page: Page;
 
   // Headings
   readonly pageHeading: Locator;
   readonly activeMembersHeading: Locator;
-  readonly unclaimedProfilesHeading: Locator;
 
   // Header stats
   readonly headerStats: Locator;
   readonly totalMembersText: Locator;
-  readonly totalUnclaimedText: Locator;
 
   // Members table
   readonly membersTable: Locator;
@@ -46,13 +43,11 @@ export class AdminUsersPage {
     this.page = page;
 
     // Headings - use role-based selectors
-    this.pageHeading = page.getByRole('heading', { name: 'User Management', level: 1 });
+    this.pageHeading = page.getByRole('heading', { name: 'Members', level: 1 });
     this.activeMembersHeading = page.getByRole('heading', { name: 'Active Members', level: 2 });
-    this.unclaimedProfilesHeading = page.getByRole('heading', { name: 'Unclaimed Profiles', level: 2 });
 
     // Header stats - use text-based selectors
     this.totalMembersText = page.getByText(/Total Members:/);
-    this.totalUnclaimedText = page.getByText(/Unclaimed Profiles:/);
     // Header stats container - use CSS class since no better semantic selector available
     this.headerStats = page.locator('.header-stats');
 
@@ -67,7 +62,7 @@ export class AdminUsersPage {
     this.loadingMessage = activeMembersTable.getByText('Loading members...');
     this.errorMessage = activeMembersTable.getByText(/Failed to load members/i);
 
-    // Table column headers - scoped to members table to avoid confusion with unclaimed profiles table
+    // Table column headers - scoped to members table
     this.nameHeader = this.membersTable.getByRole('columnheader', { name: /Name/i });
     this.emailHeader = this.membersTable.getByRole('columnheader', { name: /Email/i });
     this.membershipHeader = this.membersTable.getByRole('columnheader', { name: /Membership/i });
@@ -75,13 +70,13 @@ export class AdminUsersPage {
   }
 
   /**
-   * Navigate to the admin users page.
+   * Navigate to the admin members page.
    *
    * @example
-   * await adminUsersPage.goto();
+   * await adminMembersPage.goto();
    */
   async goto() {
-    await this.page.goto('/admin/users');
+    await this.page.goto('/admin/members');
   }
 
   /**
@@ -90,8 +85,8 @@ export class AdminUsersPage {
    * and member data has been fetched from the API.
    *
    * @example
-   * await adminUsersPage.waitForMembersTable();
-   * await expect(adminUsersPage.membersTable).toBeVisible();
+   * await adminMembersPage.waitForMembersTable();
+   * await expect(adminMembersPage.membersTable).toBeVisible();
    */
   async waitForMembersTable() {
     await this.membersTable.waitFor({ state: 'visible', timeout: 10_000 });
@@ -104,7 +99,7 @@ export class AdminUsersPage {
    * @returns Locator for the member row
    *
    * @example
-   * const memberRow = adminUsersPage.getMemberRow('test@example.com');
+   * const memberRow = adminMembersPage.getMemberRow('test@example.com');
    * await expect(memberRow).toBeVisible();
    */
   getMemberRow(email: string): Locator {
@@ -117,8 +112,8 @@ export class AdminUsersPage {
    * @param email - The email address of the member
    *
    * @example
-   * await adminUsersPage.viewMember('test@example.com');
-   * await expect(page).toHaveURL(/\/admin\/users\/member\/[a-zA-Z0-9]+/);
+   * await adminMembersPage.viewMember('test@example.com');
+   * await expect(page).toHaveURL(/\/admin\/members\/[a-zA-Z0-9]+/);
    */
   async viewMember(email: string) {
     const row = this.getMemberRow(email);
@@ -132,7 +127,7 @@ export class AdminUsersPage {
    * @param column - The column to sort by ('Name', 'Email', 'Membership', 'Created')
    *
    * @example
-   * await adminUsersPage.sortBy('Name');
+   * await adminMembersPage.sortBy('Name');
    * // Sort indicator is already visible after sortBy returns
    */
   async sortBy(column: 'Name' | 'Email' | 'Membership' | 'Created') {

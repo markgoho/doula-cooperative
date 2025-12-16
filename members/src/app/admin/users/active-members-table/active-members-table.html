@@ -45,7 +45,7 @@
             </td>
             <td>{{ member.createdAt | date: 'MMM d, yyyy' }}</td>
             <td>
-              <a [routerLink]="['/admin/users/member', member.uid]" class="button small">View</a>
+              <a [routerLink]="['/admin/members', member.uid]" class="button small">View</a>
             </td>
           </tr>
         } @empty {
