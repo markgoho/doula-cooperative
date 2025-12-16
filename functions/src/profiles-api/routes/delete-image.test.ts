@@ -68,10 +68,12 @@ describe("DELETE /me/image (delete profile image)", () => {
 
   describe("Membership verification", () => {
     it("should return 428 when user has no slug", async () => {
+      const mockMemberDocumentWithoutSlug = { ...mockMemberDocument };
+      delete mockMemberDocumentWithoutSlug.slug;
       const noSlugTestApp = createProfilesTestPlugin({
         profileMemberService: {
           verifyActiveMembership: mock(() =>
-            Promise.resolve({ ...mockMemberDocument, slug: undefined }),
+            Promise.resolve(mockMemberDocumentWithoutSlug),
           ),
         },
       });

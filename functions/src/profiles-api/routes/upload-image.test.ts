@@ -133,10 +133,12 @@ describe("POST /me/image (upload profile image)", () => {
 
   describe("Membership verification", () => {
     it("should return 428 when user has no slug", async () => {
+      const memberDocumentWithoutSlug = { ...mockMemberDocument };
+      delete memberDocumentWithoutSlug.slug;
       const noSlugTestApp = createProfilesTestPlugin({
         profileMemberService: {
           verifyActiveMembership: mock(() =>
-            Promise.resolve({ ...mockMemberDocument, slug: undefined }),
+            Promise.resolve(memberDocumentWithoutSlug),
           ),
         },
       });
