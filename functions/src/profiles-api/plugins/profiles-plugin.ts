@@ -5,11 +5,17 @@ import { getUserUid } from "../../shared-api/utils/get-user-uid.js";
 import { userDerive } from "../../shared-api/utils/user-derive.js";
 import { userGuard } from "../../shared-api/utils/user-guard.js";
 import {
+  checkSlugAvailableLogic,
   createProfileLogic,
   readProfileLogic,
+  setSlugLogic,
   writeProfileLogic,
 } from "../routes/index.js";
-import { ProfileDataBodySchema } from "../schemas/profile-schemas.js";
+import {
+  ProfileDataBodySchema,
+  SetSlugBodySchema,
+  SlugQuerySchema,
+} from "../schemas/profile-schemas.js";
 import { ProfileGitHubService } from "../services/github/index.js";
 import { ProfileMemberService } from "../services/member/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -103,5 +109,30 @@ export function createProfilesPlugin(services?: PartialServices) {
           set,
         }),
       { body: ProfileDataBodySchema },
+    )
+    // GET /slugs/check - Check slug availability (served at /api/profiles/slugs/check?slug=jane-doe)
+    .get(
+      "/slugs/check",
+      async ({ query, profileMemberService, logger, set }) =>
+        checkSlugAvailableLogic({
+          slug: query.slug,
+          profileMemberService,
+          logger,
+          set,
+        }),
+      { query: SlugQuerySchema },
+    )
+    // POST /slugs/me - Set current user's slug (served at /api/profiles/slugs/me)
+    .post(
+      "/slugs/me",
+      async ({ body, userToken, profileMemberService, logger, set }) =>
+        setSlugLogic({
+          uid: getUserUid(userToken, logger),
+          slug: body.slug,
+          profileMemberService,
+          logger,
+          set,
+        }),
+      { body: SetSlugBodySchema },
     );
 }
