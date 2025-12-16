@@ -5,8 +5,8 @@ import {
 } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for POST /me/image (upload profile image).
- * Served at /api/profiles/me/image via Firebase rewrite.
+ * Tests for POST /:slug/image (upload profile image).
+ * Served at /api/profiles/:slug/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
@@ -15,7 +15,7 @@ import {
  * Actual image processing and GitHub upload logic is tested in integration tests
  * that run with emulators and mocked GitHub API.
  */
-describe("POST /me/image (upload profile image)", () => {
+describe("POST /:slug/image (upload profile image)", () => {
   const testApp = createProfilesTestPlugin();
 
   // Mock base64 image data (1x1 red pixel PNG)
@@ -35,7 +35,7 @@ describe("POST /me/image (upload profile image)", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -51,7 +51,7 @@ describe("POST /me/image (upload profile image)", () => {
 
     it("should return 401 when token is invalid", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer invalid-token",
@@ -75,7 +75,7 @@ describe("POST /me/image (upload profile image)", () => {
       };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer valid-token",
@@ -96,7 +96,7 @@ describe("POST /me/image (upload profile image)", () => {
       };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer valid-token",
@@ -117,7 +117,7 @@ describe("POST /me/image (upload profile image)", () => {
       };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer valid-token",
@@ -144,7 +144,7 @@ describe("POST /me/image (upload profile image)", () => {
       });
 
       const response = (await noSlugTestApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer valid-token",
@@ -171,7 +171,7 @@ describe("POST /me/image (upload profile image)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/me/image", {
+        new Request("http://localhost/test-user/image", {
           method: "POST",
           headers: {
             Authorization: "Bearer valid-token",

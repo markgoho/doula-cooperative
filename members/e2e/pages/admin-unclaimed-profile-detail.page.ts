@@ -2,7 +2,7 @@ import type { Page, Locator } from '@playwright/test';
 
 /**
  * Page object for Admin Unclaimed Profile Detail page.
- * Represents /admin/users/unclaimed/:email route.
+ * Represents /admin/unclaimed/:email route.
  *
  * Only includes commonly reused selectors and action methods.
  * Use ad-hoc selectors in tests for data verification (names, emails, dates).
@@ -37,7 +37,7 @@ export class AdminUnclaimedProfileDetailPage {
   }
 
   async goto(email: string): Promise<void> {
-    await this.page.goto(`/admin/users/unclaimed/${encodeURIComponent(email)}`);
+    await this.page.goto(`/admin/unclaimed/${encodeURIComponent(email)}`);
   }
 
   async waitForProfileDetails(): Promise<void> {

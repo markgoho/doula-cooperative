@@ -5,7 +5,7 @@ import type {
   ApiListUnclaimedProfilesResponse,
 } from '../../src/app/admin/api-types/admin-unclaimed-profiles-api.types';
 import { AdminUnclaimedProfileDetailPage } from '../pages/admin-unclaimed-profile-detail.page';
-import { AdminUsersPage } from '../pages/admin-users.page';
+import { AdminUnclaimedPage } from '../pages/admin-unclaimed.page';
 
 /**
  * Mock data for testing admin unclaimed profiles.
@@ -54,17 +54,6 @@ test.describe('Admin Unclaimed Profiles', () => {
   test('admin views unclaimed profiles list, verifies data, and tests sorting functionality', async ({
     authenticatedAdminPage,
   }) => {
-    // Set up mocks for both members and unclaimed profiles
-    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ members: [], total: 0 }),
-          })
-        : route.continue());
-    });
-
     // Mock list unclaimed profiles (includes query params like ?limit=50&offset=0)
     // Use regex to match list endpoint but not detail endpoint (which has email in path)
     await authenticatedAdminPage.route(/\/api\/admin\/unclaimed-profiles(\?|$)/, async (route) => {
@@ -80,18 +69,17 @@ test.describe('Admin Unclaimed Profiles', () => {
       await route.continue();
     });
 
-    const adminUsersPage = new AdminUsersPage(authenticatedAdminPage);
-    await adminUsersPage.goto();
-    await adminUsersPage.waitForMembersTable();
+    const adminUnclaimedPage = new AdminUnclaimedPage(authenticatedAdminPage);
+    await adminUnclaimedPage.goto();
+    await adminUnclaimedPage.waitForProfilesTable();
 
     // === Page Structure and Stats ===
-    await expect(adminUsersPage.pageHeading).toBeVisible();
-    await expect(adminUsersPage.pageHeading).toHaveText('User Management');
+    await expect(adminUnclaimedPage.pageHeading).toBeVisible();
+    await expect(adminUnclaimedPage.pageHeading).toHaveText('Unclaimed Profiles');
 
     // Verify header stats
     const headerStats = authenticatedAdminPage.locator('.header-stats');
-    await expect(headerStats).toContainText('Total Members: 0');
-    await expect(headerStats).toContainText('Unclaimed Profiles: 3');
+    await expect(headerStats).toContainText('Total Unclaimed: 3');
 
     // === Unclaimed Profiles Table Structure ===
     const unclaimedTable = authenticatedAdminPage.locator('app-unclaimed-profiles-table table');
@@ -168,49 +156,6 @@ test.describe('Admin Unclaimed Profiles', () => {
     // Profiles with slugs first
     await expect(tableRows.nth(0)).toContainText('Yes');
     await expect(tableRows.nth(2)).toContainText('No');
-  });
-
-  test.skip('handles API error with user-friendly message', async ({ authenticatedAdminPage }) => {
-    // Set up mocks exactly like the first test
-    await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ members: [], total: 0 }),
-          })
-        : route.continue());
-    });
-
-    // Mock list unclaimed profiles (includes query params like ?limit=50&offset=0)
-    // Use regex to match list endpoint but not detail endpoint (which has email in path)
-    await authenticatedAdminPage.route(/\/api\/admin\/unclaimed-profiles(\?|$)/, async (route) => {
-      const method = route.request().method();
-      if (method === 'GET') {
-        await route.fulfill({
-          status: 500,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Internal server error' }),
-        });
-        return;
-      }
-      await route.continue();
-    });
-
-    const adminUsersPage = new AdminUsersPage(authenticatedAdminPage);
-    await adminUsersPage.goto();
-    await adminUsersPage.waitForMembersTable();
-
-    // === Error Message Displayed ===
-    await expect(
-      authenticatedAdminPage.getByText('Failed to load unclaimed profiles. Please try again.'),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
-
-    // === Page Structure Still Visible ===
-    await expect(adminUsersPage.pageHeading).toBeVisible();
-    await expect(adminUsersPage.pageHeading).toHaveText('User Management');
   });
 
   test('admin views unclaimed profile details with proper data display', async ({

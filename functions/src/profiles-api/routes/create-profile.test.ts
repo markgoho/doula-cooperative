@@ -10,13 +10,13 @@ import {
 } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for POST /me (create profile).
- * Served at /api/profiles/me via Firebase rewrite.
+ * Tests for POST /:slug (create profile).
+ * Served at /api/profiles/:slug via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /me (create profile)", () => {
+describe("POST /:slug (create profile)", () => {
   const validProfileData = {
     title: "New Doula",
     bio: "This is a valid bio for a new doula profile.",
@@ -38,7 +38,7 @@ describe("POST /me (create profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -73,7 +73,7 @@ describe("POST /me (create profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -140,7 +140,7 @@ describe("POST /me (create profile)", () => {
       });
 
       const response = (await notFoundTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -167,7 +167,7 @@ describe("POST /me (create profile)", () => {
       });
 
       const response = (await inactiveTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -195,7 +195,7 @@ describe("POST /me (create profile)", () => {
       });
 
       const response = (await noSlugTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -216,7 +216,7 @@ describe("POST /me (create profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -245,7 +245,7 @@ describe("POST /me (create profile)", () => {
       });
 
       const response = (await conflictTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -274,7 +274,7 @@ describe("POST /me (create profile)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -10,13 +10,13 @@ import {
 } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for PUT /me (update profile).
- * Served at /api/profiles/me via Firebase rewrite.
+ * Tests for PUT /:slug (update profile).
+ * Served at /api/profiles/:slug via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("PUT /me (update profile)", () => {
+describe("PUT /:slug (update profile)", () => {
   const validProfileData = {
     title: "Test Doula",
     bio: "This is a valid bio for the test doula profile.",
@@ -39,7 +39,7 @@ describe("PUT /me (update profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -57,7 +57,7 @@ describe("PUT /me (update profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -74,7 +74,7 @@ describe("PUT /me (update profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -94,7 +94,7 @@ describe("PUT /me (update profile)", () => {
       const invalidData = { ...validProfileData, title: "" };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -112,7 +112,7 @@ describe("PUT /me (update profile)", () => {
       const invalidData = { ...validProfileData, bio: "" };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -130,7 +130,7 @@ describe("PUT /me (update profile)", () => {
       const invalidData = { ...validProfileData, title: "a".repeat(201) };
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -159,7 +159,7 @@ describe("PUT /me (update profile)", () => {
       });
 
       const response = (await notFoundTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -186,7 +186,7 @@ describe("PUT /me (update profile)", () => {
       });
 
       const response = (await inactiveTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -216,7 +216,7 @@ describe("PUT /me (update profile)", () => {
       });
 
       const response = (await noSlugTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -237,7 +237,7 @@ describe("PUT /me (update profile)", () => {
       const testApp = createProfilesTestPlugin();
 
       const response = (await testApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -264,7 +264,7 @@ describe("PUT /me (update profile)", () => {
       });
 
       const response = (await conflictTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -291,7 +291,7 @@ describe("PUT /me (update profile)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/me", {
+        new Request("http://localhost/test-user", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

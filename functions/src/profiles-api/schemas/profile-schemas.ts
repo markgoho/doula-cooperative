@@ -128,6 +128,24 @@ export type SlugQuery = Static<typeof SlugQuerySchema>;
 export type SetSlugBody = Static<typeof SetSlugBodySchema>;
 
 /**
+ * Slug path parameter schema for reading profiles by slug.
+ */
+export const SlugParameterSchema = t.Object({
+  slug: t.String({
+    minLength: 2,
+    maxLength: 100,
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$",
+    error:
+      "Slug must be 2-100 characters, lowercase letters, numbers, and hyphens only (e.g., jane-doe)",
+  }),
+});
+
+/**
+ * Type derived from SlugParameterSchema.
+ */
+export type SlugParameter = Static<typeof SlugParameterSchema>;
+
+/**
  * Crop data schema for image uploads.
  */
 export const CropDataSchema = t.Object({

@@ -14,6 +14,13 @@ import type {
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
 
+interface Contact {
+  email?: string;
+  phone?: string;
+  website?: string;
+  business_name?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -110,14 +117,30 @@ export class AdminMembersService {
     );
   }
 
-  async readMemberProfile(uid: string): Promise<{ content: string; image?: string; slug: string }> {
-    const readProfileCallable = httpsCallable<
-      { uid: string },
-      { content: string; image?: string; slug: string }
-    >(this.functions, 'adminReadMemberProfile');
+  async readMemberProfile(uid: string): Promise<{ title: string; bio: string; credentials?: string; pronouns?: string; tags?: string[]; contact?: Contact; image?: string; slug: string }> {
+    // 1. Get member to find their slug (admin-members-api already has getMember)
+    const member = await this.getMember(uid);
 
-    const result = await readProfileCallable({ uid });
-    return result.data;
+    if (!member.slug) {
+      throw new Error('Member does not have a profile slug');
+    }
+
+    // 2. Read profile content using public endpoint
+    const profile = await firstValueFrom(
+      this.httpClient.get<{ title: string; bio: string; credentials?: string; pronouns?: string; tags?: string[]; contact?: Contact; image?: string }>(`/api/profiles/${member.slug}`)
+    );
+
+    // Return structured profile data (not stringified)
+    return {
+      title: profile.title,
+      bio: profile.bio,
+      ...(profile.credentials !== undefined && { credentials: profile.credentials }),
+      ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
+      ...(profile.tags !== undefined && { tags: profile.tags }),
+      ...(profile.contact !== undefined && { contact: profile.contact }),
+      slug: member.slug,
+      ...(profile.image !== undefined && { image: profile.image }),
+    };
   }
 
   async listUnclaimedProfiles(limit = 50, offset = 0): Promise<ListUnclaimedProfilesResponse> {

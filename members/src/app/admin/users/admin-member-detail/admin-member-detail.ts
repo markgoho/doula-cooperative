@@ -111,9 +111,9 @@ export class AdminMemberDetail {
   private async deleteUser(): Promise<void> {
     await this.service.deleteUser(this.uid());
 
-    // Navigate back to user list after successful deletion
+    // Navigate back to members list after successful deletion
     if (this.service.successMessage()) {
-      await this.router.navigate(['/admin/users']);
+      await this.router.navigate(['/admin/members']);
     }
   }
 }

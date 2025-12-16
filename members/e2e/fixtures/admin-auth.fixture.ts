@@ -48,8 +48,8 @@ interface AuthEmulatorFixtures {
  *   });
  *
  *   // Now navigate
- *   await authenticatedAdminPage.goto('/admin/users');
- *   await expect(authenticatedAdminPage).toHaveURL('/admin/users');
+ *   await authenticatedAdminPage.goto('/admin/members');
+ *   await expect(authenticatedAdminPage).toHaveURL('/admin/members');
  * });
  */
 export const test = base.extend<AuthEmulatorFixtures>({

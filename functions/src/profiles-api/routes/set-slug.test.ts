@@ -3,13 +3,13 @@ import { ConflictError } from "../../shared-api/errors/http-error.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for POST /slugs/me (set profile slug).
- * Served at /api/profiles/slugs/me via Firebase rewrite.
+ * Tests for POST /slugs (set profile slug).
+ * Served at /api/profiles/slugs via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  * Tests run WITHOUT Firebase emulators.
  */
-describe("POST /slugs/me (set profile slug)", () => {
+describe("POST /slugs (set profile slug)", () => {
   const testApp = createProfilesTestPlugin();
 
   beforeEach(() => {
@@ -19,7 +19,7 @@ describe("POST /slugs/me (set profile slug)", () => {
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -35,7 +35,7 @@ describe("POST /slugs/me (set profile slug)", () => {
 
     it("should return 401 when token is invalid", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -50,7 +50,7 @@ describe("POST /slugs/me (set profile slug)", () => {
 
     it("should allow authenticated user to set slug", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -67,7 +67,7 @@ describe("POST /slugs/me (set profile slug)", () => {
   describe("Validation", () => {
     it("should return 422 when slug is too short", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -82,7 +82,7 @@ describe("POST /slugs/me (set profile slug)", () => {
 
     it("should return 422 when slug has uppercase letters", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -97,7 +97,7 @@ describe("POST /slugs/me (set profile slug)", () => {
 
     it("should return 422 when slug has special characters", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -112,7 +112,7 @@ describe("POST /slugs/me (set profile slug)", () => {
 
     it("should accept valid slug with lowercase and hyphens", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -137,7 +137,7 @@ describe("POST /slugs/me (set profile slug)", () => {
       });
 
       const response = (await setSlugTestApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -166,7 +166,7 @@ describe("POST /slugs/me (set profile slug)", () => {
       });
 
       const response = (await conflictTestApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -195,7 +195,7 @@ describe("POST /slugs/me (set profile slug)", () => {
       });
 
       const response = (await errorTestApp.handle(
-        new Request("http://localhost/slugs/me", {
+        new Request("http://localhost/slugs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

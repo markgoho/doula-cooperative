@@ -187,9 +187,47 @@
             </div>
           }
 
-          <div class="profile-raw">
-            <h4>Raw Markdown</h4>
-            <pre><code>{{ profile.content }}</code></pre>
+          <div class="profile-data">
+            <dl>
+              <dt>Title</dt>
+              <dd>{{ profile.title }}</dd>
+
+              <dt>Bio</dt>
+              <dd class="bio-content">{{ profile.bio }}</dd>
+
+              @if (profile.credentials) {
+                <dt>Credentials</dt>
+                <dd>{{ profile.credentials }}</dd>
+              }
+
+              @if (profile.pronouns) {
+                <dt>Pronouns</dt>
+                <dd>{{ profile.pronouns }}</dd>
+              }
+
+              @if (profile.tags && profile.tags.length > 0) {
+                <dt>Tags</dt>
+                <dd>{{ profile.tags.join(', ') }}</dd>
+              }
+
+              @if (profile.contact) {
+                <dt>Contact Information</dt>
+                <dd>
+                  @if (profile.contact.email) {
+                    <div><strong>Email:</strong> {{ profile.contact.email }}</div>
+                  }
+                  @if (profile.contact.phone) {
+                    <div><strong>Phone:</strong> {{ profile.contact.phone }}</div>
+                  }
+                  @if (profile.contact.website) {
+                    <div><strong>Website:</strong> {{ profile.contact.website }}</div>
+                  }
+                  @if (profile.contact.business_name) {
+                    <div><strong>Business Name:</strong> {{ profile.contact.business_name }}</div>
+                  }
+                </dd>
+              }
+            </dl>
           </div>
         </div>
       }

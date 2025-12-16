@@ -66,28 +66,6 @@ export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
   },
 );
 
-export const adminReadMemberProfile = onCall(
-  { invoker: "public", secrets: PROFILE_SECRETS },
-  async request => {
-    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
-
-    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-      throw new HttpsError("internal", "Missing GitHub secrets.");
-    }
-
-    const { handleAdminReadMemberProfile } =
-      await import("./admin/read-member-profile.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleAdminReadMemberProfile(request.data, request, [
-      GITHUB_APP_ID,
-      GITHUB_PRIVATE_KEY,
-      GITHUB_INSTALLATION_ID,
-    ]);
-  },
-);
-
 export const adminSendInvitation = onCall(
   { invoker: "public", secrets: ["MAILGUN_API_KEY"] },
   async request => {
