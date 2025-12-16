@@ -1,6 +1,18 @@
 import { logger } from "firebase-functions/v2";
+import { dump } from "js-yaml";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { ProfileData } from "../schemas/profile-schemas.js";
+import type { ProfileData, ProfileDataBody } from "../schemas/profile-schemas.js";
+
+/**
+ * Hugo front matter structure for profile markdown files.
+ * ProfileDataBody minus 'bio' (which goes in markdown body) plus Hugo metadata.
+ */
+interface HugoFrontMatter extends Omit<ProfileDataBody, "bio"> {
+  type: string;
+  updatedAt: string;
+  date?: string;
+  createdAt?: string;
+}
 
 /**
  * Remove protocol from URLs for Hugo front matter.
@@ -13,6 +25,7 @@ function stripUrlProtocol(url: string): string {
 
 /**
  * Serialize ProfileData to Hugo markdown format with YAML front matter.
+ * Uses js-yaml for reliable YAML generation.
  */
 export function serializeToMarkdown(
   data: ProfileData,
@@ -25,45 +38,68 @@ export function serializeToMarkdown(
 ): string {
   const updatedAt = new Date().toISOString();
 
-  // Format tags as YAML array
-  const tagsYaml =
-    data.tags && data.tags.length > 0
-      ? `tags:\n${data.tags.map((tag: string) => `  - "${tag}"`).join("\n")}`
-      : "";
+  // Build front matter object
+  const frontMatter: HugoFrontMatter = {
+    title: data.title,
+    type: "doulas",
+    updatedAt,
+  };
 
-  // Format contact information
-  // Filter out undefined values before checking if contact object has data
-  const hasContactData =
-    data.contact !== undefined &&
-    Object.values(data.contact).some((v) => typeof v === "string" && v !== "");
-  const contactYaml =
-    hasContactData && data.contact
-      ? `contact:
-${data.contact.business_name ? `  business_name: ${data.contact.business_name}\n` : ""}${data.contact.website ? `  website: ${stripUrlProtocol(data.contact.website)}\n` : ""}${data.contact.phone ? `  phone: ${data.contact.phone}\n` : ""}${data.contact.email ? `  email: "${data.contact.email}"\n` : ""}`.trimEnd()
-      : "";
+  // Add optional metadata fields
+  if (existingMetadata?.date) {
+    frontMatter.date = existingMetadata.date;
+  }
+  if (existingMetadata?.createdAt) {
+    frontMatter.createdAt = existingMetadata.createdAt;
+  }
+  if (existingMetadata?.draft !== undefined) {
+    frontMatter.draft = existingMetadata.draft;
+  }
 
-  const createdAt = existingMetadata?.createdAt;
-  // Always use current timestamp for updatedAt
-  const finalUpdatedAt = updatedAt;
+  // Add profile fields
+  if (data.credentials) {
+    frontMatter.credentials = data.credentials;
+  }
+  if (data.pronouns) {
+    frontMatter.pronouns = data.pronouns;
+  }
+  if (data.tags && data.tags.length > 0) {
+    frontMatter.tags = data.tags;
+  }
+
+  // Add contact information (strip website protocol, filter empty values)
+  if (data.contact) {
+    const contact: Record<string, string> = {};
+    if (data.contact.business_name) {
+      contact.business_name = data.contact.business_name;
+    }
+    if (data.contact.website) {
+      contact.website = stripUrlProtocol(data.contact.website);
+    }
+    if (data.contact.phone) {
+      contact.phone = data.contact.phone;
+    }
+    if (data.contact.email) {
+      contact.email = data.contact.email;
+    }
+
+    if (Object.keys(contact).length > 0) {
+      frontMatter.contact = contact;
+    }
+  }
+
+  // Use js-yaml to generate YAML front matter
+  const yamlFrontMatter = dump(frontMatter, {
+    lineWidth: -1, // Don't wrap lines
+    noRefs: true, // Don't use YAML references
+  }).trim();
 
   return `---
-title: "${data.title}"
-${existingMetadata?.date ? `date: ${existingMetadata.date}` : ""}
-${createdAt ? `createdAt: ${createdAt}` : ""}
-updatedAt: ${finalUpdatedAt}
-type: "doulas"
-${data.credentials ? `credentials: "${data.credentials}"` : ""}
-${data.pronouns ? `pronouns: "${data.pronouns}"` : ""}
-${tagsYaml}
-${contactYaml}
-${existingMetadata?.draft === undefined ? "" : `draft: ${existingMetadata.draft}`}
+${yamlFrontMatter}
 ---
 
 ${data.bio.trim()}
-`
-    .split("\n")
-    .filter((line) => line === "" || line.trim() !== "")
-    .join("\n");
+`;
 }
 
 /**
