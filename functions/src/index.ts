@@ -68,46 +68,6 @@ export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
   },
 );
 
-// Admin functions
-export const adminUpdateMember = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleUpdateMember } = await import("./admin/update-member.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleUpdateMember(request.data, request);
-  },
-);
-
-export const adminActivateMembership = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleActivateMembership } =
-      await import("./admin/activate-membership.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleActivateMembership(request.data, request);
-  },
-);
-
-export const adminDeactivateMembership = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleDeactivateMembership } =
-      await import("./admin/deactivate-membership.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleDeactivateMembership(request.data, request);
-  },
-);
-
-export const adminExtendMembership = onCall(
-  { invoker: "public" },
-  async request => {
-    const { handleExtendMembership } =
-      await import("./admin/extend-membership.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleExtendMembership(request.data, request);
-  },
-);
-
 export const adminReadMemberProfile = onCall(
   { invoker: "public", secrets: PROFILE_SECRETS },
   async request => {
@@ -129,12 +89,6 @@ export const adminReadMemberProfile = onCall(
     ]);
   },
 );
-
-export const adminDeleteUser = onCall({ invoker: "public" }, async request => {
-  const { handleDeleteUser } = await import("./admin/delete-user.js");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return handleDeleteUser(request.data, request);
-});
 
 export const adminSendInvitation = onCall(
   { invoker: "public", secrets: ["MAILGUN_API_KEY"] },
