@@ -1,8 +1,10 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, resource } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
 
 interface MigratedUserData {
@@ -57,6 +59,7 @@ export class MembershipService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
   private functions = inject(Functions);
+  private http = inject(HttpClient);
 
   // Use authState directly to avoid circular dependency with AuthService
   private user$ = authState(this.auth);
@@ -117,27 +120,26 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async checkSlugExists(slug: string): Promise<boolean> {
-    const checkSlugCallable = httpsCallable<{ slug: string }, { available: boolean }>(
-      this.functions,
-      'checkSlugAvailable',
-    );
-
     try {
-      const result = await checkSlugCallable({ slug });
-      return !result.data.available; // Returns true if slug EXISTS (taken)
+      const result = await firstValueFrom(
+        this.http.get<{ available: boolean }>('/api/profiles/slugs/check', {
+          params: { slug },
+        }),
+      );
+      return !result.available; // Returns true if slug EXISTS (taken)
     } catch (error: unknown) {
       console.error('Slug availability check failed:', {
         slug,
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        switch (error.code) {
-          case 'unauthenticated': {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
             throw new Error('You must be signed in to check slug availability.');
           }
 
-          case 'deadline-exceeded': {
+          case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
@@ -153,13 +155,10 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async updateMemberSlug(slug: string): Promise<void> {
-    const setSlugCallable = httpsCallable<{ slug: string }, { success: boolean; slug: string }>(
-      this.functions,
-      'setProfileSlug',
-    );
-
     try {
-      await setSlugCallable({ slug });
+      await firstValueFrom(
+        this.http.post<{ success: boolean; slug: string }>('/api/profiles/slugs/me', { slug }),
+      );
 
       // Trigger reload of user document
       this.reloadUserDocument();
@@ -169,27 +168,37 @@ export class MembershipService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        switch (error.code) {
-          case 'unauthenticated': {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
             throw new Error('You must be signed in to set a profile slug.');
           }
 
-          case 'failed-precondition': {
-            if (error.message.includes('active membership')) {
+          case 403: {
+            if (error.error?.error?.includes('membership')) {
               throw new Error('Active membership required to set profile slug.');
             }
-            if (error.message.includes('already has')) {
+            throw new Error('You do not have permission to set a profile slug.');
+          }
+
+          case 404: {
+            if (error.error?.error?.includes('member')) {
+              throw new Error('Member account not found. Please contact support.');
+            }
+            throw new Error('Unable to set profile slug. Please try again.');
+          }
+
+          case 409: {
+            if (error.error?.error?.includes('already has')) {
               throw new Error('You already have a profile slug. Contact support to change it.');
             }
-            break;
+            if (error.error?.error?.includes('already taken')) {
+              throw new Error('This slug is already taken. Please choose another.');
+            }
+            throw new Error('Slug conflict. Please try again.');
           }
 
-          case 'already-exists': {
-            throw new Error('This slug is already taken. Please choose another.');
-          }
-
-          case 'deadline-exceeded': {
+          case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
         }

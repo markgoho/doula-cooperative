@@ -1,20 +1,12 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
 import { type CropData } from '../types/crop-data';
-import { isFirebaseFunctionsError } from '../types/firebase-error';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
 // Re-export for consumers
 export type { CropData } from '../types/crop-data';
-
-interface UploadProfileImageRequest {
-  imageData: string;
-  mimeType: string;
-  cropData: CropData;
-}
 
 /** Optimistic state for image uploads - stores the preview URL */
 interface OptimisticImageUpload {
@@ -37,7 +29,6 @@ const OPTIMISTIC_IMAGE_KEY = 'optimisticProfileImage';
 })
 export class ProfileService {
   private http = inject(HttpClient);
-  private functions = inject(Functions);
   private membershipService = inject(MembershipService);
 
   /**
@@ -209,20 +200,17 @@ export class ProfileService {
    * @param previewUrl - Optional preview URL for optimistic display
    */
   async uploadProfileImage(file: File, cropData: CropData, previewUrl?: string): Promise<void> {
-    const uploadCallable = httpsCallable<UploadProfileImageRequest, { success: boolean }>(
-      this.functions,
-      'uploadProfileImage',
-    );
-
     try {
       // Convert file to base64
       const imageData = await this.fileToBase64(file);
 
-      await uploadCallable({
-        imageData,
-        mimeType: file.type,
-        cropData,
-      });
+      await firstValueFrom(
+        this.http.post<{ success: boolean }>('/api/profiles/me/image', {
+          imageData,
+          mimeType: file.type,
+          cropData,
+        }),
+      );
 
       // Set optimistic state for immediate display
       const slug = this.membershipService.userDocument()?.slug;
@@ -237,27 +225,43 @@ export class ProfileService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        const errorMessages: Record<string, string> = {
-          'unauthenticated': 'You must be signed in to upload a profile image.',
-          'invalid-argument': error.message || 'Invalid image. Please try a different file.',
-          'resource-exhausted': 'Too many requests. Please try again in a few minutes.',
-        };
-
-        if (error.code === 'failed-precondition') {
-          if (error.message.includes('membership')) {
-            throw new Error('Active membership required to upload a profile image.');
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to upload a profile image.');
           }
-          if (error.message.includes('slug')) {
-            throw new Error('Please set up your profile first.');
-          }
-          console.warn('Unhandled failed-precondition:', error.message);
-          throw new Error(error.message || 'A precondition for this operation was not met.');
-        }
 
-        const message = errorMessages[error.code];
-        if (message) {
-          throw new Error(message);
+          case 413: {
+            throw new Error('Image too large. Maximum size is 10MB.');
+          }
+
+          case 428: {
+            if (error.error?.error?.includes('slug')) {
+              throw new Error('Please set up your profile first.');
+            }
+            throw new Error('Profile setup required to upload an image.');
+          }
+
+          case 429: {
+            throw new Error('Too many requests. Please try again in a few minutes.');
+          }
+
+          case 403: {
+            if (error.error?.error?.includes('membership')) {
+              throw new Error('Active membership required to upload a profile image.');
+            }
+            throw new Error('You do not have permission to upload a profile image.');
+          }
+
+          case 409: {
+            throw new Error(
+              'Profile was modified by another operation. Please try again.',
+            );
+          }
+
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
         }
       }
 
@@ -269,13 +273,10 @@ export class ProfileService {
    * Delete the profile image.
    */
   async deleteProfileImage(): Promise<void> {
-    const deleteCallable = httpsCallable<void, { success: boolean }>(
-      this.functions,
-      'deleteProfileImage',
-    );
-
     try {
-      await deleteCallable();
+      await firstValueFrom(
+        this.http.delete<{ success: boolean; deletedFiles: string[] }>('/api/profiles/me/image'),
+      );
 
       // Set optimistic state to show image as deleted immediately
       const slug = this.membershipService.userDocument()?.slug;
@@ -290,23 +291,33 @@ export class ProfileService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        const errorMessages: Record<string, string> = {
-          'unauthenticated': 'You must be signed in to delete your profile image.',
-          'resource-exhausted': 'Too many requests. Please try again in a few minutes.',
-        };
-
-        if (error.code === 'failed-precondition') {
-          if (error.message.includes('membership')) {
-            throw new Error('Active membership required to delete your profile image.');
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to delete your profile image.');
           }
-          console.warn('Unhandled failed-precondition:', error.message);
-          throw new Error(error.message || 'A precondition for this operation was not met.');
-        }
 
-        const message = errorMessages[error.code];
-        if (message) {
-          throw new Error(message);
+          case 428: {
+            if (error.error?.error?.includes('slug')) {
+              throw new Error('Please set up your profile first.');
+            }
+            throw new Error('Profile setup required to delete an image.');
+          }
+
+          case 429: {
+            throw new Error('Too many requests. Please try again in a few minutes.');
+          }
+
+          case 403: {
+            if (error.error?.error?.includes('membership')) {
+              throw new Error('Active membership required to delete your profile image.');
+            }
+            throw new Error('You do not have permission to delete a profile image.');
+          }
+
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
         }
       }
 

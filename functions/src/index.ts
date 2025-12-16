@@ -9,12 +9,7 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
-import {
-  type CallableRequest,
-  HttpsError,
-  onCall,
-  onRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
@@ -42,39 +37,6 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
     await import("./user-creation/set-auto-admin.js");
   await handleSetAutoAdmin(user);
 });
-
-export const claimProfile = onCall(
-  {
-    invoker: "public",
-    secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
-  },
-  async request => {
-    const { handleClaimProfile } = await import("./claim-profile/index.js");
-    return handleClaimProfile(request.data, request);
-  },
-);
-
-export const checkSlugAvailable = onCall(
-  { invoker: "public" },
-  async (request: CallableRequest<{ slug: string }>) => {
-    const { handleCheckSlugAvailable } =
-      await import("./check-slug-available/index.js");
-    return handleCheckSlugAvailable(request);
-  },
-);
-
-export const setProfileSlug = onCall(
-  { invoker: "public" },
-  async (request: CallableRequest<{ slug: string }>) => {
-    const { handleSetProfileSlug } =
-      await import("./set-profile-slug/index.js");
-    return handleSetProfileSlug(request);
-  },
-);
-
-export { uploadProfileImage } from "./upload-profile-image/index.js";
-
-export { deleteProfileImage } from "./delete-profile-image/index.js";
 
 export { stripeWebhook } from "./stripe-webhook/index.js";
 

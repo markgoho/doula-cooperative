@@ -85,6 +85,9 @@ export const ERROR_IDS = {
   SET_SLUG_FIRESTORE_UPDATE_FAILED: "set_slug_firestore_update_failed",
 
   // Claim profile errors
+  CLAIM_PROFILE_FAILED: "claim_profile_failed",
+  CLAIM_PROFILE_NO_DATA: "claim_profile_no_data",
+  CLAIM_PROFILE_INVALID_DATA: "claim_profile_invalid_data",
   CLAIM_PROFILE_FIRESTORE_WRITE_ERROR: "claim_profile_firestore_write_error",
   CLAIM_PROFILE_AUTH_UPDATE_FAILED: "claim_profile_auth_update_failed",
   CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
@@ -131,6 +134,7 @@ export const ERROR_IDS = {
     "doula_match_form_firestore_write_failed",
 
   // Upload profile image errors
+  UPLOAD_PROFILE_IMAGE_FAILED: "upload_profile_image_failed",
   UPLOAD_PROFILE_IMAGE_INVALID_DATA: "upload_profile_image_invalid_data",
   UPLOAD_PROFILE_IMAGE_TOO_LARGE: "upload_profile_image_too_large",
   UPLOAD_PROFILE_IMAGE_PROCESSING_FAILED:
@@ -148,6 +152,7 @@ export const ERROR_IDS = {
     "upload_profile_image_cleanup_failed",
 
   // Delete profile image errors
+  DELETE_PROFILE_IMAGE_FAILED: "delete_profile_image_failed",
   DELETE_PROFILE_IMAGE_FIRESTORE_READ_ERROR:
     "delete_profile_image_firestore_read_error",
   DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
@@ -168,6 +173,7 @@ export const ERROR_IDS = {
   API_AUTH_TOKEN_WRONG_PROJECT: "api_auth_token_wrong_project",
   API_AUTH_VERIFICATION_FAILED: "api_auth_verification_failed",
   API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
+  API_GITHUB_CONFIG_MISSING: "api_github_config_missing",
 
   // Admin member management operations
   API_ADMIN_GET_MEMBER_FAILED: "api_admin_get_member_failed",
