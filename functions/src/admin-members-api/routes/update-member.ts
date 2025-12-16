@@ -38,7 +38,8 @@ export async function updateMemberLogic({
       updatedFields: Object.keys(updates),
     });
 
-    return { success: true, member: toMemberResponse(member) };
+    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
+    return { success: true, member: toMemberResponse(member, isAdmin) };
   } catch (error) {
     return handleRouteError({
       error,

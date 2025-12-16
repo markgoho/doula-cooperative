@@ -1,4 +1,3 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -18,7 +17,7 @@ import {
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
-import { firstValueFrom, from, map, switchMap } from 'rxjs';
+import { from, map, switchMap } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -30,6 +29,7 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/wrong-password': 'Incorrect password.',
   'auth/invalid-credential': 'Invalid email or password.',
   'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+  'auth/network-request-failed': 'Network error. Please check your connection and try again.',
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
@@ -39,7 +39,6 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
 export class AuthService {
   private auth = inject(Auth);
   private router = inject(Router);
-  private http = inject(HttpClient);
 
   // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
   readonly user$ = idToken(this.auth).pipe(map(() => this.auth.currentUser));
@@ -93,10 +92,15 @@ export class AuthService {
   async signOut(): Promise<void> {
     try {
       await signOut(this.auth);
+      // Only navigate after successful sign out
       void this.router.navigate(['/sign-in']);
     } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
+      console.error('Sign out failed:', {
+        uid: this.auth.currentUser?.uid,
+        error: error instanceof Error ? error.message : String(error),
+        code: (error as { code?: string }).code,
+      });
+      throw new Error('Failed to sign out. Please try closing your browser and signing in again.');
     }
   }
 
@@ -122,8 +126,22 @@ export class AuthService {
       await current.getIdToken(true);
       console.log('🔄 Token refreshed - custom claims updated');
     } catch (error) {
-      console.error('Error refreshing token:', error);
-      throw new Error('Failed to refresh token.');
+      const errorCode = (error as { code?: string }).code;
+      console.error('Token refresh failed:', {
+        uid: current.uid,
+        error: error instanceof Error ? error.message : String(error),
+        code: errorCode,
+      });
+
+      // Provide specific error messages based on Firebase error codes
+      if (errorCode === 'auth/user-token-expired' || errorCode === 'auth/user-disabled') {
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+      if (errorCode === 'auth/network-request-failed') {
+        throw new Error('Network error refreshing session. Please check your connection and try again.');
+      }
+
+      throw new Error('Failed to refresh session. Please sign in again.');
     }
   }
 
@@ -147,53 +165,15 @@ export class AuthService {
         url: `${globalThis.window.location.origin}/membership`,
         handleCodeInApp: true,
       });
-    } catch {
-      throw new Error('Failed to send verification email.');
-    }
-  }
-
-  async claimProfile(): Promise<void> {
-    const user = this.currentUser;
-    if (!user) {
-      console.error('Attempted to claim profile without a logged-in user.');
-      throw new Error('No authenticated user to claim profile.');
-    }
-
-    // Force a refresh of the user's ID token to get the latest claims
-    // and email_verified status before calling the API.
-    await user.getIdToken(true);
-
-    try {
-      await firstValueFrom(
-        this.http.post<{ status: string; data?: unknown }>('/api/profiles/me/claim', {}),
-      );
     } catch (error) {
-      console.error('Error calling claimProfile API:', error);
-
-      if (error instanceof HttpErrorResponse) {
-        switch (error.status) {
-          case 401: {
-            throw new Error('You must be signed in to claim a profile.');
-          }
-
-          case 428: {
-            if (error.error?.error?.includes('verified email')) {
-              throw new Error('Please verify your email address before claiming your profile.');
-            }
-            throw new Error('Email verification required to claim profile.');
-          }
-
-          case 404: {
-            throw new Error('No profile found to claim.');
-          }
-
-          case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
-          }
-        }
-      }
-
-      throw error;
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      console.error('Failed to send verification email:', {
+        uid: user.uid,
+        email: user.email,
+        errorCode,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
     }
   }
 

@@ -25,11 +25,11 @@ export class EditProfilePage {
     this.page = page;
     this.pageHeading = page.getByRole('heading', { name: /Edit.*Profile/i, level: 1 });
     this.loadingMessage = page.getByText('Loading profile...');
-    this.errorMessage = page.locator('.error-message'); // Updated: scoped to error container
-    this.successMessage = page.locator('.success-message'); // Updated: scoped to success container
+    this.errorMessage = page.getByText(/error|failed/i);
+    this.successMessage = page.getByText(/Profile updated successfully/i);
 
     // Form field selectors using labels
-    this.titleInput = page.getByLabel(/^Title/i);
+    this.titleInput = page.getByLabel(/^Name/i);
     this.pronounsInput = page.getByLabel(/Pronouns/i);
     this.credentialsInput = page.getByLabel(/Credentials/i);
     this.bioTextarea = page.getByLabel(/Bio/i);

@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../test-utils/timestamp-mock';
 import { MembershipService, type Member } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
 import { CreateProfile } from './create-profile';
@@ -282,7 +281,8 @@ async function setup({
         uid: 'test-uid',
         email: 'test@example.com',
         name: 'Test User',
-        createdAt: new Timestamp(0, 0),
+        createdAt: new Date(0),
+        isAdmin: false,
         membershipActive: true,
         slug: 'test-user',
       };

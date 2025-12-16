@@ -1,6 +1,5 @@
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-
 /**
  * TypeScript interface for profile form controls structure
  */
@@ -39,5 +38,4 @@ export function createProfileFormGroup(fb: FormBuilder): FormGroup<ProfileFormCo
  * Re-export profile tags constant for consistency
  */
 
-
-export {PROFILE_TAGS} from '../../constants/profile-tags';
+export { PROFILE_TAGS } from '../../constants/profile-tags';

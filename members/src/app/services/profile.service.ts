@@ -44,9 +44,9 @@ export class ProfileService {
       // Only load if user has active membership and a slug
       return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
     },
-    loader: async () => {
-      const profileData = await this.fetchProfileFromServer();
-      const userSlug = this.membershipService.userDocument()?.slug;
+    loader: async ({ params }) => {
+      const profileData = await this.fetchProfileFromServer(params.slug);
+      const userSlug = params.slug;
 
       // Backend has image - clear optimistic upload state only if it's for the current user
       if (profileData.image) {
@@ -92,8 +92,13 @@ export class ProfileService {
   });
 
   async updateProfile(data: ProfileData): Promise<void> {
+    const slug = this.membershipService.userDocument()?.slug;
+    if (!slug) {
+      throw new Error('User slug not found. Please refresh the page.');
+    }
+
     try {
-      await firstValueFrom(this.http.put<{ success: boolean }>('/api/profiles/me', data));
+      await firstValueFrom(this.http.put<{ success: boolean }>(`/api/profiles/${slug}`, data));
 
       // Only reload on success
       this.profileResource.reload();
@@ -138,8 +143,13 @@ export class ProfileService {
   }
 
   async createProfileContent(data: ProfileData): Promise<void> {
+    const slug = this.membershipService.userDocument()?.slug;
+    if (!slug) {
+      throw new Error('User slug not found. Please refresh the page.');
+    }
+
     try {
-      await firstValueFrom(this.http.post<{ success: boolean }>('/api/profiles/me', data));
+      await firstValueFrom(this.http.post<{ success: boolean }>(`/api/profiles/${slug}`, data));
 
       // Only reload on success
       this.profileResource.reload();
@@ -184,8 +194,8 @@ export class ProfileService {
     }
   }
 
-  private async fetchProfileFromServer(): Promise<ProfileData> {
-    return firstValueFrom(this.http.get<ProfileData>('/api/profiles/me'));
+  private async fetchProfileFromServer(slug: string): Promise<ProfileData> {
+    return firstValueFrom(this.http.get<ProfileData>(`/api/profiles/${slug}`));
   }
 
   getTagUrl(tag: string): string {
@@ -200,12 +210,17 @@ export class ProfileService {
    * @param previewUrl - Optional preview URL for optimistic display
    */
   async uploadProfileImage(file: File, cropData: CropData, previewUrl?: string): Promise<void> {
+    const slug = this.membershipService.userDocument()?.slug;
+    if (!slug) {
+      throw new Error('User slug not found. Please refresh the page.');
+    }
+
     try {
       // Convert file to base64
       const imageData = await this.fileToBase64(file);
 
       await firstValueFrom(
-        this.http.post<{ success: boolean }>('/api/profiles/me/image', {
+        this.http.post<{ success: boolean }>(`/api/profiles/${slug}/image`, {
           imageData,
           mimeType: file.type,
           cropData,
@@ -213,8 +228,7 @@ export class ProfileService {
       );
 
       // Set optimistic state for immediate display
-      const slug = this.membershipService.userDocument()?.slug;
-      if (previewUrl && slug) {
+      if (previewUrl) {
         this.saveOptimisticState({ url: previewUrl, slug });
       }
 
@@ -273,16 +287,18 @@ export class ProfileService {
    * Delete the profile image.
    */
   async deleteProfileImage(): Promise<void> {
+    const slug = this.membershipService.userDocument()?.slug;
+    if (!slug) {
+      throw new Error('User slug not found. Please refresh the page.');
+    }
+
     try {
       await firstValueFrom(
-        this.http.delete<{ success: boolean; deletedFiles: string[] }>('/api/profiles/me/image'),
+        this.http.delete<{ success: boolean; deletedFiles: string[] }>(`/api/profiles/${slug}/image`),
       );
 
       // Set optimistic state to show image as deleted immediately
-      const slug = this.membershipService.userDocument()?.slug;
-      if (slug) {
-        this.saveOptimisticState({ deleted: true, slug });
-      }
+      this.saveOptimisticState({ deleted: true, slug });
 
       // Reload profile - will auto-clear optimistic state when backend catches up
       this.profileResource.reload();

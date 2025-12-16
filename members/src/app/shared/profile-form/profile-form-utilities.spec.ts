@@ -1,6 +1,5 @@
 import { FormArray, FormBuilder } from '@angular/forms';
 import { describe, expect, it } from 'vitest';
-import { Timestamp } from '../../../test-utils/timestamp-mock';
 import { type Member } from '../../services/membership.service';
 import { type ProfileData } from '../../types/profile-data';
 import { createProfileFormGroup, PROFILE_TAGS } from './profile-form-config';
@@ -106,7 +105,8 @@ describe('Profile Form Utilities', () => {
         uid: 'test-uid',
         email: 'test@example.com',
         name: 'Test User',
-        createdAt: new Timestamp(0, 0),
+        createdAt: new Date(0),
+        isAdmin: false,
         membershipActive: true,
         slug: 'test-user',
       };
@@ -123,7 +123,8 @@ describe('Profile Form Utilities', () => {
         uid: 'test-uid',
         email: 'test@example.com',
         name: 'Test User',
-        createdAt: new Timestamp(0, 0),
+        createdAt: new Date(0),
+        isAdmin: false,
         membershipActive: true,
       };
 
@@ -142,7 +143,8 @@ describe('Profile Form Utilities', () => {
       const member: Member = {
         uid: 'test-uid',
         email: 'test@example.com',
-        createdAt: new Timestamp(0, 0),
+        createdAt: new Date(0),
+        isAdmin: false,
         membershipActive: true,
       };
 
@@ -161,7 +163,8 @@ describe('Profile Form Utilities', () => {
       const member: Member = {
         uid: 'test-uid',
         email: '',
-        createdAt: new Timestamp(0, 0),
+        createdAt: new Date(0),
+        isAdmin: false,
         membershipActive: false,
       };
 

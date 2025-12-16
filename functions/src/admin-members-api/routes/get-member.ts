@@ -29,12 +29,15 @@ export async function getMemberLogic({
   try {
     const member = await memberAdminService.verifyMemberExists(memberId);
 
+    // Check if the target member has admin privileges via service
+    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
+
     logger.info("Admin retrieved member", {
       adminUid,
       targetMemberId: memberId,
     });
 
-    return toMemberResponse(member);
+    return toMemberResponse(member, isAdmin);
   } catch (error) {
     return handleRouteError({
       error,

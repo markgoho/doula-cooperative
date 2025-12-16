@@ -10,6 +10,7 @@ function createMockMember(overrides: Partial<Member> = {}): Member {
     uid: 'test-uid-123',
     email: 'test@example.com',
     createdAt: '2024-01-15T00:00:00.000Z',
+    isAdmin: false,
     membershipActive: false,
     ...overrides,
   };

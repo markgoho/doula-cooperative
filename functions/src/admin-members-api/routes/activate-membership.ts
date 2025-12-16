@@ -43,7 +43,8 @@ export async function activateMembershipLogic({
       membershipExpiresAt: member.membershipExpiresAt,
     });
 
-    return { success: true, member: toMemberResponse(member) };
+    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
+    return { success: true, member: toMemberResponse(member, isAdmin) };
   } catch (error) {
     return handleRouteError({
       error,

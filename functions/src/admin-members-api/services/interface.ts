@@ -115,4 +115,13 @@ export interface MemberAdminService {
     requestingAdminUid: string;
     logger: Logger;
   }): Promise<void>;
+
+  /**
+   * Check if a user has admin privileges.
+   *
+   * @param uid - The user's UID
+   * @param logger - Logger for error reporting
+   * @returns Promise resolving to true if user has admin claim, false otherwise
+   */
+  isAdmin(uid: string, logger: Logger): Promise<boolean>;
 }

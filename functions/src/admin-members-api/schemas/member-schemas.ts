@@ -26,6 +26,7 @@ export const WelcomeEmailStatusSchema = t.Union([
 /**
  * Member response schema - represents a member document as returned by the API.
  * All Timestamp fields are converted to ISO 8601 strings.
+ * Admin-specific endpoint includes isAdmin field from custom claims.
  */
 export const MemberResponseSchema = t.Object({
   uid: t.String({
@@ -38,6 +39,9 @@ export const MemberResponseSchema = t.Object({
   createdAt: t.String({
     format: "date-time",
     description: "Account creation timestamp (ISO 8601)",
+  }),
+  isAdmin: t.Boolean({
+    description: "Whether the user has admin privileges (from custom claims)",
   }),
   name: t.Optional(
     t.String({
@@ -129,12 +133,19 @@ function timestampToIso(timestamp: Timestamp): string {
 /**
  * Convert a Firestore MemberDocument to an API MemberResponse.
  * Transforms all Timestamp objects to ISO 8601 strings.
+ *
+ * @param document - The member document from Firestore
+ * @param isAdmin - Whether the user has admin custom claim (checked via Firebase Auth)
  */
-export function toMemberResponse(document: MemberDocument): MemberResponse {
+export function toMemberResponse(
+  document: MemberDocument,
+  isAdmin: boolean,
+): MemberResponse {
   return {
     uid: document.uid,
     email: document.email,
     createdAt: timestampToIso(document.createdAt),
+    isAdmin,
     ...(document.name !== undefined && { name: document.name }),
     ...(document.subscriptionStart !== undefined && {
       subscriptionStart: timestampToIso(document.subscriptionStart),

@@ -6,6 +6,10 @@ import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
+import {
+  type ApiMemberResponse,
+  type SubscriptionStatus,
+} from '../api-types/members-api.types';
 
 interface MigratedUserData {
   name: string;
@@ -24,32 +28,25 @@ export interface UnclaimedProfile {
   slug?: string;
 }
 
-export type SubscriptionStatus =
-  | 'active'
-  | 'past_due'
-  | 'canceled'
-  | 'incomplete'
-  | 'trialing'
-  | 'unpaid';
-
 export interface Member {
-  createdAt: Timestamp;
+  createdAt: Date;
   email: string;
   uid: string;
+  isAdmin: boolean;
   name?: string;
-  subscriptionStart?: Timestamp;
+  subscriptionStart?: Date;
   membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
+  membershipExpiresAt?: Date;
   slug?: string;
-  profileCreatedAt?: Timestamp;
+  profileCreatedAt?: Date;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
-  lastPayment?: Timestamp;
-  nextPayment?: Timestamp;
+  lastPayment?: Date;
+  nextPayment?: Date;
   newsletterSubscribed?: boolean;
-  newsletterSubscribedAt?: Timestamp;
-  newsletterUnsubscribedAt?: Timestamp;
+  newsletterSubscribedAt?: Date;
+  newsletterUnsubscribedAt?: Date;
 }
 
 @Injectable({
@@ -74,9 +71,17 @@ export class MembershipService {
       return user?.uid ? { uid: user.uid } : undefined;
     },
     loader: async ({ params }): Promise<Member | undefined> => {
-      const userDocumentReference = doc(this.firestore, `members/${params.uid}`);
-      const snapshot = await getDoc(userDocumentReference);
-      return snapshot.exists() ? (snapshot.data() as Member) : undefined;
+      try {
+        const response = await firstValueFrom(
+          this.http.get<ApiMemberResponse>(`/api/members/${params.uid}`),
+        );
+        return this.convertApiResponseToMember(response);
+      } catch (error: unknown) {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          return undefined; // Member document doesn't exist yet
+        }
+        throw error; // Propagate other errors
+      }
     },
   });
 
@@ -246,9 +251,117 @@ export class MembershipService {
   }
 
   /**
-   * Trigger a reload of the user document from Firestore
+   * Trigger a reload of the user document from the API
    */
   reloadUserDocument(): void {
     this.userDocumentResource.reload();
+  }
+
+  /**
+   * Claim an unclaimed profile for the authenticated user
+   * @param slug - The slug of the profile to claim
+   * @throws Error with user-friendly message
+   */
+  async claimProfile(slug: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      console.error('Attempted to claim profile without a logged-in user.');
+      throw new Error('No authenticated user to claim profile.');
+    }
+
+    // Force a refresh of the user's ID token to get the latest claims
+    // and email_verified status before calling the API.
+    await user.getIdToken(true);
+
+    try {
+      await firstValueFrom(
+        this.http.post<{ status: string; data?: unknown }>(`/api/profiles/${slug}/claim`, {}),
+      );
+    } catch (error) {
+      console.error('Error calling claimProfile API:', {
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to claim a profile.');
+          }
+
+          case 428: {
+            if (error.error?.error?.includes('verified email')) {
+              throw new Error('Please verify your email address before claiming your profile.');
+            }
+            throw new Error('Email verification required to claim profile.');
+          }
+
+          case 404: {
+            throw new Error('No profile found to claim.');
+          }
+
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+
+          default: {
+            throw new Error('Unable to claim profile. Please try again or contact support.');
+          }
+        }
+      }
+
+      // Handle non-HTTP errors (network failures, Angular errors, etc.)
+      throw new Error('Unable to claim profile. Please check your connection and try again.');
+    }
+  }
+
+  /**
+   * Convert API response (ISO string dates) to Member interface (Date objects)
+   */
+  private convertApiResponseToMember(apiResponse: ApiMemberResponse): Member {
+    return {
+      uid: apiResponse.uid,
+      email: apiResponse.email,
+      createdAt: new Date(apiResponse.createdAt),
+      isAdmin: apiResponse.isAdmin,
+      ...(apiResponse.name !== undefined && { name: apiResponse.name }),
+      ...(apiResponse.subscriptionStart !== undefined && {
+        subscriptionStart: new Date(apiResponse.subscriptionStart),
+      }),
+      ...(apiResponse.membershipActive !== undefined && {
+        membershipActive: apiResponse.membershipActive,
+      }),
+      ...(apiResponse.membershipExpiresAt !== undefined && {
+        membershipExpiresAt: new Date(apiResponse.membershipExpiresAt),
+      }),
+      ...(apiResponse.slug !== undefined && { slug: apiResponse.slug }),
+      ...(apiResponse.profileCreatedAt !== undefined && {
+        profileCreatedAt: new Date(apiResponse.profileCreatedAt),
+      }),
+      ...(apiResponse.stripeCustomerId !== undefined && {
+        stripeCustomerId: apiResponse.stripeCustomerId,
+      }),
+      ...(apiResponse.stripeSubscriptionId !== undefined && {
+        stripeSubscriptionId: apiResponse.stripeSubscriptionId,
+      }),
+      ...(apiResponse.subscriptionStatus !== undefined && {
+        subscriptionStatus: apiResponse.subscriptionStatus,
+      }),
+      ...(apiResponse.lastPayment !== undefined && {
+        lastPayment: new Date(apiResponse.lastPayment),
+      }),
+      ...(apiResponse.nextPayment !== undefined && {
+        nextPayment: new Date(apiResponse.nextPayment),
+      }),
+      ...(apiResponse.newsletterSubscribed !== undefined && {
+        newsletterSubscribed: apiResponse.newsletterSubscribed,
+      }),
+      ...(apiResponse.newsletterSubscribedAt !== undefined && {
+        newsletterSubscribedAt: new Date(apiResponse.newsletterSubscribedAt),
+      }),
+      ...(apiResponse.newsletterUnsubscribedAt !== undefined && {
+        newsletterUnsubscribedAt: new Date(apiResponse.newsletterUnsubscribedAt),
+      }),
+    };
   }
 }
