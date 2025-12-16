@@ -18,6 +18,22 @@ export async function handleProfilesApi(
   logger: Logger = firebaseLogger,
 ): Promise<void> {
   try {
+    // Validate GitHub secrets are configured (required for image operations)
+    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
+    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
+    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
+
+    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
+      logger.warn("GitHub secrets not configured - image operations will fail", {
+        errorId: ERROR_IDS.API_GITHUB_CONFIG_MISSING,
+        hasAppId: Boolean(GITHUB_APP_ID),
+        hasPrivateKey: Boolean(GITHUB_PRIVATE_KEY),
+        hasInstallationId: Boolean(GITHUB_INSTALLATION_ID),
+        path: request.url,
+        method: request.method,
+      });
+    }
+
     const { app } = await import("./app.js");
     const { toWebRequest, sendWebResponse } = await import(
       "../shared-api/adapters.js"

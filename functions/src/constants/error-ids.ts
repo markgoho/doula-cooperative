@@ -87,6 +87,7 @@ export const ERROR_IDS = {
   // Claim profile errors
   CLAIM_PROFILE_FAILED: "claim_profile_failed",
   CLAIM_PROFILE_NO_DATA: "claim_profile_no_data",
+  CLAIM_PROFILE_INVALID_DATA: "claim_profile_invalid_data",
   CLAIM_PROFILE_FIRESTORE_WRITE_ERROR: "claim_profile_firestore_write_error",
   CLAIM_PROFILE_AUTH_UPDATE_FAILED: "claim_profile_auth_update_failed",
   CLAIM_PROFILE_IMPORT_DELETE_FAILED: "claim_profile_import_delete_failed",
@@ -172,6 +173,7 @@ export const ERROR_IDS = {
   API_AUTH_TOKEN_WRONG_PROJECT: "api_auth_token_wrong_project",
   API_AUTH_VERIFICATION_FAILED: "api_auth_verification_failed",
   API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
+  API_GITHUB_CONFIG_MISSING: "api_github_config_missing",
 
   // Admin member management operations
   API_ADMIN_GET_MEMBER_FAILED: "api_admin_get_member_failed",

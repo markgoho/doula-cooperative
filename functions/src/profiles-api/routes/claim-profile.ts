@@ -18,11 +18,16 @@ import { sendEmail } from "../../utils/send-email.js";
 
 /**
  * Response returned when successfully claiming a profile.
+ * Uses discriminated union to ensure status and data are properly correlated.
  */
-export interface ClaimProfileResponse {
-  status: "success" | "no_profile_to_claim";
-  data?: UnclaimedProfileDocumentData;
-}
+export type ClaimProfileResponse =
+  | {
+      status: "success";
+      data: UnclaimedProfileDocumentData;
+    }
+  | {
+      status: "no_profile_to_claim";
+    };
 
 /**
  * Creates HTML for MailerLite failure notification email during profile claim
@@ -183,12 +188,43 @@ export async function claimProfileLogic({
       | undefined;
 
     if (!profileData) {
-      logger.warn("Profile document exists but has no data", {
+      logger.error("Profile document exists but has no data", {
         errorId: ERROR_IDS.CLAIM_PROFILE_NO_DATA,
         email,
         uid,
+        documentExists: true,
+        documentId: importDocument.id,
       });
       throw new NotFoundError("No profile data found for this user.");
+    }
+
+    // Validate required fields (runtime validation despite TypeScript types)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Runtime validation needed for Firestore data
+    if (!profileData.subscriptionStart) {
+      logger.error("Profile missing required subscriptionStart field", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
+        email,
+        uid,
+        profileData: {
+          hasName: Boolean(profileData.name),
+          hasEmail: Boolean(profileData.email),
+          hasCreatedAt: Boolean(profileData.createdAt),
+        },
+      });
+      set.status = 500;
+      return { error: "Profile data is incomplete. Please contact support." };
+    }
+
+    if (!profileData.name || profileData.name.trim().length === 0) {
+      logger.error("Profile missing required name field", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
+        email,
+        uid,
+        hasName: Boolean(profileData.name),
+        nameLength: profileData.name.length,
+      });
+      set.status = 500;
+      return { error: "Profile data is incomplete. Please contact support." };
     }
 
     const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
@@ -203,6 +239,11 @@ export async function claimProfileLogic({
         email,
         uid,
         error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        errorStack: error instanceof Error ? error.stack : undefined,
+        subscriptionStartValue: subscriptionStart,
+        subscriptionStartSeconds: subscriptionStart.seconds,
+        subscriptionStartDate: subscriptionStart.toDate().toISOString(),
       });
       set.status = 500;
       return { error: "Failed to calculate membership expiration date." };

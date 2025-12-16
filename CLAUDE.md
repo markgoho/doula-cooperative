@@ -142,6 +142,69 @@ import { onCall } from "firebase-functions/https";
 - Runs on localhost:1313 during development
 - **See [HUGO_GUIDE.md](/HUGO_GUIDE.md)** for environment variables and configuration details
 
+## Testing Philosophy
+
+**CRITICAL: What to Test**
+
+- ✅ **Test business logic and user-facing behavior**: Test what the code does, not how it does it
+- ✅ **Test through public APIs**: Use HTTP endpoints, UI interactions, and public service methods
+- ✅ **Test user journeys**: Full flows from user action to expected outcome
+- ❌ **Do NOT test implementation details**: Avoid testing private methods, internal state, or how services accomplish their tasks
+- ❌ **Do NOT test service layer internals**: Services are implementation details of the HTTP/UI layer
+
+**FORBIDDEN: Firebase Emulators in Tests**
+
+- ❌ **NEVER use Firestore emulator in new tests** - tests must not depend on emulator state
+- ❌ **NEVER use Functions emulator in new tests** - test HTTP endpoints directly or mock responses
+- ✅ **Auth emulator is acceptable** for E2E tests only (for signing in real users)
+- ✅ **Mock all API responses** in E2E tests using `page.route()`
+- ✅ **Unit test business logic** without external dependencies
+
+**Rationale**:
+- Emulator-based tests are slow, flaky, and test infrastructure instead of business logic
+- They create coupling between tests and database schema/state
+- They make tests harder to maintain and debug
+- Auth emulator exception: necessary for testing authenticated user flows in browser
+
+**Example - Bad (Emulator-Dependent)**:
+```typescript
+// ❌ DON'T: Test depends on Firestore emulator state
+test('claim profile updates member document', async () => {
+  const firestore = getFirestore();
+  await firestore.collection('members').doc('user-123').set({...});
+  await claimProfile({ uid: 'user-123' });
+  const doc = await firestore.collection('members').doc('user-123').get();
+  expect(doc.data()?.membershipActive).toBe(true);
+});
+```
+
+**Example - Good (Behavior Testing)**:
+```typescript
+// ✅ DO: Test the HTTP endpoint behavior
+test('POST /api/profiles/claim returns success', async () => {
+  const response = await fetch('/api/profiles/claim', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer valid-token' }
+  });
+  expect(response.status).toBe(200);
+  const data = await response.json();
+  expect(data.status).toBe('success');
+});
+
+// ✅ DO: E2E test user journey with mocked API
+test('user can claim profile', async ({ authenticatedUserPage }) => {
+  await authenticatedUserPage.route('**/api/profiles/me/claim', async (route) => {
+    await route.fulfill({
+      status: 200,
+      body: JSON.stringify({ status: 'success', data: {...} })
+    });
+  });
+  await authenticatedUserPage.goto('/claim-profile');
+  await authenticatedUserPage.getByRole('button', { name: 'Claim Profile' }).click();
+  await expect(authenticatedUserPage.getByText('Profile claimed!')).toBeVisible();
+});
+```
+
 ## Code Style
 
 **TypeScript**:
