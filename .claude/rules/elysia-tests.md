@@ -144,6 +144,49 @@ const mockMemberService = {
 - Violates dependency injection principles
 - Tests should mock at service boundaries, not internal modules
 
+## Logger: Do Not Mock
+
+**Do NOT mock or include the logger in test utilities**. Let tests use the real Firebase logger.
+
+```typescript
+// ✅ CORRECT - Don't include logger in test plugin options
+export function createProfilesTestPlugin(overrides?: {
+  profileGitHubService?: Partial<ProfileGitHubService>;
+  profileMemberService?: Partial<ProfileMemberService>;
+  authService?: Partial<AuthService>;
+  // NO logger option
+}) {
+  return createProfilesPlugin({
+    profileGitHubService: defaultProfileGitHubService,
+    profileMemberService: defaultProfileMemberService,
+    authService: defaultAuthService,
+    // NO logger passed - uses default Firebase logger
+  });
+}
+
+// ❌ WRONG - Mocking the logger
+const mockLogger = {
+  info: mock(() => {}),
+  warn: mock(() => {}),
+  error: mock(() => {}),
+};
+
+export function createTestPlugin(overrides?: {
+  logger?: Logger;  // Don't include this
+}) {
+  return createPlugin({
+    logger: overrides?.logger ?? mockLogger,  // Don't do this
+  });
+}
+```
+
+**Why not mock the logger?**
+
+- Tests remain simple without extra mock setup
+- Logging code paths are exercised during tests
+- Real logs help debug failing tests
+- There's rarely value in asserting what was logged
+
 ## Plugin-Based Testing (Recommended)
 
 **Test plugins in isolation** - don't create the full app for unit tests:

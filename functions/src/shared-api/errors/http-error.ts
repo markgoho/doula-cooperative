@@ -46,3 +46,12 @@ export class ValidationError extends HttpError {
     super(message, 400);
   }
 }
+
+/**
+ * 409 Conflict - Resource conflict (e.g., already exists, modified by another process).
+ */
+export class ConflictError extends HttpError {
+  constructor(message: string) {
+    super(message, 409);
+  }
+}

@@ -296,6 +296,15 @@ export const adminUnclaimedProfilesApi = onRequest(
   },
 );
 
+// Profiles API (members.doulacooperative.com)
+export const profilesApi = onRequest(
+  { invoker: "public", secrets: PROFILE_SECRETS },
+  async (request, response) => {
+    const { handleProfilesApi } = await import("./profiles-api/handler.js");
+    await handleProfilesApi(request, response);
+  },
+);
+
 // Forms API (doulacooperative.com)
 export const formsApi = onRequest(
   { invoker: "public", secrets: ["RECAPTCHA_SECRET_KEY", "MAILGUN_API_KEY"] },

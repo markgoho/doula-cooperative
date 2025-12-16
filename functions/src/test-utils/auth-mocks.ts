@@ -3,6 +3,52 @@ import type { DecodedIdToken } from "firebase-admin/auth";
 import { AuthError, ForbiddenError } from "../shared-api/errors/http-error.js";
 
 /**
+ * Creates a mock verifyAuthToken function for user authentication tests.
+ * This is for general user auth (no admin check).
+ *
+ * @returns Mock function that resolves for "Bearer valid-token", rejects with 401 otherwise
+ */
+export function createMockVerifyAuthToken() {
+  return mock(
+    (authorizationHeader: string | undefined): Promise<DecodedIdToken> => {
+      if (!authorizationHeader) {
+        return Promise.reject(new AuthError("Missing Authorization header"));
+      }
+
+      if (authorizationHeader === "Bearer valid-token") {
+        return Promise.resolve({
+          uid: "test-user-123",
+          email: "user@example.com",
+        } as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer another-user-token") {
+        return Promise.resolve({
+          uid: "another-user-456",
+          email: "another@example.com",
+        } as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer admin-token") {
+        return Promise.resolve({
+          uid: "admin-user",
+          email: "admin@example.com",
+          admin: true,
+        } as unknown as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer expired-token") {
+        return Promise.reject(
+          new AuthError("Your session has expired. Please sign in again."),
+        );
+      }
+
+      return Promise.reject(new AuthError("Invalid authentication token"));
+    },
+  );
+}
+
+/**
  * Creates a mock verifyAdmin function that follows the standard test pattern.
  *
  * @returns Mock function that resolves for "Bearer admin-token", rejects with 401/403 otherwise
