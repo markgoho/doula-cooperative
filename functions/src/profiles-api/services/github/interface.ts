@@ -1,11 +1,10 @@
-import type { ProfileData } from "../../../types/profile-data.js";
+import type { ProfileData } from "../../schemas/profile-schemas.js";
 
 /**
  * Response from reading a profile from GitHub.
+ * Returns structured profile data (parsed from markdown front matter and body).
  */
-export interface ReadProfileResponse {
-  /** Raw markdown content with front matter */
-  content: string;
+export interface ReadProfileResponse extends ProfileData {
   /** Profile image URL (if exists) */
   image?: string;
 }
@@ -24,10 +23,11 @@ export interface WriteProfileResponse {
 export interface ProfileGitHubService {
   /**
    * Read a profile's content and image from GitHub.
+   * Parses markdown front matter and returns structured ProfileData.
    *
    * @param options.slug - The profile slug (directory name)
-   * @returns Promise with profile content and optional image URL
-   * @throws HttpError if profile not found or GitHub API fails
+   * @returns Promise with parsed profile data and optional image URL
+   * @throws HttpError if profile not found, YAML parsing fails, or GitHub API fails
    */
   readProfile(options: { slug: string }): Promise<ReadProfileResponse>;
 

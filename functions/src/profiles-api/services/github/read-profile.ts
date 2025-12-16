@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions/v2";
+import { load } from "js-yaml";
 import { App } from "octokit";
 import {
   GITHUB_BRANCH,
@@ -11,7 +12,83 @@ import {
   isGitHubError,
   isRateLimitError,
 } from "../../../utils/github-error.js";
+import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { ReadProfileResponse } from "./interface.js";
+
+/**
+ * Parse profile markdown content into structured ProfileData.
+ * Extracts YAML front matter and markdown body.
+ */
+function parseProfileMarkdown(content: string, slug: string): ProfileData {
+  // Parse front matter (YAML between --- markers)
+  const frontMatterMatch = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(content);
+
+  if (!frontMatterMatch) {
+    logger.error("No front matter found in profile content", {
+      errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
+      slug,
+    });
+    throw new HttpError(
+      "Profile data is corrupted. Please contact support.",
+      500,
+    );
+  }
+
+  const [, frontMatter, bodyContent] = frontMatterMatch;
+
+  if (!frontMatter || bodyContent === undefined) {
+    logger.error("Invalid front matter format", {
+      errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
+      slug,
+    });
+    throw new HttpError(
+      "Profile data format is invalid. Please contact support.",
+      500,
+    );
+  }
+
+  // Parse YAML front matter
+  let parsed: Partial<ProfileData>;
+  try {
+    parsed = load(frontMatter) as Partial<ProfileData>;
+  } catch (error) {
+    logger.error("Failed to parse YAML front matter", {
+      errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
+      slug,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw new HttpError(
+      "Profile data could not be parsed. Please contact support.",
+      500,
+    );
+  }
+
+  // Build ProfileData object from parsed YAML
+  const data: ProfileData = {
+    title: parsed.title ?? "",
+    bio: bodyContent.trim(),
+    draft: parsed.draft ?? false,
+  };
+
+  if (parsed.credentials) {
+    data.credentials = parsed.credentials;
+  }
+
+  if (parsed.pronouns) {
+    data.pronouns = parsed.pronouns;
+  }
+
+  if (parsed.tags) {
+    data.tags = parsed.tags;
+  }
+
+  if (parsed.contact) {
+    data.contact = parsed.contact;
+  }
+
+  return data;
+}
 
 /**
  * Get authenticated Octokit instance using GitHub App credentials.
@@ -141,14 +218,17 @@ export async function readProfile(options: {
       throw new Error("Path did not resolve to a file.");
     }
 
-    // Decode the content
+    // Decode the markdown content
     const content = Buffer.from(fileData.content, "base64").toString("utf8");
+
+    // Parse markdown into structured ProfileData
+    const profileData = parseProfileMarkdown(content, slug);
 
     // Check if profile image exists
     const image = await findProfileImage(slug, octokit);
 
     return {
-      content,
+      ...profileData,
       ...(image !== undefined && { image }),
     };
   } catch (error) {

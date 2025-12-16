@@ -1,6 +1,8 @@
 /**
- * ProfileData interface for doula profiles.
- * This represents the structure of a doula profile.
+ * @deprecated Use ProfileData from profiles-api/schemas/profile-schemas.ts instead.
+ * That version is derived from Elysia validation schemas (source of truth).
+ *
+ * This interface is kept for backward compatibility with legacy callable functions.
  */
 export interface ProfileData {
   /** Required: The doula's display name */

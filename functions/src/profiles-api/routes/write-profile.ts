@@ -2,7 +2,7 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import type { ProfileData } from "../../types/profile-data.js";
+import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 

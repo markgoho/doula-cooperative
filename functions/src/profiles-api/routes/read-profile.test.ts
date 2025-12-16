@@ -4,10 +4,11 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
+import type { ProfileData } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
-  mockProfileContent,
+  mockProfileData,
 } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
@@ -160,7 +161,7 @@ describe("GET /me (read profile)", () => {
   });
 
   describe("Profile retrieval", () => {
-    it("should return profile content on success", async () => {
+    it("should return structured profile data on success", async () => {
       const response = (await testApp.handle(
         new Request("http://localhost/me", {
           headers: {
@@ -170,12 +171,13 @@ describe("GET /me (read profile)", () => {
       )) as Response;
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as {
-        content?: string;
-        image?: string;
-      };
-      expect(body.content).toBeDefined();
-      expect(body.content).toContain("title: Test Doula");
+      const body = (await response.json()) as ProfileData;
+      expect(body.title).toBe("Test Doula");
+      expect(body.bio).toBe("This is a test bio for the doula profile.");
+      expect(body.credentials).toBe("CD(DONA)");
+      expect(body.pronouns).toBe("she/her");
+      expect(body.tags).toEqual(["birth-doula", "postpartum"]);
+      expect(body.contact?.email).toBe("test@example.com");
     });
 
     it("should include image URL when available", async () => {
@@ -187,17 +189,14 @@ describe("GET /me (read profile)", () => {
         }),
       )) as Response;
 
-      const body = (await response.json()) as {
-        content?: string;
-        image?: string;
-      };
+      const body = (await response.json()) as ProfileData;
       expect(body.image).toBe("https://example.com/image.jpg");
     });
 
     it("should not include image when not available", async () => {
       const mockReadProfile = mock(() =>
         Promise.resolve({
-          content: mockProfileContent,
+          ...mockProfileData,
         }),
       );
 
@@ -215,11 +214,8 @@ describe("GET /me (read profile)", () => {
         }),
       )) as Response;
 
-      const body = (await response.json()) as {
-        content?: string;
-        image?: string;
-      };
-      expect(body.content).toBeDefined();
+      const body = (await response.json()) as ProfileData;
+      expect(body.title).toBeDefined();
       expect(body.image).toBeUndefined();
     });
   });

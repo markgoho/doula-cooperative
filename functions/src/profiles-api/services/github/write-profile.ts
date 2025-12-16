@@ -11,7 +11,7 @@ import {
   NotFoundError,
   ConflictError,
 } from "../../../shared-api/errors/http-error.js";
-import type { ProfileData } from "../../../types/profile-data.js";
+import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { WriteProfileResponse } from "./interface.js";
 import {
   serializeToMarkdown,

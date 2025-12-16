@@ -1,11 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { load } from 'js-yaml';
 import { firstValueFrom } from 'rxjs';
 import { type CropData } from '../types/crop-data';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
-import { type ProfileData, type ProfileFrontMatter } from '../types/profile-data';
+import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
 // Re-export for consumers
@@ -55,23 +54,17 @@ export class ProfileService {
       return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
     },
     loader: async () => {
-      const result = await this.fetchProfileFromServer();
-      const profileData = this.parseProfileContent(result.content);
+      const profileData = await this.fetchProfileFromServer();
       const userSlug = this.membershipService.userDocument()?.slug;
 
-      // Use the image URL directly from the backend
-      if (profileData && result.image) {
-        profileData.image = result.image;
-
-        // Backend has image - clear optimistic upload state only if it's for the current user
-        // This prevents clearing state when viewing a different user's profile
+      // Backend has image - clear optimistic upload state only if it's for the current user
+      if (profileData.image) {
         const optimistic = this.optimisticImage();
         if (optimistic && 'url' in optimistic && optimistic.slug === userSlug) {
           this.saveOptimisticState(undefined);
         }
-      } else if (profileData && !result.image) {
+      } else {
         // Backend confirms no image - clear optimistic delete state only if it's for the current user
-        // This prevents clearing state when viewing a different user's profile
         const optimistic = this.optimisticImage();
         if (optimistic && 'deleted' in optimistic && optimistic.slug === userSlug) {
           this.saveOptimisticState(undefined);
@@ -200,53 +193,8 @@ export class ProfileService {
     }
   }
 
-  private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
-    return firstValueFrom(this.http.get<{ content: string; image?: string }>('/api/profiles/me'));
-  }
-
-  private parseProfileContent(content: string): ProfileData | undefined {
-    // Parse front matter (YAML between --- markers)
-    const frontMatterMatch = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(content);
-
-    if (!frontMatterMatch) {
-      console.error('No front matter found in profile content');
-      throw new Error('Profile data is corrupted. Please contact support.');
-    }
-
-    const [, frontMatter, bodyContent] = frontMatterMatch;
-
-    if (!frontMatter || bodyContent === undefined) {
-      console.error('Invalid front matter format');
-      throw new Error('Profile data format is invalid. Please contact support.');
-    }
-
-    // Parse YAML front matter with proper typing
-    const parsed = load(frontMatter) as ProfileFrontMatter;
-
-    // Build ProfileData object from parsed YAML
-    const data: ProfileData = {
-      title: parsed.title ?? '',
-      bio: bodyContent.trim(),
-      draft: parsed.draft ?? false,
-    };
-
-    if (parsed.credentials) {
-      data.credentials = parsed.credentials;
-    }
-
-    if (parsed.pronouns) {
-      data.pronouns = parsed.pronouns;
-    }
-
-    if (parsed.tags) {
-      data.tags = parsed.tags;
-    }
-
-    if (parsed.contact) {
-      data.contact = parsed.contact;
-    }
-
-    return data;
+  private async fetchProfileFromServer(): Promise<ProfileData> {
+    return firstValueFrom(this.http.get<ProfileData>('/api/profiles/me'));
   }
 
   getTagUrl(tag: string): string {

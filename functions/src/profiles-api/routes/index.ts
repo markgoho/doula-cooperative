@@ -1,7 +1,7 @@
 export { healthRoute } from "./health.js";
 
 export { readProfileLogic } from "./read-profile.js";
-export type { ReadProfileResponse } from "./read-profile.js";
+export type { ReadProfileResponse } from "../services/github/interface.js";
 
 export { writeProfileLogic } from "./write-profile.js";
 export type { WriteProfileResponse } from "./write-profile.js";

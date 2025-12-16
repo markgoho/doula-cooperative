@@ -5,6 +5,7 @@ import type { MemberDocument } from "../../collections/index.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import { createMockVerifyAuthToken } from "../../test-utils/auth-mocks.js";
 import { createProfilesPlugin } from "../plugins/profiles-plugin.js";
+import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 
@@ -24,24 +25,20 @@ export const mockMemberDocument: MemberDocument = {
 };
 
 /**
- * Default mock profile content for testing.
+ * Default mock profile data for testing (structured JSON response).
  */
-export const mockProfileContent = `---
-title: Test Doula
-bio: This is a test bio for the doula profile.
-credentials: CD(DONA)
-pronouns: she/her
-tags:
-  - birth-doula
-  - postpartum
-contact:
-  email: test@example.com
-  phone: 555-0123
-draft: false
----
-
-This is a test bio for the doula profile.
-`;
+export const mockProfileData: ProfileData = {
+  title: "Test Doula",
+  bio: "This is a test bio for the doula profile.",
+  credentials: "CD(DONA)",
+  pronouns: "she/her",
+  tags: ["birth-doula", "postpartum"],
+  contact: {
+    email: "test@example.com",
+    phone: "555-0123",
+  },
+  draft: false,
+};
 
 /**
  * Creates the profiles plugin with default mock services for testing.
@@ -61,7 +58,7 @@ export function createProfilesTestPlugin(overrides?: {
   const defaultProfileGitHubService: ProfileGitHubService = {
     readProfile: mock(() =>
       Promise.resolve({
-        content: mockProfileContent,
+        ...mockProfileData,
         image: "https://example.com/image.jpg",
       }),
     ),

@@ -2,16 +2,9 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type { ReadProfileResponse } from "../services/github/interface.js";
 import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
-
-/**
- * Response type for read profile route.
- */
-export interface ReadProfileResponse {
-  content: string;
-  image?: string;
-}
 
 /**
  * Route logic for reading the current user's profile.
@@ -40,15 +33,12 @@ export async function readProfileLogic({
       throw new ForbiddenError("User does not have a profile yet.");
     }
 
-    // Read profile from GitHub
-    const { content, image } = await profileGitHubService.readProfile({ slug });
+    // Read profile from GitHub (returns structured ProfileData)
+    const profileData = await profileGitHubService.readProfile({ slug });
 
     logger.info("Successfully read profile", { uid, slug });
 
-    return {
-      content,
-      ...(image !== undefined && { image }),
-    };
+    return profileData;
   } catch (error) {
     return handleRouteError({
       error,

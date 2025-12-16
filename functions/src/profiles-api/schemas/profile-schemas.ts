@@ -75,9 +75,19 @@ export const ProfileDataBodySchema = t.Object({
 });
 
 /**
- * Type derived from ProfileDataBodySchema for use in route handlers.
+ * Type derived from ProfileDataBodySchema.
+ * This is the request body type for create/update operations.
  */
 export type ProfileDataBody = Static<typeof ProfileDataBodySchema>;
+
+/**
+ * ProfileData type for reading profiles (includes optional image field).
+ * Source of truth is ProfileDataBodySchema - this extends it with response-only fields.
+ */
+export interface ProfileData extends ProfileDataBody {
+  /** Optional: Profile image URL (managed separately from markdown content, provided by backend) */
+  image?: string;
+}
 
 /**
  * Slug query parameter schema for checking availability.
