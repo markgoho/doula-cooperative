@@ -1,154 +1,71 @@
 import { test as base, type Page } from '@playwright/test';
-import {
-  createAuthUser,
-  createMemberDocument,
-  clearAllEmulatorData,
-  type MockUser,
-  type MockMemberDocument,
-} from './firebase-mocks';
 
 /**
- * Default admin test user for authenticated admin fixtures.
- * Uses webmaster@doulacooperative.com which automatically receives admin
- * custom claims via the setAutoAdminOnUserCreated Cloud Function trigger.
+ * Test user credentials that must exist in the Auth emulator seed data.
+ *
+ * To create the seed data:
+ * 1. Start emulators: firebase emulators:start --only auth
+ * 2. Create users via Auth emulator UI at http://localhost:4000/auth
+ * 3. Export: firebase emulators:export ./e2e/auth-export
+ *
+ * Required users:
+ * - webmaster@doulacooperative.com (admin)
  */
-export const defaultAdminUser: MockUser = {
-  uid: '',
+export const adminCredentials = {
   email: 'webmaster@doulacooperative.com',
-  displayName: 'Admin User',
-  emailVerified: true,
   password: 'test1234',
-};
+} as const;
 
-/**
- * Default admin member document template.
- */
-export const defaultAdminMemberDocument: Omit<MockMemberDocument, 'uid'> = {
-  email: 'webmaster@doulacooperative.com',
-  name: 'Admin User',
-  createdAt: { seconds: 1_704_067_200, nanoseconds: 0 },
-  subscriptionStart: { seconds: 1_704_067_200, nanoseconds: 0 },
-  membershipActive: true,
-  newsletterSubscribed: false,
-};
-
-interface AdminAuthFixtures {
+interface AuthEmulatorFixtures {
   authenticatedAdminPage: Page;
-  adminUser: MockUser;
-  adminMemberDocument: Omit<MockMemberDocument, 'uid'>;
 }
 
 /**
  * Extended Playwright test fixture with pre-authenticated admin user.
  *
- * Similar to auth.fixture but creates a user with admin custom claims.
- * Provides an authenticated page ready at the /admin/users page.
+ * Uses the Firebase Auth emulator with seeded user data.
+ * API calls are NOT mocked by this fixture - tests should set up their own
+ * API mocks using page.route() before navigating to pages that make API calls.
  *
  * Setup (before each test):
- * - Clears all emulator data (Auth + Firestore)
- * - Creates test user in Auth emulator with webmaster@doulacooperative.com email
- * - setAutoAdminOnUserCreated trigger automatically grants admin custom claim
- * - Creates member document with test data
- * - Navigates to /sign-in and completes authentication
- * - Navigates to /admin/users
+ * - Navigates to /sign-in
+ * - Signs in with webmaster@doulacooperative.com credentials
+ * - Waits for redirect to /membership
  *
- * Teardown (after each test):
- * - Clears all emulator data
+ * Tests are responsible for:
+ * - Setting up API mocks via page.route() for any API calls
+ * - Navigating to the page they want to test
  *
  * @example
  * test('admin can view users', async ({ authenticatedAdminPage }) => {
- *   // User is already signed in with admin privileges and on /admin/users
+ *   // Set up API mocks BEFORE navigating (use regex to match with/without query params)
+ *   await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
+ *     await route.fulfill({
+ *       status: 200,
+ *       contentType: 'application/json',
+ *       body: JSON.stringify({ members: [], total: 0 }),
+ *     });
+ *   });
+ *
+ *   // Now navigate
+ *   await authenticatedAdminPage.goto('/admin/users');
  *   await expect(authenticatedAdminPage).toHaveURL('/admin/users');
  * });
- *
- * @example
- * // Custom admin test data
- * test.use({
- *   adminMemberDocument: {
- *     email: 'custom-admin@example.com',
- *     name: 'Custom Admin',
- *     membershipActive: true,
- *   },
- * });
  */
-export const test = base.extend<AdminAuthFixtures>({
-  // eslint-disable-next-line no-empty-pattern -- Playwright fixture requires object destructuring
-  adminUser: async ({}, use) => {
-    await use(defaultAdminUser);
-  },
+export const test = base.extend<AuthEmulatorFixtures>({
+  authenticatedAdminPage: async ({ page }, use) => {
+    // Navigate to sign-in and authenticate against Auth emulator
+    await page.goto('/sign-in');
+    await page.getByLabel('Email Address').fill(adminCredentials.email);
+    await page.getByLabel('Password').fill(adminCredentials.password);
+    await page.getByRole('button', { name: 'Sign In' }).click();
 
-  // eslint-disable-next-line no-empty-pattern -- Playwright fixture requires object destructuring
-  adminMemberDocument: async ({}, use) => {
-    await use(defaultAdminMemberDocument);
-  },
-
-  authenticatedAdminPage: async ({ page, adminUser, adminMemberDocument }, use) => {
-    let uid: string;
-
-    try {
-      // Phase 1: Clear emulator data before test
-      await clearAllEmulatorData();
-    } catch (error) {
-      throw new Error(
-        `Failed during admin test setup (emulator cleanup): ${(error as Error).message}`,
-      );
-    }
-
-    try {
-      // Phase 2: Create user in Auth emulator
-      // The setAutoAdminOnUserCreated trigger automatically sets admin claim
-      // for webmaster@doulacooperative.com
-      uid = await createAuthUser(adminUser);
-    } catch (error) {
-      throw new Error(
-        `Failed during admin test setup (create auth user): ${(error as Error).message}`,
-      );
-    }
-
-    // Phase 3: Wait for setAutoAdminOnUserCreated trigger to set admin claims
-    // This Cloud Function trigger runs automatically when the user is created
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    try {
-      // Phase 4: Create member document
-      await createMemberDocument({
-        ...adminMemberDocument,
-        uid,
-        email: adminUser.email,
-      } as MockMemberDocument);
-    } catch (error) {
-      throw new Error(
-        `Failed during admin test setup (create member document): ${(error as Error).message}`,
-      );
-    }
-
-    try {
-      // Phase 5: Navigate to sign-in and authenticate
-      await page.goto('/sign-in');
-      await page.getByLabel('Email Address').fill(adminUser.email);
-      await page.getByLabel('Password').fill(adminUser.password || 'test1234');
-      await page.getByRole('button', { name: 'Sign In' }).click();
-
-      // Wait for redirect to membership page first
-      await page.waitForURL('/membership', { timeout: 10_000 });
-
-      // Tests will set up API mocks and navigate to /admin/users
-    } catch (error) {
-      throw new Error(
-        `Failed during admin test setup (authentication): ${(error as Error).message}`,
-      );
-    }
+    // Wait for redirect to membership page (confirms auth succeeded)
+    await page.waitForURL('/membership', { timeout: 10_000 });
 
     // Run the actual test
     await use(page);
 
-    // Cleanup after test
-    try {
-      await clearAllEmulatorData();
-    } catch (error) {
-      console.error(`Failed to cleanup emulator data after test: ${(error as Error).message}`);
-    }
+    // No cleanup needed - Auth emulator uses seeded data that persists
   },
 });
-
-export { expect } from '@playwright/test';

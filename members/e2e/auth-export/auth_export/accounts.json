@@ -3,17 +3,14 @@
   "users": [
     {
       "localId": "F5Ix9aGo9TGRmbKW1wTYi1uzoHJ7",
+      "createdAt": "1765825512517",
       "lastLoginAt": "1765825512517",
       "displayName": "Webmaster",
       "photoUrl": "",
-      "emailVerified": true,
-      "email": "webmaster@doulacooperative.com",
-      "salt": "fakeSaltAzJaiADcwlN222RVTFx5",
       "passwordHash": "fakeHash:salt=fakeSaltAzJaiADcwlN222RVTFx5:password=test1234",
-      "passwordUpdatedAt": 1765825512517,
-      "validSince": "1765825512",
-      "mfaInfo": [],
-      "createdAt": "1765825512517",
+      "salt": "fakeSaltAzJaiADcwlN222RVTFx5",
+      "passwordUpdatedAt": 1765859331867,
+      "customAttributes": "{ \"admin\": true }",
       "providerUserInfo": [
         {
           "providerId": "password",
@@ -24,7 +21,34 @@
           "photoUrl": ""
         }
       ],
-      "customAttributes": "{ \"admin\": true }"
+      "validSince": "1765859331",
+      "email": "webmaster@doulacooperative.com",
+      "emailVerified": true,
+      "disabled": false
+    },
+    {
+      "localId": "eUxbCPh46gSeacaB8kIdZXtqpgYD",
+      "lastLoginAt": "1765859344836",
+      "displayName": "Test User",
+      "photoUrl": "",
+      "emailVerified": true,
+      "email": "test-user@doulacooperative.com",
+      "salt": "fakeSalt4pvOmQXIY4WDyZQy0EyA",
+      "passwordHash": "fakeHash:salt=fakeSalt4pvOmQXIY4WDyZQy0EyA:password=test1234",
+      "passwordUpdatedAt": 1765859344836,
+      "validSince": "1765859344",
+      "mfaInfo": [],
+      "createdAt": "1765859344836",
+      "providerUserInfo": [
+        {
+          "providerId": "password",
+          "email": "test-user@doulacooperative.com",
+          "federatedId": "test-user@doulacooperative.com",
+          "rawId": "test-user@doulacooperative.com",
+          "displayName": "Test User",
+          "photoUrl": ""
+        }
+      ]
     }
   ]
 }
