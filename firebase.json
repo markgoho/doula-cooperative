@@ -41,10 +41,6 @@
           "function": "profileWebhookApi"
         },
         {
-          "source": "/api/stripe-webhook",
-          "function": "stripeWebhook"
-        },
-        {
           "source": "/api/profile-deployment-webhook",
           "function": "profileDeploymentWebhook"
         }

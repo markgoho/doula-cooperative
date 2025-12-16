@@ -38,8 +38,6 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
   await handleSetAutoAdmin(user);
 });
 
-export { stripeWebhook } from "./stripe-webhook/index.js";
-
 export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
 
 export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
