@@ -1,3 +1,4 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -16,9 +17,8 @@ import {
   signOut,
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
-import { from, map, switchMap } from 'rxjs';
+import { firstValueFrom, from, map, switchMap } from 'rxjs';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -39,7 +39,7 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
 export class AuthService {
   private auth = inject(Auth);
   private router = inject(Router);
-  private functions = inject(Functions);
+  private http = inject(HttpClient);
 
   // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
   readonly user$ = idToken(this.auth).pipe(map(() => this.auth.currentUser));
@@ -156,20 +156,43 @@ export class AuthService {
     const user = this.currentUser;
     if (!user) {
       console.error('Attempted to claim profile without a logged-in user.');
-      // Re-throw the error so the component can handle it
       throw new Error('No authenticated user to claim profile.');
     }
 
     // Force a refresh of the user's ID token to get the latest claims
-    // and email_verified status before calling the function.
+    // and email_verified status before calling the API.
     await user.getIdToken(true);
 
-    const claimProfileCallable = httpsCallable(this.functions, 'claimProfile');
     try {
-      await claimProfileCallable();
+      await firstValueFrom(
+        this.http.post<{ status: string; data?: unknown }>('/api/profiles/me/claim', {}),
+      );
     } catch (error) {
-      console.error('Error calling claimProfile function:', error);
-      // Re-throw the error so the component can handle it
+      console.error('Error calling claimProfile API:', error);
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to claim a profile.');
+          }
+
+          case 428: {
+            if (error.error?.error?.includes('verified email')) {
+              throw new Error('Please verify your email address before claiming your profile.');
+            }
+            throw new Error('Email verification required to claim profile.');
+          }
+
+          case 404: {
+            throw new Error('No profile found to claim.');
+          }
+
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
       throw error;
     }
   }

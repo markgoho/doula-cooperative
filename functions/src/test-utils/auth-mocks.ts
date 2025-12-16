@@ -19,6 +19,7 @@ export function createMockVerifyAuthToken() {
         return Promise.resolve({
           uid: "test-user-123",
           email: "user@example.com",
+          email_verified: true,
         } as DecodedIdToken);
       }
 
@@ -41,6 +42,21 @@ export function createMockVerifyAuthToken() {
         return Promise.reject(
           new AuthError("Your session has expired. Please sign in again."),
         );
+      }
+
+      if (authorizationHeader === "Bearer unverified-email-token") {
+        return Promise.resolve({
+          uid: "unverified-user-123",
+          email: "unverified@example.com",
+          email_verified: false,
+        } as DecodedIdToken);
+      }
+
+      if (authorizationHeader === "Bearer no-email-token") {
+        return Promise.resolve({
+          uid: "no-email-user-123",
+          // No email field
+        } as DecodedIdToken);
       }
 
       return Promise.reject(new AuthError("Invalid authentication token"));

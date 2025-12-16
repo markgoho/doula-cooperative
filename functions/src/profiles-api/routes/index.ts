@@ -12,3 +12,10 @@ export type { CreateProfileResponse } from "./create-profile.js";
 export { checkSlugAvailableLogic } from "./check-slug-available.js";
 
 export { setSlugLogic } from "./set-slug.js";
+
+export { claimProfileLogic } from "./claim-profile.js";
+export type { ClaimProfileResponse } from "./claim-profile.js";
+
+export { uploadImageLogic } from "./upload-image.js";
+
+export { deleteImageLogic } from "./delete-image.js";

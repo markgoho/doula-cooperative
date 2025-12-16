@@ -126,3 +126,33 @@ export type SlugQuery = Static<typeof SlugQuerySchema>;
  * Type derived from SetSlugBodySchema.
  */
 export type SetSlugBody = Static<typeof SetSlugBodySchema>;
+
+/**
+ * Crop data schema for image uploads.
+ */
+export const CropDataSchema = t.Object({
+  x: t.Number({ minimum: 0, error: "X coordinate must be >= 0" }),
+  y: t.Number({ minimum: 0, error: "Y coordinate must be >= 0" }),
+  width: t.Number({ minimum: 1, error: "Width must be > 0" }),
+  height: t.Number({ minimum: 1, error: "Height must be > 0" }),
+});
+
+/**
+ * Upload profile image request schema.
+ */
+export const UploadProfileImageBodySchema = t.Object({
+  imageData: t.String({
+    minLength: 1,
+    error: "Image data is required",
+  }),
+  mimeType: t.String({
+    pattern: "^image/(jpeg|png|webp)$",
+    error: "Invalid image type. Allowed types: image/jpeg, image/png, image/webp",
+  }),
+  cropData: CropDataSchema,
+});
+
+/**
+ * Type derived from UploadProfileImageBodySchema.
+ */
+export type UploadProfileImageBody = Static<typeof UploadProfileImageBodySchema>;
