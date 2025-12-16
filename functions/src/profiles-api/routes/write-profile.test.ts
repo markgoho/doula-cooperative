@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import type { MemberDocument } from "../../collections/index.js";
 import {
   ConflictError,
   ForbiddenError,
@@ -203,10 +202,8 @@ describe("PUT /me (update profile)", () => {
     });
 
     it("should return 403 when user has no slug (no profile yet)", async () => {
-      const memberWithoutSlug: MemberDocument = {
-        ...mockMemberDocument,
-        slug: undefined,
-      };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { slug, ...memberWithoutSlug } = mockMemberDocument;
 
       const mockVerifyMembership = mock(() =>
         Promise.resolve(memberWithoutSlug),
