@@ -33,7 +33,52 @@ test("admin views users", async ({ authenticatedAdminPage }) => {
 
 The fixture handles sign-in via Firebase Auth emulator with seeded credentials.
 
+## E2E Testing Philosophy
+
+**E2E tests verify user-facing behavior, not API contracts**:
+
+- ✅ Test through UI interactions (clicking buttons, filling forms, navigation)
+- ✅ Mock API responses with `page.route()` for controlled scenarios
+- ✅ Verify UI responds correctly to different API responses
+- ❌ Do NOT test API contracts directly (that's what backend unit tests are for)
+- ❌ Do NOT use `page.request.*` to make HTTP calls in tests
+
+**Why this matters**: E2E tests should verify that users can accomplish their goals through the interface. API contract validation belongs in backend unit tests where it's faster, more reliable, and provides better error messages.
+
 ## API Mocking with page.route()
+
+### CRITICAL: page.route() vs page.request.*
+
+**page.route()** mocks requests made **by the browser** (Angular, fetch, XHR):
+
+```typescript
+// ✅ CORRECT - Mocks browser-initiated requests
+await page.route('**/api/profiles/me', async (route) => {
+  await route.fulfill({ status: 200, body: JSON.stringify(mockData) });
+});
+
+// User navigates, Angular makes fetch() call → mock intercepts it ✅
+await page.goto('/profile/edit');
+```
+
+**page.request.\*** is **Playwright's HTTP client** (runs in Node.js, NOT browser):
+
+```typescript
+// ❌ WRONG - Bypasses browser and page.route() mocks entirely!
+await page.route('**/api/profiles/me', /* mock */);
+const response = await page.request.get('/api/profiles/me');
+// Mock never triggers! Request goes directly to server, gets 404
+```
+
+**Never use `page.request.*` in E2E tests**. It bypasses:
+- Browser context and route mocks
+- Angular's HttpClient and interceptors
+- CORS handling
+- Cookie/session management
+
+If you need to verify API integration, test through UI or use `page.evaluate()` to make fetch calls from browser context.
+
+### Setup Routes Before Navigation
 
 **Always set up routes BEFORE navigation** - routes must be registered before the page makes requests:
 
@@ -50,6 +95,8 @@ await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Too late!
 ```
 
 **Use `page.route()` not `context.route()`** for more reliable interception.
+
+### Pattern Matching
 
 **Glob vs Regex patterns**:
 
