@@ -1,7 +1,11 @@
 import { logger } from "firebase-functions/v2";
 import { dump } from "js-yaml";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { ProfileData, ProfileDataBody } from "../schemas/profile-schemas.js";
+import type {
+  Contact,
+  ProfileData,
+  ProfileDataBody,
+} from "../schemas/profile-schemas.js";
 
 /**
  * Hugo front matter structure for profile markdown files.
@@ -69,7 +73,7 @@ export function serializeToMarkdown(
 
   // Add contact information (strip website protocol, filter empty values)
   if (data.contact) {
-    const contact: Record<string, string> = {};
+    const contact: Contact = {};
     if (data.contact.business_name) {
       contact.business_name = data.contact.business_name;
     }

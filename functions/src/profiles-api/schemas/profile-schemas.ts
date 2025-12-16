@@ -31,6 +31,8 @@ export const ContactSchema = t.Object({
   ),
 });
 
+export type Contact = Static<typeof ContactSchema>;
+
 /**
  * Profile data schema for create/update operations.
  * Matches the ProfileData interface from types/profile-data.ts.
