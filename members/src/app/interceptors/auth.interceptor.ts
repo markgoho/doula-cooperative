@@ -4,9 +4,15 @@ import { Auth } from '@angular/fire/auth';
 import { from, switchMap } from 'rxjs';
 
 /**
+ * API paths that require authentication.
+ * Add new authenticated API paths here to automatically include auth tokens.
+ */
+const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/profiles/'];
+
+/**
  * HTTP Interceptor that automatically adds Firebase Auth token to requests.
  *
- * Applies to all requests to `/api/admin/*` endpoints.
+ * Applies to all requests matching paths in AUTHENTICATED_API_PATHS.
  * - Gets the current user's ID token from Firebase Auth
  * - Adds it as a Bearer token in the Authorization header
  * - If no user is authenticated, request proceeds without modification
@@ -17,12 +23,14 @@ import { from, switchMap } from 'rxjs';
  *
  * // In services, no need to manually add headers:
  * this.httpClient.get('/api/admin/members/') // Token added automatically
+ * this.httpClient.get('/api/profiles/me') // Token added automatically
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(Auth);
 
-  // Only intercept admin API requests
-  if (!request.url.includes('/api/admin/')) {
+  // Only intercept authenticated API requests
+  const requiresAuth = AUTHENTICATED_API_PATHS.some((path) => request.url.includes(path));
+  if (!requiresAuth) {
     return next(request);
   }
 

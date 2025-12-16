@@ -1,6 +1,8 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { load } from 'js-yaml';
+import { firstValueFrom } from 'rxjs';
 import { type CropData } from '../types/crop-data';
 import { isFirebaseFunctionsError } from '../types/firebase-error';
 import { type ProfileData, type ProfileFrontMatter } from '../types/profile-data';
@@ -35,6 +37,7 @@ const OPTIMISTIC_IMAGE_KEY = 'optimisticProfileImage';
   providedIn: 'root',
 })
 export class ProfileService {
+  private http = inject(HttpClient);
   private functions = inject(Functions);
   private membershipService = inject(MembershipService);
 
@@ -105,13 +108,8 @@ export class ProfileService {
   });
 
   async updateProfile(data: ProfileData): Promise<void> {
-    const writeProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
-      this.functions,
-      'writeProfile',
-    );
-
     try {
-      await writeProfileCallable(data);
+      await firstValueFrom(this.http.put<{ success: boolean }>('/api/profiles/me', data));
 
       // Only reload on success
       this.profileResource.reload();
@@ -120,31 +118,32 @@ export class ProfileService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        switch (error.code) {
-          case 'unauthenticated': {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
             throw new Error('You must be signed in to update your profile.');
           }
 
-          case 'failed-precondition': {
-            if (error.message.includes('active membership')) {
+          case 403: {
+            if (error.error?.error?.includes('active membership')) {
               throw new Error('Active membership required to update profile.');
             }
-            if (error.message.includes('modified by another process')) {
-              throw new Error('Profile was modified elsewhere. Please refresh and try again.');
-            }
-            break;
+            throw new Error('You do not have permission to update this profile.');
           }
 
-          case 'not-found': {
+          case 404: {
             throw new Error('Profile not found. Please create a profile first.');
           }
 
-          case 'resource-exhausted': {
+          case 409: {
+            throw new Error('Profile was modified elsewhere. Please refresh and try again.');
+          }
+
+          case 429: {
             throw new Error('Too many requests. Please try again in a few minutes.');
           }
 
-          case 'deadline-exceeded': {
+          case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
@@ -155,13 +154,8 @@ export class ProfileService {
   }
 
   async createProfileContent(data: ProfileData): Promise<void> {
-    const createProfileCallable = httpsCallable<ProfileData, { success: boolean }>(
-      this.functions,
-      'createProfile',
-    );
-
     try {
-      await createProfileCallable(data);
+      await firstValueFrom(this.http.post<{ success: boolean }>('/api/profiles/me', data));
 
       // Only reload on success
       this.profileResource.reload();
@@ -170,33 +164,33 @@ export class ProfileService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        switch (error.code) {
-          case 'unauthenticated': {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
             throw new Error('You must be signed in to create a profile.');
           }
 
-          case 'failed-precondition': {
-            if (error.message.includes('slug')) {
+          case 403: {
+            if (error.error?.error?.includes('slug')) {
               throw new Error(
                 'You must set up your profile slug first. Please return to the membership page.',
               );
             }
-            if (error.message.includes('membership')) {
+            if (error.error?.error?.includes('membership')) {
               throw new Error('Active membership required to create a profile.');
             }
-            break;
+            throw new Error('You do not have permission to create a profile.');
           }
 
-          case 'resource-exhausted': {
-            throw new Error('Too many requests. Please try again in a few minutes.');
-          }
-
-          case 'already-exists': {
+          case 409: {
             throw new Error('Profile already exists. Try refreshing the page.');
           }
 
-          case 'deadline-exceeded': {
+          case 429: {
+            throw new Error('Too many requests. Please try again in a few minutes.');
+          }
+
+          case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
@@ -207,12 +201,7 @@ export class ProfileService {
   }
 
   private async fetchProfileFromServer(): Promise<{ content: string; image?: string }> {
-    const readProfileCallable = httpsCallable<unknown, { content: string; image?: string }>(
-      this.functions,
-      'readProfile',
-    );
-    const { data } = await readProfileCallable();
-    return data;
+    return firstValueFrom(this.http.get<{ content: string; image?: string }>('/api/profiles/me'));
   }
 
   private parseProfileContent(content: string): ProfileData | undefined {
