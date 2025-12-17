@@ -8,7 +8,7 @@
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
-import { auth } from "firebase-functions/v1";
+import { beforeUserCreated } from "firebase-functions/v2/identity";
 import { onRequest } from "firebase-functions/v2/https";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
@@ -20,22 +20,13 @@ if (getApps().length === 0) {
   initializeApp();
 }
 
-export const createMemberOnUserCreated = auth.user().onCreate(async user => {
-  const { handleUserCreated } =
-    await import("./user-creation/user-creation.js");
-  await handleUserCreated(user);
-});
-
-export const deleteMemberOnUserDeleted = auth.user().onDelete(async user => {
-  const { handleUserDeleted } =
-    await import("./user-deletion/user-deletion.js");
-  await handleUserDeleted(user);
-});
-
-export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
-  const { handleSetAutoAdmin } =
-    await import("./user-creation/set-auto-admin.js");
-  await handleSetAutoAdmin(user);
+// v2 blocking function for user creation
+// Creates member document and sets admin claim if applicable
+export const blockingUserCreated = beforeUserCreated(async event => {
+  const { handleBeforeUserCreated } = await import(
+    "./user-creation/before-user-created.js"
+  );
+  return handleBeforeUserCreated(event);
 });
 
 // Elysia-based APIs
