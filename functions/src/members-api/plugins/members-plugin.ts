@@ -1,9 +1,14 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { getMemberLogic } from "../routes/members.js";
-import { MemberIdParameterSchema } from "../schemas/member-schemas.js";
+import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
+import {
+  MemberIdParameterSchema,
+  UpdateNewsletterPreferenceBodySchema,
+} from "../schemas/member-schemas.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { MemberService } from "../services/member/member-service.js";
+import { NewsletterService } from "../services/newsletter/newsletter-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -26,6 +31,10 @@ export function createMembersPlugin(services?: PartialServices) {
       )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+      .decorate(
+        SERVICE_KEYS.NEWSLETTER_SERVICE,
+        services?.newsletterService ?? NewsletterService,
+      )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
         "/:memberId",
@@ -41,6 +50,33 @@ export function createMembersPlugin(services?: PartialServices) {
           }),
         {
           params: MemberIdParameterSchema,
+        },
+      )
+      // PATCH /:memberId/newsletter-preference - Update newsletter preference (owner or admin) - Served at /api/members/:memberId/newsletter-preference
+      .patch(
+        "/:memberId/newsletter-preference",
+        async ({
+          params,
+          body,
+          newsletterService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          updateNewsletterPreferenceLogic({
+            memberId: params.memberId,
+            subscribed: body.subscribed,
+            newsletterService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: UpdateNewsletterPreferenceBodySchema,
         },
       )
   );

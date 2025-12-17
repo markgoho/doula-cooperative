@@ -9,7 +9,7 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
-import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
+import { onCall, onRequest } from "firebase-functions/v2/https";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
@@ -40,32 +40,6 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
 
 export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
 
-export const updateNewsletterPreference = onCall<{ subscribed: boolean }>(
-  {
-    invoker: "public",
-    secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
-  },
-  async request => {
-    const MAILERLITE_API_KEY = process.env["MAILERLITE_API_KEY"];
-    const MAILGUN_API_KEY = process.env["MAILGUN_API_KEY"];
-
-    if (!MAILERLITE_API_KEY) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Newsletter service not configured. Please contact support.",
-      );
-    }
-
-    const { handleUpdateNewsletterPreference } =
-      await import("./update-newsletter-preference/update-newsletter-preference.js");
-    return handleUpdateNewsletterPreference(
-      request,
-      MAILERLITE_API_KEY,
-      MAILGUN_API_KEY,
-    );
-  },
-);
-
 export const adminSendInvitation = onCall(
   { invoker: "public", secrets: ["MAILGUN_API_KEY"] },
   async request => {
@@ -80,7 +54,10 @@ export const adminSendInvitation = onCall(
 
 // Members APIs (members.doulacooperative.com)
 export const membersApi = onRequest(
-  { invoker: "public" },
+  {
+    invoker: "public",
+    secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
+  },
   async (request, response) => {
     const { handleMembersApi } = await import("./members-api/handler.js");
     await handleMembersApi(request, response);

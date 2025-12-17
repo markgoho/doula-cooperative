@@ -106,6 +106,11 @@ export const ERROR_IDS = {
     "update_newsletter_pref_notification_failed",
   UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES:
     "update_newsletter_pref_missing_subscription_dates",
+  UPDATE_NEWSLETTER_PREF_MISSING_API_KEY:
+    "update_newsletter_pref_missing_api_key",
+  UPDATE_NEWSLETTER_PREF_ROUTE_FAILED: "update_newsletter_pref_route_failed",
+  UPDATE_NEWSLETTER_PREF_MEMBER_NOT_FOUND:
+    "update_newsletter_pref_member_not_found",
 
   // Profile deployment webhook errors
   PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET:

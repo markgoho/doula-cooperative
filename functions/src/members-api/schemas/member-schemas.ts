@@ -322,3 +322,16 @@ export const ExtendMembershipBodySchema = t.Object({
     error: "newExpirationDate must be a valid ISO 8601 date-time",
   }),
 });
+
+/**
+ * Request body schema for updating newsletter preference.
+ */
+export const UpdateNewsletterPreferenceBodySchema = t.Object({
+  subscribed: t.Boolean({
+    description: "Whether to subscribe to the newsletter",
+  }),
+});
+
+export type UpdateNewsletterPreferenceBody = Static<
+  typeof UpdateNewsletterPreferenceBodySchema
+>;

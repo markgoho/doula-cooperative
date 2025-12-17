@@ -1,6 +1,7 @@
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { MemberService } from "../services/member/interface.js";
+import type { NewsletterService } from "../services/newsletter/interface.js";
 
 /**
  * Service keys used for dependency injection via Elysia's decorate.
@@ -10,6 +11,7 @@ export const SERVICE_KEYS = {
   MEMBER_SERVICE: "memberService",
   AUTH_SERVICE: "authService",
   LOGGER: "logger",
+  NEWSLETTER_SERVICE: "newsletterService",
 } as const;
 
 /**
@@ -21,6 +23,7 @@ export interface Services {
   [SERVICE_KEYS.MEMBER_SERVICE]: MemberService;
   [SERVICE_KEYS.AUTH_SERVICE]: AuthService;
   [SERVICE_KEYS.LOGGER]: Logger;
+  [SERVICE_KEYS.NEWSLETTER_SERVICE]: NewsletterService;
 }
 
 /**

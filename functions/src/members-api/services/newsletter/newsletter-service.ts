@@ -1,45 +1,44 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
-import {
-  HttpsError,
-  type CallableRequest,
-} from "firebase-functions/v2/https";
 import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
   MEMBERS_COLLECTION,
   type MemberDocument,
-} from "../collections/index.js";
+} from "../../../collections/index.js";
 import {
   ERROR_IDS,
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
-} from "../constants/index.js";
-import { escapeHtml } from "../utils/html-escape.js";
+} from "../../../constants/index.js";
+import {
+  NotFoundError,
+  ValidationError,
+  HttpError,
+} from "../../../shared-api/errors/http-error.js";
+import type { Logger } from "../../../shared-api/types/logger.js";
+import { escapeHtml } from "../../../utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   removeNewsletterSubscriber,
-} from "../utils/mailerlite.js";
-import { sendEmail } from "../utils/send-email.js";
-
-interface UpdateNewsletterPreferenceData {
-  subscribed: boolean;
-}
-
-interface UpdateNewsletterPreferenceResult {
-  success: boolean;
-  subscribed: boolean;
-}
+} from "../../../utils/mailerlite.js";
+import { sendEmail } from "../../../utils/send-email.js";
+import type { NewsletterService as NewsletterServiceInterface } from "./interface.js";
 
 /**
  * Creates HTML for newsletter preference update failure notification email
  */
-function createNewsletterFailureEmailHtml(
-  email: string,
-  name: string | undefined,
-  uid: string,
-  subscribed: boolean,
-  errorMessage: string,
-): string {
+function createNewsletterFailureEmailHtml({
+  email,
+  name,
+  uid,
+  subscribed,
+  errorMessage,
+}: {
+  email: string;
+  name: string | undefined;
+  uid: string;
+  subscribed: boolean;
+  errorMessage: string;
+}): string {
   const action = subscribed ? "subscribe to" : "unsubscribe from";
   return `
     <h2>MailerLite Newsletter Update Failed</h2>
@@ -63,29 +62,35 @@ function createNewsletterFailureEmailHtml(
 /**
  * Sends notification email when newsletter preference update fails
  */
-async function sendFailureNotification(parameters: {
+async function sendFailureNotification({
+  email,
+  name,
+  uid,
+  subscribed,
+  errorMessage,
+  mailgunKey,
+  logger,
+}: {
   email: string;
   name: string | undefined;
   uid: string;
   subscribed: boolean;
   errorMessage: string;
   mailgunKey: string;
+  logger: Logger;
 }): Promise<void> {
-  const { email, name, uid, subscribed, errorMessage, mailgunKey } =
-    parameters;
-
   try {
     const notificationEmail: MailgunMessageData = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
       subject: "Newsletter Update Failed - Action May Be Required",
-      html: createNewsletterFailureEmailHtml(
+      html: createNewsletterFailureEmailHtml({
         email,
         name,
         uid,
         subscribed,
         errorMessage,
-      ),
+      }),
     };
 
     await sendEmail(notificationEmail, mailgunKey);
@@ -112,87 +117,66 @@ async function sendFailureNotification(parameters: {
 }
 
 /**
- * Handles newsletter preference updates for authenticated members
+ * Update newsletter preference for a member
  */
-export async function handleUpdateNewsletterPreference(
-  request: CallableRequest<UpdateNewsletterPreferenceData>,
-  mailerliteApiKey: string,
-  mailgunApiKey: string | undefined,
-): Promise<UpdateNewsletterPreferenceResult> {
-  // 1. Check authentication
-  if (!request.auth) {
-    throw new HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated.",
-    );
-  }
-
-  const { uid } = request.auth;
-  const email = request.auth.token.email;
-
-  if (!email) {
-    throw new HttpsError(
-      "invalid-argument",
-      "Authentication token did not contain an email address.",
-    );
-  }
-
-  // 2. Validate input
-  const { subscribed } = request.data;
-
-  if (typeof subscribed !== "boolean") {
-    throw new HttpsError(
-      "invalid-argument",
-      'The "subscribed" parameter must be a boolean.',
-    );
-  }
-
+async function updateNewsletterPreference({
+  memberId,
+  subscribed,
+  mailerliteApiKey,
+  mailgunApiKey,
+  logger,
+}: {
+  memberId: string;
+  subscribed: boolean;
+  mailerliteApiKey: string;
+  mailgunApiKey: string | undefined;
+  logger: Logger;
+}): Promise<{ subscribed: boolean }> {
   const database = getFirestore();
-  const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
+  const memberReference = database.collection(MEMBERS_COLLECTION).doc(memberId);
 
-  // 3. Get current member document
+  // 1. Get current member document
   let memberDocument: MemberDocument;
+  let email: string;
   try {
     const documentSnapshot = await memberReference.get();
     if (!documentSnapshot.exists) {
-      throw new HttpsError(
-        "not-found",
-        "Member document not found. Please contact support.",
-      );
+      logger.warn("Member document not found", {
+        errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MEMBER_NOT_FOUND,
+        memberId,
+      });
+      throw new NotFoundError("Member document not found. Please contact support.");
     }
     memberDocument = documentSnapshot.data() as MemberDocument;
+    email = memberDocument.email;
   } catch (error) {
-    if (error instanceof HttpsError) {
+    if (error instanceof HttpError) {
       throw error;
     }
     logger.error("Failed to read member document", {
       errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_FIRESTORE_READ_ERROR,
-      uid,
-      email,
+      memberId,
       error,
     });
-    throw new HttpsError(
-      "internal",
-      "Failed to read member data. Please try again.",
-    );
+    throw new HttpError("Failed to read member data. Please try again.", 500);
   }
 
-  // 4. Check if change is needed (idempotent)
+  // 2. Check if change is needed (idempotent)
   if (memberDocument.newsletterSubscribed === subscribed) {
     logger.info("Newsletter preference already set to requested value", {
-      uid,
+      memberId,
       email,
       subscribed,
     });
-    return { success: true, subscribed };
+    return { subscribed };
   }
 
-  // 5. Check if running in emulator - skip external API calls in test environment
-  const isEmulator = !!process.env["FUNCTIONS_EMULATOR"];
+  // 3. Check if running in emulator - skip external API calls in test environment
+  const isEmulator = Boolean(process.env["FUNCTIONS_EMULATOR"]);
   if (isEmulator) {
     logger.info(
       "Running in emulator - skipping MailerLite sync and updating Firestore directly",
-      { uid, email, subscribed },
+      { memberId, email, subscribed },
     );
 
     // Update Firestore directly without syncing to MailerLite
@@ -210,25 +194,25 @@ export async function handleUpdateNewsletterPreference(
       await memberReference.update(updateData);
       logger.info(
         "Updated member document with newsletter preference (emulator mode)",
-        { uid, email, subscribed },
+        { memberId, email, subscribed },
       );
-      return { success: true, subscribed };
+      return { subscribed };
     } catch (error) {
       logger.error("Failed to update member document in emulator", {
         errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_FIRESTORE_UPDATE_ERROR,
-        uid,
+        memberId,
         email,
         subscribed,
         error,
       });
-      throw new HttpsError(
-        "internal",
+      throw new HttpError(
         "Failed to save newsletter preference. Please try again.",
+        500,
       );
     }
   }
 
-  // 6. Sync with MailerLite FIRST (source of truth for newsletter subscription)
+  // 4. Sync with MailerLite FIRST (source of truth for newsletter subscription)
   try {
     if (subscribed) {
       // Validate member has required subscription dates
@@ -236,16 +220,16 @@ export async function handleUpdateNewsletterPreference(
         !memberDocument.subscriptionStart ||
         !memberDocument.membershipExpiresAt
       ) {
-        const errorMessage = `Member document missing subscription dates (subscriptionStart: ${!!memberDocument.subscriptionStart}, membershipExpiresAt: ${!!memberDocument.membershipExpiresAt})`;
+        const errorMessage = `Member document missing subscription dates (subscriptionStart: ${Boolean(memberDocument.subscriptionStart)}, membershipExpiresAt: ${Boolean(memberDocument.membershipExpiresAt)})`;
 
         logger.error(
           "Cannot subscribe to newsletter - missing subscription dates",
           {
             errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES,
-            uid,
+            memberId,
             email,
-            hasSubscriptionStart: !!memberDocument.subscriptionStart,
-            hasMembershipExpiresAt: !!memberDocument.membershipExpiresAt,
+            hasSubscriptionStart: Boolean(memberDocument.subscriptionStart),
+            hasMembershipExpiresAt: Boolean(memberDocument.membershipExpiresAt),
             severity: "HIGH",
           },
         );
@@ -255,15 +239,15 @@ export async function handleUpdateNewsletterPreference(
           await sendFailureNotification({
             email,
             name: memberDocument.name,
-            uid,
+            uid: memberId,
             subscribed,
             errorMessage,
             mailgunKey: mailgunApiKey,
+            logger,
           });
         }
 
-        throw new HttpsError(
-          "failed-precondition",
+        throw new ValidationError(
           "Your account is missing required membership information. Please contact support.",
         );
       }
@@ -279,18 +263,18 @@ export async function handleUpdateNewsletterPreference(
         }),
         apiKey: mailerliteApiKey,
       });
-      logger.info("Added subscriber to MailerLite", { uid, email });
+      logger.info("Added subscriber to MailerLite", { memberId, email });
     } else {
       // Unsubscribe from MailerLite
       await removeNewsletterSubscriber({
         email,
         apiKey: mailerliteApiKey,
       });
-      logger.info("Removed subscriber from MailerLite", { uid, email });
+      logger.info("Removed subscriber from MailerLite", { memberId, email });
     }
   } catch (error) {
-    // If it's already an HttpsError, rethrow it (notification already sent if needed)
-    if (error instanceof HttpsError) {
+    // If it's already an HttpError, rethrow it (notification already sent if needed)
+    if (error instanceof HttpError) {
       throw error;
     }
 
@@ -300,7 +284,7 @@ export async function handleUpdateNewsletterPreference(
 
     logger.error("Failed to sync newsletter preference to MailerLite", {
       errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MAILERLITE_FAILED,
-      uid,
+      memberId,
       email,
       subscribed,
       error,
@@ -311,20 +295,21 @@ export async function handleUpdateNewsletterPreference(
       await sendFailureNotification({
         email,
         name: memberDocument.name,
-        uid,
+        uid: memberId,
         subscribed,
         errorMessage,
         mailgunKey: mailgunApiKey,
+        logger,
       });
     }
 
-    throw new HttpsError(
-      "internal",
+    throw new HttpError(
       "Failed to update newsletter subscription. Please try again later.",
+      500,
     );
   }
 
-  // 7. Update Firestore to cache the newsletter preference (production only)
+  // 5. Update Firestore to cache the newsletter preference (production only)
   const updateData: Partial<MemberDocument> = {
     newsletterSubscribed: subscribed,
   };
@@ -338,23 +323,27 @@ export async function handleUpdateNewsletterPreference(
   try {
     await memberReference.update(updateData);
     logger.info("Updated member document with newsletter preference", {
-      uid,
+      memberId,
       email,
       subscribed,
     });
   } catch (error) {
     logger.error("Failed to update member document", {
       errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_FIRESTORE_UPDATE_ERROR,
-      uid,
+      memberId,
       email,
       subscribed,
       error,
     });
-    throw new HttpsError(
-      "internal",
+    throw new HttpError(
       "Failed to save newsletter preference. Please try again.",
+      500,
     );
   }
 
-  return { success: true, subscribed };
+  return { subscribed };
 }
+
+export const NewsletterService: NewsletterServiceInterface = {
+  updateNewsletterPreference,
+};

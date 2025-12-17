@@ -151,6 +151,7 @@ import { onCall } from "firebase-functions/https";
 - ✅ **Test user journeys**: Full flows from user action to expected outcome
 - ❌ **Do NOT test implementation details**: Avoid testing private methods, internal state, or how services accomplish their tasks
 - ❌ **Do NOT test service layer internals**: Services are implementation details of the HTTP/UI layer
+- ❌ **NEVER write service layer tests**: Test only at the HTTP API boundary (routes) or UI layer. Service methods should be mocked in route tests.
 
 **FORBIDDEN: Firebase Emulators in Tests**
 

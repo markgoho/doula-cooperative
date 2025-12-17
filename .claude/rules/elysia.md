@@ -620,6 +620,81 @@ export class MemberService {
 }
 ```
 
+## Emulator Mode Handling
+
+**Handle emulator mode at the utility layer, NEVER in service layer**. This ensures test and production code paths remain identical.
+
+**CORRECT: Check FUNCTIONS_EMULATOR in utility functions**
+
+```typescript
+// ✅ CORRECT - utils/mailerlite.ts
+export async function addNewsletterSubscriber({
+  email,
+  apiKey,
+  // ... other params
+}: {
+  email: string;
+  apiKey: string;
+  // ... other params
+}): Promise<void> {
+  // Check emulator ONLY at utility boundary
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    logger.info("Emulator detected, skipping MailerLite API call", { email });
+    return; // Early return, no external API call
+  }
+
+  // Real implementation
+  const mailerlite = new MailerLite({ api_key: apiKey });
+  await mailerlite.subscribers.createOrUpdate({ email });
+}
+```
+
+**WRONG: Duplicate emulator checks in service layer**
+
+```typescript
+// ❌ WRONG - services/newsletter-service.ts
+export async function updateNewsletterPreference({ subscribed, email }) {
+  // Don't add emulator checks here!
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    // Separate implementation - creates divergent code paths
+    await updateFirestoreDirectly({ subscribed, email });
+    return;
+  }
+
+  // Production code path
+  await addNewsletterSubscriber({ email }); // Already handles emulator
+  await updateFirestoreDirectly({ subscribed, email });
+}
+```
+
+**Why this pattern:**
+
+- ✅ Service layer code is identical in emulator and production
+- ✅ Tests exercise production code paths
+- ✅ Single source of truth for emulator behavior
+- ✅ Utilities can be tested independently
+- ❌ Service layer emulator checks create divergent paths
+- ❌ Duplicate emulator handling is maintenance burden
+- ❌ Different code paths mean emulator tests don't validate production logic
+
+**Exception: Configuration checks**
+
+It's acceptable to check environment variables for configuration (API keys, endpoints), but not to create alternate implementations:
+
+```typescript
+// ✅ ACCEPTABLE - Check configuration availability
+export async function updateNewsletterPreference({ subscribed, email }) {
+  const apiKey = process.env["MAILERLITE_API_KEY"];
+  if (!apiKey) {
+    throw new HttpError("Newsletter service not configured", 503);
+  }
+
+  // Same code path always
+  await addNewsletterSubscriber({ email, apiKey }); // Handles emulator internally
+  await updateFirestoreCache({ subscribed, email });
+}
+```
+
 ## Custom Error Classes
 
 **HTTP errors with status codes**: Create error classes for different HTTP status codes
@@ -1249,6 +1324,33 @@ context.set.status = 404;
 return { error: "Not found", message: "Resource does not exist" };
 ```
 
+## Testing Strategy
+
+**NEVER write service layer tests.** Test only at the HTTP API boundary (routes) or E2E UI layer.
+
+**What to test**:
+- ✅ HTTP routes with mocked services
+- ✅ E2E user journeys with mocked API responses
+- ✅ Authentication/authorization (401, 403)
+- ✅ Input validation (422, 400)
+- ✅ Success responses (200, structure, data format)
+- ✅ Error responses (404, 500, error messages)
+
+**What NOT to test**:
+- ❌ Service methods directly (they are implementation details)
+- ❌ Utility functions used only by services
+- ❌ Internal function arguments or how services are called
+- ❌ Framework behavior or third-party library internals
+
+**Why we don't test services**:
+- Services are implementation details of the HTTP layer
+- Route tests with mocked services are sufficient
+- Testing services directly couples tests to implementation
+- Service tests would require mocking Firestore/external APIs, adding complexity
+- Focus testing effort on user-facing behavior, not internal abstractions
+
+See `.claude/rules/elysia-tests.md` for detailed testing patterns and examples.
+
 ## Best Practices Summary
 
 1. **Service Layer**: Extract business logic to services (plain objects with functions)
@@ -1256,5 +1358,5 @@ return { error: "Not found", message: "Resource does not exist" };
 3. **Decouple Services**: Don't pass Context to services - extract only what's needed
 4. **Input Validation**: Use Elysia.t schemas on routes
 5. **Error Handling**: Catch HttpError in routes, set status, return error objects
-6. **Testing**: Use Eden Treaty for type-safe tests when possible
+6. **Testing**: Test only HTTP routes, never service layer internals
 7. **No Static Classes**: Use objects instead of classes with only static methods

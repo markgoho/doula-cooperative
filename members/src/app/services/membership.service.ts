@@ -3,9 +3,7 @@ import { computed, inject, Injectable, resource } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
-import { isFirebaseFunctionsError } from '../types/firebase-error';
 import {
   type ApiMemberResponse,
   type SubscriptionStatus,
@@ -55,7 +53,6 @@ export interface Member {
 export class MembershipService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
-  private functions = inject(Functions);
   private http = inject(HttpClient);
 
   // Use authState directly to avoid circular dependency with AuthService
@@ -219,13 +216,18 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async updateNewsletterPreference(subscribed: boolean): Promise<void> {
-    const updateNewsletterPrefCallable = httpsCallable<
-      { subscribed: boolean },
-      { success: boolean; subscribed: boolean }
-    >(this.functions, 'updateNewsletterPreference');
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to update newsletter preferences.');
+    }
 
     try {
-      await updateNewsletterPrefCallable({ subscribed });
+      await firstValueFrom(
+        this.http.patch<{ success: boolean; subscribed: boolean }>(
+          `/api/members/${uid}/newsletter-preference`,
+          { subscribed },
+        ),
+      );
       // Trigger reload of user document to reflect changes
       this.reloadUserDocument();
     } catch (error: unknown) {
@@ -234,13 +236,26 @@ export class MembershipService {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      if (isFirebaseFunctionsError(error)) {
-        switch (error.code) {
-          case 'unauthenticated': {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
             throw new Error('You must be signed in to update newsletter preferences.');
           }
 
-          case 'deadline-exceeded': {
+          case 403: {
+            throw new Error('You do not have permission to update newsletter preferences.');
+          }
+
+          case 404: {
+            throw new Error('Member account not found. Please contact support.');
+          }
+
+          case 400:
+          case 422: {
+            throw new Error('Invalid request. Please try again.');
+          }
+
+          case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
         }
