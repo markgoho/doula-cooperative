@@ -18,7 +18,7 @@
     "seed-claim-test": "bun run src/scripts/seed-claim-test.ts"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "lib/index.js",
   "dependencies": {
