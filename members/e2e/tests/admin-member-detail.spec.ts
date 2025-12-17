@@ -255,13 +255,13 @@ test.describe('Admin Member Detail Page', () => {
     // Verify profile image is displayed
     const profileImage = authenticatedAdminPage.getByRole('img', { name: /Test Member|Profile image/i });
     await expect(profileImage).toBeVisible();
-    await expect(profileImage).toHaveAttribute('src', mockProfileData.image);
+    await expect(profileImage).toHaveAttribute('src', mockProfileData.image!);
 
     // Verify profile data fields are displayed
     await expect(authenticatedAdminPage.getByText(mockProfileData.title)).toBeVisible();
     await expect(authenticatedAdminPage.getByText(mockProfileData.bio)).toBeVisible();
-    await expect(authenticatedAdminPage.getByText(mockProfileData.credentials)).toBeVisible();
-    await expect(authenticatedAdminPage.getByText(mockProfileData.pronouns)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText(mockProfileData.credentials!)).toBeVisible();
+    await expect(authenticatedAdminPage.getByText(mockProfileData.pronouns!)).toBeVisible();
     await expect(authenticatedAdminPage.getByText('birth-doula, postpartum-support')).toBeVisible();
 
     // Verify contact information

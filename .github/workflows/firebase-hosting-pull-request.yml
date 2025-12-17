@@ -83,6 +83,12 @@ jobs:
       - name: Install members dependencies
         working-directory: members
         run: bun install
+      - name: Lint E2E tests
+        working-directory: members
+        run: bun run lint:e2e
+      - name: Typecheck E2E tests
+        working-directory: members
+        run: bun run typecheck:e2e
       - name: Run E2E tests
         working-directory: members
         run: bun run e2e
