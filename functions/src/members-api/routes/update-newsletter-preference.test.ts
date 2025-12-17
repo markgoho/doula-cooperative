@@ -1,12 +1,19 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
 import {
-  NotFoundError,
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+} from "bun:test";
+import type { DecodedIdToken } from "firebase-admin/auth";
+import {
   AuthError,
   ForbiddenError,
+  NotFoundError,
   ValidationError,
-  HttpError,
 } from "../../shared-api/errors/http-error.js";
-import type { DecodedIdToken } from "firebase-admin/auth";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
 /**
@@ -17,6 +24,22 @@ import { createMembersTestPlugin } from "../test-utils/create-members-test-plugi
  * Tests run WITHOUT Firebase emulators.
  */
 describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
+  // Store original env var to restore after tests
+  const originalMailerliteApiKey = process.env["MAILERLITE_API_KEY"];
+
+  beforeAll(() => {
+    // Set test API key for all tests
+    process.env["MAILERLITE_API_KEY"] = "test-api-key";
+  });
+
+  afterAll(() => {
+    // Restore original environment variable
+    if (originalMailerliteApiKey === undefined) {
+      delete process.env["MAILERLITE_API_KEY"];
+    } else {
+      process.env["MAILERLITE_API_KEY"] = originalMailerliteApiKey;
+    }
+  });
   // Create mock services
   const mockUpdateNewsletterPreference = mock(
     ({
@@ -74,7 +97,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
 
       if (authorizationHeader === "Bearer non-owner-token") {
         return Promise.reject(
-          new ForbiddenError("You can only update your own newsletter preference"),
+          new ForbiddenError(
+            "You can only update your own newsletter preference",
+          ),
         );
       }
 
@@ -128,7 +153,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toBe("You can only update your own newsletter preference");
+      expect(body.error).toBe(
+        "You can only update your own newsletter preference",
+      );
     });
 
     it("should allow owner to update their own newsletter preference", async () => {
@@ -308,17 +335,14 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should reject member IDs longer than 128 characters", async () => {
       const longId = "a".repeat(129);
       const response = (await testApp.handle(
-        new Request(
-          `http://localhost/${longId}/newsletter-preference`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: "Bearer admin-token",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ subscribed: true }),
+        new Request(`http://localhost/${longId}/newsletter-preference`, {
+          method: "PATCH",
+          headers: {
+            Authorization: "Bearer admin-token",
+            "Content-Type": "application/json",
           },
-        ),
+          body: JSON.stringify({ subscribed: true }),
+        }),
       )) as Response;
 
       expect(response.status).toBe(422);
@@ -435,7 +459,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         | Record<string, unknown>
         | undefined;
       expect(context).toBeDefined();
-      expect(context?.["errorMessage"]).toBe("MailerLite API connection timeout");
+      expect(context?.["errorMessage"]).toBe(
+        "MailerLite API connection timeout",
+      );
       expect(context?.["memberId"]).toBe("test-id");
       expect(context?.["subscribed"]).toBe(true);
       expect(context?.["hasAuthorizationHeader"]).toBe(true);
@@ -478,7 +504,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should return 503 when MAILERLITE_API_KEY is not configured", async () => {
-      const originalEnv = process.env["MAILERLITE_API_KEY"];
+      // Temporarily delete the API key that was set in beforeAll
       delete process.env["MAILERLITE_API_KEY"];
 
       const response = (await testApp.handle(
@@ -498,10 +524,8 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         "Newsletter service not configured. Please contact support.",
       );
 
-      // Restore environment variable
-      if (originalEnv !== undefined) {
-        process.env["MAILERLITE_API_KEY"] = originalEnv;
-      }
+      // Restore test API key for remaining tests
+      process.env["MAILERLITE_API_KEY"] = "test-api-key";
     });
   });
 
