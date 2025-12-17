@@ -41,8 +41,11 @@ export class AdminUnclaimedProfileDetailService {
     this.actionError.set(undefined);
 
     try {
-      await this.adminMembersService.sendInvitation(email);
-      this.successMessage.set('Invitation sent successfully');
+      const result = await this.adminMembersService.sendInvitation(email);
+      // Show warning if tracking failed, otherwise show success
+      this.successMessage.set(
+        result.warning ?? 'Invitation sent successfully',
+      );
       this.unclaimedProfileResource.reload(); // Reload to get updated invitation status
     } catch (error) {
       console.error('Error sending invitation:', error);

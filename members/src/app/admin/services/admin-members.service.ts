@@ -216,10 +216,10 @@ export class AdminMembersService {
     );
   }
 
-  async sendInvitation(email: string): Promise<{ success: boolean }> {
+  async sendInvitation(email: string): Promise<{ success: boolean; warning?: string }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
-      this.httpClient.post<{ success: boolean }>(
+      this.httpClient.post<{ success: boolean; warning?: string }>(
         `/api/admin/unclaimed-profiles/${email}/invitation`,
         {},
       ),

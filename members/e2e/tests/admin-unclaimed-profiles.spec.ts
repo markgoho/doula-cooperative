@@ -161,7 +161,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   test('admin views unclaimed profile details with proper data display', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[0];
+    const mockProfile = mockUnclaimedProfiles[0]!;
 
     // Mock GET single profile (email in path is URL-encoded)
     await authenticatedAdminPage.route(
@@ -208,7 +208,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   test('admin views unclaimed profile without invitation sent shows send invitation button', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[1]; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
 
     // Mock GET single profile (email in path)
     await authenticatedAdminPage.route(
@@ -309,22 +309,41 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('admin sends invitation to unclaimed profile', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
 
-    // Mock GET single profile (initial load)
+    // Create updated profile with invitation sent status
+    // Use conditional spread to avoid undefined with exactOptionalPropertyTypes
+    const updatedProfile: ApiUnclaimedProfileResponse = {
+      email: mockProfile.email,
+      name: mockProfile.name,
+      subscriptionStart: mockProfile.subscriptionStart,
+      lastPayment: mockProfile.lastPayment,
+      nextPayment: mockProfile.nextPayment,
+      ...(mockProfile.slug !== undefined && { slug: mockProfile.slug }),
+      ...(mockProfile.createdAt !== undefined && { createdAt: mockProfile.createdAt }),
+      ...(mockProfile.updatedAt !== undefined && { updatedAt: mockProfile.updatedAt }),
+      invitationEmailStatus: 'sent',
+      invitationEmailSentAt: new Date().toISOString(),
+    };
+
+    let postRequestMade = false;
+
+    // Mock GET and POST - after POST succeeds, return updated profile
     await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
+      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com**',
       async (route) => {
         const method = route.request().method();
         if (method === 'GET') {
+          // Return updated profile after POST succeeds, initial profile otherwise
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(mockProfile),
+            body: JSON.stringify(postRequestMade ? updatedProfile : mockProfile),
           });
           return;
         }
         if (method === 'POST' && route.request().url().includes('/invitation')) {
+          postRequestMade = true;
           // Mock successful invitation send
           await route.fulfill({
             status: 200,
@@ -363,7 +382,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   test('handles invitation sending failure with error message', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[1]; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
 
     // Mock GET and POST with error response
     await authenticatedAdminPage.route(
@@ -399,9 +418,9 @@ test.describe('Admin Unclaimed Profiles', () => {
     await unclaimedProfilePage.sendInvitationButton.click();
 
     // === Verify error message appears ===
-    await expect(
-      authenticatedAdminPage.getByText(/Failed to send invitation|error/i),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(authenticatedAdminPage.getByText(/Failed to send invitation|error/i)).toBeVisible({
+      timeout: 5000,
+    });
 
     // === Verify button remains enabled (can retry) ===
     await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
