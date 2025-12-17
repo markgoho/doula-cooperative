@@ -8,7 +8,6 @@ import {
   applyActionCode,
   checkActionCode,
   confirmPasswordReset,
-  createUserWithEmailAndPassword,
   idToken,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -68,20 +67,6 @@ export class AuthService {
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
     try {
       return await signInWithEmailAndPassword(this.auth, email, password);
-    } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
-    }
-  }
-
-  // Sign up with email and password
-  async signUpWithEmail(email: string, password: string): Promise<void> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      await sendEmailVerification(userCredential.user, {
-        url: `${globalThis.window.location.origin}/membership`,
-        handleCodeInApp: true,
-      });
     } catch (error) {
       const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
       throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);

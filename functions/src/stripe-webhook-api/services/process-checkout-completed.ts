@@ -3,6 +3,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import type Stripe from "stripe";
 import { MEMBERS_COLLECTION } from "../../collections/index.js";
+import { ADMIN_EMAIL } from "../../constants/admin.js";
 import {
   ERROR_IDS,
   MARK_EMAIL,
@@ -21,31 +22,13 @@ import {
   addNewsletterSubscriber,
   MailerLiteError,
 } from "../../shared-api/utils/mailerlite.js";
+import { generateSecurePassword } from "../../shared-api/utils/generate-secure-password.js";
 import {
   calculateExpirationDate,
   createStripeMemberDocument,
   createStripeMemberUpdate,
 } from "../utils/index.js";
 import type { CheckoutCompletedResult } from "./interface.js";
-
-/**
- * Generate a secure random password for new users.
- */
-function generateSecurePassword(): string {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-  const length = 20;
-  let password = "";
-
-  const array = new Uint32Array(length);
-  crypto.getRandomValues(array);
-
-  for (const number of array) {
-    password += characters.charAt(number % characters.length);
-  }
-
-  return password;
-}
 
 /**
  * Create HTML for MailerLite failure notification email.
@@ -67,6 +50,10 @@ function createMailerLiteFailureEmailHtml(options: {
     errorMessage,
   } = options;
 
+  const displayName = escapeHtml(customerName) || "Not provided";
+  const subscriptionStartDate = escapeHtml(subscriptionStart.toDate().toISOString());
+  const expirationDate = escapeHtml(membershipExpiresAt.toDate().toISOString());
+
   return `
     <h2>MailerLite Newsletter Signup Failed</h2>
     <p>A new member completed payment but could not be added to the newsletter automatically.</p>
@@ -74,10 +61,10 @@ function createMailerLiteFailureEmailHtml(options: {
     <h3>Member Details:</h3>
     <ul>
       <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
-      <li><strong>Name:</strong> ${escapeHtml(customerName) || "Not provided"}</li>
+      <li><strong>Name:</strong> ${displayName}</li>
       <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
-      <li><strong>Subscription Start:</strong> ${escapeHtml(subscriptionStart.toDate().toISOString())}</li>
-      <li><strong>Membership Expires:</strong> ${escapeHtml(membershipExpiresAt.toDate().toISOString())}</li>
+      <li><strong>Subscription Start:</strong> ${subscriptionStartDate}</li>
+      <li><strong>Membership Expires:</strong> ${expirationDate}</li>
     </ul>
 
     <h3>Error Details:</h3>
@@ -146,6 +133,35 @@ async function sendMailerLiteFailureNotification({
 }
 
 /**
+ * Generate welcome email HTML content.
+ */
+function generateWelcomeEmailHtml(resetLink: string): string {
+  return `
+    <h2>Welcome to the Rochester Doula Cooperative!</h2>
+    <p>Your membership is now active. Thank you for joining our community of professional birth workers!</p>
+
+    <p><strong>Next Step: Set Your Password</strong></p>
+    <p>Click the link below to access your member portal and create your password:</p>
+    <p><a href="${resetLink}">${resetLink}</a></p>
+
+    <p>This link will expire in 1 hour. If you need a new link, you can request one from the sign-in page.</p>
+
+    <p>Once you've set your password, you'll be able to:</p>
+    <ul>
+      <li>Access member resources</li>
+      <li>Connect with other doulas</li>
+      <li>Manage your profile</li>
+      <li>Stay updated on cooperative events</li>
+    </ul>
+
+    <p>If you have any questions, please reach out to us at ${MARK_EMAIL}.</p>
+
+    <p>Welcome aboard!</p>
+    <p>The Rochester Doula Cooperative Team</p>
+  `;
+}
+
+/**
  * Send welcome email to new member.
  */
 async function sendWelcomeEmail(options: {
@@ -177,29 +193,7 @@ async function sendWelcomeEmail(options: {
     to: email,
     bcc: REFERRAL_EMAIL,
     subject: "Welcome to Rochester Doula Cooperative!",
-    html: `
-      <h2>Welcome to the Rochester Doula Cooperative!</h2>
-      <p>Your membership is now active. Thank you for joining our community of professional birth workers!</p>
-
-      <p><strong>Next Step: Set Your Password</strong></p>
-      <p>Click the link below to access your member portal and create your password:</p>
-      <p><a href="${resetLink}">${resetLink}</a></p>
-
-      <p>This link will expire in 1 hour. If you need a new link, you can request one from the sign-in page.</p>
-
-      <p>Once you've set your password, you'll be able to:</p>
-      <ul>
-        <li>Access member resources</li>
-        <li>Connect with other doulas</li>
-        <li>Manage your profile</li>
-        <li>Stay updated on cooperative events</li>
-      </ul>
-
-      <p>If you have any questions, please reach out to us at ${MARK_EMAIL}.</p>
-
-      <p>Welcome aboard!</p>
-      <p>The Rochester Doula Cooperative Team</p>
-    `,
+    html: generateWelcomeEmailHtml(resetLink),
   };
 
   if (process.env["FUNCTIONS_EMULATOR"]) {
@@ -255,6 +249,7 @@ export async function processCheckoutCompleted(options: {
 
   let userRecord: UserRecord | undefined;
   let isNewUser = false;
+  let warning: string | undefined;
 
   // Step 1: Look up or create user
   try {
@@ -295,6 +290,57 @@ export async function processCheckoutCompleted(options: {
       });
 
       logger.info(`Created user: ${userRecord.uid}`);
+
+      // Set admin claim if email matches admin email
+      const isAdmin =
+        customerEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      if (isAdmin) {
+        try {
+          await auth.setCustomUserClaims(userRecord.uid, { admin: true });
+          logger.info(`Auto-granted admin claim to user: ${userRecord.uid}`);
+        } catch (claimError) {
+          logger.error("Failed to set admin claim for new user", {
+            error: claimError,
+            errorMessage:
+              claimError instanceof Error ? claimError.message : "Unknown error",
+            errorId: ERROR_IDS.API_STRIPE_WEBHOOK_ADMIN_CLAIM_FAILED,
+            uid: userRecord.uid,
+            customerEmail,
+            severity: "HIGH",
+            actionRequired: "Manually set admin claim via Firebase Console",
+          });
+
+          // Track in member document for recovery
+          try {
+            await getFirestore()
+              .collection(MEMBERS_COLLECTION)
+              .doc(userRecord.uid)
+              .set(
+                {
+                  adminClaimStatus: "pending",
+                  adminClaimError:
+                    claimError instanceof Error
+                      ? claimError.message
+                      : "Unknown error",
+                  adminClaimFailedAt: Timestamp.now(),
+                },
+                { merge: true },
+              );
+          } catch (trackingError) {
+            logger.error("Failed to track admin claim failure", {
+              error: trackingError,
+              uid: userRecord.uid,
+              customerEmail,
+              severity: "HIGH",
+            });
+          }
+
+          // Add warning to response (webhook won't fail, but caller is notified)
+          warning = warning
+            ? `${warning}; Admin claim failed - manual setup required`
+            : "Admin claim failed - manual setup required";
+        }
+      }
     } catch (error) {
       logger.error("Failed to create user in Firebase Auth", {
         error,
@@ -379,7 +425,6 @@ export async function processCheckoutCompleted(options: {
 
   // Track non-critical operation results
   let mailerliteSynced = false;
-  let warning: string | undefined;
 
   // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
   if (mailerliteApiKey) {

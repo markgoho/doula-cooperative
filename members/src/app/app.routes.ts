@@ -92,10 +92,10 @@ export const routes: Routes = [
   },
 
   // Authentication routes
+  // Redirect sign-up attempts to sign-in with helpful message
   {
     path: 'sign-up',
-    loadComponent: () => import('./sign-up/sign-up').then((m) => m.SignUp),
-    ...canActivate(redirectToMembership),
+    redirectTo: () => '/sign-in?message=signup-disabled',
   },
   {
     path: 'sign-in',

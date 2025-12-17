@@ -61,6 +61,17 @@ export const ERROR_IDS = {
     "admin_send_invitation_tracking_failed",
   ADMIN_SEND_INVITATION_FIRESTORE_UPDATE_FAILED:
     "admin_send_invitation_firestore_update_failed",
+  ADMIN_SEND_INVITATION_AUTH_LOOKUP_FAILED:
+    "admin_send_invitation_auth_lookup_failed",
+  ADMIN_SEND_INVITATION_AUTH_CREATE_FAILED:
+    "admin_send_invitation_auth_create_failed",
+  ADMIN_SEND_INVITATION_MEMBER_DOC_FAILED:
+    "admin_send_invitation_member_doc_failed",
+  ADMIN_SEND_INVITATION_CLEANUP_FAILED:
+    "admin_send_invitation_cleanup_failed",
+  ADMIN_SEND_INVITATION_CLAIM_FAILED: "admin_send_invitation_claim_failed",
+  ADMIN_SEND_INVITATION_RESET_LINK_FAILED:
+    "admin_send_invitation_reset_link_failed",
 
   // Write profile errors
   WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
@@ -253,6 +264,8 @@ export const ERROR_IDS = {
     "api_stripe_webhook_member_create_failed",
   API_STRIPE_WEBHOOK_MEMBER_UPDATE_FAILED:
     "api_stripe_webhook_member_update_failed",
+  API_STRIPE_WEBHOOK_ADMIN_CLAIM_FAILED:
+    "api_stripe_webhook_admin_claim_failed",
   API_STRIPE_WEBHOOK_UNEXPECTED_ERROR: "api_stripe_webhook_unexpected_error",
 } as const;
 

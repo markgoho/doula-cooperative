@@ -8,7 +8,6 @@
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
-import { beforeUserCreated } from "firebase-functions/v2/identity";
 import { onRequest } from "firebase-functions/v2/https";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
@@ -19,15 +18,6 @@ import { STRIPE_SECRETS } from "./constants/stripe.js";
 if (getApps().length === 0) {
   initializeApp();
 }
-
-// v2 blocking function for user creation
-// Creates member document and sets admin claim if applicable
-export const blockingUserCreated = beforeUserCreated(async event => {
-  const { handleBeforeUserCreated } = await import(
-    "./user-creation/before-user-created.js"
-  );
-  return handleBeforeUserCreated(event);
-});
 
 // Elysia-based APIs
 
