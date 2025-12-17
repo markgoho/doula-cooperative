@@ -63,19 +63,18 @@ export const myFunction = onRequest(async (request, response) => {
 - **HTTP Functions** (`onRequest`): `contactUsForm`, `doulaMatchForm`, `stripeWebhook`
 - **Callable Functions** (`onCall`): `claimProfile`, `readProfile`, `uploadProfileImage`, `deleteProfileImage`
 - **Firestore Triggers** (`onDocumentCreated`): `emailContactForm`, `emailDoulaMatch`
-- **Auth Triggers**: `createMemberOnUserCreated`, `deleteMemberOnUserDeleted`
+- **Auth Blocking Functions** (`beforeUserCreated`): `blockingUserCreated` - creates member document and sets admin claims
 
 **IMPORTANT**: Always use Firebase Functions v2 imports:
 ```typescript
 // ✅ CORRECT - Use v2 imports
 import { onCall, onRequest } from "firebase-functions/v2/https";
 import { HttpsError } from "firebase-functions/v2/https";
+import { beforeUserCreated } from "firebase-functions/v2/identity";
 
 // ❌ WRONG - Don't use v1 imports (causes CORS issues)
 import { onCall } from "firebase-functions/https";
 ```
-
-**Exception**: Auth triggers (`createMemberOnUserCreated`, `deleteMemberOnUserDeleted`, `setAutoAdminOnUserCreated`) use Firebase Functions v1 because v2 only provides blocking `beforeUserCreated`/`beforeUserDeleted` which would change semantics (failures would block user creation/deletion). The v1 `auth.user().onCreate()` and `auth.user().onDelete()` triggers are non-blocking and still supported.
 
 **Key Patterns**:
 

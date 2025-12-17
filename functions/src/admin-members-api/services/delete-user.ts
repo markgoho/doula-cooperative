@@ -1,9 +1,12 @@
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
+import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 interface FirebaseAuthError {
@@ -21,15 +24,10 @@ function isAuthError(error: unknown): error is FirebaseAuthError {
 }
 
 /**
- * Delete a user's Auth account and trigger member document cleanup.
+ * Delete a user's member document and Auth account.
  *
- * CRITICAL DEPENDENCY: This function relies on the deleteMemberOnUserDeleted
- * Cloud Function trigger (defined in functions/src/auth-triggers/) to clean up
- * the Firestore member document. The Auth deletion triggers this function
- * automatically.
- *
- * IMPORTANT: If the trigger is disabled/removed, member documents will become
- * orphaned. The trigger must remain deployed for data consistency.
+ * Deletes both the Firestore member document and Firebase Auth user in a single
+ * operation. The Firestore document is deleted first to ensure data consistency.
  *
  * @param memberId - The Firestore document ID (must match Auth UID)
  * @param requestingAdminUid - The UID of the admin making the request
@@ -76,10 +74,21 @@ export async function deleteUser(
     );
   }
 
+  // Delete member document first to ensure data consistency
+  const firestore = getFirestore();
+  await firestore.collection(MEMBERS_COLLECTION).doc(memberId).delete();
+
+  // Then delete Auth user
   try {
     await auth.deleteUser(memberId);
   } catch (error) {
     if (isAuthError(error) && error.code === "auth/user-not-found") {
+      // Log warning - Auth user missing indicates data inconsistency
+      // (member doc existed but Auth user didn't)
+      logger.warn(
+        `Auth user not found during deletion (possible data inconsistency)`,
+        { memberId, requestingAdminUid },
+      );
       return;
     }
 
