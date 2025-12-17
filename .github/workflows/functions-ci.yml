@@ -46,8 +46,8 @@ jobs:
         working-directory: ./functions
         run: npm run typecheck:tests
 
-  test-api-endpoints:
-    name: Test Elysia API Endpoints
+  test-functions:
+    name: Test Functions
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}:trunk
@@ -63,6 +63,6 @@ jobs:
         working-directory: ./functions
         run: npm ci
 
-      - name: Run API endpoint tests
+      - name: Test functions
         working-directory: ./functions
-        run: bun test src/admin-members-api/ src/shared-api/ src/members-api/ src/stripe-webhook-api/ src/profile-webhook-api/ src/forms-api/
+        run: bun test src/

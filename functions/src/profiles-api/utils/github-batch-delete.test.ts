@@ -101,19 +101,28 @@ describe("batchDeleteFiles", () => {
     expect(result.deletedFiles).toHaveLength(3);
     expect(result.commitSha).toBe("new-commit-sha-789");
 
-    // Verify API calls were made in correct order
+    // Verify API calls were made in correct order (no getTree call in current implementation)
     expect(mockGetReference).toHaveBeenCalledTimes(1);
     expect(mockGetContent).toHaveBeenCalledTimes(3);
     expect(mockGetCommit).toHaveBeenCalledTimes(1);
-    expect(mockGetTree).toHaveBeenCalledTimes(1);
     expect(mockCreateTree).toHaveBeenCalledTimes(1);
     expect(mockCreateCommit).toHaveBeenCalledTimes(1);
     expect(mockUpdateReference).toHaveBeenCalledTimes(1);
 
-    // Verify the new tree excludes the deleted files
-    const createTreeCall = mockCreateTree.mock.calls[0]?.[0] as { tree: { path: string }[] };
-    expect(createTreeCall.tree).toHaveLength(1);
-    expect(createTreeCall.tree[0]?.path).toBe("hugo/content/doulas/test-slug/other-file.md");
+    // Verify createTree was called with base_tree and deletion markers
+    const createTreeCall = mockCreateTree.mock.calls[0]?.[0] as {
+      base_tree: string;
+      tree: { path: string; mode: string; type: string; sha: null }[];
+    };
+    expect(createTreeCall.base_tree).toBe("tree-sha-123");
+    expect(createTreeCall.tree).toHaveLength(3);
+    // Verify all items are marked for deletion (sha is null per GitHub API)
+    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+    expect(createTreeCall.tree[0]?.sha).toBe(null);
+    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+    expect(createTreeCall.tree[1]?.sha).toBe(null);
+    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+    expect(createTreeCall.tree[2]?.sha).toBe(null);
   });
 
   it("should return empty array when no files exist (all 404s)", async () => {
@@ -260,7 +269,7 @@ describe("batchDeleteFiles", () => {
     ).rejects.toThrow("profile was modified by another operation");
   });
 
-  it("should pass correct parameters to getTree with recursive=true", async () => {
+  it("should use base_tree approach to delete files efficiently", async () => {
     mockGetContent.mockResolvedValue({ data: { sha: "file-sha-1" } });
 
     await batchDeleteFiles({
@@ -272,8 +281,14 @@ describe("batchDeleteFiles", () => {
       commitMessage: "Delete profile image",
     });
 
-    const getTreeCall = mockGetTree.mock.calls[0]?.[0] as { recursive: string };
-    expect(getTreeCall.recursive).toBe("true");
+    // Verify createTree uses base_tree parameter (efficient approach)
+    const createTreeCall = mockCreateTree.mock.calls[0]?.[0] as {
+      base_tree: string;
+    };
+    expect(createTreeCall.base_tree).toBe("tree-sha-123");
+
+    // Verify getTree is NOT called (we use base_tree instead)
+    expect(mockGetTree).not.toHaveBeenCalled();
   });
 
   it("should handle getContent returning non-file objects gracefully", async () => {
@@ -313,22 +328,6 @@ describe("batchDeleteFiles", () => {
         commitMessage: "Delete profile image",
       }),
     ).rejects.toThrow("Failed to get current commit");
-  });
-
-  it("should throw error when getTree fails", () => {
-    mockGetContent.mockResolvedValue({ data: { sha: "file-sha-1" } });
-    mockGetTree.mockRejectedValue(new Error("Tree unavailable"));
-
-    expect(
-      batchDeleteFiles({
-        octokit: mockOctokit as never,
-        owner: "test-owner",
-        repo: "test-repo",
-        branch: "main",
-        filePaths: ["hugo/content/doulas/test-slug/test-slug-profile.jpg"],
-        commitMessage: "Delete profile image",
-      }),
-    ).rejects.toThrow("Failed to get repository tree");
   });
 
   it("should throw error when createTree fails", () => {

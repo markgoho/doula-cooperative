@@ -25,6 +25,8 @@ import {
   SlugQuerySchema,
   UploadProfileImageBodySchema,
 } from "../schemas/profile-schemas.js";
+import { AuthUpdateService } from "../services/auth-update/index.js";
+import { ClaimProfileFirestoreService } from "../services/firestore/index.js";
 import { ProfileGitHubService } from "../services/github/index.js";
 import { ProfileMemberService } from "../services/member/index.js";
 import type { ProfileMemberService as ProfileMemberServiceType } from "../services/member/interface.js";
@@ -114,6 +116,14 @@ export function createProfilesPlugin(services?: PartialServices) {
       .decorate(
         SERVICE_KEYS.EMAIL_SERVICE,
         services?.emailService ?? EmailService,
+      )
+      .decorate(
+        SERVICE_KEYS.CLAIM_PROFILE_FIRESTORE_SERVICE,
+        services?.claimProfileFirestoreService ?? ClaimProfileFirestoreService,
+      )
+      .decorate(
+        SERVICE_KEYS.AUTH_UPDATE_SERVICE,
+        services?.authUpdateService ?? AuthUpdateService,
       )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       // PUBLIC ROUTES (before auth guards)
@@ -230,6 +240,8 @@ export function createProfilesPlugin(services?: PartialServices) {
           userToken,
           profileMemberService,
           emailService,
+          claimProfileFirestoreService,
+          authUpdateService,
           logger,
           set,
         }) => {
@@ -261,6 +273,8 @@ export function createProfilesPlugin(services?: PartialServices) {
             email,
             emailVerified,
             emailService,
+            claimProfileFirestoreService,
+            authUpdateService,
             logger,
             set,
           });

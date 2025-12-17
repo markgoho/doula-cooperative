@@ -9,7 +9,7 @@ import {
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import type { CropData } from "../../types/crop-data.js";
+import type { CropData } from "../utils/crop-data.js";
 import {
   batchOperateFiles,
   type FileOperation,

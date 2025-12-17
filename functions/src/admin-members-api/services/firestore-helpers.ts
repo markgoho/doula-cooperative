@@ -1,9 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   MEMBERS_COLLECTION,
   type MemberDocument,
-} from "../collections/index.js";
+} from "../../collections/index.js";
 
 /**
  * Get a member document reference from Firestore
@@ -94,39 +93,4 @@ export async function getDocumentByEmail({
     .get();
 
   return documents.docs[0];
-}
-
-/**
- * Create a test Firestore document and return a mock event for trigger testing
- */
-export async function createTestDocumentAndEvent({
-  context,
-  collection,
-  documentId,
-  data,
-  parameterName = "messageId",
-}: {
-  context: {
-    firestore: () => ReturnType<
-      typeof import("firebase/firestore").getFirestore
-    >;
-  };
-  collection: string;
-  documentId: string;
-  data: Record<string, unknown>;
-  parameterName?: string;
-}) {
-  const database = context.firestore();
-  const reference = doc(database, `${collection}/${documentId}`);
-
-  await setDoc(reference, data);
-  const snapshot = await getDoc(reference);
-
-  return {
-    event: {
-      data: snapshot,
-      params: { [parameterName]: documentId },
-    },
-    reference,
-  };
 }

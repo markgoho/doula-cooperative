@@ -1,11 +1,10 @@
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import {
-  IMPORT_COLLECTION,
-  MEMBERS_COLLECTION,
   type MemberDocument,
   type UnclaimedProfileDocumentData,
 } from "../../collections/index.js";
+import type { AuthUpdateService } from "../services/auth-update/interface.js";
+import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
@@ -156,6 +155,8 @@ export async function claimProfileLogic({
   email,
   emailVerified,
   emailService,
+  claimProfileFirestoreService,
+  authUpdateService,
   logger,
   set,
 }: {
@@ -163,6 +164,8 @@ export async function claimProfileLogic({
   email: string;
   emailVerified: boolean;
   emailService: EmailServiceInterface;
+  claimProfileFirestoreService: ClaimProfileFirestoreService;
+  authUpdateService: AuthUpdateService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ClaimProfileResponse | { error: string }> {
@@ -174,14 +177,10 @@ export async function claimProfileLogic({
     };
   }
 
-  const database = getFirestore();
-
   try {
     // Look for a matching document in the import collection
-    const importDocumentReference = database
-      .collection(IMPORT_COLLECTION)
-      .doc(email);
-    const importDocument = await importDocumentReference.get();
+    const importDocument =
+      await claimProfileFirestoreService.getImportDocument(email);
 
     if (!importDocument.exists) {
       // No pre-existing profile to claim
@@ -270,10 +269,7 @@ export async function claimProfileLogic({
 
     // Write member document
     try {
-      const memberDocumentReference = database
-        .collection(MEMBERS_COLLECTION)
-        .doc(uid);
-      await memberDocumentReference.set(memberUpdate, { merge: true });
+      await claimProfileFirestoreService.writeMemberDocument(uid, memberUpdate);
       logger.info(
         `Successfully claimed profile for user: ${email} (UID: ${uid})`,
       );
@@ -359,11 +355,8 @@ export async function claimProfileLogic({
     }
 
     // Update the auth displayName with profile name
-    const auth = getAuth();
     try {
-      await auth.updateUser(uid, {
-        displayName: profileData.name,
-      });
+      await authUpdateService.updateDisplayName(uid, profileData.name);
       logger.info(`Successfully updated displayName for user: ${email}`);
     } catch (authError) {
       // Log error but don't fail the whole operation - profile claim was successful
@@ -377,7 +370,7 @@ export async function claimProfileLogic({
 
     // Delete the document from the import collection
     try {
-      await importDocumentReference.delete();
+      await claimProfileFirestoreService.deleteImportDocument(email);
       logger.info(`Successfully deleted import record for: ${email}`);
     } catch (deleteError) {
       // Log error but don't fail - profile claim was successful

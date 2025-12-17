@@ -1,11 +1,15 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
+import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../collections/index.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { createMockVerifyAuthToken } from "../../test-utils/auth-mocks.js";
 import { createProfilesPlugin } from "../plugins/profiles-plugin.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
+import type { AuthUpdateService } from "../services/auth-update/interface.js";
+import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
 import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 
@@ -41,6 +45,20 @@ export const mockProfileData: ProfileData = {
 };
 
 /**
+ * Helper function to create a mock Firestore DocumentSnapshot.
+ */
+function createMockDocumentSnapshot(
+  exists: boolean,
+  data?: unknown,
+): DocumentSnapshot {
+  return {
+    exists,
+    id: "test-document",
+    data: () => data,
+  } as DocumentSnapshot;
+}
+
+/**
  * Creates the profiles plugin with default mock services for testing.
  * Tests only the profiles plugin in isolation - no full app composition needed.
  *
@@ -54,6 +72,9 @@ export function createProfilesTestPlugin(overrides?: {
   profileGitHubService?: Partial<ProfileGitHubService>;
   profileMemberService?: Partial<ProfileMemberService>;
   authService?: Partial<AuthService>;
+  emailService?: Partial<EmailServiceInterface>;
+  claimProfileFirestoreService?: Partial<ClaimProfileFirestoreService>;
+  authUpdateService?: Partial<AuthUpdateService>;
 }) {
   const defaultProfileGitHubService: ProfileGitHubService = {
     readProfile: mock(() =>
@@ -95,9 +116,39 @@ export function createProfilesTestPlugin(overrides?: {
     ...overrides?.authService,
   };
 
+  const defaultClaimProfileFirestoreService: ClaimProfileFirestoreService = {
+    getImportDocument: mock((email: string) =>
+      Promise.resolve(
+        createMockDocumentSnapshot(true, {
+          name: "Test User",
+          email,
+          subscriptionStart: Timestamp.now(),
+          lastPayment: Timestamp.now(),
+          nextPayment: Timestamp.now(),
+        }),
+      ),
+    ),
+    writeMemberDocument: mock(() => Promise.resolve()),
+    deleteImportDocument: mock(() => Promise.resolve()),
+    ...overrides?.claimProfileFirestoreService,
+  };
+
+  const defaultEmailService: EmailServiceInterface = {
+    sendEmail: mock(() => Promise.resolve()),
+    ...overrides?.emailService,
+  };
+
+  const defaultAuthUpdateService: AuthUpdateService = {
+    updateDisplayName: mock(() => Promise.resolve()),
+    ...overrides?.authUpdateService,
+  };
+
   return createProfilesPlugin({
     profileGitHubService: defaultProfileGitHubService,
     profileMemberService: defaultProfileMemberService,
     authService: defaultAuthService,
+    emailService: defaultEmailService,
+    claimProfileFirestoreService: defaultClaimProfileFirestoreService,
+    authUpdateService: defaultAuthUpdateService,
   });
 }
