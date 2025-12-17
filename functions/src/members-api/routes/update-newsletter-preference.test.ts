@@ -49,7 +49,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
       memberId: string;
       subscribed: boolean;
       mailerliteApiKey: string;
-      mailgunApiKey: string | undefined;
+      emailService: unknown;
       logger: unknown;
     }): Promise<{ subscribed: boolean }> => {
       if (memberId === "test-member-id") {

@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleProfileWebhookLogic } from "../routes/handle-webhook.js";
 import { ProfileWebhookService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -22,12 +23,15 @@ export function createProfileWebhookPlugin(services?: PartialServices) {
       SERVICE_KEYS.PROFILE_WEBHOOK_SERVICE,
       services?.profileWebhookService ?? ProfileWebhookService,
     )
+    .decorate(
+      SERVICE_KEYS.EMAIL_SERVICE,
+      services?.emailService ?? EmailService,
+    )
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .post(
       "/",
-      async ({ body, profileWebhookService, logger, set }) => {
+      async ({ body, profileWebhookService, emailService, logger, set }) => {
         const webhookSecret = process.env["DEPLOY_WEBHOOK_SECRET"];
-        const mailgunApiKey = process.env["MAILGUN_API_KEY"];
 
         if (!webhookSecret) {
           logger.error("DEPLOY_WEBHOOK_SECRET not configured");
@@ -35,17 +39,11 @@ export function createProfileWebhookPlugin(services?: PartialServices) {
           return { error: "Server configuration error" };
         }
 
-        if (!mailgunApiKey) {
-          logger.error("MAILGUN_API_KEY not configured");
-          set.status = 500;
-          return { error: "Server configuration error" };
-        }
-
         return handleProfileWebhookLogic({
           payload: body,
           webhookSecret,
-          mailgunApiKey,
           profileWebhookService,
+          emailService,
           logger,
           set,
         });

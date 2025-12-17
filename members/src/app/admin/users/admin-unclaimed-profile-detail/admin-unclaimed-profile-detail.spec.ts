@@ -210,8 +210,8 @@ describe('AdminUnclaimedProfileDetail', () => {
     // Assert - button should show processing state
     expect(await screen.findByRole('button', { name: 'Processing...' })).toBeVisible();
 
-    // Clean up - resolve the promise
-    resolveSendInvitationPromise();
+    // Clean up - resolve the promise with proper response
+    resolveSendInvitationPromise({ success: true });
   });
 });
 
@@ -282,10 +282,12 @@ async function setup(options: SetupOptions = {}) {
     return Promise.resolve(finalProfile);
   });
 
-  let resolveSendInvitationPromise: () => void;
-  const pendingSendInvitationPromise = new Promise<void>((resolve) => {
-    resolveSendInvitationPromise = resolve;
-  });
+  let resolveSendInvitationPromise: (value: { success: boolean; warning?: string }) => void;
+  const pendingSendInvitationPromise = new Promise<{ success: boolean; warning?: string }>(
+    (resolve) => {
+      resolveSendInvitationPromise = resolve;
+    },
+  );
 
   const sendInvitation = vi.fn().mockImplementation(() => {
     if (shouldKeepSendingInvitation) {
@@ -326,6 +328,7 @@ async function setup(options: SetupOptions = {}) {
         throw new Error('Failed');
       }
       mockService.successMessage.set('Invitation sent successfully');
+      return;
     }),
   };
 

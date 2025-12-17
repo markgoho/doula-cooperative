@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import {
@@ -30,6 +31,10 @@ export function createMembersPlugin(services?: PartialServices) {
         services?.memberService ?? MemberService,
       )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(
+        SERVICE_KEYS.EMAIL_SERVICE,
+        services?.emailService ?? EmailService,
+      )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       .decorate(
         SERVICE_KEYS.NEWSLETTER_SERVICE,
@@ -60,6 +65,7 @@ export function createMembersPlugin(services?: PartialServices) {
           body,
           newsletterService,
           authService,
+          emailService,
           logger,
           request,
           set,
@@ -69,6 +75,7 @@ export function createMembersPlugin(services?: PartialServices) {
             subscribed: body.subscribed,
             newsletterService,
             authService,
+            emailService,
             logger,
             authorizationHeader:
               request.headers.get("authorization") ?? undefined,

@@ -22,7 +22,6 @@ export async function handleMatchFormLogic({
   recaptchaService,
   formStorageService,
   emailService,
-  mailgunApiKey,
   logger,
   set,
 }: {
@@ -32,7 +31,6 @@ export async function handleMatchFormLogic({
   recaptchaService: RecaptchaService;
   formStorageService: FormStorageService;
   emailService: EmailServiceInterface;
-  mailgunApiKey: string | undefined;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<FormResponse> {
@@ -57,51 +55,34 @@ export async function handleMatchFormLogic({
     let emailSent = false;
     let warning: string | undefined;
 
-    if (mailgunApiKey) {
-      try {
-        const emailMessage = buildDoulaMatchNotification(formData);
-        await emailService.sendEmail(
-          { message: emailMessage, mailgunApiKey },
-          logger,
-        );
-        emailSent = true;
-      } catch (emailError: unknown) {
-        logger.error("CRITICAL: Failed to send doula match notification email", {
-          errorId: ERROR_IDS.DOULA_MATCH_FORM_PROCESSING_FAILED,
-          severity: "CRITICAL",
-          error: emailError,
-          errorMessage:
-            emailError instanceof Error ? emailError.message : "Unknown error",
-          errorStack:
-            emailError instanceof Error ? emailError.stack : undefined,
-          // Include form context for debugging
-          formType: "doula_match",
-          submitterEmail: formData.email,
-          submitterName: formData.name,
-          recaptchaScore: verification.score,
-          timestamp: new Date().toISOString(),
-        });
-
-        // TODO: Implement admin notification mechanism
-        // await sendAdminAlert({
-        //   subject: "CRITICAL: Doula match form email failed",
-        //   message: `Email sending failed for doula match form from ${formData.email}`,
-        //   error: emailError
-        // });
-
-        warning = "Form saved but notification email failed to send";
-      }
-    } else {
-      logger.error("CRITICAL: Mailgun API key not configured", {
+    try {
+      const emailMessage = buildDoulaMatchNotification(formData);
+      await emailService.sendEmail({ message: emailMessage }, logger);
+      emailSent = true;
+    } catch (emailError: unknown) {
+      logger.error("CRITICAL: Failed to send doula match notification email", {
         errorId: ERROR_IDS.DOULA_MATCH_FORM_PROCESSING_FAILED,
         severity: "CRITICAL",
+        error: emailError,
+        errorMessage:
+          emailError instanceof Error ? emailError.message : "Unknown error",
+        errorStack: emailError instanceof Error ? emailError.stack : undefined,
+        // Include form context for debugging
         formType: "doula_match",
-        environment: process.env.NODE_ENV,
+        submitterEmail: formData.email,
+        submitterName: formData.name,
+        recaptchaScore: verification.score,
+        timestamp: new Date().toISOString(),
       });
 
-      // TODO: Implement admin notification mechanism for config errors
+      // TODO: Implement admin notification mechanism
+      // await sendAdminAlert({
+      //   subject: "CRITICAL: Doula match form email failed",
+      //   message: `Email sending failed for doula match form from ${formData.email}`,
+      //   error: emailError
+      // });
 
-      warning = "Form saved but notification email not configured";
+      warning = "Form saved but notification email failed to send";
     }
 
     // Save form to Firestore with email send status

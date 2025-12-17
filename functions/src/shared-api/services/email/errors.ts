@@ -63,6 +63,9 @@ export class EmailNetworkError extends EmailError {
 /**
  * Parse Mailgun error and return appropriate typed error.
  *
+ * Uses HTTP status codes for reliable error classification.
+ * Falls back to message inspection for network-level errors.
+ *
  * @param error - The original error from Mailgun
  * @param emailTo - The recipient email address(es)
  * @returns Typed email error with appropriate retry flag
@@ -74,32 +77,58 @@ export function parseMailgunError(error: unknown, emailTo: string): EmailError {
     return new EmailError(`${baseMessage}: Unknown error`, false);
   }
 
+  // Check for HTTP status code (Mailgun API errors have status or statusCode)
+  const errorWithStatus = error as Error & { status?: number; statusCode?: number };
+  const statusCode = errorWithStatus.status ?? errorWithStatus.statusCode;
+
+  if (statusCode !== undefined) {
+    switch (statusCode) {
+      case 401:
+      case 403: {
+        return new EmailAuthError(`${baseMessage}: Authentication failed`);
+      }
+
+      case 404: {
+        return new EmailDomainError(`${baseMessage}: Domain not configured`);
+      }
+
+      case 429: {
+        return new EmailRateLimitError(`${baseMessage}: Rate limit exceeded`);
+      }
+
+      case 400: {
+        // 400 typically indicates invalid recipient or malformed request
+        return new EmailInvalidRecipientError(`${baseMessage}: Invalid recipient`);
+      }
+
+      case 503:
+      case 504: {
+        // Service unavailable or gateway timeout - retryable
+        return new EmailNetworkError(`${baseMessage}: Service temporarily unavailable`);
+      }
+    }
+  }
+
+  // Check for network-level errors by error code (not HTTP status)
+  const errorWithCode = error as Error & { code?: string };
+  if (errorWithCode.code) {
+    const networkErrorCodes = ["ETIMEDOUT", "ECONNREFUSED", "ENOTFOUND", "ECONNRESET", "ENETUNREACH"];
+    if (networkErrorCodes.includes(errorWithCode.code)) {
+      return new EmailNetworkError(`${baseMessage}: Network error - ${error.message}`);
+    }
+  }
+
+  // Fall back to message inspection only as last resort
   const errorMessage = error.message.toLowerCase();
 
   if (errorMessage.includes("unauthorized") || errorMessage.includes("forbidden")) {
     return new EmailAuthError(`${baseMessage}: Authentication failed`);
   }
 
-  if (errorMessage.includes("not found") || errorMessage.includes("domain")) {
-    return new EmailDomainError(`${baseMessage}: Domain not configured`);
-  }
-
   if (errorMessage.includes("rate limit")) {
     return new EmailRateLimitError(`${baseMessage}: Rate limit exceeded`);
   }
 
-  if (errorMessage.includes("invalid") || errorMessage.includes("recipient")) {
-    return new EmailInvalidRecipientError(`${baseMessage}: Invalid recipient`);
-  }
-
-  if (
-    errorMessage.includes("timeout") ||
-    errorMessage.includes("network") ||
-    errorMessage.includes("econnrefused") ||
-    errorMessage.includes("enotfound")
-  ) {
-    return new EmailNetworkError(`${baseMessage}: Network error - ${error.message}`);
-  }
-
-  return new EmailError(`${baseMessage}: ${error.message}`, false);
+  // Default to retryable for unknown errors (safer than assuming permanent failure)
+  return new EmailError(`${baseMessage}: ${error.message}`, true);
 }

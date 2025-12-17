@@ -12,7 +12,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 export function createContactUsFormTestPlugin(overrides?: {
   recaptchaService?: Partial<RecaptchaService>;
   formStorageService?: Partial<FormStorageService>;
-  emailService?: Partial<EmailService>;
+  emailService?: EmailService;
   logger?: Logger;
 }) {
   const defaultRecaptchaService: RecaptchaService = {
@@ -47,7 +47,7 @@ export function createContactUsFormTestPlugin(overrides?: {
 export function createDoulaMatchFormTestPlugin(overrides?: {
   recaptchaService?: Partial<RecaptchaService>;
   formStorageService?: Partial<FormStorageService>;
-  emailService?: Partial<EmailService>;
+  emailService?: EmailService;
   logger?: Logger;
 }) {
   const defaultRecaptchaService: RecaptchaService = {

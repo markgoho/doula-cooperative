@@ -46,15 +46,11 @@ test.describe('Claim Profile Flow', () => {
   }) => {
     // Mock GET /api/members/:memberId for member document lookup
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
+      await (route.request().method() === 'GET' ? route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(mockNewMemberDocument),
-        });
-      } else {
-        await route.continue();
-      }
+        }) : route.continue());
     });
 
     // Mock Firestore REST API - no migrated profile exists (404)
@@ -81,15 +77,11 @@ test.describe('Claim Profile Flow', () => {
 
     // Mock GET /api/members/:memberId for member document lookup
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
+      await (route.request().method() === 'GET' ? route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(mockNewMemberDocument),
-        });
-      } else {
-        await route.continue();
-      }
+        }) : route.continue());
     });
 
     // Mock Firestore REST API - return claimable profile with slug
@@ -128,15 +120,11 @@ test.describe('Claim Profile Flow', () => {
 
     // Mock GET /api/members/:memberId for member document lookup
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
+      await (route.request().method() === 'GET' ? route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(mockNewMemberDocument),
-        });
-      } else {
-        await route.continue();
-      }
+        }) : route.continue());
     });
 
     // Mock Firestore REST API - return claimable profile with slug
@@ -179,15 +167,11 @@ test.describe('Claim Profile Flow', () => {
     // Mock GET /api/members/:memberId - initially without slug
     let memberDocument = { ...mockNewMemberDocument };
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
+      await (route.request().method() === 'GET' ? route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(memberDocument),
-        });
-      } else {
-        await route.continue();
-      }
+        }) : route.continue());
     });
 
     // Mock Firestore REST API - return claimable profile

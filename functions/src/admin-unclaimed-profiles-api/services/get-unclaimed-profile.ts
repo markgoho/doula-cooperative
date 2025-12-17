@@ -11,13 +11,13 @@ import {
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   toUnclaimedProfileResponse,
-  type UnclaimedProfileResponse,
+  type UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 
 export async function getUnclaimedProfile(options: {
   email: string;
   logger: Logger;
-}): Promise<UnclaimedProfileResponse> {
+}): Promise<UnclaimedProfileSuccessResponse> {
   const { email, logger } = options;
 
   try {

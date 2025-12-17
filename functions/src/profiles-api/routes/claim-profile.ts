@@ -1,6 +1,5 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
   IMPORT_COLLECTION,
   MEMBERS_COLLECTION,
@@ -10,11 +9,14 @@ import {
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import type {
+  EmailServiceInterface,
+  EmailMessage,
+} from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import { escapeHtml } from "../../utils/html-escape.js";
 import { addNewsletterSubscriber } from "../../utils/mailerlite.js";
-import { sendEmail } from "../../utils/send-email.js";
 
 /**
  * Response returned when successfully claiming a profile.
@@ -78,7 +80,8 @@ async function sendClaimProfileMailerLiteFailureNotification({
   subscriptionStart,
   membershipExpiresAt,
   errorMessage,
-  mailgunKey,
+  emailService,
+  logger,
 }: {
   email: string;
   name: string | undefined;
@@ -86,10 +89,11 @@ async function sendClaimProfileMailerLiteFailureNotification({
   subscriptionStart: Timestamp;
   membershipExpiresAt: Timestamp;
   errorMessage: string;
-  mailgunKey: string;
+  emailService: EmailServiceInterface;
+  logger: Logger;
 }): Promise<void> {
   try {
-    const notificationEmail: MailgunMessageData = {
+    const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
       subject: "Action Required: Manual Newsletter Signup (Profile Claim)",
@@ -103,7 +107,7 @@ async function sendClaimProfileMailerLiteFailureNotification({
       }),
     };
 
-    await sendEmail(notificationEmail, mailgunKey);
+    await emailService.sendEmail({ message: notificationEmail }, logger);
   } catch {
     // Already logged by sendEmail, error logged below in caller
   }
@@ -151,12 +155,14 @@ export async function claimProfileLogic({
   uid,
   email,
   emailVerified,
+  emailService,
   logger,
   set,
 }: {
   uid: string;
   email: string;
   emailVerified: boolean;
+  emailService: EmailServiceInterface;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ClaimProfileResponse | { error: string }> {
@@ -314,42 +320,40 @@ export async function claimProfileLogic({
           },
         );
 
-        // Send notification email if Mailgun is configured
-        const mailgunApiKey = process.env["MAILGUN_API_KEY"];
-        if (mailgunApiKey) {
-          try {
-            await sendClaimProfileMailerLiteFailureNotification({
-              email,
-              name: profileData.name,
+        // Send notification email
+        try {
+          await sendClaimProfileMailerLiteFailureNotification({
+            email,
+            name: profileData.name,
+            uid,
+            subscriptionStart,
+            membershipExpiresAt,
+            errorMessage,
+            emailService,
+            logger,
+          });
+          logger.info(
+            "Sent MailerLite failure notification email for profile claim",
+            {
               uid,
-              subscriptionStart,
-              membershipExpiresAt,
-              errorMessage,
-              mailgunKey: mailgunApiKey,
-            });
-            logger.info(
-              "Sent MailerLite failure notification email for profile claim",
-              {
-                uid,
-                email,
-              },
-            );
-          } catch {
-            logger.error(
-              "CRITICAL: Failed to send MailerLite failure notification email during profile claim",
-              {
-                errorId: ERROR_IDS.CLAIM_PROFILE_NOTIFICATION_FAILED,
-                uid,
-                email,
-                severity: "CRITICAL",
-                context:
-                  "MailerLite sync failed during profile claim AND notification email failed - admin is unaware",
-                actionRequired:
-                  "Check Sentry alerts immediately and manually add member to MailerLite",
-                originalMailerLiteError: errorMessage,
-              },
-            );
-          }
+              email,
+            },
+          );
+        } catch {
+          logger.error(
+            "CRITICAL: Failed to send MailerLite failure notification email during profile claim",
+            {
+              errorId: ERROR_IDS.CLAIM_PROFILE_NOTIFICATION_FAILED,
+              uid,
+              email,
+              severity: "CRITICAL",
+              context:
+                "MailerLite sync failed during profile claim AND notification email failed - admin is unaware",
+              actionRequired:
+                "Check Sentry alerts immediately and manually add member to MailerLite",
+              originalMailerLiteError: errorMessage,
+            },
+          );
         }
       }
     }

@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { EmailService } from "../../shared-api/services/email/index.js";
+import { handleContactFormLogic } from "../routes/handle-contact-form.js";
 import { FormStorageService } from "../services/form-storage/index.js";
 import { RecaptchaService } from "../services/recaptcha/index.js";
-import { handleContactFormLogic } from "../routes/handle-contact-form.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -44,8 +44,6 @@ export function createContactUsFormPlugin(services?: PartialServices) {
         set,
       }) => {
         const recaptchaSecretKey = process.env["RECAPTCHA_SECRET_KEY"];
-        const mailgunApiKey = process.env["MAILGUN_API_KEY"];
-
         if (!recaptchaSecretKey) {
           logger.error("RECAPTCHA_SECRET_KEY not configured");
           set.status = 500;
@@ -66,7 +64,6 @@ export function createContactUsFormPlugin(services?: PartialServices) {
           recaptchaService,
           formStorageService,
           emailService,
-          mailgunApiKey,
           logger,
           set,
         });

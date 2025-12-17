@@ -9,7 +9,7 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { auth } from "firebase-functions/v1";
-import { onCall, onRequest } from "firebase-functions/v2/https";
+import { onRequest } from "firebase-functions/v2/https";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
@@ -37,18 +37,6 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
     await import("./user-creation/set-auto-admin.js");
   await handleSetAutoAdmin(user);
 });
-
-export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
-
-export const adminSendInvitation = onCall(
-  { invoker: "public", secrets: ["MAILGUN_API_KEY"] },
-  async request => {
-    const apiKey = process.env["MAILGUN_API_KEY"];
-    const { handleSendInvitation } = await import("./admin/send-invitation.js");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleSendInvitation(request.data, request, apiKey);
-  },
-);
 
 // Elysia-based APIs
 
@@ -96,7 +84,7 @@ export const adminMessagesApi = onRequest(
 
 // Admin Unclaimed Profiles API (members.doulacooperative.com)
 export const adminUnclaimedProfilesApi = onRequest(
-  { invoker: "public" },
+  { invoker: "public", secrets: [...MAILGUN_SECRETS] },
   async (request, response) => {
     const { handleAdminUnclaimedProfilesApi } =
       await import("./admin-unclaimed-profiles-api/handler.js");

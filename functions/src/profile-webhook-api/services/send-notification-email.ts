@@ -1,6 +1,9 @@
-import type { MailgunMessageData } from "mailgun.js/definitions";
 import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
-import { sendEmail } from "../../utils/send-email.js";
+import type {
+  EmailServiceInterface,
+  EmailMessage,
+} from "../../shared-api/services/email/index.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import type { NotificationParameters } from "./types.js";
 
 /**
@@ -53,12 +56,16 @@ export async function sendNotificationEmail({
   memberName,
   slug,
   commitMessage,
-  mailgunApiKey,
-}: NotificationParameters): Promise<void> {
+  emailService,
+  logger,
+}: NotificationParameters & {
+  emailService: EmailServiceInterface;
+  logger: Logger;
+}): Promise<void> {
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
   const { subject, heading, description } = getEmailContent(commitMessage);
 
-  const emailMessage: MailgunMessageData = {
+  const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: memberEmail,
     subject,
@@ -102,5 +109,5 @@ export async function sendNotificationEmail({
     return;
   }
 
-  await sendEmail(emailMessage, mailgunApiKey);
+  await emailService.sendEmail({ message: emailMessage }, logger);
 }

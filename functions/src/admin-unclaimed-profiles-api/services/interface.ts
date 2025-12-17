@@ -1,7 +1,9 @@
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
-  ListUnclaimedProfilesResponse,
-  UnclaimedProfileResponse,
+  ListUnclaimedProfilesSuccessResponse,
+  SendInvitationSuccessResponse,
+  UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 
 export interface UnclaimedProfileAdminService {
@@ -9,10 +11,16 @@ export interface UnclaimedProfileAdminService {
     limit?: number;
     offset?: number;
     logger: Logger;
-  }): Promise<ListUnclaimedProfilesResponse>;
+  }): Promise<ListUnclaimedProfilesSuccessResponse>;
 
   getUnclaimedProfile(options: {
     email: string;
     logger: Logger;
-  }): Promise<UnclaimedProfileResponse>;
+  }): Promise<UnclaimedProfileSuccessResponse>;
+
+  sendInvitation(options: {
+    email: string;
+    emailService: EmailServiceInterface;
+    logger: Logger;
+  }): Promise<SendInvitationSuccessResponse>;
 }

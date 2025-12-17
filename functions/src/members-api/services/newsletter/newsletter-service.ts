@@ -1,5 +1,4 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
   MEMBERS_COLLECTION,
   type MemberDocument,
@@ -10,17 +9,20 @@ import {
   NO_REPLY_EMAIL,
 } from "../../../constants/index.js";
 import {
+  HttpError,
   NotFoundError,
   ValidationError,
-  HttpError,
 } from "../../../shared-api/errors/http-error.js";
+import type {
+  EmailMessage,
+  EmailServiceInterface,
+} from "../../../shared-api/services/email/index.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
 import { escapeHtml } from "../../../utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   removeNewsletterSubscriber,
 } from "../../../utils/mailerlite.js";
-import { sendEmail } from "../../../utils/send-email.js";
 import type { NewsletterService as NewsletterServiceInterface } from "./interface.js";
 
 /**
@@ -68,7 +70,7 @@ async function sendFailureNotification({
   uid,
   subscribed,
   errorMessage,
-  mailgunKey,
+  emailService,
   logger,
 }: {
   email: string;
@@ -76,11 +78,11 @@ async function sendFailureNotification({
   uid: string;
   subscribed: boolean;
   errorMessage: string;
-  mailgunKey: string;
+  emailService: EmailServiceInterface;
   logger: Logger;
 }): Promise<void> {
   try {
-    const notificationEmail: MailgunMessageData = {
+    const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
       subject: "Newsletter Update Failed - Action May Be Required",
@@ -93,7 +95,7 @@ async function sendFailureNotification({
       }),
     };
 
-    await sendEmail(notificationEmail, mailgunKey);
+    await emailService.sendEmail({ message: notificationEmail }, logger);
     logger.info("Sent newsletter failure notification email", {
       uid,
       email,
@@ -123,13 +125,13 @@ async function updateNewsletterPreference({
   memberId,
   subscribed,
   mailerliteApiKey,
-  mailgunApiKey,
+  emailService,
   logger,
 }: {
   memberId: string;
   subscribed: boolean;
   mailerliteApiKey: string;
-  mailgunApiKey: string | undefined;
+  emailService: EmailServiceInterface;
   logger: Logger;
 }): Promise<{ subscribed: boolean }> {
   const database = getFirestore();
@@ -145,7 +147,9 @@ async function updateNewsletterPreference({
         errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MEMBER_NOT_FOUND,
         memberId,
       });
-      throw new NotFoundError("Member document not found. Please contact support.");
+      throw new NotFoundError(
+        "Member document not found. Please contact support.",
+      );
     }
     memberDocument = documentSnapshot.data() as MemberDocument;
     email = memberDocument.email;
@@ -225,7 +229,8 @@ async function updateNewsletterPreference({
         logger.error(
           "Cannot subscribe to newsletter - missing subscription dates",
           {
-            errorId: ERROR_IDS.UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES,
+            errorId:
+              ERROR_IDS.UPDATE_NEWSLETTER_PREF_MISSING_SUBSCRIPTION_DATES,
             memberId,
             email,
             hasSubscriptionStart: Boolean(memberDocument.subscriptionStart),
@@ -234,18 +239,16 @@ async function updateNewsletterPreference({
           },
         );
 
-        // Send notification email if Mailgun is configured
-        if (mailgunApiKey) {
-          await sendFailureNotification({
-            email,
-            name: memberDocument.name,
-            uid: memberId,
-            subscribed,
-            errorMessage,
-            mailgunKey: mailgunApiKey,
-            logger,
-          });
-        }
+        // Send notification email
+        await sendFailureNotification({
+          email,
+          name: memberDocument.name,
+          uid: memberId,
+          subscribed,
+          errorMessage,
+          emailService,
+          logger,
+        });
 
         throw new ValidationError(
           "Your account is missing required membership information. Please contact support.",
@@ -290,18 +293,16 @@ async function updateNewsletterPreference({
       error,
     });
 
-    // Send notification email if Mailgun is configured
-    if (mailgunApiKey) {
-      await sendFailureNotification({
-        email,
-        name: memberDocument.name,
-        uid: memberId,
-        subscribed,
-        errorMessage,
-        mailgunKey: mailgunApiKey,
-        logger,
-      });
-    }
+    // Send notification email
+    await sendFailureNotification({
+      email,
+      name: memberDocument.name,
+      uid: memberId,
+      subscribed,
+      errorMessage,
+      emailService,
+      logger,
+    });
 
     throw new HttpError(
       "Failed to update newsletter subscription. Please try again later.",

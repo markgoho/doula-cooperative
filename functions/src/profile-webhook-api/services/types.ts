@@ -17,7 +17,6 @@ export interface NotificationParameters {
   memberName: string | undefined;
   slug: string;
   commitMessage: string;
-  mailgunApiKey: string;
 }
 
 export interface ValidationResult {

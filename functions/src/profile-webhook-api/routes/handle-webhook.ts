@@ -1,5 +1,6 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { ProfileWebhookService } from "../services/index.js";
 
@@ -13,8 +14,8 @@ interface WebhookResponse {
 export async function handleProfileWebhookLogic({
   payload,
   webhookSecret,
-  mailgunApiKey,
   profileWebhookService,
+  emailService,
   logger,
   set,
 }: {
@@ -25,8 +26,8 @@ export async function handleProfileWebhookLogic({
     secret?: string;
   };
   webhookSecret: string;
-  mailgunApiKey: string;
   profileWebhookService: typeof ProfileWebhookService;
+  emailService: EmailServiceInterface;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<WebhookResponse | { error: string }> {
@@ -119,7 +120,8 @@ export async function handleProfileWebhookLogic({
         memberName: member.name,
         slug: member.slug,
         commitMessage,
-        mailgunApiKey,
+        emailService,
+        logger,
       });
 
       logger.info("Profile update notification sent", {

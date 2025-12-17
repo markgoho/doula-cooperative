@@ -1,7 +1,7 @@
 import { t, type Static } from "elysia";
 import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
 
-export const UnclaimedProfileResponseSchema = t.Object({
+const UnclaimedProfileSuccessSchema = t.Object({
   email: t.String({ format: "email" }),
   name: t.String(),
   slug: t.Optional(t.String()),
@@ -17,14 +17,36 @@ export const UnclaimedProfileResponseSchema = t.Object({
   updatedAt: t.Optional(t.String({ format: "date-time" })),
 });
 
+export type UnclaimedProfileSuccessResponse = Static<
+  typeof UnclaimedProfileSuccessSchema
+>;
+
+const ErrorResponseSchema = t.Object({
+  error: t.String(),
+});
+
+export const UnclaimedProfileResponseSchema = t.Union([
+  UnclaimedProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
 export type UnclaimedProfileResponse = Static<
   typeof UnclaimedProfileResponseSchema
 >;
 
-export const ListUnclaimedProfilesResponseSchema = t.Object({
-  profiles: t.Array(UnclaimedProfileResponseSchema),
+const ListUnclaimedProfilesSuccessSchema = t.Object({
+  profiles: t.Array(UnclaimedProfileSuccessSchema),
   total: t.Number(),
 });
+
+export type ListUnclaimedProfilesSuccessResponse = Static<
+  typeof ListUnclaimedProfilesSuccessSchema
+>;
+
+export const ListUnclaimedProfilesResponseSchema = t.Union([
+  ListUnclaimedProfilesSuccessSchema,
+  ErrorResponseSchema,
+]);
 
 export type ListUnclaimedProfilesResponse = Static<
   typeof ListUnclaimedProfilesResponseSchema
@@ -42,9 +64,32 @@ export const EmailParameterSchema = t.Object({
   }),
 });
 
+const SendInvitationSuccessSchema = t.Object({
+  success: t.Boolean(),
+  warning: t.Optional(
+    t.String({
+      description:
+        "Warning message if email sent but tracking update failed",
+    }),
+  ),
+});
+
+export type SendInvitationSuccessResponse = Static<
+  typeof SendInvitationSuccessSchema
+>;
+
+export const SendInvitationResponseSchema = t.Union([
+  SendInvitationSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type SendInvitationResponse = Static<
+  typeof SendInvitationResponseSchema
+>;
+
 export function toUnclaimedProfileResponse(
   document: UnclaimedProfileDocument,
-): UnclaimedProfileResponse {
+): UnclaimedProfileSuccessResponse {
   return {
     email: document.email,
     name: document.name,

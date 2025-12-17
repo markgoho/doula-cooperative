@@ -3,7 +3,7 @@
 @let profileResource = service.unclaimedProfileResource;
 
 @if (service.successMessage(); as message) {
-  <div class="success-message">{{ message }}</div>
+  <div class="success-message" role="status">{{ message }}</div>
 }
 
 @if (service.actionError(); as message) {

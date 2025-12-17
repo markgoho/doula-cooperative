@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 
 /**
@@ -54,12 +55,13 @@ export interface StripeWebhookService {
    * Process a checkout.session.completed event.
    * Creates/updates user and member, adds to newsletter, sends welcome email.
    *
-   * @param options - The checkout session and logger
+   * @param options - The checkout session, email service, and logger
    * @returns Promise resolving to processing result
    * @throws StripeWebhookError if critical operations fail
    */
   processCheckoutCompleted(options: {
     session: Stripe.Checkout.Session;
+    emailService: EmailServiceInterface;
     logger: Logger;
   }): Promise<CheckoutCompletedResult>;
 }
