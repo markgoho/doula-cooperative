@@ -4,9 +4,12 @@ import type { AuthBlockingEvent } from "firebase-functions/v2/identity";
 
 // Mock firebase-admin/firestore
 const mockGet = mock(() => Promise.resolve({ exists: false }));
-const mockSet = mock(() => Promise.resolve());
-const mockDocument = mock(() => ({ get: mockGet, set: mockSet }));
-const mockCollection = mock(() => ({ doc: mockDocument }));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Parameter needed for type inference
+const mockSet = mock((_data: unknown) => Promise.resolve());
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Parameter needed for type inference
+const mockDocument = mock((_documentId: string) => ({ get: mockGet, set: mockSet }));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Parameter needed for type inference
+const mockCollection = mock((_collectionName: string) => ({ doc: mockDocument }));
 const mockGetFirestore = mock(() => ({ collection: mockCollection }));
 
 void mock.module("firebase-admin/firestore", () => ({
