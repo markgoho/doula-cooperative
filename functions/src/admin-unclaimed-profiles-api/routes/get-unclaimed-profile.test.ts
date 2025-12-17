@@ -4,7 +4,7 @@ import type { UnclaimedProfileDocument } from "../../collections/migrated-users-
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import {
   toUnclaimedProfileResponse,
-  type UnclaimedProfileResponse,
+  type UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -27,7 +27,7 @@ describe("GET /:email (get unclaimed profile)", () => {
   const mockProfile = toUnclaimedProfileResponse(mockProfileDocument);
 
   const mockGetUnclaimedProfile = mock(
-    ({ email }: { email: string }): Promise<UnclaimedProfileResponse> => {
+    ({ email }: { email: string }): Promise<UnclaimedProfileSuccessResponse> => {
       if (email === "nonexistent@example.com") {
         return Promise.reject(new NotFoundError("Profile not found"));
       }
@@ -94,7 +94,7 @@ describe("GET /:email (get unclaimed profile)", () => {
       )) as Response;
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as UnclaimedProfileResponse;
+      const body = (await response.json()) as UnclaimedProfileSuccessResponse;
       expect(body.email).toBe("test@example.com");
     });
   });
@@ -110,7 +110,7 @@ describe("GET /:email (get unclaimed profile)", () => {
       )) as Response;
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as UnclaimedProfileResponse;
+      const body = (await response.json()) as UnclaimedProfileSuccessResponse;
       expect(body.email).toBe("test@example.com");
       expect(body.name).toBe("Test User");
       expect(body.slug).toBe("test-user");

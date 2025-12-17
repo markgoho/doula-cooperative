@@ -3,7 +3,7 @@ import {
   HttpError,
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
-import { SendInvitationSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
+import type { SendInvitationSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**

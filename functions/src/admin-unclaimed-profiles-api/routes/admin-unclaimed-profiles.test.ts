@@ -4,7 +4,7 @@ import type { UnclaimedProfileDocument } from "../../collections/migrated-users-
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import {
   toUnclaimedProfileResponse,
-  type UnclaimedProfileResponse,
+  type UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -31,7 +31,9 @@ describe("Admin Unclaimed Profiles API", () => {
     beforeEach(() => mockListProfiles.mockClear());
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(new Request("http://localhost/"))) as Response;
+      const response = (await testApp.handle(
+        new Request("http://localhost/"),
+      )) as Response;
       expect(response.status).toBe(401);
     });
 
@@ -43,7 +45,10 @@ describe("Admin Unclaimed Profiles API", () => {
       )) as Response;
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { profiles: unknown[]; total: number };
+      const body = (await response.json()) as {
+        profiles: unknown[];
+        total: number;
+      };
       expect(body.profiles).toHaveLength(1);
       expect(body.total).toBe(1);
     });
@@ -114,14 +119,16 @@ describe("Admin Unclaimed Profiles API", () => {
       )) as Response;
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as UnclaimedProfileResponse;
+      const body = (await response.json()) as UnclaimedProfileSuccessResponse;
       expect(body.email).toBe("test@example.com");
     });
 
     it("should return 404 when not found", async () => {
       const notFoundApp = createAdminTestPlugin({
         unclaimedProfileAdminService: {
-          getUnclaimedProfile: mock(() => { throw new NotFoundError("Not found"); }),
+          getUnclaimedProfile: mock(() => {
+            throw new NotFoundError("Not found");
+          }),
         },
       });
 
@@ -153,7 +160,7 @@ describe("Admin Unclaimed Profiles API", () => {
         )) as Response;
 
         expect(response.status).toBe(200);
-        const body = (await response.json()) as UnclaimedProfileResponse;
+        const body = (await response.json()) as UnclaimedProfileSuccessResponse;
         expect(body.email).toBe("test@example.com");
       });
     });
