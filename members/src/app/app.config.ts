@@ -8,7 +8,6 @@ import {
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { connectAuthEmulator, getAuth, provideAuth } from '@angular/fire/auth';
 import { connectFirestoreEmulator, getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { connectFunctionsEmulator, getFunctions, provideFunctions } from '@angular/fire/functions';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
@@ -56,17 +55,6 @@ export const appConfig: ApplicationConfig = {
         console.log('Using production Firestore');
       }
       return firestore;
-    }),
-
-    provideFunctions(() => {
-      const functions = getFunctions();
-      if (useEmulators) {
-        console.log('Connecting to Functions emulator');
-        connectFunctionsEmulator(functions, 'localhost', 5001);
-      } else {
-        console.log('Using production Functions');
-      }
-      return functions;
     }),
   ],
 };

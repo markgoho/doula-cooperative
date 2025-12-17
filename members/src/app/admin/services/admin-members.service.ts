@@ -1,7 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
 import type {
   ListMembersResponse,
@@ -26,7 +25,6 @@ interface Contact {
 })
 export class AdminMembersService {
   private httpClient = inject(HttpClient);
-  private functions = inject(Functions);
 
   async listMembers(): Promise<ListMembersResponse> {
     // Authorization header added automatically by authInterceptor
@@ -219,12 +217,12 @@ export class AdminMembersService {
   }
 
   async sendInvitation(email: string): Promise<{ success: boolean }> {
-    const sendInvitationCallable = httpsCallable<{ email: string }, { success: boolean }>(
-      this.functions,
-      'adminSendInvitation',
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean }>(
+        `/api/admin/unclaimed-profiles/${email}/invitation`,
+        {},
+      ),
     );
-
-    const result = await sendInvitationCallable({ email });
-    return result.data;
   }
 }

@@ -1,7 +1,6 @@
 import type { UserRecord } from "firebase-admin/auth";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type { MailgunMessageData } from "mailgun.js/definitions";
 import type Stripe from "stripe";
 import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import {
@@ -12,6 +11,10 @@ import {
   REFERRAL_EMAIL,
 } from "../../constants/index.js";
 import { StripeWebhookError } from "../../shared-api/errors/stripe-errors.js";
+import type {
+  EmailServiceInterface,
+  EmailMessage,
+} from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { escapeHtml } from "../../utils/html-escape.js";
 import {
@@ -23,7 +26,6 @@ import {
   createStripeMemberUpdate,
 } from "../../utils/member-factory.js";
 import { calculateExpirationDate } from "../../utils/membership-dates.js";
-import { sendEmail } from "../../utils/send-email.js";
 import type { CheckoutCompletedResult } from "./interface.js";
 
 /**
@@ -85,32 +87,32 @@ function createMailerLiteFailureEmailHtml(options: {
   `;
 }
 
-/**
- * Send notification email when MailerLite subscription fails.
- */
-async function sendMailerLiteFailureNotification(options: {
+interface OptionsConfig {
+  emailService: EmailServiceInterface;
   customerEmail: string;
   customerName: string | null | undefined;
   userRecord: UserRecord;
   subscriptionStart: Timestamp;
   membershipExpiresAt: Timestamp;
   errorMessage: string;
-  mailgunApiKey: string;
   logger: Logger;
-}): Promise<void> {
-  const {
-    customerEmail,
-    customerName,
-    userRecord,
-    subscriptionStart,
-    membershipExpiresAt,
-    errorMessage,
-    mailgunApiKey,
-    logger,
-  } = options;
+}
 
+/**
+ * Send notification email when MailerLite subscription fails.
+ */
+async function sendMailerLiteFailureNotification({
+  emailService,
+  customerEmail,
+  customerName,
+  userRecord,
+  subscriptionStart,
+  membershipExpiresAt,
+  errorMessage,
+  logger,
+}: OptionsConfig): Promise<void> {
   try {
-    const notificationEmail: MailgunMessageData = {
+    const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
       subject: "Action Required: Manual Newsletter Signup",
@@ -124,7 +126,7 @@ async function sendMailerLiteFailureNotification(options: {
       }),
     };
 
-    await sendEmail(notificationEmail, mailgunApiKey);
+    await emailService.sendEmail({ message: notificationEmail }, logger);
     logger.info("Sent MailerLite failure notification email", {
       uid: userRecord.uid,
       email: customerEmail,
@@ -149,10 +151,10 @@ async function sendMailerLiteFailureNotification(options: {
 async function sendWelcomeEmail(options: {
   email: string;
   uid: string;
-  mailgunApiKey: string;
+  emailService: EmailServiceInterface;
   logger: Logger;
 }): Promise<void> {
-  const { email, uid, mailgunApiKey, logger } = options;
+  const { email, uid, emailService, logger } = options;
   const auth = getAuth();
 
   let resetLink: string;
@@ -170,7 +172,7 @@ async function sendWelcomeEmail(options: {
     throw new Error(`Failed to generate password reset link for ${email}`);
   }
 
-  const emailMessage: MailgunMessageData = {
+  const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: email,
     bcc: REFERRAL_EMAIL,
@@ -206,7 +208,7 @@ async function sendWelcomeEmail(options: {
     logger.info(`Password reset link: ${resetLink}`);
   } else {
     try {
-      await sendEmail(emailMessage, mailgunApiKey);
+      await emailService.sendEmail({ message: emailMessage }, logger);
       logger.info(`Welcome email sent to: ${email}`);
     } catch (error) {
       logger.error("Failed to send welcome email via Mailgun", {
@@ -226,13 +228,13 @@ async function sendWelcomeEmail(options: {
  */
 export async function processCheckoutCompleted(options: {
   session: Stripe.Checkout.Session;
+  emailService: EmailServiceInterface;
   logger: Logger;
 }): Promise<CheckoutCompletedResult> {
-  const { session, logger } = options;
+  const { session, emailService, logger } = options;
   const database = getFirestore();
   const auth = getAuth();
 
-  const mailgunApiKey = process.env["MAILGUN_API_KEY"];
   const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
 
   // Get email from customer_details (customer_email is often null in real webhooks)
@@ -455,15 +457,15 @@ export async function processCheckoutCompleted(options: {
       warning = "Newsletter subscription failed - manual signup needed";
 
       // Send notification email to newsletter admin (production only)
-      if (!process.env["FUNCTIONS_EMULATOR"] && mailgunApiKey) {
+      if (!process.env["FUNCTIONS_EMULATOR"]) {
         await sendMailerLiteFailureNotification({
+          emailService,
           customerEmail,
           customerName: session.customer_details?.name,
           userRecord,
           subscriptionStart,
           membershipExpiresAt,
           errorMessage,
-          mailgunApiKey,
           logger,
         });
       }
@@ -488,96 +490,64 @@ export async function processCheckoutCompleted(options: {
   // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)
   let emailSent = false;
   if (isNewUser) {
-    if (mailgunApiKey) {
-      try {
-        await sendWelcomeEmail({
-          email: customerEmail,
-          uid: userRecord.uid,
-          mailgunApiKey,
-          logger,
-        });
-        emailSent = true;
+    try {
+      await sendWelcomeEmail({
+        email: customerEmail,
+        uid: userRecord.uid,
+        emailService,
+        logger,
+      });
+      emailSent = true;
 
-        // Update member document with email success status
-        await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
-          {
-            welcomeEmailStatus: "sent",
-            welcomeEmailSentAt: Timestamp.now(),
-          },
-          { merge: true },
-        );
-
-        logger.info("Welcome email sent successfully", {
-          uid: userRecord.uid,
-          email: customerEmail,
-        });
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-
-        logger.error("Email failed but account is active", {
-          error,
-          errorId: ERROR_IDS.STRIPE_WEBHOOK_EMAIL_FAILED,
-          uid: userRecord.uid,
-          email: customerEmail,
-          memberDocCreated: true,
-          actionRequired: "Manually resend welcome email",
-        });
-
-        warning = warning
-          ? `${warning}; Welcome email failed`
-          : "Welcome email failed - manual resend needed";
-
-        // Store failure status in member document for recovery
-        try {
-          await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
-            {
-              welcomeEmailStatus: "failed",
-              welcomeEmailError: errorMessage,
-            },
-            { merge: true },
-          );
-        } catch (firestoreError) {
-          logger.error("Failed to update email failure status in Firestore", {
-            error: firestoreError,
-            uid: userRecord.uid,
-            originalEmailError: errorMessage,
-            context:
-              "Cascading failure - email failed AND status update failed",
-            severity: "CRITICAL",
-            actionRequired:
-              "Check Firestore permissions and manually record email failure status",
-          });
-        }
-      }
-    } else if (process.env["FUNCTIONS_EMULATOR"]) {
-      logger.warn(
-        "MAILGUN_API_KEY not configured - emulator mode, skipping email",
+      // Update member document with email success status
+      await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
+        {
+          welcomeEmailStatus: "sent",
+          welcomeEmailSentAt: Timestamp.now(),
+        },
+        { merge: true },
       );
-    } else {
-      logger.error("MAILGUN_API_KEY not configured in production", {
-        errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILGUN_NOT_CONFIGURED,
+
+      logger.info("Welcome email sent successfully", {
         uid: userRecord.uid,
         email: customerEmail,
       });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      logger.error("Email failed but account is active", {
+        error,
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_EMAIL_FAILED,
+        uid: userRecord.uid,
+        email: customerEmail,
+        memberDocCreated: true,
+        actionRequired: "Manually resend welcome email",
+      });
 
       warning = warning
-        ? `${warning}; Email not configured`
-        : "Email not configured - manual setup required";
+        ? `${warning}; Welcome email failed`
+        : "Welcome email failed - manual resend needed";
 
-      // Store pending status for manual follow-up
+      // Store failure status in member document for recovery
       try {
         await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
           {
-            welcomeEmailStatus: "pending",
-            welcomeEmailError: "MAILGUN_API_KEY not configured",
+            welcomeEmailStatus: "failed",
+            welcomeEmailError: errorMessage,
           },
           { merge: true },
         );
       } catch (firestoreError) {
-        logger.error("Failed to update pending email status", {
+        logger.error("Failed to update email failure status in Firestore", {
           error: firestoreError,
           uid: userRecord.uid,
+          originalEmailError: errorMessage,
+          context:
+            "Cascading failure - email failed AND status update failed",
+          severity: "CRITICAL",
+          actionRequired:
+            "Check Firestore permissions and manually record email failure status",
         });
       }
     }

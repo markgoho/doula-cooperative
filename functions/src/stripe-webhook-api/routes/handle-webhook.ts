@@ -4,6 +4,7 @@ import {
   StripeConfigurationError,
   StripeSignatureError,
 } from "../../shared-api/errors/stripe-errors.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
   StripeWebhookErrorResponse,
@@ -19,11 +20,18 @@ export async function handleStripeWebhookLogic(options: {
   rawBody: Buffer;
   stripeSignature: string | undefined;
   stripeWebhookService: StripeWebhookService;
+  emailService: EmailServiceInterface;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<StripeWebhookResponse | StripeWebhookErrorResponse> {
-  const { rawBody, stripeSignature, stripeWebhookService, logger, set } =
-    options;
+  const {
+    rawBody,
+    stripeSignature,
+    stripeWebhookService,
+    emailService,
+    logger,
+    set,
+  } = options;
 
   // Step 1: Validate signature header presence
   if (!stripeSignature) {
@@ -92,6 +100,7 @@ export async function handleStripeWebhookLogic(options: {
     try {
       const result = await stripeWebhookService.processCheckoutCompleted({
         session: event.data.object,
+        emailService,
         logger,
       });
 

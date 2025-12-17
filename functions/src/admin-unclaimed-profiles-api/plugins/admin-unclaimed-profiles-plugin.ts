@@ -1,12 +1,14 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { adminDerive } from "../../shared-api/utils/admin-derive.js";
 import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
+  sendInvitationLogic,
 } from "../routes/index.js";
 import {
   EmailParameterSchema,
@@ -30,10 +32,13 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
     new Elysia({ name: "admin-unclaimed-profiles" })
       .decorate(
         SERVICE_KEYS.UNCLAIMED_PROFILE_ADMIN_SERVICE,
-        services?.unclaimedProfileAdminService ??
-          UnclaimedProfileAdminService,
+        services?.unclaimedProfileAdminService ?? UnclaimedProfileAdminService,
       )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(
+        SERVICE_KEYS.EMAIL_SERVICE,
+        services?.emailService ?? EmailService,
+      )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       .derive(adminDerive)
       .onBeforeHandle({ as: "local" }, adminGuard)
@@ -71,6 +76,27 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
             email: params.email,
             adminUid: getAdminUid(adminToken, logger),
             unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        { params: EmailParameterSchema },
+      )
+      // POST /:email/invitation - Send invitation email to unclaimed profile
+      .post(
+        "/:email/invitation",
+        async ({
+          params,
+          adminToken,
+          unclaimedProfileAdminService,
+          emailService,
+          logger,
+          set,
+        }) =>
+          sendInvitationLogic({
+            email: params.email,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            emailService,
             logger,
             set,
           }),

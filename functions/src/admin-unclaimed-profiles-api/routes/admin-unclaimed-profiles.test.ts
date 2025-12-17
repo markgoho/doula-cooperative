@@ -158,4 +158,88 @@ describe("Admin Unclaimed Profiles API", () => {
       });
     });
   });
+
+  describe("POST /:email/invitation (send invitation)", () => {
+    const mockSendInvitation = mock(() => Promise.resolve({ success: true }));
+    const testApp = createAdminTestPlugin({
+      unclaimedProfileAdminService: { sendInvitation: mockSendInvitation },
+    });
+
+    beforeEach(() => mockSendInvitation.mockClear());
+
+    it("should return 401 when not authenticated", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/test@example.com/invitation", {
+          method: "POST",
+        }),
+      )) as Response;
+      expect(response.status).toBe(401);
+    });
+
+    it("should return 403 when not admin", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/test@example.com/invitation", {
+          method: "POST",
+          headers: { Authorization: "Bearer non-admin-token" },
+        }),
+      )) as Response;
+      expect(response.status).toBe(403);
+    });
+
+    it("should send invitation when authenticated as admin", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/test@example.com/invitation", {
+          method: "POST",
+          headers: { Authorization: "Bearer admin-token" },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success: boolean };
+      expect(body.success).toBe(true);
+    });
+
+    it("should return 404 when profile not found", async () => {
+      const notFoundApp = createAdminTestPlugin({
+        unclaimedProfileAdminService: {
+          sendInvitation: mock(() => {
+            throw new NotFoundError("Unclaimed profile not found");
+          }),
+        },
+      });
+
+      const response = (await notFoundApp.handle(
+        new Request("http://localhost/nonexistent@example.com/invitation", {
+          method: "POST",
+          headers: { Authorization: "Bearer admin-token" },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(404);
+    });
+
+    describe("Email Parameter Validation", () => {
+      it("should reject invalid email format", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/not-an-email/invitation", {
+            method: "POST",
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(422);
+      });
+
+      it("should accept valid email format", async () => {
+        const response = (await testApp.handle(
+          new Request("http://localhost/valid@example.com/invitation", {
+            method: "POST",
+            headers: { Authorization: "Bearer admin-token" },
+          }),
+        )) as Response;
+
+        expect(response.status).toBe(200);
+      });
+    });
+  });
 });

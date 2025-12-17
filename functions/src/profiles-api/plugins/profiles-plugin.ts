@@ -3,6 +3,7 @@ import type { DecodedIdToken } from "firebase-admin/auth";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { getUserUid } from "../../shared-api/utils/get-user-uid.js";
 import { userDerive } from "../../shared-api/utils/user-derive.js";
@@ -110,6 +111,10 @@ export function createProfilesPlugin(services?: PartialServices) {
         services?.profileMemberService ?? ProfileMemberService,
       )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(
+        SERVICE_KEYS.EMAIL_SERVICE,
+        services?.emailService ?? EmailService,
+      )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       // PUBLIC ROUTES (before auth guards)
 
@@ -220,7 +225,14 @@ export function createProfilesPlugin(services?: PartialServices) {
       // POST /:slug/claim - Claim unclaimed profile (must own slug or be admin)
       .post(
         "/:slug/claim",
-        async ({ params, userToken, profileMemberService, logger, set }) => {
+        async ({
+          params,
+          userToken,
+          profileMemberService,
+          emailService,
+          logger,
+          set,
+        }) => {
           await validateSlugOwnershipOrAdmin({
             urlSlug: params.slug,
             userToken,
@@ -248,6 +260,7 @@ export function createProfilesPlugin(services?: PartialServices) {
             uid,
             email,
             emailVerified,
+            emailService,
             logger,
             set,
           });

@@ -1,5 +1,6 @@
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
 
@@ -10,6 +11,7 @@ import type { NewsletterService } from "../services/newsletter/interface.js";
 export const SERVICE_KEYS = {
   MEMBER_SERVICE: "memberService",
   AUTH_SERVICE: "authService",
+  EMAIL_SERVICE: "emailService",
   LOGGER: "logger",
   NEWSLETTER_SERVICE: "newsletterService",
 } as const;
@@ -22,6 +24,7 @@ export const SERVICE_KEYS = {
 export interface Services {
   [SERVICE_KEYS.MEMBER_SERVICE]: MemberService;
   [SERVICE_KEYS.AUTH_SERVICE]: AuthService;
+  [SERVICE_KEYS.EMAIL_SERVICE]: EmailServiceInterface;
   [SERVICE_KEYS.LOGGER]: Logger;
   [SERVICE_KEYS.NEWSLETTER_SERVICE]: NewsletterService;
 }

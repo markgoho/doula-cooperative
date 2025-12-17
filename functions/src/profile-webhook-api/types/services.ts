@@ -1,3 +1,4 @@
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { ProfileWebhookService } from "../services/interface.js";
 
@@ -7,6 +8,7 @@ import type { ProfileWebhookService } from "../services/interface.js";
  */
 export const SERVICE_KEYS = {
   PROFILE_WEBHOOK_SERVICE: "profileWebhookService",
+  EMAIL_SERVICE: "emailService",
   LOGGER: "logger",
 } as const;
 
@@ -17,6 +19,7 @@ export const SERVICE_KEYS = {
  */
 export interface Services {
   [SERVICE_KEYS.PROFILE_WEBHOOK_SERVICE]: ProfileWebhookService;
+  [SERVICE_KEYS.EMAIL_SERVICE]: EmailServiceInterface;
   [SERVICE_KEYS.LOGGER]: Logger;
 }
 

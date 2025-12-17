@@ -42,6 +42,14 @@ export const EmailParameterSchema = t.Object({
   }),
 });
 
+export const SendInvitationResponseSchema = t.Object({
+  success: t.Boolean(),
+});
+
+export type SendInvitationResponse = Static<
+  typeof SendInvitationResponseSchema
+>;
+
 export function toUnclaimedProfileResponse(
   document: UnclaimedProfileDocument,
 ): UnclaimedProfileResponse {

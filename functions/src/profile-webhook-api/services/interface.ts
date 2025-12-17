@@ -1,3 +1,4 @@
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
   MemberInfo,
@@ -46,7 +47,12 @@ export interface ProfileWebhookService {
   /**
    * Send notification email to member about profile update.
    *
-   * @param options - Email notification parameters
+   * @param options - Email notification parameters including injected email service
    */
-  sendNotificationEmail(options: NotificationParameters): Promise<void>;
+  sendNotificationEmail(
+    options: NotificationParameters & {
+      emailService: EmailServiceInterface;
+      logger: Logger;
+    },
+  ): Promise<void>;
 }

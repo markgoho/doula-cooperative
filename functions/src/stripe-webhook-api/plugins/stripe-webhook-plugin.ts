@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleStripeWebhookLogic } from "../routes/handle-webhook.js";
 import { StripeWebhookService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -26,10 +27,14 @@ export function createStripeWebhookPlugin(services?: PartialServices) {
       SERVICE_KEYS.STRIPE_WEBHOOK_SERVICE,
       services?.stripeWebhookService ?? StripeWebhookService,
     )
+    .decorate(
+      SERVICE_KEYS.EMAIL_SERVICE,
+      services?.emailService ?? EmailService,
+    )
     .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
     .post(
       "/webhook",
-      async ({ request, stripeWebhookService, logger, set }) => {
+      async ({ request, stripeWebhookService, emailService, logger, set }) => {
         // Get raw body for signature verification
         const rawBody = Buffer.from(await request.arrayBuffer());
         const stripeSignature =
@@ -39,6 +44,7 @@ export function createStripeWebhookPlugin(services?: PartialServices) {
           rawBody,
           stripeSignature,
           stripeWebhookService,
+          emailService,
           logger,
           set,
         });

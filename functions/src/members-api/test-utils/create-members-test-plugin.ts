@@ -4,6 +4,7 @@ import type { MemberDocument } from "../../types/member-document.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
 import {
@@ -22,6 +23,7 @@ export function createMembersTestPlugin(overrides?: {
   memberService?: Partial<MemberService>;
   newsletterService?: Partial<NewsletterService>;
   authService?: Partial<AuthService>;
+  emailService?: EmailServiceInterface;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -43,10 +45,16 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.authService,
   };
 
+  const defaultEmailService: EmailServiceInterface = {
+    sendEmail: mock(() => Promise.resolve()),
+    ...overrides?.emailService,
+  };
+
   return createMembersPlugin({
     memberService: defaultMemberService,
     newsletterService: defaultNewsletterService,
     authService: defaultAuthService,
+    emailService: defaultEmailService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

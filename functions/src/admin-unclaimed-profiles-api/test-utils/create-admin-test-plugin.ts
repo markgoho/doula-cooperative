@@ -1,6 +1,7 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
@@ -20,6 +21,7 @@ import type { UnclaimedProfileAdminService } from "../services/interface.js";
 export function createAdminTestPlugin(overrides?: {
   unclaimedProfileAdminService?: Partial<UnclaimedProfileAdminService>;
   authService?: Partial<AuthService>;
+  emailService?: EmailServiceInterface;
   logger?: Logger;
 }) {
   const defaultUnclaimedProfileAdminService: UnclaimedProfileAdminService = {
@@ -32,6 +34,7 @@ export function createAdminTestPlugin(overrides?: {
     getUnclaimedProfile: mock(() =>
       Promise.resolve({} as UnclaimedProfileResponse),
     ),
+    sendInvitation: mock(() => Promise.resolve({ success: true })),
     ...overrides?.unclaimedProfileAdminService,
   };
 
@@ -42,9 +45,15 @@ export function createAdminTestPlugin(overrides?: {
     ...overrides?.authService,
   };
 
+  const defaultEmailService: EmailServiceInterface = {
+    sendEmail: mock(() => Promise.resolve()),
+    ...overrides?.emailService,
+  };
+
   return createAdminUnclaimedProfilesPlugin({
     unclaimedProfileAdminService: defaultUnclaimedProfileAdminService,
     authService: defaultAuthService,
+    emailService: defaultEmailService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

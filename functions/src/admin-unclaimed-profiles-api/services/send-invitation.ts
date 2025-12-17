@@ -1,17 +1,20 @@
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
-import { logger } from "firebase-functions";
-import { HttpsError, type CallableRequest } from "firebase-functions/v2/https";
-import type { MailgunMessageData } from "mailgun.js/definitions";
 import {
   IMPORT_COLLECTION,
   type UnclaimedProfileDocumentData,
-} from "../collections/index.js";
-import { ERROR_IDS, NO_REPLY_EMAIL } from "../constants/index.js";
-import { sendEmail } from "../utils/send-email.js";
-import { verifyAdmin } from "./verify-admin.js";
+} from "../../collections/index.js";
+import { ERROR_IDS, NO_REPLY_EMAIL } from "../../constants/index.js";
+import { HttpError } from "../../shared-api/errors/http-error.js";
+import type {
+  EmailMessage,
+  EmailServiceInterface,
+} from "../../shared-api/services/email/index.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 
-export interface SendInvitationRequest {
+interface SendInvitationOptions {
   email: string;
+  emailService: EmailServiceInterface;
+  logger: Logger;
 }
 
 export interface SendInvitationResponse {
@@ -19,30 +22,21 @@ export interface SendInvitationResponse {
 }
 
 /**
- * Admin function to send an invitation email to a member to claim their subscription.
+ * Send an invitation email to a member to claim their subscription.
  * Includes subscription details (start date, renewal date, days remaining).
  */
-export async function handleSendInvitation(
-  data: SendInvitationRequest,
-  context: CallableRequest,
-  mailgunApiKey: string | undefined,
-): Promise<SendInvitationResponse> {
-  // Verify admin privileges
-  verifyAdmin(context);
-
-  const { email } = data;
-
+export async function sendInvitation({
+  email,
+  emailService,
+  logger,
+}: SendInvitationOptions): Promise<SendInvitationResponse> {
   // Validate email is provided
   if (!email || typeof email !== "string") {
     logger.error("Invalid email provided to send invitation", {
       errorId: ERROR_IDS.ADMIN_SEND_INVITATION_INVALID_UID,
       email,
-      adminUid: context.auth?.uid,
     });
-    throw new HttpsError(
-      "invalid-argument",
-      "Email is required and must be a string.",
-    );
+    throw new HttpError("Email is required and must be a string.", 400);
   }
 
   try {
@@ -59,11 +53,10 @@ export async function handleSendInvitation(
       logger.error("Unclaimed profile not found for invitation", {
         errorId: ERROR_IDS.ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND,
         email,
-        adminUid: context.auth?.uid,
       });
-      throw new HttpsError(
-        "not-found",
+      throw new HttpError(
         `Unclaimed profile with email ${email} not found.`,
+        404,
       );
     }
 
@@ -74,13 +67,14 @@ export async function handleSendInvitation(
       logger.error("Unclaimed profile missing required data for invitation", {
         errorId: ERROR_IDS.ADMIN_SEND_INVITATION_NO_SUBSCRIPTION,
         email,
-        adminUid: context.auth?.uid,
-        hasData: !!unclaimedProfileData,
-        hasSubscriptionStart: !!unclaimedProfileData?.["subscriptionStart"],
+        hasData: Boolean(unclaimedProfileData),
+        hasSubscriptionStart: Boolean(
+          unclaimedProfileData?.["subscriptionStart"],
+        ),
       });
-      throw new HttpsError(
-        "failed-precondition",
+      throw new HttpError(
         "Unclaimed profile is missing required data (subscriptionStart).",
+        412,
       );
     }
 
@@ -106,7 +100,7 @@ export async function handleSendInvitation(
     // Build membership details HTML (renewal info is optional)
     const membershipDetailsHtml = `<li><strong>Subscription Started:</strong> ${subscriptionStartDate}</li>`;
 
-    const emailMessage: MailgunMessageData = {
+    const emailMessage: EmailMessage = {
       from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
       to: member.email,
       subject: "Claim Your Rochester Doula Cooperative Membership",
@@ -140,56 +134,28 @@ export async function handleSendInvitation(
       `,
     };
 
-    // Send email (skip only in test mode when no API key is provided)
-    // Email sending is prevented when:
-    // - mailgunApiKey is undefined (unit tests pass undefined)
-    //
-    // During local development with emulators:
-    // - If MAILGUN_API_KEY secret is configured, emails WILL be sent (for testing)
-    // - This allows you to test the actual email content and delivery
-    //
-    // TODO: For additional safety, you can add email domain restrictions:
-    // - Only send to specific domains during development (e.g., @doulacooperative.com)
-    // - Use a feature flag or environment variable (e.g., ENABLE_INVITATION_EMAILS)
-    if (mailgunApiKey === undefined) {
-      logger.info("Test mode detected (no API key), skipping email dispatch.", {
-        recipientEmail: member.email,
+    // Send email via injected EmailService
+    // In emulator mode (FUNCTIONS_EMULATOR=true), email sending is automatically skipped
+    try {
+      await emailService.sendEmail({ message: emailMessage }, logger);
+      logger.info("Invitation email sent successfully", {
         email,
-        adminUid: context.auth?.uid,
+        recipientEmail: member.email,
       });
-      logger.info(`Would have sent invitation email to: ${member.email}`);
-    } else {
-      // Send the email (works in both local dev and production)
-      // Uncomment the following lines if you want to add email domain restrictions:
-      // const allowedDomains = ['doulacooperative.com'];
-      // const emailDomain = member.email.split('@')[1];
-      // if (!allowedDomains.includes(emailDomain)) {
-      //   logger.warn("Skipping email to non-approved domain", { recipientEmail: member.email });
-      //   return { success: true };
-      // }
-      try {
-        await sendEmail(emailMessage, mailgunApiKey);
-        logger.info("Invitation email sent successfully", {
-          email,
-          recipientEmail: member.email,
-          adminUid: context.auth?.uid,
-        });
-      } catch (error) {
-        logger.error("Failed to send invitation email", {
-          error,
-          errorId: ERROR_IDS.ADMIN_SEND_INVITATION_EMAIL_FAILED,
-          email,
-          recipientEmail: member.email,
-          adminUid: context.auth?.uid,
-        });
-        // Update member document with error
-        await unclaimedProfileReference.update({
-          invitationEmailStatus: "failed",
-          invitationEmailError:
-            error instanceof Error ? error.message : "Unknown error",
-        });
-        throw new HttpsError("internal", "Failed to send invitation email.");
-      }
+    } catch (error) {
+      logger.error("Failed to send invitation email", {
+        error,
+        errorId: ERROR_IDS.ADMIN_SEND_INVITATION_EMAIL_FAILED,
+        email,
+        recipientEmail: member.email,
+      });
+      // Update member document with error
+      await unclaimedProfileReference.update({
+        invitationEmailStatus: "failed",
+        invitationEmailError:
+          error instanceof Error ? error.message : "Unknown error",
+      });
+      throw new HttpError("Failed to send invitation email.", 500);
     }
 
     // Update member document with invitation tracking
@@ -201,13 +167,12 @@ export async function handleSendInvitation(
 
     logger.info("Invitation sent and tracked successfully", {
       email,
-      adminUid: context.auth?.uid,
     });
 
     return { success: true };
   } catch (error) {
-    // Re-throw HttpsError instances (already logged)
-    if (error instanceof HttpsError) {
+    // Re-throw HttpError instances (already logged)
+    if (error instanceof HttpError) {
       throw error;
     }
 
@@ -215,11 +180,10 @@ export async function handleSendInvitation(
     logger.error("Unexpected error sending invitation", {
       error,
       email,
-      adminUid: context.auth?.uid,
     });
-    throw new HttpsError(
-      "internal",
+    throw new HttpError(
       "An unexpected error occurred while sending invitation.",
+      500,
     );
   }
 }

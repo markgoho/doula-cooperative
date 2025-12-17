@@ -178,7 +178,6 @@ describe("POST /doula-match", () => {
   describe("Successful Submission", () => {
     beforeEach(() => {
       process.env["RECAPTCHA_SECRET_KEY"] = "test-recaptcha-key";
-      process.env["MAILGUN_API_KEY"] = "test-mailgun-key";
     });
 
     it("should save form and send email on successful submission", async () => {
@@ -213,7 +212,6 @@ describe("POST /doula-match", () => {
   describe("Email Failure Handling", () => {
     beforeEach(() => {
       process.env["RECAPTCHA_SECRET_KEY"] = "test-recaptcha-key";
-      process.env["MAILGUN_API_KEY"] = "test-mailgun-key";
     });
 
     it("should save form and return warning when email send fails", async () => {
@@ -269,7 +267,6 @@ describe("POST /doula-match", () => {
   describe("Firestore Failure Handling", () => {
     beforeEach(() => {
       process.env["RECAPTCHA_SECRET_KEY"] = "test-recaptcha-key";
-      process.env["MAILGUN_API_KEY"] = "test-mailgun-key";
     });
 
     it("should return 500 when Firestore save fails", async () => {
