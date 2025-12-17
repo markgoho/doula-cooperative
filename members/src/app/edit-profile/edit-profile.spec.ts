@@ -2,7 +2,6 @@ import { signal } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../test-utils/timestamp-mock';
 import { MembershipService, type Member } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
 import { type ProfileData } from '../types/profile-data';
@@ -300,16 +299,18 @@ async function setup({
     mockMemberDocument = {
       uid: 'test-uid',
       email: 'test@example.com',
-      createdAt: new Timestamp(0, 0),
+      createdAt: new Date(0),
+      isAdmin: false,
       slug: 'jane-doe',
-      profileCreatedAt: new Timestamp(0, 0),
+      profileCreatedAt: new Date(0),
       membershipActive: true,
     };
   } else {
     mockMemberDocument = {
       uid: 'test-uid',
       email: 'test@example.com',
-      createdAt: new Timestamp(0, 0),
+      createdAt: new Date(0),
+      isAdmin: false,
       membershipActive: true,
     };
   }

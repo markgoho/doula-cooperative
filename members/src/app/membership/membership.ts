@@ -56,10 +56,7 @@ export class Membership {
   // Computed signals for formatted user data
   protected membershipCreated = computed(() => {
     const userDocument = this.userDocument();
-    if (userDocument?.createdAt) {
-      return userDocument.createdAt.toDate();
-    }
-    return;
+    return userDocument?.createdAt;
   });
 
   protected userFullName = computed(() => {
@@ -74,34 +71,22 @@ export class Membership {
 
   protected subscriptionStarted = computed(() => {
     const userDocument = this.userDocument();
-    if (userDocument?.subscriptionStart) {
-      return userDocument.subscriptionStart.toDate();
-    }
-    return;
+    return userDocument?.subscriptionStart;
   });
 
   protected lastPaymentDate = computed(() => {
     const userDocument = this.userDocument();
-    if (userDocument?.lastPayment) {
-      return userDocument.lastPayment.toDate();
-    }
-    return;
+    return userDocument?.lastPayment;
   });
 
   protected nextPaymentDate = computed(() => {
     const userDocument = this.userDocument();
-    if (userDocument?.nextPayment) {
-      return userDocument.nextPayment.toDate();
-    }
-    return;
+    return userDocument?.nextPayment;
   });
 
   protected membershipExpiresDate = computed(() => {
     const userDocument = this.userDocument();
-    if (userDocument?.membershipExpiresAt) {
-      return userDocument.membershipExpiresAt.toDate();
-    }
-    return;
+    return userDocument?.membershipExpiresAt;
   });
 
   protected newsletterSubscribed = computed(() => {
@@ -134,9 +119,15 @@ export class Membership {
   }
 
   protected async onClaimProfile() {
+    const claimableProfile = this.claimableProfileResource.value();
+    if (!claimableProfile?.slug) {
+      console.error('Cannot claim profile without a slug');
+      return;
+    }
+
     this.claimInProgress.set(true);
     try {
-      await this.authService.claimProfile();
+      await this.membershipService.claimProfile(claimableProfile.slug);
       // Reload user document to reflect claimed profile
       this.membershipService.reloadUserDocument();
       // Clear the banner after claiming

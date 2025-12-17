@@ -36,7 +36,7 @@ export class AdminMemberDetail {
   protected isTargetUserAdmin = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) return false;
-    return (resource.value() as Member).isAdmin === true;
+    return (resource.value() as Member).isAdmin;
   });
 
   constructor() {

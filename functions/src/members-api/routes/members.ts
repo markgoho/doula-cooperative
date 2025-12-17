@@ -37,15 +37,16 @@ export async function getMemberLogic({
     );
 
     // Audit log successful access
+    const isAdmin = decodedToken["admin"] === true;
     logger.info("Authorized member access", {
       requestingUser: decodedToken.uid,
       targetMember: memberId,
-      isAdmin: decodedToken["admin"] === true,
+      isAdmin,
     });
 
     // Fetch member data using injected service
     const member = await memberService.findById(memberId);
-    return toMemberResponse(member);
+    return toMemberResponse(member, isAdmin);
   } catch (error) {
     // Handle our custom HTTP errors
     if (error instanceof HttpError) {

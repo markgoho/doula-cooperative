@@ -1,19 +1,13 @@
 import { Timestamp } from '@angular/fire/firestore';
-import type { ApiMemberResponse } from './api-types/admin-members-api.types';
+import type { ApiMemberResponse } from '../api-types/members-api.types';
 
 // Re-export types from API types for convenience
-export type { SubscriptionStatus, WelcomeEmailStatus } from './api-types/admin-members-api.types';
 
 /**
  * Member domain model for the Angular admin application.
- * Extends the API response type with frontend-specific fields.
- *
- * Note: isAdmin is a frontend-only field not included in API responses.
- * Components should handle its absence gracefully.
+ * Alias for the API response type.
  */
-export interface Member extends ApiMemberResponse {
-  isAdmin?: boolean;
-}
+export type Member = ApiMemberResponse;
 
 export interface UnclaimedProfile {
   email: string;

@@ -19,6 +19,11 @@
     "secure": false,
     "changeOrigin": true
   },
+  "/api/members": {
+    "target": "http://localhost:5001/doula-cooperative/us-central1/membersApi",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/api/profiles": {
     "target": "http://localhost:5001/doula-cooperative/us-central1/profilesApi",
     "secure": false,

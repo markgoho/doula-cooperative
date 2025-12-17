@@ -50,6 +50,7 @@ export function createAdminTestPlugin(overrides?: {
       },
     ),
     verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
+    isAdmin: mock(() => Promise.resolve(false)),
     ...overrides?.memberAdminService,
   };
 

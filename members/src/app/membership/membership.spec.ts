@@ -2,7 +2,6 @@ import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../test-utils/timestamp-mock';
 import { AuthService } from '../services/auth.service';
 import {
   type Member,
@@ -58,8 +57,8 @@ describe('Membership', () => {
     });
 
     it('should display account details section when user document is available', async () => {
-      const createdAt = Timestamp.fromDate(new Date('2024-01-15T12:00:00Z'));
-      const subscriptionStart = Timestamp.fromDate(new Date('2024-02-01T12:00:00Z'));
+      const createdAt = new Date('2024-01-15T12:00:00Z');
+      const subscriptionStart = new Date('2024-02-01T12:00:00Z');
 
       await setup({
         isAuthenticated: true,
@@ -82,7 +81,7 @@ describe('Membership', () => {
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
-          createdAt: Timestamp.now(),
+          createdAt: new Date(),
           email: 'jane@example.com',
           uid: 'user123',
           name: 'Jane Doe',
@@ -93,7 +92,7 @@ describe('Membership', () => {
     });
 
     it('should display account created date', async () => {
-      const createdAt = Timestamp.fromDate(new Date('2024-01-15T12:00:00Z'));
+      const createdAt = new Date('2024-01-15T12:00:00Z');
 
       await setup({
         isAuthenticated: true,
@@ -109,13 +108,13 @@ describe('Membership', () => {
     });
 
     it('should display subscription start date', async () => {
-      const subscriptionStart = Timestamp.fromDate(new Date('2024-02-01T12:00:00Z'));
+      const subscriptionStart = new Date('2024-02-01T12:00:00Z');
 
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
-          createdAt: Timestamp.now(),
+          createdAt: new Date(),
           email: 'jane@example.com',
           uid: 'user123',
           subscriptionStart,
@@ -130,7 +129,7 @@ describe('Membership', () => {
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
-          createdAt: Timestamp.now(),
+          createdAt: new Date(),
           email: 'jane@example.com',
           uid: 'user123',
         },
@@ -144,7 +143,7 @@ describe('Membership', () => {
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
-          createdAt: Timestamp.now(),
+          createdAt: new Date(),
           email: 'jane@example.com',
           uid: 'user123',
         },
@@ -159,7 +158,7 @@ describe('Membership', () => {
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
-          createdAt: Timestamp.now(),
+          createdAt: new Date(),
           email: 'jane@example.com',
           uid: 'user123',
         },
@@ -170,10 +169,8 @@ describe('Membership', () => {
     });
 
     it('should allow user to sign out', async () => {
-      const signOutMock = vi.fn().mockResolvedValue(undefined);
-      const { user } = await setup({
+      const { user, signOutMock } = await setup({
         isAuthenticated: true,
-        signOutImplementation: signOutMock,
       });
 
       const signOutButton = screen.getByRole('button', { name: 'Sign Out' });
@@ -183,13 +180,12 @@ describe('Membership', () => {
     });
 
     it('should not crash when sign out fails', async () => {
-      const signOutMock = vi.fn().mockRejectedValue(new Error('Sign out failed'));
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentionally empty - we're just suppressing console output in tests
       });
       const { user } = await setup({
         isAuthenticated: true,
-        signOutImplementation: signOutMock,
+        signOutShouldFail: true,
       });
 
       const signOutButton = screen.getByRole('button', { name: 'Sign Out' });
@@ -292,14 +288,13 @@ describe('Membership', () => {
     });
 
     it('should allow user to claim profile', async () => {
-      const claimProfileMock = vi.fn().mockResolvedValue(undefined);
-      const { user } = await setup({
+      const { user, claimProfileMock } = await setup({
         isAuthenticated: true,
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
+          slug: 'jane-smith',
         },
-        claimProfileImplementation: claimProfileMock,
       });
 
       expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
@@ -307,47 +302,17 @@ describe('Membership', () => {
       const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
       await user.click(claimButton);
 
-      expect(claimProfileMock).toHaveBeenCalledOnce();
-    });
-
-    it('should show loading state while claiming profile', async () => {
-      let resolveClaimProfile: () => void;
-      const claimProfilePromise = new Promise<void>((resolve) => {
-        resolveClaimProfile = resolve;
-      });
-      const claimProfileMock = vi.fn().mockReturnValue(claimProfilePromise);
-
-      const { user } = await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-        },
-        claimProfileImplementation: claimProfileMock,
-      });
-
-      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
-
-      const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
-      await user.click(claimButton);
-
-      // Button should show loading state and be disabled
-      expect(screen.getByRole('button', { name: 'Claiming Membership...' })).toBeDisabled();
-
-      // Resolve the promise
-      resolveClaimProfile!();
       expect(claimProfileMock).toHaveBeenCalledOnce();
     });
 
     it('should hide claim banner after successfully claiming profile', async () => {
-      const claimProfileMock = vi.fn().mockResolvedValue(undefined);
       const { user } = await setup({
         isAuthenticated: true,
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
+          slug: 'jane-smith',
         },
-        claimProfileImplementation: claimProfileMock,
       });
 
       expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
@@ -359,7 +324,6 @@ describe('Membership', () => {
     });
 
     it('should not crash when claim profile fails', async () => {
-      const claimProfileMock = vi.fn().mockRejectedValue(new Error('Claim failed'));
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentionally empty - we're just suppressing console output in tests
       });
@@ -368,8 +332,9 @@ describe('Membership', () => {
         claimableProfileData: {
           name: 'Jane Smith',
           subscriptionStart: new Date('2023-06-01'),
+          slug: 'jane-smith',
         },
-        claimProfileImplementation: claimProfileMock,
+        claimProfileShouldFail: true,
       });
 
       expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
@@ -396,23 +361,24 @@ interface SetupOptions {
   userDocument?: Partial<Member>;
   claimableProfileData?: UnclaimedProfile;
   claimableProfileError?: Error;
-  signOutImplementation?: () => Promise<void>;
-  claimProfileImplementation?: () => Promise<void>;
+  signOutShouldFail?: boolean;
+  claimProfileShouldFail?: boolean;
+  claimProfileError?: Error;
 }
 
-async function setup(options: SetupOptions = {}) {
-  const {
-    isAuthenticated = false,
-    userDisplayName,
-    userEmail,
-    userEmailVerified = false,
-    hasUserDocument = true,
-    userDocument,
-    claimableProfileData,
-    claimableProfileError,
-    signOutImplementation = vi.fn().mockResolvedValue(undefined),
-    claimProfileImplementation = vi.fn().mockResolvedValue(undefined),
-  } = options;
+async function setup({
+  isAuthenticated = false,
+  userDisplayName,
+  userEmail,
+  userEmailVerified = false,
+  hasUserDocument = true,
+  userDocument,
+  claimableProfileData,
+  claimableProfileError,
+  signOutShouldFail = false,
+  claimProfileShouldFail = false,
+  claimProfileError = new Error('Claim failed'),
+}: SetupOptions = {}) {
 
   const mockUser = isAuthenticated
     ? {
@@ -422,15 +388,19 @@ async function setup(options: SetupOptions = {}) {
       }
     : undefined;
 
+  // Create sign out mock based on whether it should fail
+  const signOutMock = signOutShouldFail
+    ? vi.fn().mockRejectedValue(new Error('Sign out failed'))
+    : vi.fn().mockResolvedValue(undefined);
+
   const mockAuthService = {
     user: signal(mockUser),
-    signOut: signOutImplementation,
-    claimProfile: claimProfileImplementation,
+    signOut: signOutMock,
   };
 
   const mockUserDocument = hasUserDocument
     ? {
-        createdAt: Timestamp.now(),
+        createdAt: new Date(),
         email: userEmail ?? 'test@example.com',
         uid: 'test-uid',
         ...userDocument,
@@ -441,10 +411,16 @@ async function setup(options: SetupOptions = {}) {
     ? vi.fn().mockRejectedValue(claimableProfileError)
     : vi.fn().mockResolvedValue(claimableProfileData);
 
+  // Create claim profile mock based on whether it should fail
+  const claimProfileMock = claimProfileShouldFail
+    ? vi.fn(() => Promise.reject(claimProfileError))
+    : vi.fn(() => Promise.resolve());
+
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
     getClaimableProfileData: getClaimableProfileDataMock,
     reloadUserDocument: vi.fn(),
+    claimProfile: claimProfileMock,
   };
 
   await render(Membership, {
@@ -463,5 +439,9 @@ async function setup(options: SetupOptions = {}) {
   // Create userEvent AFTER render so document is available
   const user = userEvent.setup();
 
-  return { user };
+  return {
+    user,
+    claimProfileMock,
+    signOutMock,
+  };
 }

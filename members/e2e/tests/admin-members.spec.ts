@@ -1,10 +1,10 @@
 import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
-import type {
-  ApiMemberResponse,
-  ApiListMembersResponse,
-} from '../../src/app/admin/api-types/admin-members-api.types';
 import { AdminMembersPage } from '../pages/admin-members.page';
+import type {
+  ApiListMembersResponse,
+  ApiMemberResponse,
+} from '../../src/app/api-types/members-api.types';
 
 /**
  * Mock data for testing admin members list page.
@@ -16,6 +16,7 @@ const mockMembers: ApiMemberResponse[] = [
     email: 'alice@example.com',
     name: 'Alice Smith',
     createdAt: '2024-01-15T10:30:00.000Z',
+    isAdmin: false,
     membershipActive: true,
     subscriptionStart: '2024-01-15T10:30:00.000Z',
     membershipExpiresAt: '2025-01-15T10:30:00.000Z',
@@ -25,6 +26,7 @@ const mockMembers: ApiMemberResponse[] = [
     email: 'bob@example.com',
     name: 'Bob Johnson',
     createdAt: '2024-02-20T14:15:00.000Z',
+    isAdmin: false,
     membershipActive: false,
     subscriptionStart: '2024-02-20T14:15:00.000Z',
     membershipExpiresAt: '2024-08-20T14:15:00.000Z',
@@ -33,6 +35,7 @@ const mockMembers: ApiMemberResponse[] = [
     uid: 'member-3',
     email: 'charlie@example.com',
     createdAt: '2024-03-10T09:00:00.000Z',
+    isAdmin: false,
     membershipActive: true,
     subscriptionStart: '2024-03-10T09:00:00.000Z',
   },

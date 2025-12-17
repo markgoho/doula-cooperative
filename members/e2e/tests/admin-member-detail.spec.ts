@@ -1,6 +1,7 @@
 import { test } from '../fixtures/admin-auth.fixture';
 import { expect } from '@playwright/test';
-import type { ApiMemberResponse } from '../../src/app/admin/api-types/admin-members-api.types';
+import type { ApiMemberResponse } from '../../src/app/api-types/members-api.types';
+import type { ProfileData } from '../../src/app/types/profile-data';
 import { AdminMemberDetailPage } from '../pages/admin-member-detail.page';
 
 /**
@@ -11,13 +12,14 @@ const mockMember: ApiMemberResponse = {
   email: 'test.member@example.com',
   name: 'Test Member',
   createdAt: '2024-01-15T10:30:00.000Z',
+  isAdmin: false,
   membershipActive: true,
   subscriptionStart: '2024-01-15T10:30:00.000Z',
   membershipExpiresAt: '2025-01-15T10:30:00.000Z',
   slug: 'test-member',
 };
 
-const mockProfileData = {
+const mockProfileData: ProfileData = {
   title: 'Test Member - Birth Doula',
   bio: 'This is my bio as a birth doula. I have been supporting families for 5 years.',
   credentials: 'CD(DONA), CPD',
