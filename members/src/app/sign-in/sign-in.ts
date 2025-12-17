@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -13,6 +13,9 @@ export class SignIn {
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+
+  // Query param input from router
+  message = input<string>();
 
   signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],

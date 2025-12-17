@@ -6,6 +6,17 @@ import {
 import type { SendInvitationSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
+function createTestRequest(email: string, authHeader?: string): Request {
+  const headers: Record<string, string> = {};
+  if (authHeader) {
+    headers["Authorization"] = authHeader;
+  }
+  return new Request(`http://localhost/${email}/invitation`, {
+    method: "POST",
+    headers,
+  });
+}
+
 /**
  * Tests for POST /:email/invitation.
  *
@@ -13,32 +24,45 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /:email/invitation", () => {
+  // Define mock responses as a lookup map for clarity
+  const mockResponses: Record<
+    string,
+    () => Promise<SendInvitationSuccessResponse>
+  > = {
+    "nonexistent@example.com": () =>
+      Promise.reject(new NotFoundError("Unclaimed profile not found")),
+    "invalid-data@example.com": () =>
+      Promise.reject(
+        new HttpError(
+          "Unclaimed profile is missing required data (subscriptionStart).",
+          412,
+        ),
+      ),
+    "auth-failed@example.com": () =>
+      Promise.reject(new HttpError("Failed to create user account.", 500)),
+    "member-doc-fail@example.com": () =>
+      Promise.reject(
+        new HttpError("Failed to create member record. Please try again.", 500),
+      ),
+    "email-failed@example.com": () =>
+      Promise.reject(
+        new HttpError(
+          "User account created but invitation email failed to send. Please retry or contact the user directly.",
+          500,
+        ),
+      ),
+    "tracking-failed@example.com": () =>
+      Promise.resolve({
+        success: true,
+        warning:
+          "Invitation sent but tracking update failed. The email was delivered successfully.",
+      }),
+  };
+
   const mockSendInvitation = mock(
     ({ email }: { email: string }): Promise<SendInvitationSuccessResponse> => {
-      if (email === "nonexistent@example.com") {
-        return Promise.reject(new NotFoundError("Unclaimed profile not found"));
-      }
-      if (email === "invalid-data@example.com") {
-        return Promise.reject(
-          new HttpError(
-            "Unclaimed profile is missing required data (subscriptionStart).",
-            412,
-          ),
-        );
-      }
-      if (email === "email-failed@example.com") {
-        return Promise.reject(
-          new HttpError("Failed to send invitation email.", 500),
-        );
-      }
-      if (email === "tracking-failed@example.com") {
-        return Promise.resolve({
-          success: true,
-          warning:
-            "Invitation sent but tracking update failed. The email was delivered successfully.",
-        });
-      }
-      return Promise.resolve({ success: true });
+      const mockResponse = mockResponses[email];
+      return mockResponse ? mockResponse() : Promise.resolve({ success: true });
     },
   );
 
@@ -52,12 +76,12 @@ describe("POST /:email/invitation", () => {
     mockSendInvitation.mockClear();
   });
 
+  // Helper function to create test requests
+
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-        }),
+        createTestRequest("test@example.com"),
       )) as Response;
 
       expect(response.status).toBe(401);
@@ -67,12 +91,7 @@ describe("POST /:email/invitation", () => {
 
     it("should return 403 when non-admin tries to send invitation", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
+        createTestRequest("test@example.com", "Bearer non-admin-token"),
       )) as Response;
 
       expect(response.status).toBe(403);
@@ -84,12 +103,7 @@ describe("POST /:email/invitation", () => {
   describe("Email parameter validation", () => {
     it("should reject invalid email format", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/not-an-email/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("not-an-email", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(422);
@@ -97,12 +111,7 @@ describe("POST /:email/invitation", () => {
 
     it("should accept valid email format", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/valid@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("valid@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -114,12 +123,7 @@ describe("POST /:email/invitation", () => {
   describe("Successful invitation", () => {
     it("should send invitation when authenticated as admin", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("test@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -130,12 +134,7 @@ describe("POST /:email/invitation", () => {
 
     it("should return success with warning when email sent but tracking failed", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/tracking-failed@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("tracking-failed@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(200);
@@ -153,12 +152,7 @@ describe("POST /:email/invitation", () => {
   describe("Error handling", () => {
     it("should return 404 when profile not found", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/nonexistent@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("nonexistent@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(404);
@@ -168,12 +162,7 @@ describe("POST /:email/invitation", () => {
 
     it("should return 412 when profile missing required data", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/invalid-data@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("invalid-data@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(412);
@@ -181,19 +170,36 @@ describe("POST /:email/invitation", () => {
       expect(body.error).toContain("missing required data");
     });
 
-    it("should return 500 when email sending fails", async () => {
+    it("should return 500 when auth user creation fails", async () => {
       const response = (await testApp.handle(
-        new Request("http://localhost/email-failed@example.com/invitation", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
+        createTestRequest("auth-failed@example.com", "Bearer admin-token"),
       )) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("Failed to send invitation email");
+      expect(body.error).toContain("Failed to create user account");
+    });
+
+    it("should return 500 when member document creation fails", async () => {
+      const response = (await testApp.handle(
+        createTestRequest("member-doc-fail@example.com", "Bearer admin-token"),
+      )) as Response;
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("Failed to create member record");
+      expect(body.error).toContain("try again"); // Actionable error message
+    });
+
+    it("should return 500 when invitation email fails to send", async () => {
+      const response = (await testApp.handle(
+        createTestRequest("email-failed@example.com", "Bearer admin-token"),
+      )) as Response;
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("invitation email failed to send");
+      expect(body.error).toContain("retry"); // Actionable guidance
     });
   });
 });

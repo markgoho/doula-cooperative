@@ -1,6 +1,16 @@
 <h1>Welcome Back</h1>
 <p class="subtitle">Sign in to your Doula Cooperative account</p>
 
+@if (message() === 'signup-disabled') {
+  <div class="form__info-message">
+    New to the Doula Cooperative? Visit
+    <a href="https://www.doulacooperative.com/join-the-doula-cooperative/" target="_blank" rel="noopener noreferrer">
+      doulacooperative.com/join-the-doula-cooperative
+    </a>
+    to sign up for a membership.
+  </div>
+}
+
 @if (errorMessage(); as error) {
   <div class="form__error-message">
     {{ error }}
@@ -59,10 +69,3 @@
     <a routerLink="/forgot-password">Forgot your password?</a>
   </div>
 </form>
-
-<div class="sign-up-link">
-  <p>
-    Don't have an account?
-    <a routerLink="/sign-up">Sign Up</a>
-  </p>
-</div>
