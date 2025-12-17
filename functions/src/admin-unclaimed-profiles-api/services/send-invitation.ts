@@ -10,15 +10,12 @@ import type {
   EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type { SendInvitationSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 
 interface SendInvitationOptions {
   email: string;
   emailService: EmailServiceInterface;
   logger: Logger;
-}
-
-export interface SendInvitationResponse {
-  success: boolean;
 }
 
 /**
@@ -29,11 +26,11 @@ export async function sendInvitation({
   email,
   emailService,
   logger,
-}: SendInvitationOptions): Promise<SendInvitationResponse> {
+}: SendInvitationOptions): Promise<SendInvitationSuccessResponse> {
   // Validate email is provided
   if (!email || typeof email !== "string") {
     logger.error("Invalid email provided to send invitation", {
-      errorId: ERROR_IDS.ADMIN_SEND_INVITATION_INVALID_UID,
+      errorId: ERROR_IDS.ADMIN_SEND_INVITATION_INVALID_EMAIL,
       email,
     });
     throw new HttpError("Email is required and must be a string.", 400);
@@ -149,27 +146,75 @@ export async function sendInvitation({
         email,
         recipientEmail: member.email,
       });
-      // Update member document with error
-      await unclaimedProfileReference.update({
-        invitationEmailStatus: "failed",
-        invitationEmailError:
-          error instanceof Error ? error.message : "Unknown error",
-      });
+
+      // Track email failure in Firestore (handle cascading failure)
+      try {
+        await unclaimedProfileReference.update({
+          invitationEmailStatus: "failed",
+          invitationEmailError:
+            error instanceof Error ? error.message : "Unknown error",
+        });
+      } catch (firestoreError) {
+        // CRITICAL: Both email sending AND Firestore tracking failed
+        logger.error(
+          "CRITICAL: Failed to update invitation status in Firestore after email failure",
+          {
+            errorId: ERROR_IDS.ADMIN_SEND_INVITATION_FIRESTORE_UPDATE_FAILED,
+            error: firestoreError,
+            errorMessage:
+              firestoreError instanceof Error
+                ? firestoreError.message
+                : "Unknown error",
+            errorStack:
+              firestoreError instanceof Error ? firestoreError.stack : undefined,
+            originalEmailError: error,
+            email,
+          },
+        );
+        // Still throw the original email error to user (Firestore failure is logged)
+      }
+
       throw new HttpError("Failed to send invitation email.", 500);
     }
 
     // Update member document with invitation tracking
-    await unclaimedProfileReference.update({
-      invitationEmailStatus: "sent",
-      invitationEmailSentAt: now,
-      invitationEmailError: FieldValue.delete(),
-    });
+    try {
+      await unclaimedProfileReference.update({
+        invitationEmailStatus: "sent",
+        invitationEmailSentAt: now,
+        invitationEmailError: FieldValue.delete(),
+      });
 
-    logger.info("Invitation sent and tracked successfully", {
-      email,
-    });
+      logger.info("Invitation sent and tracked successfully", {
+        email,
+      });
 
-    return { success: true };
+      return { success: true };
+    } catch (firestoreError) {
+      // Email sent successfully but tracking failed - warn user
+      logger.error(
+        "WARNING: Invitation email sent but failed to update tracking in Firestore",
+        {
+          errorId: ERROR_IDS.ADMIN_SEND_INVITATION_TRACKING_FAILED,
+          error: firestoreError,
+          errorMessage:
+            firestoreError instanceof Error
+              ? firestoreError.message
+              : "Unknown error",
+          errorStack:
+            firestoreError instanceof Error ? firestoreError.stack : undefined,
+          email,
+          recipientEmail: member.email,
+        },
+      );
+
+      // Return partial success with warning
+      return {
+        success: true,
+        warning:
+          "Invitation sent but tracking update failed. The email was delivered successfully.",
+      };
+    }
   } catch (error) {
     // Re-throw HttpError instances (already logged)
     if (error instanceof HttpError) {

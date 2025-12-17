@@ -13,6 +13,9 @@ import {
 import {
   EmailParameterSchema,
   ListUnclaimedProfilesQuerySchema,
+  ListUnclaimedProfilesResponseSchema,
+  SendInvitationResponseSchema,
+  UnclaimedProfileResponseSchema,
 } from "../schemas/unclaimed-profile-schemas.js";
 import { UnclaimedProfileAdminService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -60,7 +63,10 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { query: ListUnclaimedProfilesQuerySchema },
+        {
+          query: ListUnclaimedProfilesQuerySchema,
+          response: ListUnclaimedProfilesResponseSchema,
+        },
       )
       // GET /:email - Get unclaimed profile by email
       .get(
@@ -79,7 +85,10 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { params: EmailParameterSchema },
+        {
+          params: EmailParameterSchema,
+          response: UnclaimedProfileResponseSchema,
+        },
       )
       // POST /:email/invitation - Send invitation email to unclaimed profile
       .post(
@@ -100,7 +109,10 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { params: EmailParameterSchema },
+        {
+          params: EmailParameterSchema,
+          response: SendInvitationResponseSchema,
+        },
       )
   );
 }

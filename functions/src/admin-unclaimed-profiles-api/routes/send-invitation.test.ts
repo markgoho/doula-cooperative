@@ -1,5 +1,9 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import {
+  HttpError,
+  NotFoundError,
+} from "../../shared-api/errors/http-error.js";
+import { SendInvitationSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -10,11 +14,9 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  */
 describe("POST /:email/invitation", () => {
   const mockSendInvitation = mock(
-    ({ email }: { email: string }): Promise<{ success: boolean }> => {
+    ({ email }: { email: string }): Promise<SendInvitationSuccessResponse> => {
       if (email === "nonexistent@example.com") {
-        return Promise.reject(
-          new NotFoundError("Unclaimed profile not found"),
-        );
+        return Promise.reject(new NotFoundError("Unclaimed profile not found"));
       }
       if (email === "invalid-data@example.com") {
         return Promise.reject(
@@ -28,6 +30,13 @@ describe("POST /:email/invitation", () => {
         return Promise.reject(
           new HttpError("Failed to send invitation email.", 500),
         );
+      }
+      if (email === "tracking-failed@example.com") {
+        return Promise.resolve({
+          success: true,
+          warning:
+            "Invitation sent but tracking update failed. The email was delivered successfully.",
+        });
       }
       return Promise.resolve({ success: true });
     },
@@ -117,6 +126,27 @@ describe("POST /:email/invitation", () => {
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
       expect(mockSendInvitation).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return success with warning when email sent but tracking failed", async () => {
+      const response = (await testApp.handle(
+        new Request("http://localhost/tracking-failed@example.com/invitation", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer admin-token",
+          },
+        }),
+      )) as Response;
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        warning?: string;
+      };
+      expect(body.success).toBe(true);
+      expect(body.warning).toBeTruthy();
+      expect(body.warning).toContain("tracking update failed");
+      expect(body.warning).toContain("email was delivered successfully");
     });
   });
 

@@ -38,8 +38,6 @@ export const setAutoAdminOnUserCreated = auth.user().onCreate(async user => {
   await handleSetAutoAdmin(user);
 });
 
-export { profileDeploymentWebhook } from "./profile-deployment-webhook/index.js";
-
 // Elysia-based APIs
 
 // Members APIs (members.doulacooperative.com)

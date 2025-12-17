@@ -8,7 +8,11 @@ import {
   createMockVerifyOwnerOrAdmin,
 } from "../../test-utils/auth-mocks.js";
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
-import type { UnclaimedProfileResponse } from "../schemas/unclaimed-profile-schemas.js";
+import type {
+  UnclaimedProfileSuccessResponse,
+  ListUnclaimedProfilesSuccessResponse,
+  SendInvitationSuccessResponse,
+} from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
 
 /**
@@ -27,14 +31,16 @@ export function createAdminTestPlugin(overrides?: {
   const defaultUnclaimedProfileAdminService: UnclaimedProfileAdminService = {
     listUnclaimedProfiles: mock(() =>
       Promise.resolve({
-        profiles: [] as UnclaimedProfileResponse[],
+        profiles: [],
         total: 0,
-      }),
+      } as ListUnclaimedProfilesSuccessResponse),
     ),
     getUnclaimedProfile: mock(() =>
-      Promise.resolve({} as UnclaimedProfileResponse),
+      Promise.resolve({} as UnclaimedProfileSuccessResponse),
     ),
-    sendInvitation: mock(() => Promise.resolve({ success: true })),
+    sendInvitation: mock(() =>
+      Promise.resolve({ success: true } as SendInvitationSuccessResponse),
+    ),
     ...overrides?.unclaimedProfileAdminService,
   };
 

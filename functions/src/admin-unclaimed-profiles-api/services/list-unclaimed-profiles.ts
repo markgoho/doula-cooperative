@@ -7,7 +7,7 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   toUnclaimedProfileResponse,
-  type ListUnclaimedProfilesResponse,
+  type ListUnclaimedProfilesSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 
 interface ListUnclaimedProfilesOptions {
@@ -20,7 +20,7 @@ export async function listUnclaimedProfiles({
   limit = 50,
   offset = 0,
   logger,
-}: ListUnclaimedProfilesOptions): Promise<ListUnclaimedProfilesResponse> {
+}: ListUnclaimedProfilesOptions): Promise<ListUnclaimedProfilesSuccessResponse> {
   try {
     const firestore = getFirestore();
     const importCollection = firestore.collection(IMPORT_COLLECTION);

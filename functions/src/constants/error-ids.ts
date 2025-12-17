@@ -51,12 +51,16 @@ export const ERROR_IDS = {
     "stripe_webhook_mailerlite_notification_failed",
 
   // Admin send invitation errors
-  ADMIN_SEND_INVITATION_INVALID_UID: "admin_send_invitation_invalid_uid",
+  ADMIN_SEND_INVITATION_INVALID_EMAIL: "admin_send_invitation_invalid_email",
   ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND:
     "admin_send_invitation_member_not_found",
   ADMIN_SEND_INVITATION_NO_SUBSCRIPTION:
     "admin_send_invitation_no_subscription",
   ADMIN_SEND_INVITATION_EMAIL_FAILED: "admin_send_invitation_email_failed",
+  ADMIN_SEND_INVITATION_TRACKING_FAILED:
+    "admin_send_invitation_tracking_failed",
+  ADMIN_SEND_INVITATION_FIRESTORE_UPDATE_FAILED:
+    "admin_send_invitation_firestore_update_failed",
 
   // Write profile errors
   WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
