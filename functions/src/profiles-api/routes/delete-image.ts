@@ -8,8 +8,8 @@ import {
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import { batchDeleteFiles } from "../../utils/github-batch-delete.js";
-import { isRateLimitError } from "../../utils/github-error.js";
+import { batchDeleteFiles } from "../utils/github-batch-delete.js";
+import { isRateLimitError } from "../utils/github-error.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 
 /**

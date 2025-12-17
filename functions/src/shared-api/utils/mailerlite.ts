@@ -1,11 +1,11 @@
-import type { Timestamp } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
 import type {
   CreateOrUpdateSubscriberParams,
   SubscriberInterface,
 } from "@mailerlite/mailerlite-nodejs";
 import * as MailerLiteModule from "@mailerlite/mailerlite-nodejs";
-import { ERROR_IDS, type ErrorId } from "../constants/index.js";
+import type { Timestamp } from "firebase-admin/firestore";
+import { logger } from "firebase-functions/v2";
+import { ERROR_IDS, type ErrorId } from "../../constants/index.js";
 
 // MailerLite SDK uses CommonJS exports, need to access .default
 interface MailerLiteClient {
@@ -13,7 +13,11 @@ interface MailerLiteClient {
 }
 
 // Type assertion for CommonJS default export
-const MailerLite = (MailerLiteModule as unknown as { default: new (config: { api_key: string }) => MailerLiteClient }).default;
+const MailerLite = (
+  MailerLiteModule as unknown as {
+    default: new (config: { api_key: string }) => MailerLiteClient;
+  }
+).default;
 
 /**
  * Custom error class for MailerLite API failures
@@ -149,7 +153,8 @@ export async function addNewsletterSubscriber({
     });
 
     // Format dates for MailerLite
-    const formattedSubscriptionStart = formatDateForMailerLite(subscriptionStart);
+    const formattedSubscriptionStart =
+      formatDateForMailerLite(subscriptionStart);
     const formattedMembershipExpires =
       formatDateForMailerLite(membershipExpiresAt);
 
@@ -186,7 +191,8 @@ export async function addNewsletterSubscriber({
     const { errorId, retryable } = classifyMailerLiteError(error);
 
     // Format dates for logging
-    const formattedSubscriptionStart = formatDateForMailerLite(subscriptionStart);
+    const formattedSubscriptionStart =
+      formatDateForMailerLite(subscriptionStart);
     const formattedMembershipExpires =
       formatDateForMailerLite(membershipExpiresAt);
 
@@ -252,9 +258,12 @@ export async function removeNewsletterSubscriber({
       status: "unsubscribed",
     });
 
-    logger.info("Successfully marked subscriber as unsubscribed in MailerLite", {
-      email,
-    });
+    logger.info(
+      "Successfully marked subscriber as unsubscribed in MailerLite",
+      {
+        email,
+      },
+    );
   } catch (error) {
     const { errorId, retryable } = classifyMailerLiteError(error);
 

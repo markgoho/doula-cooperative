@@ -16,16 +16,16 @@ import type {
   EmailMessage,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import { escapeHtml } from "../../utils/html-escape.js";
+import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   MailerLiteError,
-} from "../../utils/mailerlite.js";
+} from "../../shared-api/utils/mailerlite.js";
 import {
+  calculateExpirationDate,
   createStripeMemberDocument,
   createStripeMemberUpdate,
-} from "../../utils/member-factory.js";
-import { calculateExpirationDate } from "../../utils/membership-dates.js";
+} from "../utils/index.js";
 import type { CheckoutCompletedResult } from "./interface.js";
 
 /**

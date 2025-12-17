@@ -13,8 +13,8 @@ import type { CropData } from "../../types/crop-data.js";
 import {
   batchOperateFiles,
   type FileOperation,
-} from "../../utils/github-batch-operations.js";
-import { isGitHubError } from "../../utils/github-error.js";
+} from "../utils/github-batch-operations.js";
+import { isGitHubError } from "../utils/github-error.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB

@@ -15,8 +15,8 @@ import type {
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import { escapeHtml } from "../../utils/html-escape.js";
-import { addNewsletterSubscriber } from "../../utils/mailerlite.js";
+import { escapeHtml } from "../../shared-api/utils/html-escape.js";
+import { addNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 
 /**
  * Response returned when successfully claiming a profile.

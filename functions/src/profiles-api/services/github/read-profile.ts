@@ -11,7 +11,7 @@ import { HttpError, NotFoundError } from "../../../shared-api/errors/http-error.
 import {
   isGitHubError,
   isRateLimitError,
-} from "../../../utils/github-error.js";
+} from "../../utils/github-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { ReadProfileResponse } from "./interface.js";
 

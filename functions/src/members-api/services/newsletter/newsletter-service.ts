@@ -18,11 +18,11 @@ import type {
   EmailServiceInterface,
 } from "../../../shared-api/services/email/index.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
-import { escapeHtml } from "../../../utils/html-escape.js";
+import { escapeHtml } from "../../../shared-api/utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   removeNewsletterSubscriber,
-} from "../../../utils/mailerlite.js";
+} from "../../../shared-api/utils/mailerlite.js";
 import type { NewsletterService as NewsletterServiceInterface } from "./interface.js";
 
 /**
