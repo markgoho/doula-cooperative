@@ -12,7 +12,7 @@ describe('SignIn', () => {
     expect(screen.getByLabelText('Email Address')).toBeVisible();
     expect(screen.getByLabelText('Password')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Sign In' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Sign Up' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Forgot your password?' })).toBeVisible();
   });
 
   it('should show validation errors when fields are touched but empty', async () => {
