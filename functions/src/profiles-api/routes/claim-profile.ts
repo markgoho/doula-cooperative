@@ -419,7 +419,16 @@ export async function claimProfileLogic({
       });
     }
 
-    return { status: "success", data: profileData };
+    return {
+      status: "success",
+      data: {
+        ...profileData,
+        nextPayment: {
+          seconds: membershipExpiresAt.seconds,
+          nanoseconds: membershipExpiresAt.nanoseconds,
+        },
+      },
+    };
   } catch (error: unknown) {
     return handleRouteError({
       error,
