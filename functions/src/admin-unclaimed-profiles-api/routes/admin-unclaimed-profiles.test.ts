@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
@@ -21,28 +21,60 @@ describe("Admin Unclaimed Profiles API", () => {
   const mockProfile = toUnclaimedProfileResponse(mockProfileDocument);
 
   describe("GET / (list)", () => {
-    const mockListProfiles = mock(() =>
-      Promise.resolve({ profiles: [mockProfile], total: 1 }),
-    );
-    const testApp = createAdminTestPlugin({
-      unclaimedProfileAdminService: { listUnclaimedProfiles: mockListProfiles },
-    });
+    interface SetupOptions {
+      // Request parameters
+      limit?: number;
+      offset?: number;
+      authToken?: string | null;
+    }
 
-    beforeEach(() => mockListProfiles.mockClear());
+    function setup({
+      limit,
+      offset,
+      authToken = "admin-token",
+    }: SetupOptions = {}) {
+      const mockListProfiles = mock(() =>
+        Promise.resolve({ profiles: [mockProfile], total: 1 }),
+      );
+
+      const testApp = createAdminTestPlugin({
+        unclaimedProfileAdminService: {
+          listUnclaimedProfiles: mockListProfiles,
+        },
+      });
+
+      // Build request from parameters
+      const queryParameters = new URLSearchParams();
+      if (limit !== undefined) {
+        queryParameters.set("limit", String(limit));
+      }
+      if (offset !== undefined) {
+        queryParameters.set("offset", String(offset));
+      }
+
+      const url = `http://localhost/${queryParameters.toString() ? `?${queryParameters.toString()}` : ""}`;
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(url, { headers });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
+
       expect(response.status).toBe(401);
     });
 
     it("should return profiles when authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -55,41 +87,33 @@ describe("Admin Unclaimed Profiles API", () => {
 
     describe("Query Parameter Validation", () => {
       it("should reject limit below minimum (1)", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/?limit=0", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ limit: 0 });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(422);
       });
 
       it("should reject limit above maximum (100)", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/?limit=101", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ limit: 101 });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(422);
       });
 
       it("should reject negative offset", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/?offset=-1", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ offset: -1 });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(422);
       });
 
       it("should accept valid limit and offset", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/?limit=50&offset=10", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ limit: 50, offset: 10 });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(200);
       });
@@ -97,26 +121,54 @@ describe("Admin Unclaimed Profiles API", () => {
   });
 
   describe("GET /:email (get)", () => {
-    const mockGetProfile = mock(() => Promise.resolve(mockProfile));
-    const testApp = createAdminTestPlugin({
-      unclaimedProfileAdminService: { getUnclaimedProfile: mockGetProfile },
-    });
+    interface SetupOptions {
+      // Request parameters
+      email?: string;
+      authToken?: string | null;
 
-    beforeEach(() => mockGetProfile.mockClear());
+      // Scenario flags
+      profileNotFound?: boolean;
+    }
+
+    function setup({
+      email = "test@example.com",
+      authToken = "admin-token",
+      profileNotFound = false,
+    }: SetupOptions = {}) {
+      const mockGetProfile = mock(() => {
+        if (profileNotFound) {
+          throw new NotFoundError("Not found");
+        }
+        return Promise.resolve(mockProfile);
+      });
+
+      const testApp = createAdminTestPlugin({
+        unclaimedProfileAdminService: { getUnclaimedProfile: mockGetProfile },
+      });
+
+      // Build request from parameters
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(`http://localhost/${email}`, { headers });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
+
       expect(response.status).toBe(401);
     });
 
     it("should return profile when authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -124,40 +176,29 @@ describe("Admin Unclaimed Profiles API", () => {
     });
 
     it("should return 404 when not found", async () => {
-      const notFoundApp = createAdminTestPlugin({
-        unclaimedProfileAdminService: {
-          getUnclaimedProfile: mock(() => {
-            throw new NotFoundError("Not found");
-          }),
-        },
+      const { testApp, request } = setup({
+        email: "none@example.com",
+        profileNotFound: true,
       });
 
-      const response = (await notFoundApp.handle(
-        new Request("http://localhost/none@example.com", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });
 
     describe("Email Parameter Validation", () => {
       it("should reject invalid email format", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/not-an-email", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ email: "not-an-email" });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(422);
       });
 
       it("should accept valid email format", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/valid@example.com", {
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ email: "valid@example.com" });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(200);
         const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -167,39 +208,65 @@ describe("Admin Unclaimed Profiles API", () => {
   });
 
   describe("POST /:email/invitation (send invitation)", () => {
-    const mockSendInvitation = mock(() => Promise.resolve({ success: true }));
-    const testApp = createAdminTestPlugin({
-      unclaimedProfileAdminService: { sendInvitation: mockSendInvitation },
-    });
+    interface SetupOptions {
+      // Request parameters
+      email?: string;
+      authToken?: string | null;
 
-    beforeEach(() => mockSendInvitation.mockClear());
+      // Scenario flags
+      profileNotFound?: boolean;
+    }
+
+    function setup({
+      email = "test@example.com",
+      authToken = "admin-token",
+      profileNotFound = false,
+    }: SetupOptions = {}) {
+      const mockSendInvitation = mock(() => {
+        if (profileNotFound) {
+          throw new NotFoundError("Unclaimed profile not found");
+        }
+        return Promise.resolve({ success: true });
+      });
+
+      const testApp = createAdminTestPlugin({
+        unclaimedProfileAdminService: { sendInvitation: mockSendInvitation },
+      });
+
+      // Build request from parameters
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(`http://localhost/${email}/invitation`, {
+        method: "POST",
+        headers,
+      });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
+
       expect(response.status).toBe(401);
     });
 
     it("should return 403 when not admin", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-          headers: { Authorization: "Bearer non-admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
+
       expect(response.status).toBe(403);
     });
 
     it("should send invitation when authenticated as admin", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com/invitation", {
-          method: "POST",
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success: boolean };
@@ -207,43 +274,29 @@ describe("Admin Unclaimed Profiles API", () => {
     });
 
     it("should return 404 when profile not found", async () => {
-      const notFoundApp = createAdminTestPlugin({
-        unclaimedProfileAdminService: {
-          sendInvitation: mock(() => {
-            throw new NotFoundError("Unclaimed profile not found");
-          }),
-        },
+      const { testApp, request } = setup({
+        email: "nonexistent@example.com",
+        profileNotFound: true,
       });
 
-      const response = (await notFoundApp.handle(
-        new Request("http://localhost/nonexistent@example.com/invitation", {
-          method: "POST",
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });
 
     describe("Email Parameter Validation", () => {
       it("should reject invalid email format", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/not-an-email/invitation", {
-            method: "POST",
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ email: "not-an-email" });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(422);
       });
 
       it("should accept valid email format", async () => {
-        const response = (await testApp.handle(
-          new Request("http://localhost/valid@example.com/invitation", {
-            method: "POST",
-            headers: { Authorization: "Bearer admin-token" },
-          }),
-        )) as Response;
+        const { testApp, request } = setup({ email: "valid@example.com" });
+
+        const response = (await testApp.handle(request)) as Response;
 
         expect(response.status).toBe(200);
       });

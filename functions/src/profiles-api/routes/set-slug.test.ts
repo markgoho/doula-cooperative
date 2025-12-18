@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { ConflictError } from "../../shared-api/errors/http-error.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
@@ -7,26 +7,60 @@ import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plu
  * Served at /api/profiles/slugs via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /slugs (set profile slug)", () => {
-  const testApp = createProfilesTestPlugin();
+  interface SetupOptions {
+    body?: { slug: string };
+    authToken?: string | null;
+    slugTaken?: boolean;
+    serverError?: boolean;
+  }
 
-  beforeEach(() => {
-    // Reset mocks before each test
-  });
+  function setup({
+    body = { slug: "test-slug" },
+    authToken = "valid-token",
+    slugTaken = false,
+    serverError = false,
+  }: SetupOptions = {}) {
+    const mockSetSlug = mock(() => {
+      if (slugTaken) {
+        return Promise.reject(
+          new ConflictError("This slug is already taken. Please choose another."),
+        );
+      }
+      if (serverError) {
+        return Promise.reject(new Error("Database write failed"));
+      }
+      return Promise.resolve({ slug: body.slug });
+    });
+
+    const testApp = createProfilesTestPlugin({
+      profileMemberService: {
+        setSlug: mockSetSlug,
+      },
+    });
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request("http://localhost/slugs", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ slug: "test-slug" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -34,31 +68,17 @@ describe("POST /slugs (set profile slug)", () => {
     });
 
     it("should return 401 when token is invalid", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer invalid-token",
-          },
-          body: JSON.stringify({ slug: "test-slug" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "invalid-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
     });
 
     it("should allow authenticated user to set slug", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "test-slug" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
@@ -66,61 +86,33 @@ describe("POST /slugs (set profile slug)", () => {
 
   describe("Validation", () => {
     it("should return 422 when slug is too short", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "a" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { slug: "a" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 422 when slug has uppercase letters", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "Test-Slug" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { slug: "Test-Slug" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 422 when slug has special characters", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "test_slug" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { slug: "test_slug" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should accept valid slug with lowercase and hyphens", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "jane-doe-doula" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { slug: "jane-doe-doula" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
@@ -128,24 +120,9 @@ describe("POST /slugs (set profile slug)", () => {
 
   describe("Slug setting", () => {
     it("should return success when slug is set", async () => {
-      const mockSetSlug = mock(() => Promise.resolve({ slug: "new-slug" }));
+      const { testApp, request } = setup({ body: { slug: "new-slug" } });
 
-      const setSlugTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          setSlug: mockSetSlug,
-        },
-      });
-
-      const response = (await setSlugTestApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "new-slug" }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { slug?: string };
@@ -153,28 +130,12 @@ describe("POST /slugs (set profile slug)", () => {
     });
 
     it("should return 409 when slug is already taken", async () => {
-      const mockSetSlug = mock(() => {
-        return Promise.reject(
-          new ConflictError("This slug is already taken. Please choose another."),
-        );
+      const { testApp, request } = setup({
+        body: { slug: "taken-slug" },
+        slugTaken: true,
       });
 
-      const conflictTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          setSlug: mockSetSlug,
-        },
-      });
-
-      const response = (await conflictTestApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "taken-slug" }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
@@ -184,26 +145,9 @@ describe("POST /slugs (set profile slug)", () => {
 
   describe("Error handling", () => {
     it("should return 500 when service throws unexpected error", async () => {
-      const mockSetSlug = mock(() => {
-        return Promise.reject(new Error("Database write failed"));
-      });
+      const { testApp, request } = setup({ serverError: true });
 
-      const errorTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          setSlug: mockSetSlug,
-        },
-      });
-
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/slugs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer valid-token",
-          },
-          body: JSON.stringify({ slug: "test-slug" }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

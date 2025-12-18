@@ -1326,30 +1326,77 @@ return { error: "Not found", message: "Resource does not exist" };
 
 ## Testing Strategy
 
-**NEVER write service layer tests.** Test only at the HTTP API boundary (routes) or E2E UI layer.
+### Where to Write Tests
 
-**What to test**:
-- ✅ HTTP routes with mocked services
-- ✅ E2E user journeys with mocked API responses
-- ✅ Authentication/authorization (401, 403)
-- ✅ Input validation (422, 400)
-- ✅ Success responses (200, structure, data format)
-- ✅ Error responses (404, 500, error messages)
+**All tests MUST be in `routes/` directories:**
 
-**What NOT to test**:
-- ❌ Service methods directly (they are implementation details)
-- ❌ Utility functions used only by services
-- ❌ Internal function arguments or how services are called
-- ❌ Framework behavior or third-party library internals
+```
+functions/src/
+  admin-members-api/
+    routes/
+      update-member.test.ts     ✅ Test PATCH /:memberId here
+      get-member.test.ts         ✅ Test GET /:memberId here
+      list-members.test.ts       ✅ Test GET / here
+    plugins/
+      admin-members-plugin.ts    (no test file here)
+  forms-api/
+    routes/
+      handle-contact-form.test.ts  ✅ Test POST /contact-us here
+      handle-match-form.test.ts    ✅ Test POST /doula-match here
+    plugins/
+      contact-us-form-plugin.ts    (no test file here)
+```
+
+**Why routes/ not plugins/?** One test file per route keeps tests manageable. Each file has its own `setup()` tailored to that route's needs.
+
+### What Level to Test
+
+**Test at the plugin level (full HTTP contract):**
+- Instantiate the full plugin via `create*TestPlugin()` factory
+- Test includes auth guards, derive, route composition
+- Test through `.handle(request)` (HTTP interface)
+- Focus on HTTP contract: request → response
+
+**NEVER test:**
+- ❌ Service methods directly
+- ❌ Route logic functions in isolation
+- ❌ Mock call counts or arguments
+- ❌ Framework internals
+
+### Testing Pattern
+
+**Use SIFERS pattern** for all tests. See `.claude/rules/functions-tests.md` for complete guide including:
+- How to structure setup functions
+- Using proper types and scenario flags
+- Environment variable handling
+- What NOT to test (implementation details)
+
+**Quick example:**
+```typescript
+describe('PATCH /:memberId', () => {
+  function setup({
+    body = { name: 'Updated' },
+    memberId = 'test-id',
+    authToken = 'admin-token',
+    memberNotFound = false,
+  } = {}) {
+    // Configure mocks, build request
+    return { testApp, request };
+  }
+
+  it('should update member', async () => {
+    const { testApp, request } = setup();
+    const response = await testApp.handle(request);
+    expect(response.status).toBe(200);
+  });
+});
+```
 
 **Why we don't test services**:
 - Services are implementation details of the HTTP layer
-- Route tests with mocked services are sufficient
+- Route tests with mocked services provide sufficient coverage
 - Testing services directly couples tests to implementation
-- Service tests would require mocking Firestore/external APIs, adding complexity
 - Focus testing effort on user-facing behavior, not internal abstractions
-
-See `.claude/rules/elysia-tests.md` for detailed testing patterns and examples.
 
 ## Best Practices Summary
 

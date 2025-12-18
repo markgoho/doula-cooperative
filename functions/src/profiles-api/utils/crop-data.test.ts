@@ -63,7 +63,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: "100", y: 0, width: 100, height: 100 }),
       ).toBe(false);
-      // eslint-disable-next-line unicorn/no-null -- testing null handling
+       
       expect(validateCropData({ x: null, y: 0, width: 100, height: 100 })).toBe(
         false,
       );
@@ -87,7 +87,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: 0, y: "100", width: 100, height: 100 }),
       ).toBe(false);
-      // eslint-disable-next-line unicorn/no-null -- testing null handling
+       
       expect(validateCropData({ x: 0, y: null, width: 100, height: 100 })).toBe(
         false,
       );
@@ -117,7 +117,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: 0, y: 0, width: "100", height: 100 }),
       ).toBe(false);
-      // eslint-disable-next-line unicorn/no-null -- testing null handling
+       
       expect(validateCropData({ x: 0, y: 0, width: null, height: 100 })).toBe(
         false,
       );
@@ -147,7 +147,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: 0, y: 0, width: 100, height: "100" }),
       ).toBe(false);
-      // eslint-disable-next-line unicorn/no-null -- testing null handling
+       
       expect(validateCropData({ x: 0, y: 0, width: 100, height: null })).toBe(
         false,
       );
@@ -180,7 +180,7 @@ describe("validateCropData", () => {
       expect(validateCropData("not an object")).toBe(false);
       expect(validateCropData(123)).toBe(false);
       expect(validateCropData(true)).toBe(false);
-      // eslint-disable-next-line unicorn/no-null -- testing null handling
+       
       expect(validateCropData(null)).toBe(false);
       expect(validateCropData(undefined)).toBe(false);
       expect(validateCropData([])).toBe(false);

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -9,15 +9,12 @@ import {
  * Served at /api/profiles/:slug/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  *
  * Note: These tests focus on HTTP contract (authentication, validation, error responses).
  * Actual image processing and GitHub upload logic is tested in integration tests
  * that run with emulators and mocked GitHub API.
  */
 describe("POST /:slug/image (upload profile image)", () => {
-  const testApp = createProfilesTestPlugin();
-
   // Mock base64 image data (1x1 red pixel PNG)
   const mockImageData =
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
@@ -28,21 +25,65 @@ describe("POST /:slug/image (upload profile image)", () => {
     cropData: { x: 0, y: 0, width: 100, height: 100 },
   };
 
-  beforeEach(() => {
-    // Reset mocks before each test
-  });
+  interface SetupOptions {
+    // Request parameters
+    slug?: string;
+    body?: Record<string, unknown>;
+    authToken?: string | null;
+
+    // Scenario flags
+    memberHasNoSlug?: boolean;
+    unexpectedError?: boolean;
+  }
+
+  function setup({
+    slug = "test-user",
+    body = validRequest,
+    authToken = "valid-token",
+    memberHasNoSlug = false,
+    unexpectedError = false,
+  }: SetupOptions = {}) {
+    // Configure mocks based on scenario flags
+    const mockVerifyMembership = mock(() => {
+      if (unexpectedError) {
+        throw new Error("Unexpected error");
+      }
+      if (memberHasNoSlug) {
+        const memberDocumentWithoutSlug = { ...mockMemberDocument };
+        delete memberDocumentWithoutSlug.slug;
+        return Promise.resolve(memberDocumentWithoutSlug);
+      }
+      return Promise.resolve(mockMemberDocument);
+    });
+
+    const testApp = createProfilesTestPlugin({
+      profileMemberService: {
+        verifyActiveMembership: mockVerifyMembership,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(`http://localhost/${slug}/image`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validRequest),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -50,16 +91,9 @@ describe("POST /:slug/image (upload profile image)", () => {
     });
 
     it("should return 401 when token is invalid", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer invalid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validRequest),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "invalid-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -69,63 +103,42 @@ describe("POST /:slug/image (upload profile image)", () => {
 
   describe("Input validation", () => {
     it("should return 422 when imageData is missing", async () => {
-      const invalidRequest = {
-        mimeType: "image/png",
-        cropData: { x: 0, y: 0, width: 100, height: 100 },
-      };
+      const { testApp, request } = setup({
+        body: {
+          mimeType: "image/png",
+          cropData: { x: 0, y: 0, width: 100, height: 100 },
+        },
+      });
 
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer valid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(invalidRequest),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 422 when mimeType is invalid", async () => {
-      const invalidRequest = {
-        imageData: mockImageData,
-        mimeType: "image/gif", // Not allowed
-        cropData: { x: 0, y: 0, width: 100, height: 100 },
-      };
+      const { testApp, request } = setup({
+        body: {
+          imageData: mockImageData,
+          mimeType: "image/gif",
+          cropData: { x: 0, y: 0, width: 100, height: 100 },
+        },
+      });
 
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer valid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(invalidRequest),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 422 when cropData is invalid", async () => {
-      const invalidRequest = {
-        imageData: mockImageData,
-        mimeType: "image/png",
-        cropData: { x: -1, y: 0, width: 100, height: 100 }, // Negative x
-      };
+      const { testApp, request } = setup({
+        body: {
+          imageData: mockImageData,
+          mimeType: "image/png",
+          cropData: { x: -1, y: 0, width: 100, height: 100 },
+        },
+      });
 
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer valid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(invalidRequest),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
@@ -133,26 +146,9 @@ describe("POST /:slug/image (upload profile image)", () => {
 
   describe("Membership verification", () => {
     it("should return 428 when user has no slug", async () => {
-      const memberDocumentWithoutSlug = { ...mockMemberDocument };
-      delete memberDocumentWithoutSlug.slug;
-      const noSlugTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          verifyActiveMembership: mock(() =>
-            Promise.resolve(memberDocumentWithoutSlug),
-          ),
-        },
-      });
+      const { testApp, request } = setup({ memberHasNoSlug: true });
 
-      const response = (await noSlugTestApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer valid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validRequest),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(428);
       const body = (await response.json()) as { error?: string };
@@ -162,24 +158,9 @@ describe("POST /:slug/image (upload profile image)", () => {
 
   describe("Error handling", () => {
     it("should return 500 on unexpected errors", async () => {
-      const errorTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          verifyActiveMembership: mock(() => {
-            throw new Error("Unexpected error");
-          }),
-        },
-      });
+      const { testApp, request } = setup({ unexpectedError: true });
 
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/test-user/image", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer valid-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(validRequest),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
