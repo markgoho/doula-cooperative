@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MessageDocument } from "../../collections/messages.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import { toMessageResponse, type MessageResponse } from "../schemas/message-schemas.js";
+import {
+  toMessageResponse,
+  type MessageResponse,
+} from "../schemas/message-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -20,50 +23,60 @@ describe("Admin Messages API", () => {
     recaptchaScore: 0.9,
   };
 
-  const mockMessage = toMessageResponse(mockMessageDocument.id, mockMessageDocument);
+  const mockMessage = toMessageResponse(
+    mockMessageDocument.id,
+    mockMessageDocument,
+  );
 
   describe("GET / (list messages)", () => {
-    const mockListMessages = mock(() =>
-      Promise.resolve({
-        messages: [mockMessage],
-        total: 1,
-        pendingCount: 1,
-        processedCount: 0,
-      }),
-    );
+    interface SetupOptions {
+      authToken?: string | null;
+    }
 
-    const testApp = createAdminTestPlugin({
-      messageAdminService: { listMessages: mockListMessages },
-    });
+    function setup({ authToken = "admin-token" }: SetupOptions = {}) {
+      const mockListMessages = mock(() =>
+        Promise.resolve({
+          messages: [mockMessage],
+          total: 1,
+          pendingCount: 1,
+          processedCount: 0,
+        }),
+      );
 
-    beforeEach(() => {
-      mockListMessages.mockClear();
-    });
+      const testApp = createAdminTestPlugin({
+        messageAdminService: { listMessages: mockListMessages },
+      });
+
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request("http://localhost/", { headers });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
     });
 
     it("should return 403 when non-admin tries to access", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: { Authorization: "Bearer non-admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
     });
 
     it("should return messages list when authenticated as admin", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -80,29 +93,52 @@ describe("Admin Messages API", () => {
   });
 
   describe("GET /:messageId (get message)", () => {
-    const mockGetMessage = mock(() => Promise.resolve(mockMessage));
-    const testApp = createAdminTestPlugin({
-      messageAdminService: { getMessage: mockGetMessage },
-    });
+    interface SetupOptions {
+      messageId?: string;
+      authToken?: string | null;
+      messageNotFound?: boolean;
+    }
 
-    beforeEach(() => {
-      mockGetMessage.mockClear();
-    });
+    function setup({
+      messageId = "message-1",
+      authToken = "admin-token",
+      messageNotFound = false,
+    }: SetupOptions = {}) {
+      const mockGetMessage = mock(() => {
+        if (messageNotFound) {
+          throw new NotFoundError("Message not found");
+        }
+        return Promise.resolve(mockMessage);
+      });
+
+      const testApp = createAdminTestPlugin({
+        messageAdminService: { getMessage: mockGetMessage },
+      });
+
+      const headers: Record<string, string> = {};
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(`http://localhost/${messageId}`, {
+        headers,
+      });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/message-1"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
     });
 
     it("should return message when authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/message-1", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as MessageResponse;
@@ -111,59 +147,70 @@ describe("Admin Messages API", () => {
     });
 
     it("should return 404 when message not found", async () => {
-      const notFoundApp = createAdminTestPlugin({
-        messageAdminService: {
-          getMessage: mock(() => {
-            throw new NotFoundError("Message not found");
-          }),
-        },
+      const { testApp, request } = setup({
+        messageId: "nonexistent",
+        messageNotFound: true,
       });
 
-      const response = (await notFoundApp.handle(
-        new Request("http://localhost/nonexistent", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });
   });
 
   describe("PATCH /:messageId (update message)", () => {
-    const mockUpdateMessage = mock(() =>
-      Promise.resolve({ success: true as const }),
-    );
-    const testApp = createAdminTestPlugin({
-      messageAdminService: { updateMessage: mockUpdateMessage },
-    });
+    interface SetupOptions {
+      body?: Record<string, unknown>;
+      messageId?: string;
+      authToken?: string | null;
+      messageNotFound?: boolean;
+    }
 
-    beforeEach(() => {
-      mockUpdateMessage.mockClear();
-    });
+    function setup({
+      body = { sent: true },
+      messageId = "message-1",
+      authToken = "admin-token",
+      messageNotFound = false,
+    }: SetupOptions = {}) {
+      const mockUpdateMessage = mock(() => {
+        if (messageNotFound) {
+          throw new NotFoundError("Message not found");
+        }
+        return Promise.resolve({ success: true as const });
+      });
+
+      const testApp = createAdminTestPlugin({
+        messageAdminService: { updateMessage: mockUpdateMessage },
+      });
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(`http://localhost/${messageId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      return { testApp, request };
+    }
 
     it("should return 401 when not authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/message-1", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
     });
 
     it("should update message when authenticated", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/message-1", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success: boolean };
@@ -171,39 +218,20 @@ describe("Admin Messages API", () => {
     });
 
     it("should return 422 when body is invalid", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/message-1", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: {} });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 404 when message not found", async () => {
-      const notFoundApp = createAdminTestPlugin({
-        messageAdminService: {
-          updateMessage: mock(() => {
-            throw new NotFoundError("Message not found");
-          }),
-        },
+      const { testApp, request } = setup({
+        messageId: "nonexistent",
+        messageNotFound: true,
       });
 
-      const response = (await notFoundApp.handle(
-        new Request("http://localhost/nonexistent", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });

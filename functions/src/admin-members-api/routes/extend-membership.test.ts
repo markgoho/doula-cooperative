@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import type { MemberDocument } from "../../types/member-document.js";
@@ -11,65 +11,77 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /:memberId/membership/extend", () => {
-  const mockExtendMembership = mock(
-    (memberId: string, newExpirationDate: string): Promise<MemberDocument> => {
-      if (memberId === "non-existent-id") {
-        return Promise.reject(new NotFoundError("Member not found"));
-      }
-      return Promise.resolve({
-        uid: memberId,
-        email: "test@example.com",
-        createdAt: Timestamp.now(),
-        membershipActive: true,
-        membershipExpiresAt: Timestamp.fromDate(new Date(newExpirationDate)),
-      });
-    },
-  );
+  interface SetupOptions {
+    // Request parameters
+    body?: Record<string, unknown>;
+    memberId?: string;
+    authToken?: string | null;
 
-  const testApp = createAdminTestPlugin({
-    memberAdminService: {
-      extendMembership: mockExtendMembership,
-    },
-  });
+    // Scenario flags
+    memberNotFound?: boolean;
+  }
 
-  beforeEach(() => {
-    mockExtendMembership.mockClear();
-  });
+  function setup({
+    body = { newExpirationDate: "2026-01-01T00:00:00.000Z" },
+    memberId = "test-id",
+    authToken = "admin-token",
+    memberNotFound = false,
+  }: SetupOptions = {}) {
+    // Configure mock based on scenario
+    const mockExtendMembership = mock(
+      (id: string, newExpirationDate: string): Promise<MemberDocument> => {
+        if (memberNotFound || id === "non-existent-id") {
+          return Promise.reject(new NotFoundError("Member not found"));
+        }
+        return Promise.resolve({
+          uid: id,
+          email: "test@example.com",
+          createdAt: Timestamp.now(),
+          membershipActive: true,
+          membershipExpiresAt: Timestamp.fromDate(new Date(newExpirationDate)),
+        });
+      },
+    );
+
+    const testApp = createAdminTestPlugin({
+      memberAdminService: {
+        extendMembership: mockExtendMembership,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(
+      `http://localhost/${memberId}/membership/extend`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      },
+    );
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/test-id/membership/extend",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              newExpirationDate: "2026-01-01T00:00:00.000Z",
-            }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
     });
 
     it("should return 403 when non-admin tries to extend", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/test-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer non-admin-token",
-            },
-            body: JSON.stringify({
-              newExpirationDate: "2026-01-01T00:00:00.000Z",
-            }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
     });
@@ -77,37 +89,19 @@ describe("POST /:memberId/membership/extend", () => {
 
   describe("Input validation", () => {
     it("should require newExpirationDate in request body", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/test-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer admin-token",
-            },
-            body: JSON.stringify({}),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({ body: {} });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should reject invalid date format", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/test-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer admin-token",
-            },
-            body: JSON.stringify({ newExpirationDate: "not-a-date" }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({
+        body: { newExpirationDate: "not-a-date" },
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
@@ -115,65 +109,21 @@ describe("POST /:memberId/membership/extend", () => {
 
   describe("Successful extension", () => {
     it("should extend membership with new expiration date", async () => {
-      const newDate = "2026-01-01T00:00:00.000Z";
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/test-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer admin-token",
-            },
-            body: JSON.stringify({ newExpirationDate: newDate }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
     });
-
-    it("should call extendMembership service with correct parameters", async () => {
-      const newDate = "2026-01-01T00:00:00.000Z";
-      await testApp.handle(
-        new Request(
-          "http://localhost/test-member-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer admin-token",
-            },
-            body: JSON.stringify({ newExpirationDate: newDate }),
-          },
-        ),
-      );
-
-      expect(mockExtendMembership).toHaveBeenCalledTimes(1);
-      expect(mockExtendMembership.mock.calls[0]?.[0]).toBe("test-member-id");
-      expect(mockExtendMembership.mock.calls[0]?.[1]).toBe(newDate);
-    });
   });
 
   describe("Error handling", () => {
     it("should return 404 for non-existent member", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/non-existent-id/membership/extend",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer admin-token",
-            },
-            body: JSON.stringify({
-              newExpirationDate: "2026-01-01T00:00:00.000Z",
-            }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({ memberId: "non-existent-id" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });

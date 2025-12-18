@@ -81,9 +81,9 @@ export function createMockCheckoutEvent(options: {
     livemode: false,
     pending_webhooks: 1,
     request: {
-      // eslint-disable-next-line unicorn/no-null -- Stripe types require null
+       
       id: null,
-      // eslint-disable-next-line unicorn/no-null -- Stripe types require null
+       
       idempotency_key: null,
     },
     type: "checkout.session.completed",

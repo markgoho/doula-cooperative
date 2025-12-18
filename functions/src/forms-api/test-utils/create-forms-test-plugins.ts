@@ -12,7 +12,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 export function createContactUsFormTestPlugin(overrides?: {
   recaptchaService?: Partial<RecaptchaService>;
   formStorageService?: Partial<FormStorageService>;
-  emailService?: EmailService;
+  emailService?: Partial<EmailService>;
   logger?: Logger;
 }) {
   const defaultRecaptchaService: RecaptchaService = {

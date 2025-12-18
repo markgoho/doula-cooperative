@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../types/member-document.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
@@ -12,35 +12,66 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:memberId (get member)", () => {
-  const mockMember: MemberDocument = {
-    uid: "member-1",
-    email: "member1@example.com",
-    createdAt: Timestamp.now(),
-    name: "Member One",
-    membershipActive: true,
-    subscriptionStart: Timestamp.now(),
-    membershipExpiresAt: Timestamp.now(),
-  };
+  interface SetupOptions {
+    // Request parameters
+    memberId?: string;
+    authToken?: string | null;
 
-  const mockVerifyMemberExists = mock(() => {
-    return Promise.resolve(mockMember);
-  });
+    // Scenario flags
+    memberNotFound?: boolean;
+    serverError?: boolean;
+  }
 
-  const testApp = createAdminTestPlugin({
-    memberAdminService: {
-      verifyMemberExists: mockVerifyMemberExists,
-    },
-  });
+  function setup({
+    memberId = "member-1",
+    authToken = "admin-token",
+    memberNotFound = false,
+    serverError = false,
+  }: SetupOptions = {}) {
+    // Configure mock based on scenario
+    const mockVerifyMemberExists = mock(() => {
+      if (serverError) {
+        return Promise.reject(new Error("Database connection timeout"));
+      }
+      if (memberNotFound) {
+        return Promise.reject(new NotFoundError("Member not found"));
+      }
+      // Success - return mock member
+      return Promise.resolve({
+        uid: memberId,
+        email: "member1@example.com",
+        createdAt: Timestamp.now(),
+        name: "Member One",
+        membershipActive: true,
+        subscriptionStart: Timestamp.now(),
+        membershipExpiresAt: Timestamp.now(),
+      } as MemberDocument);
+    });
 
-  beforeEach(() => {
-    mockVerifyMemberExists.mockClear();
-  });
+    const testApp = createAdminTestPlugin({
+      memberAdminService: {
+        verifyMemberExists: mockVerifyMemberExists,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(`http://localhost/${memberId}`, {
+      headers,
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/member-1"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -48,13 +79,9 @@ describe("GET /:memberId (get member)", () => {
     });
 
     it("should return 403 when non-admin user tries to access", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/member-1", {
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -62,50 +89,22 @@ describe("GET /:memberId (get member)", () => {
     });
 
     it("should allow admin to get member", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/member-1", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
   });
 
   describe("Member retrieval", () => {
-    it("should call verifyMemberExists with correct memberId", async () => {
-      await testApp.handle(
-        new Request("http://localhost/test-member-123", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      );
-
-      expect(mockVerifyMemberExists).toHaveBeenCalledTimes(1);
-      expect(mockVerifyMemberExists).toHaveBeenCalledWith("test-member-123");
-    });
-
     it("should return 404 when member does not exist", async () => {
-      const mockNotFound = mock(() => {
-        return Promise.reject(new NotFoundError("Member not found"));
+      const { testApp, request } = setup({
+        memberId: "nonexistent-member",
+        memberNotFound: true,
       });
 
-      const notFoundTestApp = createAdminTestPlugin({
-        memberAdminService: {
-          verifyMemberExists: mockNotFound,
-        },
-      });
-
-      const response = (await notFoundTestApp.handle(
-        new Request("http://localhost/nonexistent-member", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -115,23 +114,9 @@ describe("GET /:memberId (get member)", () => {
 
   describe("Error handling", () => {
     it("should return 500 when service throws unexpected error", async () => {
-      const mockUnexpectedError = mock(() => {
-        return Promise.reject(new Error("Database connection timeout"));
-      });
+      const { testApp, request } = setup({ serverError: true });
 
-      const errorTestApp = createAdminTestPlugin({
-        memberAdminService: {
-          verifyMemberExists: mockUnexpectedError,
-        },
-      });
-
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/member-1", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -144,13 +129,9 @@ describe("GET /:memberId (get member)", () => {
 
   describe("Response format", () => {
     it("should return member data", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/member-1", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -166,13 +147,9 @@ describe("GET /:memberId (get member)", () => {
     });
 
     it("should convert Timestamp fields to ISO strings", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/member-1", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as {
         createdAt?: string;

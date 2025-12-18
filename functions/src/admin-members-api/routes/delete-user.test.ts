@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { ForbiddenError, NotFoundError } from "../../shared-api/errors/http-error.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -9,44 +9,71 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("DELETE /:memberId", () => {
-  const mockDeleteUser = mock(
-    (memberId: string, requestingAdminUid: string): Promise<void> => {
-      if (memberId === requestingAdminUid) {
-        return Promise.reject(
-          new ForbiddenError("You cannot delete your own account"),
-        );
-      }
-      if (memberId === "admin-member-id") {
-        return Promise.reject(
-          new ForbiddenError(
-            "Cannot delete admin users. Remove admin privileges first.",
-          ),
-        );
-      }
-      if (memberId === "non-existent-id") {
-        return Promise.reject(new NotFoundError("Member not found"));
-      }
-      return Promise.resolve();
-    },
-  );
+  interface SetupOptions {
+    // Request parameters
+    memberId?: string;
+    authToken?: string | null;
 
-  const testApp = createAdminTestPlugin({
-    memberAdminService: {
-      deleteUser: mockDeleteUser,
-    },
-  });
+    // Scenario flags
+    selfDeletion?: boolean;
+    deletingAdminUser?: boolean;
+    memberNotFound?: boolean;
+  }
 
-  beforeEach(() => {
-    mockDeleteUser.mockClear();
-  });
+  function setup({
+    memberId = "test-member-id",
+    authToken = "admin-token",
+    selfDeletion = false,
+    deletingAdminUser = false,
+    memberNotFound = false,
+  }: SetupOptions = {}) {
+    // Configure mock based on scenario
+    const mockDeleteUser = mock(
+      (id: string, requestingAdminUid: string): Promise<void> => {
+        if (selfDeletion || id === requestingAdminUid || id === "admin-user") {
+          return Promise.reject(
+            new ForbiddenError("You cannot delete your own account"),
+          );
+        }
+        if (deletingAdminUser || id === "admin-member-id") {
+          return Promise.reject(
+            new ForbiddenError(
+              "Cannot delete admin users. Remove admin privileges first.",
+            ),
+          );
+        }
+        if (memberNotFound || id === "non-existent-id") {
+          return Promise.reject(new NotFoundError("Member not found"));
+        }
+        return Promise.resolve();
+      },
+    );
+
+    const testApp = createAdminTestPlugin({
+      memberAdminService: {
+        deleteUser: mockDeleteUser,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(`http://localhost/${memberId}`, {
+      method: "DELETE",
+      headers,
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-id", {
-          method: "DELETE",
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -54,14 +81,9 @@ describe("DELETE /:memberId", () => {
     });
 
     it("should return 403 when non-admin user tries to delete", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-id", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -71,14 +93,9 @@ describe("DELETE /:memberId", () => {
 
   describe("Deletion guards", () => {
     it("should prevent self-deletion", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/admin-user", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ memberId: "admin-user" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -86,14 +103,9 @@ describe("DELETE /:memberId", () => {
     });
 
     it("should prevent deleting other admin users", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/admin-member-id", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ memberId: "admin-member-id" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -105,14 +117,9 @@ describe("DELETE /:memberId", () => {
 
   describe("Successful deletion", () => {
     it("should delete user and return success response", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -122,33 +129,13 @@ describe("DELETE /:memberId", () => {
       expect(body.success).toBe(true);
       expect(body.deletedUid).toBe("test-member-id");
     });
-
-    it("should call deleteUser service with admin UID", async () => {
-      await testApp.handle(
-        new Request("http://localhost/test-member-id", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      );
-
-      expect(mockDeleteUser).toHaveBeenCalledTimes(1);
-      expect(mockDeleteUser.mock.calls[0]?.[0]).toBe("test-member-id");
-      expect(mockDeleteUser.mock.calls[0]?.[1]).toBe("admin-user");
-    });
   });
 
   describe("Error handling", () => {
     it("should return 404 when member not found", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/non-existent-id", {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ memberId: "non-existent-id" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

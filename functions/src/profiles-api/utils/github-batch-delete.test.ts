@@ -117,11 +117,11 @@ describe("batchDeleteFiles", () => {
     expect(createTreeCall.base_tree).toBe("tree-sha-123");
     expect(createTreeCall.tree).toHaveLength(3);
     // Verify all items are marked for deletion (sha is null per GitHub API)
-    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+     
     expect(createTreeCall.tree[0]?.sha).toBe(null);
-    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+     
     expect(createTreeCall.tree[1]?.sha).toBe(null);
-    // eslint-disable-next-line unicorn/no-null -- GitHub API uses null for deletion
+     
     expect(createTreeCall.tree[2]?.sha).toBe(null);
   });
 

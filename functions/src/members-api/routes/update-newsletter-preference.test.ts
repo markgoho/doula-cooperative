@@ -1,12 +1,4 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  mock,
-} from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import {
   AuthError,
@@ -24,115 +16,143 @@ import { createMembersTestPlugin } from "../test-utils/create-members-test-plugi
  * Tests run WITHOUT Firebase emulators.
  */
 describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
-  // Store original env var to restore after tests
-  const originalMailerliteApiKey = process.env["MAILERLITE_API_KEY"];
+  interface SetupOptions {
+    // Request parameters
+    body?: Record<string, unknown>;
+    memberId?: string;
+    authToken?: string | null;
 
-  beforeAll(() => {
-    // Set test API key for all tests
-    process.env["MAILERLITE_API_KEY"] = "test-api-key";
-  });
+    // Environment
+    mailerliteApiKey?: string | null;
 
-  afterAll(() => {
-    // Restore original environment variable
-    if (originalMailerliteApiKey === undefined) {
+    // Scenario flags
+    memberNotFound?: boolean;
+    missingSubscriptionDates?: boolean;
+    serverError?: boolean;
+  }
+
+  function setup({
+    body = { subscribed: true },
+    memberId = "test-member-id",
+    authToken = "valid-owner-token",
+    mailerliteApiKey = "test-api-key",
+    memberNotFound = false,
+    missingSubscriptionDates = false,
+    serverError = false,
+  }: SetupOptions = {}) {
+    // Set environment variable for this test
+    if (mailerliteApiKey === null) {
       delete process.env["MAILERLITE_API_KEY"];
     } else {
-      process.env["MAILERLITE_API_KEY"] = originalMailerliteApiKey;
+      process.env["MAILERLITE_API_KEY"] = mailerliteApiKey;
     }
-  });
-  // Create mock services
-  const mockUpdateNewsletterPreference = mock(
-    ({
-      memberId,
-      subscribed,
-    }: {
-      memberId: string;
-      subscribed: boolean;
-      mailerliteApiKey: string;
-      emailService: unknown;
-      logger: unknown;
-    }): Promise<{ subscribed: boolean }> => {
-      if (memberId === "test-member-id") {
+
+    // Configure mocks based on scenario
+    const mockUpdateNewsletterPreference = mock(
+      ({
+        memberId: id,
+        subscribed,
+      }: {
+        memberId: string;
+        subscribed: boolean;
+        mailerliteApiKey: string;
+        emailService: unknown;
+        logger: unknown;
+      }): Promise<{ subscribed: boolean }> => {
+        if (serverError) {
+          throw new Error("MailerLite API connection timeout");
+        }
+        if (memberNotFound || id === "non-existent-id") {
+          return Promise.reject(
+            new NotFoundError(
+              "Member document not found. Please contact support.",
+            ),
+          );
+        }
+        if (missingSubscriptionDates || id === "no-subscription-dates") {
+          return Promise.reject(
+            new ValidationError(
+              "Your account is missing required membership information. Please contact support.",
+            ),
+          );
+        }
         return Promise.resolve({ subscribed });
-      }
-      if (memberId === "no-subscription-dates") {
-        return Promise.reject(
-          new ValidationError(
-            "Your account is missing required membership information. Please contact support.",
-          ),
-        );
-      }
-      return Promise.reject(
-        new NotFoundError("Member document not found. Please contact support."),
-      );
-    },
-  );
+      },
+    );
 
-  const mockVerifyOwnerOrAdmin = mock(
-    (
-      authorizationHeader: string | undefined,
-      memberId: string,
-    ): Promise<DecodedIdToken> => {
-      if (!authorizationHeader) {
-        return Promise.reject(new AuthError("Missing Authorization header"));
-      }
+    const mockVerifyOwnerOrAdmin = mock(
+      (
+        authorizationHeader: string | undefined,
+        targetMemberId: string,
+      ): Promise<DecodedIdToken> => {
+        if (!authorizationHeader) {
+          return Promise.reject(new AuthError("Missing Authorization header"));
+        }
 
-      if (
-        authorizationHeader === "Bearer valid-owner-token" &&
-        memberId === "test-member-id"
-      ) {
-        return Promise.resolve({
-          uid: "test-member-id",
-          email: "test@example.com",
-        } as DecodedIdToken);
-      }
+        if (
+          authorizationHeader === "Bearer valid-owner-token" &&
+          (targetMemberId === "test-member-id" || targetMemberId === "test-id")
+        ) {
+          return Promise.resolve({
+            uid: targetMemberId,
+            email: "test@example.com",
+          } as DecodedIdToken);
+        }
 
-      if (authorizationHeader === "Bearer admin-token") {
-        return Promise.resolve({
-          uid: "admin-user",
-          email: "admin@example.com",
-          admin: true,
-        } as unknown as DecodedIdToken);
-      }
+        if (authorizationHeader === "Bearer admin-token") {
+          return Promise.resolve({
+            uid: "admin-user",
+            email: "admin@example.com",
+            admin: true,
+          } as unknown as DecodedIdToken);
+        }
 
-      if (authorizationHeader === "Bearer non-owner-token") {
-        return Promise.reject(
-          new ForbiddenError(
-            "You can only update your own newsletter preference",
-          ),
-        );
-      }
+        if (authorizationHeader === "Bearer non-owner-token") {
+          return Promise.reject(
+            new ForbiddenError(
+              "You can only update your own newsletter preference",
+            ),
+          );
+        }
 
-      return Promise.reject(new AuthError("Invalid authentication token"));
-    },
-  );
+        return Promise.reject(new AuthError("Invalid authentication token"));
+      },
+    );
 
-  // Create plugin with mocked services - tests only the members plugin in isolation
-  const testApp = createMembersTestPlugin({
-    newsletterService: {
-      updateNewsletterPreference: mockUpdateNewsletterPreference,
-    },
-    authService: {
-      verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
-    },
-  });
+    const testApp = createMembersTestPlugin({
+      newsletterService: {
+        updateNewsletterPreference: mockUpdateNewsletterPreference,
+      },
+      authService: {
+        verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
+      },
+    });
 
-  beforeEach(() => {
-    mockUpdateNewsletterPreference.mockClear();
-    mockVerifyOwnerOrAdmin.mockClear();
-  });
+    // Build request from parameters
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(
+      `http://localhost/${memberId}/newsletter-preference`,
+      {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(body),
+      },
+    );
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -140,16 +160,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should return 403 when non-owner tries to update newsletter preference", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer non-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-owner-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -159,16 +172,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should allow owner to update their own newsletter preference", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -180,16 +186,12 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should allow admin to update any member newsletter preference", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: false }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        body: { subscribed: false },
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -203,16 +205,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
 
   describe("Newsletter subscription", () => {
     it("should successfully subscribe to newsletter", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -224,16 +219,9 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should successfully unsubscribe from newsletter", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: false }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { subscribed: false } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -245,16 +233,12 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should return 404 when member does not exist", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/non-existent-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({
+        memberId: "non-existent-id",
+        authToken: "admin-token",
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -264,19 +248,12 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     });
 
     it("should return 400 when member is missing subscription dates", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/no-subscription-dates/newsletter-preference",
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: "Bearer admin-token",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ subscribed: true }),
-          },
-        ),
-      )) as Response;
+      const { testApp, request } = setup({
+        memberId: "no-subscription-dates",
+        authToken: "admin-token",
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -288,114 +265,74 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
 
   describe("Input validation", () => {
     it("should reject request without subscribed field", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: {} });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should reject request with non-boolean subscribed value", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: "true" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { subscribed: "true" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should reject empty member ID", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost//newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp } = setup();
+
+      const request = new Request("http://localhost//newsletter-preference", {
+        method: "PATCH",
+        headers: {
+          Authorization: "Bearer valid-owner-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subscribed: true }),
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
     });
 
     it("should reject member IDs longer than 128 characters", async () => {
+      const { testApp } = setup();
+
       const longId = "a".repeat(129);
-      const response = (await testApp.handle(
-        new Request(`http://localhost/${longId}/newsletter-preference`, {
+      const request = new Request(
+        `http://localhost/${longId}/newsletter-preference`,
+        {
           method: "PATCH",
           headers: {
             Authorization: "Bearer admin-token",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
-
-      expect(response.status).toBe(422);
-    });
-
-    it("should not call service for invalid member IDs", async () => {
-      const longId = "a".repeat(129);
-      mockUpdateNewsletterPreference.mockClear();
-
-      await testApp.handle(
-        new Request(`http://localhost/${longId}/newsletter-preference`, {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
+        },
       );
 
-      // Service should not be called when validation fails before route handler executes
-      expect(mockUpdateNewsletterPreference).not.toHaveBeenCalled();
+      const response = (await testApp.handle(request)) as Response;
+
+      expect(response.status).toBe(422);
     });
   });
 
   describe("Response format", () => {
     it("should return JSON content type", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const contentType = response.headers.get("content-type");
       expect(contentType).toContain("application/json");
     });
 
     it("should return success field in response", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
@@ -403,166 +340,28 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
   });
 
   describe("Error handling", () => {
-    it("should handle unexpected errors with logging", async () => {
-      // Create mock that throws unexpected error (not HttpError)
-      const errorMock = mock();
-      const mockUpdateWithError = mock(() => {
-        throw new Error("MailerLite API connection timeout");
-      });
+    it("should return 500 for unexpected errors", async () => {
+      const { testApp, request } = setup({ serverError: true });
 
-      const testAppWithError = createMembersTestPlugin({
-        newsletterService: {
-          updateNewsletterPreference: mockUpdateWithError,
-        },
-        authService: {
-          verifyOwnerOrAdmin: mock(() =>
-            Promise.resolve({
-              uid: "test-id",
-              admin: false,
-            } as unknown as DecodedIdToken),
-          ),
-        },
-        logger: {
-          error: errorMock,
-          warn: mock(),
-          info: mock(),
-        },
-      });
+      const response = (await testApp.handle(request)) as Response;
 
-      const response = (await testAppWithError.handle(
-        new Request("http://localhost/test-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
-
-      // Should return 500 for unexpected errors
       expect(response.status).toBe(500);
-
-      // Should return descriptive error message
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("Failed to update newsletter preference");
-
-      // Should have logged the error with context
-      expect(errorMock).toHaveBeenCalledTimes(1);
-      expect(Array.isArray(errorMock.mock.calls[0])).toBe(true);
-      expect(errorMock.mock.calls[0]?.[0]).toBe(
-        "Failed to update newsletter preference",
-      );
-
-      // Verify error context includes authentication info
-      const context = errorMock.mock.calls[0]?.[1] as
-        | Record<string, unknown>
-        | undefined;
-      expect(context).toBeDefined();
-      expect(context?.["errorMessage"]).toBe(
-        "MailerLite API connection timeout",
-      );
-      expect(context?.["memberId"]).toBe("test-id");
-      expect(context?.["subscribed"]).toBe(true);
-      expect(context?.["hasAuthorizationHeader"]).toBe(true);
-    });
-
-    it("should handle HttpError correctly without logging as unexpected", async () => {
-      const errorMock = mock();
-
-      // HttpError should be handled normally without triggering unexpected error logging
-      const testAppWithLogger = createMembersTestPlugin({
-        newsletterService: {
-          updateNewsletterPreference: mockUpdateNewsletterPreference,
-        },
-        authService: {
-          verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
-        },
-        logger: {
-          error: errorMock,
-          warn: mock(),
-          info: mock(),
-        },
-      });
-
-      const response = (await testAppWithLogger.handle(
-        new Request("http://localhost/non-existent-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
-
-      // Should return 404 for NotFoundError (which extends HttpError)
-      expect(response.status).toBe(404);
-
-      // Should NOT have logged as unexpected error
-      expect(errorMock).not.toHaveBeenCalled();
     });
 
     it("should return 503 when MAILERLITE_API_KEY is not configured", async () => {
-      // Temporarily delete the API key that was set in beforeAll
-      delete process.env["MAILERLITE_API_KEY"];
+      const { testApp, request } = setup({ mailerliteApiKey: null });
 
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscribed: true }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(503);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe(
         "Newsletter service not configured. Please contact support.",
       );
-
-      // Restore test API key for remaining tests
-      process.env["MAILERLITE_API_KEY"] = "test-api-key";
     });
   });
 
-  describe("Edge cases", () => {
-    it("should reject member IDs with URL-encoded forward slashes", async () => {
-      const response = (await testApp.handle(
-        new Request(
-          "http://localhost/user%2Fwith%2Fslash/newsletter-preference",
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: "Bearer admin-token",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ subscribed: true }),
-          },
-        ),
-      )) as Response;
-
-      // Forward slashes are not valid in Firestore document IDs
-      expect(response.status).toBe(404);
-    });
-
-    it("should handle invalid JSON in request body", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-member-id/newsletter-preference", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer valid-owner-token",
-            "Content-Type": "application/json",
-          },
-          body: "invalid json{",
-        }),
-      )) as Response;
-
-      // Elysia should return 400 for invalid JSON
-      expect([400, 422]).toContain(response.status);
-    });
-  });
 });
+

@@ -16,7 +16,7 @@ describe("isGitHubError", () => {
   });
 
   it("should return false for null", () => {
-    // eslint-disable-next-line unicorn/no-null -- testing null handling
+     
     expect(isGitHubError(null)).toBe(false);
   });
 
@@ -102,7 +102,7 @@ describe("isRateLimitError", () => {
   });
 
   it("should return false for non-GitHub errors", () => {
-    // eslint-disable-next-line unicorn/no-null -- testing null handling
+     
     expect(isRateLimitError(null)).toBe(false);
     expect(isRateLimitError(undefined)).toBe(false);
     expect(isRateLimitError("error")).toBe(false);

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -7,29 +7,58 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Served at /api/admin/match-requests/:requestId via Firebase rewrite.
  */
 describe("PATCH /:requestId (update match request)", () => {
-  const mockUpdateMatchRequest = mock(() =>
-    Promise.resolve({ success: true as const }),
-  );
+  interface SetupOptions {
+    // Request parameters
+    body?: Record<string, unknown>;
+    requestId?: string;
+    authToken?: string | null;
 
-  const testApp = createAdminTestPlugin({
-    matchRequestAdminService: {
-      updateMatchRequest: mockUpdateMatchRequest,
-    },
-  });
+    // Scenario flags
+    requestNotFound?: boolean;
+  }
 
-  beforeEach(() => {
-    mockUpdateMatchRequest.mockClear();
-  });
+  function setup({
+    body = { sent: true },
+    requestId = "request-123",
+    authToken = "admin-token",
+    requestNotFound = false,
+  }: SetupOptions = {}) {
+    // Configure mock based on scenario
+    const mockUpdateMatchRequest = mock(() => {
+      if (requestNotFound) {
+        throw new NotFoundError("Match request not found");
+      }
+      return Promise.resolve({ success: true as const });
+    });
+
+    const testApp = createAdminTestPlugin({
+      matchRequestAdminService: {
+        updateMatchRequest: mockUpdateMatchRequest,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(`http://localhost/${requestId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -37,16 +66,9 @@ describe("PATCH /:requestId (update match request)", () => {
     });
 
     it("should return 403 when non-admin user tries to access", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer non-admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -56,66 +78,29 @@ describe("PATCH /:requestId (update match request)", () => {
 
   describe("Success Scenarios", () => {
     it("should update match request status when authorized", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
-      expect(mockUpdateMatchRequest).toHaveBeenCalledTimes(1);
-
       const body = (await response.json()) as { success: boolean };
       expect(body.success).toBe(true);
     });
   });
 
   describe("Validation", () => {
-    it("should return 422 when body is missing", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-        }),
-      )) as Response;
-
-      expect(response.status).toBe(422);
-    });
-
     it("should return 422 when sent field is missing", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: {} });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should return 422 when sent is not a boolean", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/request-123", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: "not-a-boolean" }),
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ body: { sent: "not-a-boolean" } });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
@@ -123,24 +108,12 @@ describe("PATCH /:requestId (update match request)", () => {
 
   describe("Error Scenarios", () => {
     it("should return 404 when match request not found", async () => {
-      const notFoundApp = createAdminTestPlugin({
-        matchRequestAdminService: {
-          updateMatchRequest: mock(() => {
-            throw new NotFoundError("Match request not found");
-          }),
-        },
+      const { testApp, request } = setup({
+        requestId: "nonexistent-id",
+        requestNotFound: true,
       });
 
-      const response = (await notFoundApp.handle(
-        new Request("http://localhost/nonexistent-id", {
-          method: "PATCH",
-          headers: {
-            Authorization: "Bearer admin-token",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sent: true }),
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

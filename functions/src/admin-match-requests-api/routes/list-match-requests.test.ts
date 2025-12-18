@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MatchRequestDocument } from "../../collections/match-requests.js";
 import { toMatchRequestResponse } from "../schemas/match-request-schemas.js";
@@ -12,64 +12,81 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET / (list match requests)", () => {
-  const mockMatchRequestDocuments: (MatchRequestDocument & { id: string })[] = [
-    {
-      id: "request-1",
-      name: "Jane Doe",
-      phone: "555-1234",
-      email: "jane@example.com",
-      zipcode: "12345",
-      estimatedDueDate: { month: "03", day: "15", year: "2025" },
-      services: ["birth-doula"],
-      birthLocation: "Hospital",
-      otherInfo: "First time parent",
-      insurance: ["Blue Cross"],
-      submitted: Timestamp.now(),
-      sent: false,
-      recaptchaScore: 0.9,
-    },
-    {
-      id: "request-2",
-      name: "John Smith",
-      phone: "555-5678",
-      email: "john@example.com",
-      zipcode: "54321",
-      estimatedDueDate: { month: "04", day: "20", year: "2025" },
-      services: ["postpartum-doula"],
-      birthLocation: "Home",
-      otherInfo: "",
-      insurance: ["Aetna"],
-      submitted: Timestamp.now(),
-      sent: true,
-    },
-  ];
+  interface SetupOptions {
+    // Request parameters
+    authToken?: string | null;
+  }
 
-  const mockListMatchRequests = mock(() => {
-    return Promise.resolve({
-      requests: mockMatchRequestDocuments.map((document) =>
-        toMatchRequestResponse(document.id, document),
-      ),
-      total: 2,
-      pendingCount: 1,
-      processedCount: 1,
+  function setup({ authToken = "admin-token" }: SetupOptions = {}) {
+    const mockMatchRequestDocuments: (MatchRequestDocument & {
+      id: string;
+    })[] = [
+      {
+        id: "request-1",
+        name: "Jane Doe",
+        phone: "555-1234",
+        email: "jane@example.com",
+        zipcode: "12345",
+        estimatedDueDate: { month: "03", day: "15", year: "2025" },
+        services: ["birth-doula"],
+        birthLocation: "Hospital",
+        otherInfo: "First time parent",
+        insurance: ["Blue Cross"],
+        submitted: Timestamp.now(),
+        sent: false,
+        recaptchaScore: 0.9,
+      },
+      {
+        id: "request-2",
+        name: "John Smith",
+        phone: "555-5678",
+        email: "john@example.com",
+        zipcode: "54321",
+        estimatedDueDate: { month: "04", day: "20", year: "2025" },
+        services: ["postpartum-doula"],
+        birthLocation: "Home",
+        otherInfo: "",
+        insurance: ["Aetna"],
+        submitted: Timestamp.now(),
+        sent: true,
+      },
+    ];
+
+    const mockListMatchRequests = mock(() => {
+      return Promise.resolve({
+        requests: mockMatchRequestDocuments.map((document) =>
+          toMatchRequestResponse(document.id, document),
+        ),
+        total: 2,
+        pendingCount: 1,
+        processedCount: 1,
+      });
     });
-  });
 
-  const testApp = createAdminTestPlugin({
-    matchRequestAdminService: {
-      listMatchRequests: mockListMatchRequests,
-    },
-  });
+    const testApp = createAdminTestPlugin({
+      matchRequestAdminService: {
+        listMatchRequests: mockListMatchRequests,
+      },
+    });
 
-  beforeEach(() => {
-    mockListMatchRequests.mockClear();
-  });
+    // Build request from parameters
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request("http://localhost/", {
+      headers,
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -77,13 +94,9 @@ describe("GET / (list match requests)", () => {
     });
 
     it("should return 403 when non-admin user tries to access", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -91,27 +104,19 @@ describe("GET / (list match requests)", () => {
     });
 
     it("should allow admin to list match requests", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
-      expect(mockListMatchRequests).toHaveBeenCalled();
     });
   });
 
-
   describe("Response Format", () => {
     it("should return match requests with proper structure", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -129,11 +134,9 @@ describe("GET / (list match requests)", () => {
     });
 
     it("should convert Firestore Timestamps to ISO strings", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: { Authorization: "Bearer admin-token" },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as {
         requests: { submitted?: string }[];

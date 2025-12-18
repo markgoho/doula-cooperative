@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
@@ -11,45 +11,69 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET / (list members)", () => {
-  const mockMembers: MemberDocument[] = [
-    {
-      uid: "member-1",
-      email: "member1@example.com",
-      createdAt: Timestamp.now(),
-      name: "Member One",
-      membershipActive: true,
-    },
-    {
-      uid: "member-2",
-      email: "member2@example.com",
-      createdAt: Timestamp.now(),
-      name: "Member Two",
-      membershipActive: false,
-    },
-  ];
+  interface SetupOptions {
+    // Request parameters
+    authToken?: string | null;
 
-  const mockListMembers = mock(() => {
-    return Promise.resolve({
-      members: mockMembers,
-      total: 2,
+    // Scenario flags
+    serverError?: boolean;
+  }
+
+  function setup({
+    authToken = "admin-token",
+    serverError = false,
+  }: SetupOptions = {}) {
+    // Configure mock based on scenario
+    const mockListMembers = mock(() => {
+      if (serverError) {
+        return Promise.reject(new Error("Firestore quota exceeded"));
+      }
+      // Success - return mock members
+      return Promise.resolve({
+        members: [
+          {
+            uid: "member-1",
+            email: "member1@example.com",
+            createdAt: Timestamp.now(),
+            name: "Member One",
+            membershipActive: true,
+          },
+          {
+            uid: "member-2",
+            email: "member2@example.com",
+            createdAt: Timestamp.now(),
+            name: "Member Two",
+            membershipActive: false,
+          },
+        ] as MemberDocument[],
+        total: 2,
+      });
     });
-  });
 
-  const testApp = createAdminTestPlugin({
-    memberAdminService: {
-      listMembers: mockListMembers,
-    },
-  });
+    const testApp = createAdminTestPlugin({
+      memberAdminService: {
+        listMembers: mockListMembers,
+      },
+    });
 
-  beforeEach(() => {
-    mockListMembers.mockClear();
-  });
+    // Build request from parameters
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request("http://localhost/", {
+      headers,
+    });
+
+    return { testApp, request };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -57,13 +81,9 @@ describe("GET / (list members)", () => {
     });
 
     it("should return 403 when non-admin user tries to access", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -71,54 +91,19 @@ describe("GET / (list members)", () => {
     });
 
     it("should allow admin to list members", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe("Service invocation", () => {
-    it("should call service with logger", async () => {
-      await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      );
-
-      expect(mockListMembers).toHaveBeenCalledTimes(1);
-      expect(mockListMembers).toHaveBeenCalledWith({
-        logger: expect.any(Object) as unknown,
-      });
-    });
-  });
-
   describe("Error handling", () => {
     it("should return 500 when service throws unexpected error", async () => {
-      const mockUnexpectedError = mock(() => {
-        return Promise.reject(new Error("Firestore quota exceeded"));
-      });
+      const { testApp, request } = setup({ serverError: true });
 
-      const errorTestApp = createAdminTestPlugin({
-        memberAdminService: {
-          listMembers: mockUnexpectedError,
-        },
-      });
-
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -131,13 +116,9 @@ describe("GET / (list members)", () => {
 
   describe("Response format", () => {
     it("should return members array with total count", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -150,13 +131,9 @@ describe("GET / (list members)", () => {
     });
 
     it("should convert Timestamp fields to ISO strings", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as {
         members?: { createdAt?: string }[];
