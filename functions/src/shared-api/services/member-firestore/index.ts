@@ -1,4 +1,4 @@
-import type { DocumentSnapshot } from "firebase-admin/firestore";
+import type { DocumentSnapshot, UpdateData } from "firebase-admin/firestore";
 import { getFirestore } from "firebase-admin/firestore";
 import { MEMBERS_COLLECTION } from "../../../collections/index.js";
 import type { MemberDocument } from "../../../types/member-document.js";
@@ -36,10 +36,11 @@ async function writeMemberImpl(
 
 /**
  * Update specific fields in a member document.
+ * Supports FieldValue instances like serverTimestamp(), increment(), etc.
  */
 async function updateMemberImpl(
   uid: string,
-  data: Partial<MemberDocument>,
+  data: UpdateData<MemberDocument>,
 ): Promise<void> {
   const database = getFirestore();
   await database.collection(MEMBERS_COLLECTION).doc(uid).update(data);

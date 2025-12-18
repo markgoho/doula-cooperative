@@ -1,4 +1,4 @@
-import type { DocumentSnapshot } from "firebase-admin/firestore";
+import type { DocumentSnapshot, UpdateData } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../../types/member-document.js";
 
 /**
@@ -34,10 +34,11 @@ export interface MemberFirestoreService {
   /**
    * Update specific fields in a member document.
    * Document must already exist or this will fail.
+   * Supports FieldValue instances like serverTimestamp(), increment(), etc.
    * @param uid - The user ID (Firestore document ID)
-   * @param data - Partial member data to update
+   * @param data - Update data (supports FieldValue for special operations)
    */
-  updateMember(uid: string, data: Partial<MemberDocument>): Promise<void>;
+  updateMember(uid: string, data: UpdateData<MemberDocument>): Promise<void>;
 
   /**
    * Delete a member document.
