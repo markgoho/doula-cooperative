@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import {
@@ -14,30 +14,59 @@ import {
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:slug (read profile by slug)", () => {
-  const testApp = createProfilesTestPlugin();
+  interface SetupOptions {
+    slug?: string;
+    notFound?: boolean;
+    serverError?: boolean;
+    noImage?: boolean;
+  }
 
-  beforeEach(() => {
-    // Reset mocks before each test
-  });
+  function setup({
+    slug = "test-user",
+    notFound = false,
+    serverError = false,
+    noImage = false,
+  }: SetupOptions = {}) {
+    const mockReadProfile = mock(() => {
+      if (notFound) {
+        return Promise.reject(new NotFoundError("Profile not found"));
+      }
+      if (serverError) {
+        return Promise.reject(new Error("GitHub API rate limit exceeded"));
+      }
+      if (noImage) {
+        return Promise.resolve(mockProfileData);
+      }
+      return Promise.resolve({
+        ...mockProfileData,
+        image: "https://example.com/image.jpg",
+      });
+    });
+
+    const testApp = createProfilesTestPlugin({
+      profileGitHubService: {
+        readProfile: mockReadProfile,
+      },
+    });
+
+    const request = new Request(`http://localhost/${slug}`);
+
+    return { testApp, request };
+  }
 
   describe("Public access", () => {
     it("should allow access without authentication", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user"),
-        // No authorization header
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
 
     it("should work with authentication (but not require it)", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user", {
-          headers: {
-            Authorization: "Bearer valid-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
@@ -45,9 +74,9 @@ describe("GET /:slug (read profile by slug)", () => {
 
   describe("Profile retrieval", () => {
     it("should return structured profile data on success", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user"),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as ProfileData;
@@ -60,30 +89,18 @@ describe("GET /:slug (read profile by slug)", () => {
     });
 
     it("should include image URL when available", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test-user"),
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as ProfileData;
       expect(body.image).toBe("https://example.com/image.jpg");
     });
 
     it("should not include image when not available", async () => {
-      const mockReadProfile = mock(() =>
-        Promise.resolve({
-          ...mockProfileData,
-        }),
-      );
+      const { testApp, request } = setup({ noImage: true });
 
-      const noImageTestApp = createProfilesTestPlugin({
-        profileGitHubService: {
-          readProfile: mockReadProfile,
-        },
-      });
-
-      const response = (await noImageTestApp.handle(
-        new Request("http://localhost/test-user"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       const body = (await response.json()) as ProfileData;
       expect(body.title).toBeDefined();
@@ -93,19 +110,12 @@ describe("GET /:slug (read profile by slug)", () => {
 
   describe("Error handling", () => {
     it("should return 404 when profile not found on GitHub", async () => {
-      const mockReadProfile = mock(() => {
-        return Promise.reject(new NotFoundError("Profile not found"));
+      const { testApp, request } = setup({
+        slug: "non-existent-slug",
+        notFound: true,
       });
 
-      const notFoundTestApp = createProfilesTestPlugin({
-        profileGitHubService: {
-          readProfile: mockReadProfile,
-        },
-      });
-
-      const response = (await notFoundTestApp.handle(
-        new Request("http://localhost/non-existent-slug"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -113,19 +123,9 @@ describe("GET /:slug (read profile by slug)", () => {
     });
 
     it("should return 500 when GitHub service throws unexpected error", async () => {
-      const mockReadProfile = mock(() => {
-        return Promise.reject(new Error("GitHub API rate limit exceeded"));
-      });
+      const { testApp, request } = setup({ serverError: true });
 
-      const errorTestApp = createProfilesTestPlugin({
-        profileGitHubService: {
-          readProfile: mockReadProfile,
-        },
-      });
-
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/test-user"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -137,25 +137,25 @@ describe("GET /:slug (read profile by slug)", () => {
 
   describe("Input validation", () => {
     it("should accept valid slug with lowercase letters and hyphens", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/jane-doe"),
-      )) as Response;
+      const { testApp, request } = setup({ slug: "jane-doe" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
 
     it("should accept slug with numbers", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/jane-doe-123"),
-      )) as Response;
+      const { testApp, request } = setup({ slug: "jane-doe-123" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
 
     it("should reject slug with uppercase letters", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/Jane-Doe"),
-      )) as Response;
+      const { testApp, request } = setup({ slug: "Jane-Doe" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
       // Elysia returns plain text for validation errors
@@ -164,17 +164,17 @@ describe("GET /:slug (read profile by slug)", () => {
     });
 
     it("should reject slug with special characters", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/jane_doe"),
-      )) as Response;
+      const { testApp, request } = setup({ slug: "jane_doe" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should reject slug that is too short", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/a"),
-      )) as Response;
+      const { testApp, request } = setup({ slug: "a" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });

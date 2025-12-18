@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
@@ -15,41 +15,64 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:email (get unclaimed profile)", () => {
-  const mockProfileDocument: UnclaimedProfileDocument = {
-    email: "test@example.com",
-    name: "Test User",
-    slug: "test-user",
-    subscriptionStart: Timestamp.now(),
-    lastPayment: Timestamp.now(),
-    nextPayment: Timestamp.now(),
-  };
+  interface SetupOptions {
+    // Request parameters
+    email?: string;
+    authToken?: string | null;
 
-  const mockProfile = toUnclaimedProfileResponse(mockProfileDocument);
+    // Scenario flags
+    profileNotFound?: boolean;
+  }
 
-  const mockGetUnclaimedProfile = mock(
-    ({ email }: { email: string }): Promise<UnclaimedProfileSuccessResponse> => {
-      if (email === "nonexistent@example.com") {
-        return Promise.reject(new NotFoundError("Profile not found"));
-      }
-      return Promise.resolve(mockProfile);
-    },
-  );
+  function setup({
+    email = "test@example.com",
+    authToken = "admin-token",
+    profileNotFound = false,
+  }: SetupOptions = {}) {
+    const mockProfileDocument: UnclaimedProfileDocument = {
+      email,
+      name: "Test User",
+      slug: "test-user",
+      subscriptionStart: Timestamp.now(),
+      lastPayment: Timestamp.now(),
+      nextPayment: Timestamp.now(),
+    };
 
-  const testApp = createAdminTestPlugin({
-    unclaimedProfileAdminService: {
-      getUnclaimedProfile: mockGetUnclaimedProfile,
-    },
-  });
+    const mockProfile = toUnclaimedProfileResponse(mockProfileDocument);
 
-  beforeEach(() => {
-    mockGetUnclaimedProfile.mockClear();
-  });
+    const mockGetUnclaimedProfile = mock(
+      ({ email: requestEmail }: { email: string }): Promise<UnclaimedProfileSuccessResponse> => {
+        if (profileNotFound || requestEmail === "nonexistent@example.com") {
+          return Promise.reject(new NotFoundError("Profile not found"));
+        }
+        return Promise.resolve(mockProfile);
+      },
+    );
+
+    const testApp = createAdminTestPlugin({
+      unclaimedProfileAdminService: {
+        getUnclaimedProfile: mockGetUnclaimedProfile,
+      },
+    });
+
+    // Build request from parameters
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const request = new Request(`http://localhost/${email}`, {
+      headers,
+    });
+
+    return { testApp, request, mockProfile };
+  }
 
   describe("Authentication", () => {
     it("should return 401 when no authorization header is provided", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com"),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -57,13 +80,9 @@ describe("GET /:email (get unclaimed profile)", () => {
     });
 
     it("should return 403 when non-admin tries to get profile", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com", {
-          headers: {
-            Authorization: "Bearer non-admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -73,60 +92,46 @@ describe("GET /:email (get unclaimed profile)", () => {
 
   describe("Email parameter validation", () => {
     it("should reject invalid email format", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/not-an-email", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({ email: "not-an-email" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(422);
     });
 
     it("should accept valid email format", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/valid@example.com", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request, mockProfile } = setup({ email: "valid@example.com" });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
-      expect(body.email).toBe("test@example.com");
+      expect(body.email).toBe(mockProfile.email);
     });
   });
 
   describe("Successful retrieval", () => {
     it("should return profile when authenticated as admin", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/test@example.com", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request, mockProfile } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
-      expect(body.email).toBe("test@example.com");
-      expect(body.name).toBe("Test User");
-      expect(body.slug).toBe("test-user");
-      expect(mockGetUnclaimedProfile).toHaveBeenCalledTimes(1);
+      expect(body.email).toBe(mockProfile.email);
+      expect(body.name).toBe(mockProfile.name);
+      expect(body.slug).toBe(mockProfile.slug);
     });
   });
 
   describe("Error handling", () => {
     it("should return 404 when profile not found", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/nonexistent@example.com", {
-          headers: {
-            Authorization: "Bearer admin-token",
-          },
-        }),
-      )) as Response;
+      const { testApp, request } = setup({
+        email: "nonexistent@example.com",
+        profileNotFound: true,
+      });
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

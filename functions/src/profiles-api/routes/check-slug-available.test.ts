@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
@@ -9,18 +9,42 @@ import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plu
  * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /slugs/check (check slug availability)", () => {
-  const testApp = createProfilesTestPlugin();
+  interface SetupOptions {
+    slug?: string;
+    available?: boolean;
+    serverError?: boolean;
+  }
 
-  beforeEach(() => {
-    // Reset mocks before each test
-  });
+  function setup({
+    slug = "test-slug",
+    available = true,
+    serverError = false,
+  }: SetupOptions = {}) {
+    const mockCheckSlug = mock(() => {
+      if (serverError) {
+        return Promise.reject(new Error("Firestore connection failed"));
+      }
+      return Promise.resolve({ available });
+    });
+
+    const testApp = createProfilesTestPlugin({
+      profileMemberService: {
+        checkSlugAvailable: mockCheckSlug,
+      },
+    });
+
+    const request = new Request(
+      `http://localhost/slugs/check?slug=${slug}`,
+    );
+
+    return { testApp, request };
+  }
 
   describe("Public access", () => {
     it("should allow access without authentication", async () => {
-      const response = (await testApp.handle(
-        new Request("http://localhost/slugs/check?slug=test-slug"),
-        // No authorization header
-      )) as Response;
+      const { testApp, request } = setup();
+
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
     });
@@ -28,17 +52,12 @@ describe("GET /slugs/check (check slug availability)", () => {
 
   describe("Slug availability check", () => {
     it("should return available true when slug is available", async () => {
-      const mockCheckSlug = mock(() => Promise.resolve({ available: true }));
-
-      const availableTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          checkSlugAvailable: mockCheckSlug,
-        },
+      const { testApp, request } = setup({
+        slug: "available-slug",
+        available: true,
       });
 
-      const response = (await availableTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=available-slug"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { available?: boolean };
@@ -46,17 +65,12 @@ describe("GET /slugs/check (check slug availability)", () => {
     });
 
     it("should return available false when slug is taken", async () => {
-      const mockCheckSlug = mock(() => Promise.resolve({ available: false }));
-
-      const takenTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          checkSlugAvailable: mockCheckSlug,
-        },
+      const { testApp, request } = setup({
+        slug: "taken-slug",
+        available: false,
       });
 
-      const response = (await takenTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=taken-slug"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { available?: boolean };
@@ -66,19 +80,9 @@ describe("GET /slugs/check (check slug availability)", () => {
 
   describe("Error handling", () => {
     it("should return 500 when service throws unexpected error", async () => {
-      const mockCheckSlug = mock(() => {
-        return Promise.reject(new Error("Firestore connection failed"));
-      });
+      const { testApp, request } = setup({ serverError: true });
 
-      const errorTestApp = createProfilesTestPlugin({
-        profileMemberService: {
-          checkSlugAvailable: mockCheckSlug,
-        },
-      });
-
-      const response = (await errorTestApp.handle(
-        new Request("http://localhost/slugs/check?slug=test-slug"),
-      )) as Response;
+      const response = (await testApp.handle(request)) as Response;
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
