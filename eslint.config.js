@@ -92,6 +92,10 @@ export default defineConfig([
         project: "functions/tsconfig.test.json",
       },
     },
+    rules: {
+      // Allow null in test files for SIFERS pattern (explicit opt-out of defaults)
+      "unicorn/no-null": "off",
+    },
   },
   {
     files: ["members/**/*.spec.ts", "members/**/*.integration.spec.ts"],
