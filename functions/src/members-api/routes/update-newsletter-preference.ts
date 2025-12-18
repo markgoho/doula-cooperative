@@ -29,7 +29,7 @@ export async function updateNewsletterPreferenceLogic({
   logger: Logger;
   authorizationHeader: string | undefined;
   set: { status?: number | string };
-}): Promise<{ success: boolean; subscribed: boolean } | { error: string }> {
+}): Promise<{ success: true; subscribed: boolean } | { error: string }> {
   try {
     // Verify authentication and authorization using injected service
     const decodedToken = await authService.verifyOwnerOrAdmin(
@@ -81,7 +81,7 @@ export async function updateNewsletterPreferenceLogic({
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error !== null && typeof error === "object" && "constructor" in error ? error.constructor.name : undefined,
+      errorType: error?.constructor?.name,
       memberId,
       subscribed,
       hasAuthorizationHeader: Boolean(authorizationHeader),

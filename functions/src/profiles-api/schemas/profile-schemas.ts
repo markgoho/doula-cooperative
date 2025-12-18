@@ -174,3 +174,189 @@ export const UploadProfileImageBodySchema = t.Object({
  * Type derived from UploadProfileImageBodySchema.
  */
 export type UploadProfileImageBody = Static<typeof UploadProfileImageBodySchema>;
+
+// ============================================================================
+// Response Schemas
+// ============================================================================
+
+/**
+ * Error response schema (used across all routes).
+ */
+const ErrorResponseSchema = t.Object({
+  error: t.String(),
+});
+
+/**
+ * Success response for reading a profile by slug.
+ * GET /api/profiles/:slug
+ */
+const ReadProfileSuccessSchema = t.Object({
+  title: t.String(),
+  bio: t.String(),
+  credentials: t.Optional(t.String()),
+  pronouns: t.Optional(t.String()),
+  tags: t.Optional(t.Array(t.String())),
+  contact: t.Optional(ContactSchema),
+  draft: t.Optional(t.Boolean()),
+  image: t.Optional(t.String()),
+});
+
+export type ReadProfileSuccessResponse = Static<
+  typeof ReadProfileSuccessSchema
+>;
+
+export const ReadProfileResponseSchema = t.Union([
+  ReadProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type ReadProfileResponse = Static<typeof ReadProfileResponseSchema>;
+
+/**
+ * Success response for checking slug availability.
+ * GET /api/profiles/slugs/check?slug=jane-doe
+ */
+const CheckSlugAvailableSuccessSchema = t.Object({
+  available: t.Boolean(),
+});
+
+export type CheckSlugAvailableSuccessResponse = Static<
+  typeof CheckSlugAvailableSuccessSchema
+>;
+
+export const CheckSlugAvailableResponseSchema = t.Union([
+  CheckSlugAvailableSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type CheckSlugAvailableResponse = Static<
+  typeof CheckSlugAvailableResponseSchema
+>;
+
+/**
+ * Success response for setting profile slug.
+ * POST /api/profiles/slugs
+ */
+const SetSlugSuccessSchema = t.Object({
+  slug: t.String(),
+});
+
+export type SetSlugSuccessResponse = Static<typeof SetSlugSuccessSchema>;
+
+export const SetSlugResponseSchema = t.Union([
+  SetSlugSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type SetSlugResponse = Static<typeof SetSlugResponseSchema>;
+
+/**
+ * Success response for updating profile.
+ * PUT /api/profiles/:slug
+ */
+const WriteProfileSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type WriteProfileSuccessResponse = Static<
+  typeof WriteProfileSuccessSchema
+>;
+
+export const WriteProfileResponseSchema = t.Union([
+  WriteProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type WriteProfileResponse = Static<typeof WriteProfileResponseSchema>;
+
+/**
+ * Success response for creating profile.
+ * POST /api/profiles/:slug
+ */
+const CreateProfileSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type CreateProfileSuccessResponse = Static<
+  typeof CreateProfileSuccessSchema
+>;
+
+export const CreateProfileResponseSchema = t.Union([
+  CreateProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type CreateProfileResponse = Static<typeof CreateProfileResponseSchema>;
+
+/**
+ * Success response for claiming unclaimed profile.
+ * POST /api/profiles/:slug/claim
+ */
+const ClaimProfileSuccessSchema = t.Union([
+  t.Object({
+    status: t.Literal("success"),
+    data: t.Object({
+      email: t.String({ format: "email" }),
+      name: t.String(),
+      slug: t.Optional(t.String()),
+      subscriptionStart: t.Any(), // Timestamp - not JSON serializable
+      lastPayment: t.Any(), // Timestamp
+      nextPayment: t.Any(), // Timestamp
+      createdAt: t.Optional(t.Any()), // Timestamp
+      updatedAt: t.Optional(t.Any()), // Timestamp
+    }),
+  }),
+  t.Object({
+    status: t.Literal("no_profile_to_claim"),
+  }),
+]);
+
+export type ClaimProfileSuccessResponse = Static<
+  typeof ClaimProfileSuccessSchema
+>;
+
+export const ClaimProfileResponseSchema = t.Union([
+  ClaimProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type ClaimProfileResponse = Static<typeof ClaimProfileResponseSchema>;
+
+/**
+ * Success response for uploading profile image.
+ * POST /api/profiles/:slug/image
+ */
+const UploadImageSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type UploadImageSuccessResponse = Static<
+  typeof UploadImageSuccessSchema
+>;
+
+export const UploadImageResponseSchema = t.Union([
+  UploadImageSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type UploadImageResponse = Static<typeof UploadImageResponseSchema>;
+
+/**
+ * Success response for deleting profile image.
+ * DELETE /api/profiles/:slug/image
+ */
+const DeleteImageSuccessSchema = t.Object({
+  success: t.Literal(true),
+  deletedFiles: t.Array(t.String()),
+});
+
+export type DeleteImageSuccessResponse = Static<
+  typeof DeleteImageSuccessSchema
+>;
+
+export const DeleteImageResponseSchema = t.Union([
+  DeleteImageSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type DeleteImageResponse = Static<typeof DeleteImageResponseSchema>;

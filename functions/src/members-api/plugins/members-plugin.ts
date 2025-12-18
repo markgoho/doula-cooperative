@@ -4,8 +4,10 @@ import { EmailService } from "../../shared-api/services/email/index.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import {
+  GetMemberResponseSchema,
   MemberIdParameterSchema,
   UpdateNewsletterPreferenceBodySchema,
+  UpdateNewsletterPreferenceResponseSchema,
 } from "../schemas/member-schemas.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { MemberService } from "../services/member/member-service.js";
@@ -55,6 +57,7 @@ export function createMembersPlugin(services?: PartialServices) {
           }),
         {
           params: MemberIdParameterSchema,
+          response: GetMemberResponseSchema,
         },
       )
       // PATCH /:memberId/newsletter-preference - Update newsletter preference (owner or admin) - Served at /api/members/:memberId/newsletter-preference
@@ -84,6 +87,7 @@ export function createMembersPlugin(services?: PartialServices) {
         {
           params: MemberIdParameterSchema,
           body: UpdateNewsletterPreferenceBodySchema,
+          response: UpdateNewsletterPreferenceResponseSchema,
         },
       )
   );

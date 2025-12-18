@@ -1,7 +1,11 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleContactFormLogic } from "../routes/handle-contact-form.js";
+import {
+  ContactFormBodySchema,
+  FormResponseSchema,
+} from "../schemas/form-response-schemas.js";
 import { FormStorageService } from "../services/form-storage/index.js";
 import { RecaptchaService } from "../services/recaptcha/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -69,12 +73,8 @@ export function createContactUsFormPlugin(services?: PartialServices) {
         });
       },
       {
-        body: t.Object({
-          contactName: t.String({ minLength: 1, maxLength: 100 }),
-          email: t.String({ format: "email", maxLength: 255 }),
-          message: t.String({ minLength: 1, maxLength: 5000 }),
-          recaptchaToken: t.Optional(t.String()),
-        }),
+        body: ContactFormBodySchema,
+        response: FormResponseSchema,
       },
     );
 }

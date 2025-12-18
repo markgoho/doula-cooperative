@@ -27,6 +27,17 @@ export const WelcomeEmailStatusSchema = t.Union([
  * Member response schema - represents a member document as returned by the API.
  * All Timestamp fields are converted to ISO 8601 strings.
  * Admin-specific endpoint includes isAdmin field from custom claims.
+ *
+ * IMPORTANT INVARIANTS:
+ * - Stripe fields (stripeCustomerId, stripeSubscriptionId, subscriptionStatus):
+ *   Either all three must be present OR all three must be absent.
+ *   Partial Stripe data indicates a data integrity issue.
+ *
+ * - Newsletter state: Only one of newsletterSubscribedAt OR newsletterUnsubscribedAt
+ *   should be set, never both. newsletterSubscribed boolean indicates current state.
+ *
+ * - Membership expiration: membershipExpiresAt should only be present when
+ *   subscriptionStart exists (either from Stripe or manual membership).
  */
 export const MemberResponseSchema = t.Object({
   uid: t.String({
@@ -141,55 +152,63 @@ export function toMemberResponse(
   document: MemberDocument,
   isAdmin: boolean,
 ): MemberResponse {
-  return {
+  const response: MemberResponse = {
     uid: document.uid,
     email: document.email,
     createdAt: timestampToIso(document.createdAt),
     isAdmin,
-    ...(document.name !== undefined && { name: document.name }),
-    ...(document.subscriptionStart !== undefined && {
-      subscriptionStart: timestampToIso(document.subscriptionStart),
-    }),
-    ...(document.membershipActive !== undefined && {
-      membershipActive: document.membershipActive,
-    }),
-    ...(document.membershipExpiresAt !== undefined && {
-      membershipExpiresAt: timestampToIso(document.membershipExpiresAt),
-    }),
-    ...(document.slug !== undefined && { slug: document.slug }),
-    ...(document.profileCreatedAt !== undefined && {
-      profileCreatedAt: timestampToIso(document.profileCreatedAt),
-    }),
-    ...(document.stripeCustomerId !== undefined && {
-      stripeCustomerId: document.stripeCustomerId,
-    }),
-    ...(document.stripeSubscriptionId !== undefined && {
-      stripeSubscriptionId: document.stripeSubscriptionId,
-    }),
-    ...(document.subscriptionStatus !== undefined && {
-      subscriptionStatus: document.subscriptionStatus,
-    }),
-    ...(document.welcomeEmailStatus !== undefined && {
-      welcomeEmailStatus: document.welcomeEmailStatus,
-    }),
-    ...(document.welcomeEmailSentAt !== undefined && {
-      welcomeEmailSentAt: timestampToIso(document.welcomeEmailSentAt),
-    }),
-    ...(document.welcomeEmailError !== undefined && {
-      welcomeEmailError: document.welcomeEmailError,
-    }),
-    ...(document.newsletterSubscribed !== undefined && {
-      newsletterSubscribed: document.newsletterSubscribed,
-    }),
-    ...(document.newsletterSubscribedAt !== undefined && {
-      newsletterSubscribedAt: timestampToIso(document.newsletterSubscribedAt),
-    }),
-    ...(document.newsletterUnsubscribedAt !== undefined && {
-      newsletterUnsubscribedAt: timestampToIso(
-        document.newsletterUnsubscribedAt,
-      ),
-    }),
   };
+
+  // Add optional fields if they exist
+  if (document.name !== undefined) {
+    response.name = document.name;
+  }
+  if (document.subscriptionStart !== undefined) {
+    response.subscriptionStart = timestampToIso(document.subscriptionStart);
+  }
+  if (document.membershipActive !== undefined) {
+    response.membershipActive = document.membershipActive;
+  }
+  if (document.membershipExpiresAt !== undefined) {
+    response.membershipExpiresAt = timestampToIso(document.membershipExpiresAt);
+  }
+  if (document.slug !== undefined) {
+    response.slug = document.slug;
+  }
+  if (document.profileCreatedAt !== undefined) {
+    response.profileCreatedAt = timestampToIso(document.profileCreatedAt);
+  }
+  if (document.stripeCustomerId !== undefined) {
+    response.stripeCustomerId = document.stripeCustomerId;
+  }
+  if (document.stripeSubscriptionId !== undefined) {
+    response.stripeSubscriptionId = document.stripeSubscriptionId;
+  }
+  if (document.subscriptionStatus !== undefined) {
+    response.subscriptionStatus = document.subscriptionStatus;
+  }
+  if (document.welcomeEmailStatus !== undefined) {
+    response.welcomeEmailStatus = document.welcomeEmailStatus;
+  }
+  if (document.welcomeEmailSentAt !== undefined) {
+    response.welcomeEmailSentAt = timestampToIso(document.welcomeEmailSentAt);
+  }
+  if (document.welcomeEmailError !== undefined) {
+    response.welcomeEmailError = document.welcomeEmailError;
+  }
+  if (document.newsletterSubscribed !== undefined) {
+    response.newsletterSubscribed = document.newsletterSubscribed;
+  }
+  if (document.newsletterSubscribedAt !== undefined) {
+    response.newsletterSubscribedAt = timestampToIso(document.newsletterSubscribedAt);
+  }
+  if (document.newsletterUnsubscribedAt !== undefined) {
+    response.newsletterUnsubscribedAt = timestampToIso(
+      document.newsletterUnsubscribedAt,
+    );
+  }
+
+  return response;
 }
 
 /**
@@ -326,3 +345,102 @@ export const UpdateClaimsResponseSchema = t.Object({
 });
 
 export type UpdateClaimsResponse = Static<typeof UpdateClaimsResponseSchema>;
+
+/**
+ * Error response schema - reusable for all error cases.
+ */
+const ErrorResponseSchema = t.Object({
+  error: t.String(),
+});
+
+/**
+ * GET /api/admin/members response - union of success and error.
+ */
+export const ListMembersApiResponseSchema = t.Union([
+  ListMembersResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ListMembersApiResponse = Static<
+  typeof ListMembersApiResponseSchema
+>;
+
+/**
+ * GET /api/admin/members/:memberId response - union of success and error.
+ */
+export const GetMemberApiResponseSchema = t.Union([
+  MemberResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type GetMemberApiResponse = Static<typeof GetMemberApiResponseSchema>;
+
+/**
+ * PATCH /api/admin/members/:memberId response - union of success and error.
+ */
+export const UpdateMemberApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateMemberApiResponse = Static<
+  typeof UpdateMemberApiResponseSchema
+>;
+
+/**
+ * DELETE /api/admin/members/:memberId response - union of success and error.
+ */
+export const DeleteUserApiResponseSchema = t.Union([
+  DeleteUserResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type DeleteUserApiResponse = Static<typeof DeleteUserApiResponseSchema>;
+
+/**
+ * POST /api/admin/members/:memberId/membership/activate response - union of success and error.
+ */
+export const ActivateMembershipApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ActivateMembershipApiResponse = Static<
+  typeof ActivateMembershipApiResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/membership/deactivate response - union of success and error.
+ */
+export const DeactivateMembershipApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type DeactivateMembershipApiResponse = Static<
+  typeof DeactivateMembershipApiResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/membership/extend response - union of success and error.
+ */
+export const ExtendMembershipApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ExtendMembershipApiResponse = Static<
+  typeof ExtendMembershipApiResponseSchema
+>;
+
+/**
+ * PATCH /api/admin/members/:memberId/claims response - union of success and error.
+ */
+export const UpdateClaimsApiResponseSchema = t.Union([
+  UpdateClaimsResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateClaimsApiResponse = Static<
+  typeof UpdateClaimsApiResponseSchema
+>;

@@ -1,7 +1,11 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleMatchFormLogic } from "../routes/handle-match-form.js";
+import {
+  DoulaMatchFormBodySchema,
+  FormResponseSchema,
+} from "../schemas/form-response-schemas.js";
 import { FormStorageService } from "../services/form-storage/index.js";
 import { RecaptchaService } from "../services/recaptcha/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -69,22 +73,8 @@ export function createDoulaMatchFormPlugin(services?: PartialServices) {
         });
       },
       {
-        body: t.Object({
-          name: t.String({ minLength: 1, maxLength: 100 }),
-          phone: t.String({ minLength: 1, maxLength: 20 }),
-          email: t.String({ format: "email", maxLength: 255 }),
-          zipcode: t.String({ minLength: 5, maxLength: 10 }),
-          estimatedDueDate: t.Object({
-            month: t.String({ minLength: 1, maxLength: 2 }),
-            day: t.String({ minLength: 1, maxLength: 2 }),
-            year: t.String({ minLength: 4, maxLength: 4 }),
-          }),
-          services: t.Array(t.String()),
-          birthLocation: t.String({ minLength: 1, maxLength: 500 }),
-          otherInfo: t.String({ maxLength: 5000 }),
-          insurance: t.Array(t.String()),
-          recaptchaToken: t.Optional(t.String()),
-        }),
+        body: DoulaMatchFormBodySchema,
+        response: FormResponseSchema,
       },
     );
 }

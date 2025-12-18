@@ -24,6 +24,14 @@ import {
   SlugParameterSchema,
   SlugQuerySchema,
   UploadProfileImageBodySchema,
+  ReadProfileResponseSchema,
+  CheckSlugAvailableResponseSchema,
+  SetSlugResponseSchema,
+  WriteProfileResponseSchema,
+  CreateProfileResponseSchema,
+  ClaimProfileResponseSchema,
+  UploadImageResponseSchema,
+  DeleteImageResponseSchema,
 } from "../schemas/profile-schemas.js";
 import { AuthUpdateService } from "../services/auth-update/index.js";
 import { ClaimProfileFirestoreService } from "../services/firestore/index.js";
@@ -138,7 +146,10 @@ export function createProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { params: SlugParameterSchema },
+        {
+          params: SlugParameterSchema,
+          response: ReadProfileResponseSchema,
+        },
       )
       // GET /slugs/check - Check if slug is available (no auth)
       .get(
@@ -150,7 +161,10 @@ export function createProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { query: SlugQuerySchema },
+        {
+          query: SlugQuerySchema,
+          response: CheckSlugAvailableResponseSchema,
+        },
       )
 
       // AUTHENTICATED ROUTES (after auth guards)
@@ -168,7 +182,10 @@ export function createProfilesPlugin(services?: PartialServices) {
             logger,
             set,
           }),
-        { body: SetSlugBodySchema },
+        {
+          body: SetSlugBodySchema,
+          response: SetSlugResponseSchema,
+        },
       )
 
       // PUT /:slug - Update profile (must own slug or be admin)
@@ -199,7 +216,11 @@ export function createProfilesPlugin(services?: PartialServices) {
             set,
           });
         },
-        { params: SlugParameterSchema, body: ProfileDataBodySchema },
+        {
+          params: SlugParameterSchema,
+          body: ProfileDataBodySchema,
+          response: WriteProfileResponseSchema,
+        },
       )
 
       // POST /:slug - Create profile (must own slug or be admin)
@@ -230,7 +251,11 @@ export function createProfilesPlugin(services?: PartialServices) {
             set,
           });
         },
-        { params: SlugParameterSchema, body: ProfileDataBodySchema },
+        {
+          params: SlugParameterSchema,
+          body: ProfileDataBodySchema,
+          response: CreateProfileResponseSchema,
+        },
       )
       // POST /:slug/claim - Claim unclaimed profile (must own slug or be admin)
       .post(
@@ -279,7 +304,10 @@ export function createProfilesPlugin(services?: PartialServices) {
             set,
           });
         },
-        { params: SlugParameterSchema },
+        {
+          params: SlugParameterSchema,
+          response: ClaimProfileResponseSchema,
+        },
       )
 
       // POST /:slug/image - Upload profile image (must own slug or be admin)
@@ -309,7 +337,11 @@ export function createProfilesPlugin(services?: PartialServices) {
             set,
           });
         },
-        { params: SlugParameterSchema, body: UploadProfileImageBodySchema },
+        {
+          params: SlugParameterSchema,
+          body: UploadProfileImageBodySchema,
+          response: UploadImageResponseSchema,
+        },
       )
 
       // DELETE /:slug/image - Delete profile image (must own slug or be admin)
@@ -330,7 +362,10 @@ export function createProfilesPlugin(services?: PartialServices) {
             set,
           });
         },
-        { params: SlugParameterSchema },
+        {
+          params: SlugParameterSchema,
+          response: DeleteImageResponseSchema,
+        },
       )
   );
 }

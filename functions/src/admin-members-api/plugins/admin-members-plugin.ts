@@ -15,10 +15,18 @@ import {
   updateMemberLogic,
 } from "../routes/index.js";
 import {
+  ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
+  DeactivateMembershipApiResponseSchema,
+  DeleteUserApiResponseSchema,
+  ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
+  GetMemberApiResponseSchema,
+  ListMembersApiResponseSchema,
   MemberIdParameterSchema,
+  UpdateClaimsApiResponseSchema,
   UpdateClaimsBodySchema,
+  UpdateMemberApiResponseSchema,
   UpdateMemberBodySchema,
 } from "../schemas/member-schemas.js";
 import { MemberAdminService } from "../services/index.js";
@@ -51,13 +59,18 @@ export function createAdminMembersPlugin(services?: PartialServices) {
       .derive(adminDerive)
       .onBeforeHandle({ as: "local" }, adminGuard)
       // GET / - List all members (served at /api/admin/members/)
-      .get("/", async ({ adminToken, memberAdminService, logger, set }) =>
-        listMembersLogic({
-          adminUid: getAdminUid(adminToken, logger),
-          memberAdminService,
-          logger,
-          set,
-        }),
+      .get(
+        "/",
+        async ({ adminToken, memberAdminService, logger, set }) =>
+          listMembersLogic({
+            adminUid: getAdminUid(adminToken, logger),
+            memberAdminService,
+            logger,
+            set,
+          }),
+        {
+          response: ListMembersApiResponseSchema,
+        },
       )
       // Member-specific routes under /:memberId (served at /api/admin/members/:memberId)
       .group("/:memberId", { params: MemberIdParameterSchema }, app =>
@@ -73,6 +86,9 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 logger,
                 set,
               }),
+            {
+              response: GetMemberApiResponseSchema,
+            },
           )
           // PATCH /:memberId - Update member (served at /api/admin/members/:memberId)
           .patch(
@@ -93,7 +109,10 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 logger,
                 set,
               }),
-            { body: UpdateMemberBodySchema },
+            {
+              body: UpdateMemberBodySchema,
+              response: UpdateMemberApiResponseSchema,
+            },
           )
           // DELETE /:memberId - Delete user (served at /api/admin/members/:memberId)
           .delete(
@@ -106,6 +125,9 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 logger,
                 set,
               }),
+            {
+              response: DeleteUserApiResponseSchema,
+            },
           )
           // Membership management routes under /:memberId/membership
           .group("/membership", app =>
@@ -141,7 +163,10 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     set,
                   });
                 },
-                { body: ActivateMembershipBodySchema },
+                {
+                  body: ActivateMembershipBodySchema,
+                  response: ActivateMembershipApiResponseSchema,
+                },
               )
               // POST /:memberId/membership/deactivate (served at /api/admin/members/:memberId/membership/deactivate)
               .post(
@@ -160,6 +185,9 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     logger,
                     set,
                   }),
+                {
+                  response: DeactivateMembershipApiResponseSchema,
+                },
               )
               // POST /:memberId/membership/extend (served at /api/admin/members/:memberId/membership/extend)
               .post(
@@ -182,7 +210,10 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     set,
                   });
                 },
-                { body: ExtendMembershipBodySchema },
+                {
+                  body: ExtendMembershipBodySchema,
+                  response: ExtendMembershipApiResponseSchema,
+                },
               ),
           )
           // PATCH /:memberId/claims - Update custom claims (served at /api/admin/members/:memberId/claims)
@@ -206,7 +237,10 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 set,
               });
             },
-            { body: UpdateClaimsBodySchema },
+            {
+              body: UpdateClaimsBodySchema,
+              response: UpdateClaimsApiResponseSchema,
+            },
           ),
       )
   );

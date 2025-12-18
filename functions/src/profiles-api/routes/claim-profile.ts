@@ -16,19 +16,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { addNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
-
-/**
- * Response returned when successfully claiming a profile.
- * Uses discriminated union to ensure status and data are properly correlated.
- */
-export type ClaimProfileResponse =
-  | {
-      status: "success";
-      data: UnclaimedProfileDocumentData;
-    }
-  | {
-      status: "no_profile_to_claim";
-    };
+import type { ClaimProfileResponse } from "../schemas/profile-schemas.js";
 
 /**
  * Creates HTML for MailerLite failure notification email during profile claim
@@ -107,8 +95,25 @@ async function sendClaimProfileMailerLiteFailureNotification({
     };
 
     await emailService.sendEmail({ message: notificationEmail }, logger);
-  } catch {
-    // Already logged by sendEmail, error logged below in caller
+  } catch (emailNotificationError: unknown) {
+    // Log the email service failure separately for debugging cascading failures
+    logger.error("Failed to send MailerLite failure notification email", {
+      errorId: ERROR_IDS.CLAIM_PROFILE_EMAIL_SERVICE_FAILED,
+      error: emailNotificationError,
+      errorMessage:
+        emailNotificationError instanceof Error
+          ? emailNotificationError.message
+          : "Unknown error",
+      errorStack:
+        emailNotificationError instanceof Error
+          ? emailNotificationError.stack
+          : undefined,
+      uid,
+      email,
+      context: "Attempting to notify admin of MailerLite sync failure",
+    });
+    // Re-throw to let outer catch handle with CRITICAL logging
+    throw emailNotificationError;
   }
 }
 
@@ -168,7 +173,7 @@ export async function claimProfileLogic({
   authUpdateService: AuthUpdateService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<ClaimProfileResponse | { error: string }> {
+}): Promise<ClaimProfileResponse> {
   // Ensure the user's email is verified
   if (!emailVerified) {
     set.status = 428;
@@ -217,7 +222,10 @@ export async function claimProfileLogic({
         },
       });
       set.status = 500;
-      return { error: "Profile data is incomplete. Please contact support." };
+      return {
+        error:
+          "Your profile is missing required subscription information. Please contact support with error code: MISSING_SUBSCRIPTION_START",
+      };
     }
 
     if (!profileData.name || profileData.name.trim().length === 0) {
@@ -229,7 +237,10 @@ export async function claimProfileLogic({
         nameLength: profileData.name.length,
       });
       set.status = 500;
-      return { error: "Profile data is incomplete. Please contact support." };
+      return {
+        error:
+          "Your profile is missing a required name. Please contact support with error code: MISSING_NAME",
+      };
     }
 
     const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
@@ -260,12 +271,14 @@ export async function claimProfileLogic({
       subscriptionStart,
       membershipActive: true,
       membershipExpiresAt,
-      // If legacy profile has createdAt, use it as profileCreatedAt
-      ...(createdAt !== undefined && { profileCreatedAt: createdAt }),
-      // Subscribe to newsletter when claiming profile
       newsletterSubscribed: true,
       newsletterSubscribedAt: Timestamp.now(),
     };
+
+    // If legacy profile has createdAt, use it as profileCreatedAt
+    if (createdAt !== undefined) {
+      memberUpdate.profileCreatedAt = createdAt;
+    }
 
     // Write member document
     try {
@@ -279,6 +292,18 @@ export async function claimProfileLogic({
         email,
         uid,
         error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        errorStack: error instanceof Error ? error.stack : undefined,
+        memberUpdateFields: {
+          hasName: Boolean(memberUpdate.name),
+          hasSlug: Boolean(memberUpdate.slug),
+          hasSubscriptionStart: Boolean(memberUpdate.subscriptionStart),
+          hasMembershipExpiresAt: Boolean(memberUpdate.membershipExpiresAt),
+          membershipActive: memberUpdate.membershipActive,
+          newsletterSubscribed: memberUpdate.newsletterSubscribed,
+          hasProfileCreatedAt: Boolean(memberUpdate.profileCreatedAt),
+          fieldCount: Object.keys(memberUpdate).length,
+        },
       });
       set.status = 500;
       return { error: "Failed to save profile data. Please try again." };
@@ -288,16 +313,27 @@ export async function claimProfileLogic({
     const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
     if (mailerliteApiKey) {
       try {
-        await addNewsletterSubscriber({
+        const subscriberOptions: {
+          email: string;
+          name: string;
+          subscriptionStart: Timestamp;
+          membershipExpiresAt: Timestamp;
+          groupId?: string;
+          apiKey: string;
+        } = {
           email,
           name: profileData.name,
           subscriptionStart,
           membershipExpiresAt,
-          ...(process.env["MAILERLITE_GROUP_ID"] !== undefined && {
-            groupId: process.env["MAILERLITE_GROUP_ID"],
-          }),
           apiKey: mailerliteApiKey,
-        });
+        };
+
+        const groupId = process.env["MAILERLITE_GROUP_ID"];
+        if (groupId !== undefined) {
+          subscriberOptions.groupId = groupId;
+        }
+
+        await addNewsletterSubscriber(subscriberOptions);
         logger.info(`Added subscriber to MailerLite newsletter: ${email}`);
       } catch (newsletterError) {
         const errorMessage =

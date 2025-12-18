@@ -58,3 +58,15 @@ export const StripeWebhookErrorResponseSchema = t.Object({
 export type StripeWebhookErrorResponse = Static<
   typeof StripeWebhookErrorResponseSchema
 >;
+
+/**
+ * Union type for Stripe webhook responses.
+ */
+export const StripeWebhookApiResponseSchema = t.Union([
+  StripeWebhookResponseSchema,
+  StripeWebhookErrorResponseSchema,
+]);
+
+export type StripeWebhookApiResponse = Static<
+  typeof StripeWebhookApiResponseSchema
+>;

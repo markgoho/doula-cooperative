@@ -1,7 +1,11 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleProfileWebhookLogic } from "../routes/handle-webhook.js";
+import {
+  ProfileWebhookBodySchema,
+  ProfileWebhookResponseSchema,
+} from "../schemas/profile-webhook-schemas.js";
 import { ProfileWebhookService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
@@ -36,7 +40,7 @@ export function createProfileWebhookPlugin(services?: PartialServices) {
         if (!webhookSecret) {
           logger.error("DEPLOY_WEBHOOK_SECRET not configured");
           set.status = 500;
-          return { error: "Server configuration error" };
+          return { status: "error", error: "Server configuration error" };
         }
 
         return handleProfileWebhookLogic({
@@ -49,12 +53,8 @@ export function createProfileWebhookPlugin(services?: PartialServices) {
         });
       },
       {
-        body: t.Object({
-          commitMessage: t.Optional(t.String()),
-          commitSha: t.Optional(t.String()),
-          slug: t.Optional(t.String()),
-          secret: t.Optional(t.String()),
-        }),
+        body: ProfileWebhookBodySchema,
+        response: ProfileWebhookResponseSchema,
       },
     );
 }

@@ -2,14 +2,11 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type {
+  ProfileWebhookErrorResponse,
+  ProfileWebhookSuccessResponse,
+} from "../schemas/profile-webhook-schemas.js";
 import type { ProfileWebhookService } from "../services/index.js";
-
-interface WebhookResponse {
-  received: boolean;
-  notified: boolean;
-  reason?: string;
-  emulator?: boolean;
-}
 
 export async function handleProfileWebhookLogic({
   payload,
@@ -30,7 +27,7 @@ export async function handleProfileWebhookLogic({
   emailService: EmailServiceInterface;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<WebhookResponse | { error: string }> {
+}): Promise<ProfileWebhookSuccessResponse | ProfileWebhookErrorResponse> {
   try {
     // Validate secret
     if (!payload.secret) {
@@ -38,7 +35,7 @@ export async function handleProfileWebhookLogic({
         errorId: ERROR_IDS.PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET,
       });
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { status: "error", error: "Unauthorized" };
     }
 
     if (
@@ -51,7 +48,7 @@ export async function handleProfileWebhookLogic({
         errorId: ERROR_IDS.PROFILE_DEPLOY_WEBHOOK_INVALID_SECRET,
       });
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { status: "error", error: "Unauthorized" };
     }
 
     // Validate payload
@@ -64,11 +61,17 @@ export async function handleProfileWebhookLogic({
         commitSha: payload.commitSha,
       });
       set.status = 200;
-      return {
+      const response: ProfileWebhookSuccessResponse = {
+        status: "success",
         received: true,
         notified: false,
-        ...(validation.reason !== undefined && { reason: validation.reason }),
       };
+
+      if (validation.reason !== undefined) {
+        response.reason = validation.reason;
+      }
+
+      return response;
     }
 
     const { commitMessage, commitSha, slug } = payload;
@@ -76,7 +79,7 @@ export async function handleProfileWebhookLogic({
     // Type assertion safe here: validation.isValid guarantees these exist
     if (!commitMessage || !commitSha || !slug) {
       set.status = 500;
-      return { error: "Validation passed but payload incomplete" };
+      return { status: "error", error: "Validation passed but payload incomplete" };
     }
 
     // Find member by slug
@@ -93,6 +96,7 @@ export async function handleProfileWebhookLogic({
       });
       set.status = 200;
       return {
+        status: "success",
         received: true,
         notified: false,
         reason: "member_not_found",
@@ -101,16 +105,17 @@ export async function handleProfileWebhookLogic({
 
     // Send notification email (skip in emulator mode)
     if (process.env["FUNCTIONS_EMULATOR"]) {
-      logger.info("Emulator detected, skipping email dispatch");
-      logger.info("Would have sent profile update notification", {
+      logger.info("Emulator mode: Email sending disabled", {
         to: member.email,
         slug,
+        message: "Set FUNCTIONS_EMULATOR=false to test email sending",
       });
       set.status = 200;
       return {
+        status: "success",
         received: true,
-        notified: true,
-        emulator: true,
+        notified: false,
+        reason: "emulator_mode",
       };
     }
 
@@ -132,6 +137,7 @@ export async function handleProfileWebhookLogic({
 
       set.status = 200;
       return {
+        status: "success",
         received: true,
         notified: true,
       };
@@ -145,6 +151,7 @@ export async function handleProfileWebhookLogic({
       });
       set.status = 200;
       return {
+        status: "success",
         received: true,
         notified: false,
         reason: "email_failed",
@@ -153,16 +160,17 @@ export async function handleProfileWebhookLogic({
   } catch (error) {
     if (error instanceof HttpError) {
       set.status = error.statusCode;
-      return { error: error.message };
+      return { status: "error", error: error.message };
     }
 
     logger.error("Failed to process profile webhook", {
       errorId: ERROR_IDS.PROFILE_DEPLOY_WEBHOOK_PROCESSING_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
     });
 
     set.status = 500;
-    return { error: "Internal server error" };
+    return { status: "error", error: "Internal server error" };
   }
 }

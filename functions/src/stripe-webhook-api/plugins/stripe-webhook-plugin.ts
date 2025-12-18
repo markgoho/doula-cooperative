@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleStripeWebhookLogic } from "../routes/handle-webhook.js";
+import { StripeWebhookApiResponseSchema } from "../schemas/stripe-webhook-schemas.js";
 import { StripeWebhookService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
@@ -53,6 +54,7 @@ export function createStripeWebhookPlugin(services?: PartialServices) {
         // Disable body parsing to preserve raw body for Stripe signature verification
         // Using void 0 (evaluates to undefined) to skip Elysia's body parsing
         parse: () => void 0,
+        response: StripeWebhookApiResponseSchema,
       },
     );
 }

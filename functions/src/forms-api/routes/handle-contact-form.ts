@@ -2,18 +2,11 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type { FormResponse } from "../schemas/form-response-schemas.js";
 import { buildContactFormNotification } from "../services/build-contact-form-notification.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { ContactFormData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
-
-export interface FormResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-  emailSent?: boolean;
-  warning?: string;
-}
 
 export async function handleContactFormLogic({
   formData,
@@ -68,20 +61,12 @@ export async function handleContactFormLogic({
           emailError instanceof Error ? emailError.message : "Unknown error",
         errorStack:
           emailError instanceof Error ? emailError.stack : undefined,
-        // Include form context for debugging
         formType: "contact_form",
         submitterEmail: formData.email,
         submitterName: formData.contactName,
         recaptchaScore: verification.score,
         timestamp: new Date().toISOString(),
       });
-
-      // TODO: Implement admin notification mechanism
-      // await sendAdminAlert({
-      //   subject: "CRITICAL: Contact form email failed",
-      //   message: `Email sending failed for contact form from ${formData.email}`,
-      //   error: emailError
-      // });
 
       warning = "Form saved but notification email failed to send";
     }
@@ -100,12 +85,17 @@ export async function handleContactFormLogic({
     });
 
     set.status = 200;
-    return {
+    const result: FormResponse = {
       success: true,
       message: "Form submitted successfully",
       emailSent,
-      ...(warning && { warning }),
     };
+
+    if (warning) {
+      result.warning = warning;
+    }
+
+    return result;
   } catch (error) {
     if (error instanceof HttpError) {
       set.status = error.statusCode;
@@ -116,6 +106,7 @@ export async function handleContactFormLogic({
       errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorStack: error instanceof Error ? error.stack : undefined,
     });
 
     set.status = 500;

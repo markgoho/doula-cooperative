@@ -27,6 +27,17 @@ export const WelcomeEmailStatusSchema = t.Union([
  * Member response schema - represents a member document as returned by the API.
  * All Timestamp fields are converted to ISO 8601 strings.
  * Includes isAdmin field from Firebase Auth custom claims.
+ *
+ * IMPORTANT INVARIANTS:
+ * - Stripe fields (stripeCustomerId, stripeSubscriptionId, subscriptionStatus):
+ *   Either all three must be present OR all three must be absent.
+ *   Partial Stripe data indicates a data integrity issue.
+ *
+ * - Newsletter state: Only one of newsletterSubscribedAt OR newsletterUnsubscribedAt
+ *   should be set, never both. newsletterSubscribed boolean indicates current state.
+ *
+ * - Membership expiration: membershipExpiresAt should only be present when
+ *   subscriptionStart exists (either from Stripe or manual membership).
  */
 export const MemberResponseSchema = t.Object({
   uid: t.String({
@@ -334,4 +345,51 @@ export const UpdateNewsletterPreferenceBodySchema = t.Object({
 
 export type UpdateNewsletterPreferenceBody = Static<
   typeof UpdateNewsletterPreferenceBodySchema
+>;
+
+/**
+ * Error response schema.
+ */
+export const ErrorResponseSchema = t.Object({
+  error: t.String({
+    description: "Error message describing what went wrong",
+  }),
+});
+
+export type ErrorResponse = Static<typeof ErrorResponseSchema>;
+
+/**
+ * GET /members/:memberId response schema (union of success and error).
+ */
+export const GetMemberResponseSchema = t.Union([
+  MemberResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type GetMemberResponse = Static<typeof GetMemberResponseSchema>;
+
+/**
+ * Newsletter preference update success response.
+ */
+export const UpdateNewsletterPreferenceSuccessSchema = t.Object({
+  success: t.Literal(true),
+  subscribed: t.Boolean({
+    description: "Current subscription status after update",
+  }),
+});
+
+export type UpdateNewsletterPreferenceSuccessResponse = Static<
+  typeof UpdateNewsletterPreferenceSuccessSchema
+>;
+
+/**
+ * PATCH /members/:memberId/newsletter-preference response schema (union of success and error).
+ */
+export const UpdateNewsletterPreferenceResponseSchema = t.Union([
+  UpdateNewsletterPreferenceSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateNewsletterPreferenceResponse = Static<
+  typeof UpdateNewsletterPreferenceResponseSchema
 >;

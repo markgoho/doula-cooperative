@@ -13,6 +13,7 @@
   "include": ["src"],
   "exclude": [
     "src/**/*.test.ts",
-    "src/test-utils/**"
+    "src/test-utils/**",
+    "node_modules"
   ]
 }
