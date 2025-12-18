@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
+import type { WriteProfileResponse } from "../services/github/interface.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -69,14 +70,14 @@ describe("PUT /:slug (update profile)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockWriteProfile = mock(() => {
+    const mockWriteProfile = mock((): Promise<WriteProfileResponse> => {
       if (conflictError) {
         return Promise.reject(new ConflictError("Profile was modified"));
       }
       if (serverError) {
         return Promise.reject(new Error("GitHub API rate limit exceeded"));
       }
-      return Promise.resolve();
+      return Promise.resolve({ success: true });
     });
 
     const testApp = createProfilesTestPlugin({

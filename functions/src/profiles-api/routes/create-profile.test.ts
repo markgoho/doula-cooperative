@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
+import type { WriteProfileResponse } from "../services/github/interface.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -72,7 +73,7 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockCreateProfile = mock(() => {
+    const mockCreateProfile = mock((): Promise<WriteProfileResponse> => {
       if (profileAlreadyExists) {
         return Promise.reject(
           new ConflictError("Profile already exists for this slug."),
@@ -81,7 +82,7 @@ describe("POST /:slug (create profile)", () => {
       if (githubError) {
         return Promise.reject(new Error("GitHub API rate limit exceeded"));
       }
-      return Promise.resolve();
+      return Promise.resolve({ success: true });
     });
 
     const testApp = createProfilesTestPlugin({

@@ -27,8 +27,8 @@ describe("POST /webhook", () => {
     processCheckoutResult?: {
       userId: string;
       isNewUser: boolean;
-      emailSent?: boolean;
-      mailerliteSynced?: boolean;
+      emailSent: boolean;
+      mailerliteSynced: boolean;
       warning?: string;
     };
     processCheckoutError?: Error;

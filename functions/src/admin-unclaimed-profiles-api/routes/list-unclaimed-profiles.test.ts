@@ -53,7 +53,7 @@ describe("GET / (list unclaimed profiles)", () => {
     if (limit !== undefined) url.searchParams.set("limit", limit);
     if (offset !== undefined) url.searchParams.set("offset", offset);
 
-    const request = new Request(url, { headers });
+    const request = new Request(url.toString(), { headers });
 
     return { testApp, request };
   }
