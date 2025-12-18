@@ -1,12 +1,11 @@
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
-import { MEMBERS_COLLECTION } from "../../collections/index.js";
+import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 interface FirebaseAuthError {
@@ -75,8 +74,7 @@ export async function deleteUser(
   }
 
   // Delete member document first to ensure data consistency
-  const firestore = getFirestore();
-  await firestore.collection(MEMBERS_COLLECTION).doc(memberId).delete();
+  await MemberFirestoreService.deleteMember(memberId);
 
   // Then delete Auth user
   try {

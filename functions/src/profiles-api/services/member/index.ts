@@ -11,6 +11,7 @@ import {
   HttpError,
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
+import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
 import type {
   ProfileMemberService as ProfileMemberServiceInterface,
   SetSlugResponse,
@@ -22,9 +23,7 @@ import type {
  */
 async function getMemberByUid(uid: string): Promise<MemberDocument> {
   try {
-    const database = getFirestore();
-    const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
-    const memberDocument = await memberReference.get();
+    const memberDocument = await MemberFirestoreService.getMemberByUid(uid);
 
     if (!memberDocument.exists) {
       throw new NotFoundError("No member document found for this user.");
@@ -114,10 +113,7 @@ async function setSlug(options: {
   }
 
   try {
-    const database = getFirestore();
-    const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
-
-    await memberReference.update({ slug });
+    await MemberFirestoreService.updateMember(uid, { slug });
 
     logger.info("Set profile slug for user", { uid, slug });
     return { slug };
@@ -138,10 +134,7 @@ async function setSlug(options: {
  */
 async function setProfileCreatedAt(uid: string): Promise<void> {
   try {
-    const database = getFirestore();
-    const memberReference = database.collection(MEMBERS_COLLECTION).doc(uid);
-
-    await memberReference.update({
+    await MemberFirestoreService.updateMember(uid, {
       profileCreatedAt: FieldValue.serverTimestamp(),
     });
 

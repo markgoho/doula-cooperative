@@ -2,9 +2,9 @@ import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { getFirestore } from "firebase-admin/firestore";
 import {
   IMPORT_COLLECTION,
-  MEMBERS_COLLECTION,
   type MemberDocument,
 } from "../../../collections/index.js";
+import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
 import type { ClaimProfileFirestoreService as ClaimProfileFirestoreServiceInterface } from "./interface.js";
 
 /**
@@ -17,15 +17,13 @@ async function getImportDocumentImpl(email: string): Promise<DocumentSnapshot> {
 
 /**
  * Write or merge member document data.
+ * Delegates to the shared MemberFirestoreService.
  */
 async function writeMemberDocumentImpl(
   uid: string,
   data: Partial<MemberDocument>,
 ): Promise<void> {
-  const database = getFirestore();
-  await database.collection(MEMBERS_COLLECTION).doc(uid).set(data, {
-    merge: true,
-  });
+  await MemberFirestoreService.writeMember(uid, data);
 }
 
 /**

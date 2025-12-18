@@ -1,5 +1,5 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { MEMBERS_COLLECTION } from "../../collections/index.js";
+import { Timestamp } from "firebase-admin/firestore";
+import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import {
   validateAndConvertDate,
   validateMembershipDates,
@@ -49,13 +49,8 @@ export async function activateMembership(
     ? validateAndConvertDate(options.membershipExpiresAt, "membershipExpiresAt")
     : Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
 
-  const firestore = getFirestore();
-  const memberReference = firestore
-    .collection(MEMBERS_COLLECTION)
-    .doc(memberId);
-
   try {
-    await memberReference.update({
+    await MemberFirestoreService.updateMember(memberId, {
       membershipActive: true,
       subscriptionStart: startDate,
       membershipExpiresAt: expiresAt,
@@ -64,7 +59,7 @@ export async function activateMembership(
     handleFirestoreError(error, "activate membership", memberId);
   }
 
-  const updatedDocument = await memberReference.get();
+  const updatedDocument = await MemberFirestoreService.getMemberByUid(memberId);
   const data = validateDocumentData<MemberDocument>(
     updatedDocument as unknown as {
       exists: boolean;
