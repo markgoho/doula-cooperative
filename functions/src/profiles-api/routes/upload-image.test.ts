@@ -167,4 +167,56 @@ describe("POST /:slug/image (upload profile image)", () => {
       expect(body.error).toBeDefined();
     });
   });
+
+  describe("GitHub configuration", () => {
+    it("should return 500 when GITHUB_APP_ID is missing", async () => {
+      // Save and clear the environment variable
+      const originalValue = process.env["GITHUB_APP_ID"];
+      delete process.env["GITHUB_APP_ID"];
+
+      const { testApp, request } = setup();
+      const response = (await testApp.handle(request)) as Response;
+
+      // Restore the environment variable
+      if (originalValue !== undefined) {
+        process.env["GITHUB_APP_ID"] = originalValue;
+      }
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("GitHub configuration");
+    });
+
+    it("should return 500 when GITHUB_PRIVATE_KEY is missing", async () => {
+      const originalValue = process.env["GITHUB_PRIVATE_KEY"];
+      delete process.env["GITHUB_PRIVATE_KEY"];
+
+      const { testApp, request } = setup();
+      const response = (await testApp.handle(request)) as Response;
+
+      if (originalValue !== undefined) {
+        process.env["GITHUB_PRIVATE_KEY"] = originalValue;
+      }
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("GitHub configuration");
+    });
+
+    it("should return 500 when GITHUB_INSTALLATION_ID is missing", async () => {
+      const originalValue = process.env["GITHUB_INSTALLATION_ID"];
+      delete process.env["GITHUB_INSTALLATION_ID"];
+
+      const { testApp, request } = setup();
+      const response = (await testApp.handle(request)) as Response;
+
+      if (originalValue !== undefined) {
+        process.env["GITHUB_INSTALLATION_ID"] = originalValue;
+      }
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("GitHub configuration");
+    });
+  });
 });
