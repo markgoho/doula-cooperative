@@ -9,7 +9,6 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Served at /api/admin/members/:memberId via Firebase rewrite.
  *
  * Uses createAdminTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:memberId (get member)", () => {
   interface SetupOptions {

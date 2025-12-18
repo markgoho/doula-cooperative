@@ -6,7 +6,6 @@ import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plu
  * Served at /api/profiles/slugs/check?slug=jane-doe via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /slugs/check (check slug availability)", () => {
   interface SetupOptions {

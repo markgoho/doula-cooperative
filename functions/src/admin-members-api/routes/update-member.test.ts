@@ -10,8 +10,7 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
 /**
  * Tests for PATCH /:memberId.
  *
- * Uses createApp() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
+ * Uses createAdminTestPlugin() factory with mocked services.
  */
 describe("PATCH /:memberId", () => {
   interface SetupOptions {

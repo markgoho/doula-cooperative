@@ -8,7 +8,6 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests for GET / (list unclaimed profiles).
  *
  * Uses createAdminTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("GET / (list unclaimed profiles)", () => {
   interface SetupOptions {

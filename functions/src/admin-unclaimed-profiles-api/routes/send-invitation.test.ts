@@ -10,7 +10,6 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests for POST /:email/invitation.
  *
  * Uses createAdminTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /:email/invitation", () => {
   interface SetupOptions {

@@ -14,7 +14,6 @@ import {
  * Served at /api/profiles/:slug via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /:slug (create profile)", () => {
   const validProfileData = {

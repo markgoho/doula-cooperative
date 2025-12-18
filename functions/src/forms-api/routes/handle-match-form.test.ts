@@ -7,7 +7,6 @@ import { createDoulaMatchFormTestPlugin } from "../test-utils/create-forms-test-
  * Tests for POST /doula-match route.
  *
  * Uses plugin factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /doula-match", () => {
   interface SetupOptions {

@@ -12,6 +12,15 @@ import type { ContactFormData } from "./form-storage/index.js";
  * Sends notification to admin emails with form details and sets Reply-To
  * to the submitter's email for easy response.
  *
+ * SECURITY NOTE: This function does NOT escape HTML in form fields.
+ * This is acceptable ONLY because emails are sent exclusively to trusted
+ * admin recipients (MARK_EMAIL, REFERRAL_EMAIL). These recipients can safely
+ * view HTML content from untrusted sources.
+ *
+ * If the recipient list EVER changes to include non-admin users (e.g., sending
+ * confirmation emails to form submitters), HTML escaping MUST be implemented
+ * before deploying to production to prevent XSS attacks.
+ *
  * @param parameters - Contact form data
  * @param parameters.contactName - Name of person submitting form
  * @param parameters.email - Email address of person submitting form

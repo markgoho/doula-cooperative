@@ -13,7 +13,6 @@ import { createMockStripeEvent } from "../test-utils/stripe-mocks.js";
  * Tests for POST /webhook.
  *
  * Uses createStripeWebhookTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /webhook", () => {
   interface SetupOptions {

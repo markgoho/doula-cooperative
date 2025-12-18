@@ -9,7 +9,6 @@ import {
  * Served at /api/profiles/me/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  *
  * Note: These tests focus on HTTP contract (authentication, error responses).
  * Actual GitHub deletion logic is tested in integration tests

@@ -7,7 +7,6 @@ import { createContactUsFormTestPlugin } from "../test-utils/create-forms-test-p
  * Tests for POST /contact-us route.
  *
  * Uses plugin factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /contact-us", () => {
   interface SetupOptions {

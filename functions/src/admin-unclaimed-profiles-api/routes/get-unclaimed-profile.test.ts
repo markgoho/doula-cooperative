@@ -12,7 +12,6 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
  * Tests for GET /:email (get unclaimed profile).
  *
  * Uses createAdminTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:email (get unclaimed profile)", () => {
   interface SetupOptions {

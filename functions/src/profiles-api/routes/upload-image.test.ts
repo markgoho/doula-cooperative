@@ -9,7 +9,6 @@ import {
  * Served at /api/profiles/:slug/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  *
  * Note: These tests focus on HTTP contract (authentication, validation, error responses).
  * Actual image processing and GitHub upload logic is tested in integration tests

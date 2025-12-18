@@ -7,7 +7,6 @@ import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plu
  * Served at /api/profiles/slugs via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /slugs (set profile slug)", () => {
   interface SetupOptions {

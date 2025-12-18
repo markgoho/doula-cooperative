@@ -7,8 +7,7 @@ import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js
 /**
  * Tests for POST /:memberId/membership/extend.
  *
- * Uses createApp() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
+ * Uses createAdminTestPlugin() factory with mocked services.
  */
 describe("POST /:memberId/membership/extend", () => {
   interface SetupOptions {

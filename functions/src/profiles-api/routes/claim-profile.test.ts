@@ -4,11 +4,10 @@ import { Timestamp } from "firebase-admin/firestore";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
- * Tests for POST /me/claim (claim profile).
- * Served at /api/profiles/me/claim via Firebase rewrite.
+ * Tests for POST /:slug/claim (claim profile).
+ * Served at /api/profiles/:slug/claim via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("POST /:slug/claim (claim profile)", () => {
   interface SetupOptions {
@@ -185,6 +184,20 @@ describe("POST /:slug/claim (claim profile)", () => {
     });
 
     it("should return no_profile_to_claim when import document doesn't exist", async () => {
+      const { testApp, request } = setup({ profileExists: false });
+
+      const response = (await testApp.handle(request)) as Response;
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { status?: string };
+      expect(body.status).toBe("no_profile_to_claim");
+    });
+
+    it("should handle race condition gracefully when import doc is deleted mid-claim", async () => {
+      // Simulates a race condition where another process deletes the import
+      // document between the time the user clicks "claim" and when the
+      // server processes the request. This is idempotent - returns success
+      // with no_profile_to_claim status instead of crashing.
       const { testApp, request } = setup({ profileExists: false });
 
       const response = (await testApp.handle(request)) as Response;

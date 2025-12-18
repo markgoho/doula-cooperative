@@ -14,7 +14,6 @@ import { createMembersTestPlugin } from "../test-utils/create-members-test-plugi
  *
  * Uses createMembersTestPlugin() factory with mocked services.
  * Tests only the members plugin in isolation - no full app composition needed.
- * Tests run WITHOUT Firebase emulators.
  */
 describe("GET /:memberId (authenticated)", () => {
   interface SetupOptions {
