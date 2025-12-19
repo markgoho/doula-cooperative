@@ -1,6 +1,17 @@
 import { describe, expect, it } from "bun:test";
 import { createApp } from "../app.js";
 
+function setup() {
+  const testApp = createApp();
+
+  // Health endpoint is at /api/profiles/health (with prefix)
+  const request = new Request("http://localhost/api/profiles/health", {
+    method: "GET",
+  });
+
+  return { testApp, request };
+}
+
 /**
  * Tests for the public health check endpoint.
  *
@@ -8,21 +19,6 @@ import { createApp } from "../app.js";
  * Tests verify basic connectivity and response structure.
  */
 describe("GET /health", () => {
-  interface SetupOptions {
-    // No configuration needed - health route is always public and simple
-  }
-
-  function setup({}: SetupOptions = {}) {
-    const testApp = createApp();
-
-    // Health endpoint is at /api/profiles/health (with prefix)
-    const request = new Request("http://localhost/api/profiles/health", {
-      method: "GET",
-    });
-
-    return { testApp, request };
-  }
-
   it("should return 200 status", async () => {
     const { testApp, request } = setup();
 
