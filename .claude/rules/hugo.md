@@ -1,3 +1,7 @@
+---
+paths: hugo/**
+---
+
 # AGENTS.md
 
 Guidance for AI assistants working with the Hugo static site for Rochester Doula Cooperative (https://doulacooperative.com/).
@@ -146,14 +150,3 @@ Generates multiple sizes and formats for responsive delivery with JPG fallbacks.
 - Hugo forms POST to Firebase Functions: `/api/contact-us-form`, `/api/doula-match-form`
 - Functions read Hugo content from GitHub via Octokit
 - TypeScript files in `assets/ts/`: `contact-us-form.ts`, `doula-match-form.ts`
-
-## Cursor Rules
-
-Follow all applicable rules in `.cursor/rules/`:
-
-- **`modern-css.mdc`** - CSS custom properties, container queries, responsive units (rem), no hardcoded values
-- **`page-specific-css.mdc`** - Page-specific SCSS inlining pattern for Hugo templates
-- **`typescript.mdc`** - Destructuring imports, ESLint rules, object lookup maps, lint error resolution
-- **`typescript-errors.mdc`** - TypeScript strict mode, error handling
-- **`project-management.mdc`** - Task-driven development, PBI association, commit messages
-- **`use-playwright-to-verify.mdc`** - Use Playwright to verify Hugo changes render correctly in browser
