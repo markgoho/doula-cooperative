@@ -18,6 +18,7 @@ describe("POST /contact-us", () => {
 
     // Scenario flags
     recaptchaVerificationFails?: boolean;
+    recaptchaScoreTooLow?: boolean;
     emailSendFails?: boolean;
     firestoreSaveFails?: boolean;
   }
@@ -31,6 +32,7 @@ describe("POST /contact-us", () => {
     },
     recaptchaSecretKey = "test-recaptcha-key",
     recaptchaVerificationFails = false,
+    recaptchaScoreTooLow = false,
     emailSendFails = false,
     firestoreSaveFails = false,
   }: SetupOptions = {}) {
@@ -49,6 +51,12 @@ describe("POST /contact-us", () => {
             success: false,
             score: 0,
             error: "reCAPTCHA verification failed",
+          });
+        }
+        if (recaptchaScoreTooLow) {
+          return Promise.resolve({
+            success: true,
+            score: 0,
           });
         }
         return Promise.resolve({
@@ -175,6 +183,18 @@ describe("POST /contact-us", () => {
     it("should return 400 when reCAPTCHA verification fails", async () => {
       const { plugin, request } = setup({
         recaptchaVerificationFails: true,
+      });
+
+      const response = (await plugin.handle(request)) as Response;
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("reCAPTCHA verification failed");
+    });
+
+    it("should return 400 when reCAPTCHA score is below threshold", async () => {
+      const { plugin, request } = setup({
+        recaptchaScoreTooLow: true,
       });
 
       const response = (await plugin.handle(request)) as Response;

@@ -141,6 +141,7 @@ export const ERROR_IDS = {
 
   // reCAPTCHA verification errors
   RECAPTCHA_VERIFICATION_FAILED: "recaptcha_verification_failed",
+  RECAPTCHA_SCORE_TOO_LOW: "recaptcha_score_too_low",
   RECAPTCHA_SECRET_KEY_NOT_CONFIGURED: "recaptcha_secret_key_not_configured",
   RECAPTCHA_API_ERROR: "recaptcha_api_error",
   RECAPTCHA_NETWORK_ERROR: "recaptcha_network_error",

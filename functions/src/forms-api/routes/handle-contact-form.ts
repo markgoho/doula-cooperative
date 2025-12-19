@@ -44,6 +44,20 @@ export async function handleContactFormLogic({
       return { success: false, error: "reCAPTCHA verification failed" };
     }
 
+    // Check reCAPTCHA score threshold to block bots
+    const MINIMUM_SCORE = 0.5;
+    if (verification.score < MINIMUM_SCORE) {
+      logger.warn("reCAPTCHA score below threshold for contact form", {
+        errorId: ERROR_IDS.RECAPTCHA_SCORE_TOO_LOW,
+        score: verification.score,
+        threshold: MINIMUM_SCORE,
+        submitterEmail: formData.email,
+        submitterName: formData.contactName,
+      });
+      set.status = 400;
+      return { success: false, error: "reCAPTCHA verification failed" };
+    }
+
     // Try to send notification email first
     let emailSent = false;
     let warning: string | undefined;
