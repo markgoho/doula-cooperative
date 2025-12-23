@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { handleMembersApi } from "./handler.js";
 import type { Request } from "firebase-functions/v2/https";
-import type { Response } from "express";
+import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
 
 /**
  * Tests for the members-api handler (entry point).
@@ -29,7 +29,7 @@ describe("handleMembersApi", () => {
         headersSent: false,
         status: statusMock,
         json: jsonMock,
-      } as unknown as Response;
+      } as unknown as FirebaseResponse;
 
       // Force an error by creating an invalid request that will fail adapter conversion
       const badRequest = {
@@ -80,7 +80,7 @@ describe("handleMembersApi", () => {
         status: statusMock,
         send: sendMock,
         setHeader: setHeaderMock,
-      } as unknown as Response;
+      } as unknown as FirebaseResponse;
 
       await handleMembersApi(mockRequest, mockResponse, mockLogger);
 
@@ -109,7 +109,7 @@ describe("handleMembersApi", () => {
         headersSent: false,
         status: statusMock,
         json: jsonMock,
-      } as unknown as Response;
+      } as unknown as FirebaseResponse;
 
       await handleMembersApi(badRequest, mockResponse, mockLogger);
 

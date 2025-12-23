@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { FirebaseResponse } from "./types/firebase-response.js";
 import { logger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
 import { ERROR_IDS } from "../constants/error-ids.js";
@@ -85,16 +85,16 @@ function getRequestBody(request: Request): Buffer | undefined {
 }
 
 /**
- * Send Web Response to Express response object.
+ * Send Web Response to Firebase response object.
  * Handles both text and binary response bodies.
  *
  * @param webResponse - Web-standard Response object
- * @param response - Express response object
+ * @param response - Firebase response object
  * @throws Error if response cannot be sent
  */
 export async function sendWebResponse(
   webResponse: globalThis.Response,
-  response: Response,
+  response: FirebaseResponse,
 ): Promise<void> {
   try {
     response.status(webResponse.status);
@@ -108,7 +108,7 @@ export async function sendWebResponse(
     const responseBody = await getResponseBody(webResponse);
     response.send(responseBody);
   } catch (error) {
-    logger.error("Failed to send Web response to Express", {
+    logger.error("Failed to send Web response to Firebase", {
       errorId: ERROR_IDS.API_ADAPTER_RESPONSE_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
@@ -118,7 +118,7 @@ export async function sendWebResponse(
     });
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to send Web response to Express: ${errorMessage}`);
+    throw new Error(`Failed to send Web response to Firebase: ${errorMessage}`);
   }
 }
 

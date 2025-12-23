@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
 import { ERROR_IDS } from "../constants/error-ids.js";
@@ -9,12 +9,12 @@ import type { Logger } from "../shared-api/types/logger.js";
  * Converts Firebase request to Web Request, processes through Elysia, and sends response.
  *
  * @param request - Firebase Functions request object
- * @param response - Express response object
+ * @param response - Firebase response object
  * @param logger - Logger instance (injectable for testing)
  */
 export async function handleAdminUnclaimedProfilesApi(
   request: Request,
-  response: Response,
+  response: FirebaseResponse,
   logger: Logger = firebaseLogger,
 ): Promise<void> {
   try {
