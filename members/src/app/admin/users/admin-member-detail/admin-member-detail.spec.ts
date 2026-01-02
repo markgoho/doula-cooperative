@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { AdminMembersService } from '../../services/admin-members.service';
 import type { Member } from '../../admin.types';
+import { AdminMembersService } from '../../services/admin-members.service';
 import { AdminMemberDetail } from './admin-member-detail';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 

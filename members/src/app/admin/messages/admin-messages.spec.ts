@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/angular';
-import { describe, it, expect, vi } from 'vitest';
-import { AdminMessages } from './admin-messages';
-import { AdminMessagesService } from '../services/admin-messages.service';
+import { describe, expect, it, vi } from 'vitest';
 import type { Message } from '../admin.types';
+import { AdminMessagesService } from '../services/admin-messages.service';
+import { AdminMessages } from './admin-messages';
 
 // Mock child component to isolate test
 vi.mock('./messages-table/messages-table', () => ({
