@@ -6,6 +6,7 @@
 
 import { Timestamp } from "firebase-admin/firestore";
 import type Stripe from "stripe";
+import { STRIPE_API_VERSION } from "../constants/stripe.js";
 
 /**
  * Generate a unique event ID for test events
@@ -56,7 +57,7 @@ export function createMockCheckoutEvent(options: {
   return {
     id: eventId,
     object: "event",
-    api_version: "2023-10-16",
+    api_version: STRIPE_API_VERSION,
     created: Math.floor(Date.now() / 1000),
     data: {
       object: {

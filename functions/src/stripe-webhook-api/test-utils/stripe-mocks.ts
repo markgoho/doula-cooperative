@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { STRIPE_API_VERSION } from "../../constants/stripe.js";
 
 /**
  * Creates a mock Stripe event for testing.
@@ -14,7 +15,7 @@ export function createMockStripeEvent(
   return {
     id: "evt_test_123",
     object: "event",
-    api_version: "2023-10-16",
+    api_version: STRIPE_API_VERSION,
     created: Date.now(),
     type,
     data: {

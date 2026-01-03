@@ -22,6 +22,7 @@
  */
 
 import { $ } from "bun";
+import { STRIPE_API_VERSION } from "../constants/stripe.js";
 
 // Parse command line arguments
 const commandLineArguments = process.argv.slice(2);
@@ -49,7 +50,7 @@ function generateMockEvent(testEmail: string, customerName: string) {
   return {
     id: eventId,
     object: "event",
-    api_version: "2023-10-16",
+    api_version: STRIPE_API_VERSION,
     created: Math.floor(Date.now() / 1000),
     data: {
       object: {
