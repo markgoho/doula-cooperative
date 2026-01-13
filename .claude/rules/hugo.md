@@ -2,151 +2,79 @@
 paths: hugo/**
 ---
 
-# AGENTS.md
+# Hugo Site - Rochester Doula Cooperative
 
-Guidance for AI assistants working with the Hugo static site for Rochester Doula Cooperative (https://doulacooperative.com/).
+Project-specific guidance for the Hugo static site at https://doulacooperative.com/
+
+**Note:** This file extends and overrides the generic Hugo best practices defined in `~/.claude/rules/hugo.md`. When working on this project, follow these project-specific patterns where they differ from the generic defaults. This file contains only project-specific details; refer to the user-level rules for general Hugo guidance.
 
 ## Project Overview
 
 Hugo static site connecting families with professional birth and postpartum doulas in Rochester, NY area. Tech stack: Hugo (extended v0.129.0+), SCSS/Sass, TypeScript, Firebase Functions integration.
 
-## Build/Lint/Test Commands
+## Commands
 
 - **Development:** `hugo server` or `hugo server -D` (with drafts) from `hugo/` directory
 - **Production build:** `hugo` (outputs to public/)
-- **New content:** `hugo new content/doulas/doula-name/index.md`
+- **New doula profile:** `hugo new content/doulas/doula-slug/index.md`
+- **Requirements:** Hugo extended >= 0.129.0
 
-**Requirements:** Hugo extended version >= 0.129.0 (required for SCSS/Sass processing)
+## Content Structure
 
-## Architecture
+### Doula Profiles
 
-### Content Structure
-
-**Doula Profiles**: Each doula has a directory under `content/doulas/` with:
+Each doula profile is a page bundle under `content/doulas/` containing:
 
 - `index.md` - Profile metadata and bio
 - Multiple optimized images (AVIF and JPG formats at 300px, 600px, 1200px widths)
-- Front matter includes: `title`, `credentials`, `tags`, `contact` (website, phone, email)
 
-**Content Organization**:
-
-- Landing page: `content/_index.md` (rendered by `layouts/index.html`)
-- Static pages use `content/{section}/_index.md` pattern
-- Custom layouts per section in `layouts/{section}/`
-
-### Template System
-
-**Base Template**: `layouts/_default/baseof.html` defines the core structure:
-
-- Uses block system for extensibility (`hero`, `header`, `main`, `footer`, `head-styles`, `head-scripts`, `footer-scripts`)
-- Head partials split into: `site.html`, `critical-css.html`, `non-critical-css.html`, `analytics.html`
-- Includes OpenGraph meta tags via `partial "opengraph.html"`
-
-**Template Hierarchy**:
-
-- `layouts/index.html` - Homepage with hero section and navigation cards
-- `layouts/_default/single.html` - Individual content pages
-- `layouts/_default/list.html` - List/archive pages
-- Section-specific layouts in `layouts/{section}/` directories
-
-**Partials**:
-
-- `partials/header.html` - Site header and navigation
-- `partials/footer.html` - Site footer
-- `partials/head/` - Modular head components
-- `partials/profile-card.html` - Doula profile card component
-- `partials/find-a-doula-nav.html` - Find-a-doula navigation
-- `partials/json-ld.html` - Structured data
-
-### Asset Pipeline
-
-**SCSS Organization**: Component-based structure in `assets/scss/`:
-
-- `base.scss` - CSS reset (Andy Bell's Modern CSS Reset 2024)
-- Page-specific: `landing-page.scss`, `doula-profile.scss`, `find-a-doula.scss`, etc.
-- `colors.scss` - Color system with CSS custom properties
-- `button.scss` - Button components
-- `components/` - Reusable component styles
-
-**Processing**: SCSS compiled via Hugo Pipes with Dart Sass:
-
-```go
-{{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-{{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
-```
-
-Critical CSS is inlined in `<head>`, non-critical CSS loaded separately.
-
-**TypeScript**: Located in `assets/ts/`:
-
-- `contact-us-form.ts` - Contact form handling
-- `doula-match-form.ts` - Doula matching form logic
-
-### Performance Optimizations
-
-- **Image Optimization**: Multiple responsive AVIF images with JPG fallbacks (300px, 600px, 1200px)
-- **CSS Strategy**: Critical CSS inlined, non-critical loaded separately
-- **Preloading**: Hero images preloaded with media queries for responsive delivery
-- **View Transitions API**: Configured in CSS reset for smooth page transitions
-
-### Configuration (hugo.toml)
-
-Key settings:
-
-- `enableRobotsTXT = true` - SEO configuration
-- `enableGitInfo = true` - Git-based lastmod dates
-- Front matter lastmod priority: `:git`, `lastmod`, `:fileModTime`, `date`, `publishDate`
-- Taxonomies: `tags` used for doula specialties
-- Permalinks: `/doulas/tag/:slug/` for tag pages
-- Menu defined in config for main navigation
-
-## Reference Documentation
-
-The `DIRECTORY_STRUCTURE.md` file is the authoritative living architecture documentation, maintained as part of PBI 017. It includes:
-
-- Detailed directory structure with Mermaid diagrams
-- Backlog-driven structure recommendations
-- Content type specifications
-- Hugo best practices
-
-## Working with Doula Profiles
-
-### Creating New Profiles
-
-```bash
-hugo new content/doulas/doula-slug/index.md
-```
-
-Then add required front matter:
+**Required front matter:**
 
 ```yaml
 title: Doula Name
 credentials: Certifications/qualifications
-tags: ["Birth Doula", "Postpartum Doula"] # Specialties
+tags: ["Birth Doula", "Postpartum Doula"]  # Specialties
 contact:
   website: https://example.com
   phone: "+1-555-0123"
   email: doula@example.com
 ```
 
-### Profile Structure
+### Key Project Partials
 
-- Directory: `content/doulas/{slug}/`
-- Required: `index.md` (metadata/bio) + profile images
-- Images: Optimized AVIF and JPG formats at 300px, 600px, 1200px widths
-- Images referenced in front matter with responsive srcsets
+- `partials/profile-card.html` - Doula profile card component
+- `partials/find-a-doula-nav.html` - Find-a-doula navigation
+- `partials/head/` - Modular head components (site.html, critical-css.html, non-critical-css.html, analytics.html)
 
-### Image Optimization
+### Asset Files
 
-Use the provided scripts to convert images:
+**SCSS:** Component-based structure with page-specific files (landing-page.scss, doula-profile.scss, find-a-doula.scss, etc.)
+
+**TypeScript:** Form handlers in `assets/ts/`:
+- `contact-us-form.ts` - Contact form handling
+- `doula-match-form.ts` - Doula matching form logic
+
+### Configuration
+
+**Taxonomies:** `tags` used for doula specialties
+
+**Permalinks:** `/doulas/tag/:slug/` for tag pages
+
+## Image Optimization Scripts
+
+Use these project scripts to prepare profile images:
 
 - `convert-images-to-avif.ts` - Batch convert directory
 - `convert-single-to-avif.ts` - Convert single image
 
-Generates multiple sizes and formats for responsive delivery with JPG fallbacks.
+Both generate multiple sizes (300px, 600px, 1200px) in AVIF and JPG formats for responsive delivery.
 
-## Key Integration Points
+## Firebase Integration
 
-- Hugo forms POST to Firebase Functions: `/api/contact-us-form`, `/api/doula-match-form`
+- Forms POST to Firebase Functions: `/api/contact-us-form`, `/api/doula-match-form`
 - Functions read Hugo content from GitHub via Octokit
-- TypeScript files in `assets/ts/`: `contact-us-form.ts`, `doula-match-form.ts`
+- Form handlers: `assets/ts/contact-us-form.ts`, `assets/ts/doula-match-form.ts`
+
+## Reference Documentation
+
+See `DIRECTORY_STRUCTURE.md` for detailed architecture (maintained as part of PBI 017)
