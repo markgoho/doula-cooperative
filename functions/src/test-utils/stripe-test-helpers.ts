@@ -82,9 +82,8 @@ export function createMockCheckoutEvent(options: {
     livemode: false,
     pending_webhooks: 1,
     request: {
-       
       id: null,
-       
+
       idempotency_key: null,
     },
     type: "checkout.session.completed",

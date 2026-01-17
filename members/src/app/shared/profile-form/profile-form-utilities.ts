@@ -9,10 +9,7 @@ import { PROFILE_TAGS } from './profile-form-config';
  * @param form - The form group to initialize
  * @param profile - The existing profile data
  */
-export function initializeEditProfileForm(
-  form: FormGroup,
-  profile: ProfileData,
-): void {
+export function initializeEditProfileForm(form: FormGroup, profile: ProfileData): void {
   form.patchValue({
     title: profile.title,
     pronouns: profile.pronouns || '',

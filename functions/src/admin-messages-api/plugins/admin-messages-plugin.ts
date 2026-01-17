@@ -56,18 +56,12 @@ export function createAdminMessagesPlugin(services?: PartialServices) {
         { query: ListMessagesQuerySchema },
       )
       // Message-specific routes under /:messageId
-      .group("/:messageId", { params: MessageIdParameterSchema }, (app) =>
+      .group("/:messageId", { params: MessageIdParameterSchema }, app =>
         app
           // GET /:messageId - Get single message
           .get(
             "/",
-            async ({
-              params,
-              adminToken,
-              messageAdminService,
-              logger,
-              set,
-            }) =>
+            async ({ params, adminToken, messageAdminService, logger, set }) =>
               getMessageLogic({
                 messageId: params.messageId,
                 adminUid: getAdminUid(adminToken, logger),

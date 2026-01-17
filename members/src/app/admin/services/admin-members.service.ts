@@ -108,14 +108,24 @@ export class AdminMembersService {
   async extendMembership(uid: string, newExpirationDate: string): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
-      this.httpClient.post<{ success: boolean }>(
-        `/api/admin/members/${uid}/membership/extend`,
-        { newExpirationDate },
-      ),
+      this.httpClient.post<{ success: boolean }>(`/api/admin/members/${uid}/membership/extend`, {
+        newExpirationDate,
+      }),
     );
   }
 
-  async readMemberProfile(uid: string): Promise<{ title: string; bio: string; credentials?: string; pronouns?: string; tags?: string[]; contact?: Contact; image?: string; slug: string }> {
+  async readMemberProfile(
+    uid: string,
+  ): Promise<{
+    title: string;
+    bio: string;
+    credentials?: string;
+    pronouns?: string;
+    tags?: string[];
+    contact?: Contact;
+    image?: string;
+    slug: string;
+  }> {
     // 1. Get member to find their slug (admin-members-api already has getMember)
     const member = await this.getMember(uid);
 
@@ -125,7 +135,15 @@ export class AdminMembersService {
 
     // 2. Read profile content using public endpoint
     const profile = await firstValueFrom(
-      this.httpClient.get<{ title: string; bio: string; credentials?: string; pronouns?: string; tags?: string[]; contact?: Contact; image?: string }>(`/api/profiles/${member.slug}`)
+      this.httpClient.get<{
+        title: string;
+        bio: string;
+        credentials?: string;
+        pronouns?: string;
+        tags?: string[];
+        contact?: Contact;
+        image?: string;
+      }>(`/api/profiles/${member.slug}`),
     );
 
     // Return structured profile data (not stringified)
@@ -172,7 +190,9 @@ export class AdminMembersService {
     return this.convertUnclaimedProfileTimestamps(result);
   }
 
-  private convertUnclaimedProfileTimestamps(profile: ApiUnclaimedProfileResponse): UnclaimedProfile {
+  private convertUnclaimedProfileTimestamps(
+    profile: ApiUnclaimedProfileResponse,
+  ): UnclaimedProfile {
     try {
       const result: UnclaimedProfile = {
         email: profile.email,

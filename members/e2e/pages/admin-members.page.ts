@@ -56,7 +56,9 @@ export class AdminMembersPage {
     const activeMembersTable = page.locator('app-active-members-table');
     this.membersTable = activeMembersTable.getByRole('table');
     this.membersTableHeaders = this.membersTable.getByRole('columnheader');
-    this.membersTableRows = this.membersTable.getByRole('row').filter({ has: page.getByRole('cell') });
+    this.membersTableRows = this.membersTable
+      .getByRole('row')
+      .filter({ has: page.getByRole('cell') });
 
     // Loading and error states - text-based
     this.loadingMessage = activeMembersTable.getByText('Loading members...');

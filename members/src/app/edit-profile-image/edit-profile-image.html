@@ -13,7 +13,12 @@
     @if (errorMessage()) {
       <div class="message message--error" role="alert">
         <p>{{ errorMessage() }}</p>
-        <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+        <button
+          type="button"
+          class="message-dismiss"
+          (click)="clearMessages()"
+          aria-label="Dismiss"
+        >
           ×
         </button>
       </div>
@@ -23,8 +28,15 @@
     @if (successMessage()) {
       <div class="message message--success" role="status">
         <p>{{ successMessage() }}</p>
-        <p class="message-note">You'll receive an email when your update is published to your public profile.</p>
-        <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+        <p class="message-note">
+          You'll receive an email when your update is published to your public profile.
+        </p>
+        <button
+          type="button"
+          class="message-dismiss"
+          (click)="clearMessages()"
+          aria-label="Dismiss"
+        >
           ×
         </button>
       </div>
@@ -105,7 +117,10 @@
           </button>
         }
 
-        <label for="image-upload" class="button {{ profile.image ? 'button--secondary' : 'button--primary' }}">
+        <label
+          for="image-upload"
+          class="button {{ profile.image ? 'button--secondary' : 'button--primary' }}"
+        >
           @if (profile.image) {
             Change Photo
           } @else {

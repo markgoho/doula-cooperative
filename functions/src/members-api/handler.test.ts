@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
-import { handleMembersApi } from "./handler.js";
 import type { Request } from "firebase-functions/v2/https";
 import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
+import { handleMembersApi } from "./handler.js";
 
 /**
  * Tests for the members-api handler (entry point).
@@ -43,10 +43,14 @@ describe("handleMembersApi", () => {
       // Verify error was logged
       expect(errorMock).toHaveBeenCalledTimes(1);
       expect(Array.isArray(errorMock.mock.calls[0])).toBe(true);
-      expect(errorMock.mock.calls[0]?.[0]).toBe("Elysia members-api handler failed");
+      expect(errorMock.mock.calls[0]?.[0]).toBe(
+        "Elysia members-api handler failed",
+      );
 
       // Verify error context includes expected fields
-      const context = errorMock.mock.calls[0]?.[1] as Record<string, unknown> | undefined;
+      const context = errorMock.mock.calls[0]?.[1] as
+        | Record<string, unknown>
+        | undefined;
       expect(context).toBeDefined();
       expect(typeof context?.["errorMessage"]).toBe("string");
       expect(context?.["path"]).toBe("not-a-valid-url");

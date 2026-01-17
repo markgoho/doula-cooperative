@@ -79,9 +79,6 @@ export type FormErrorResponse = Static<typeof FormErrorSchema>;
 /**
  * Union type for form responses.
  */
-export const FormResponseSchema = t.Union([
-  FormSuccessSchema,
-  FormErrorSchema,
-]);
+export const FormResponseSchema = t.Union([FormSuccessSchema, FormErrorSchema]);
 
 export type FormResponse = Static<typeof FormResponseSchema>;

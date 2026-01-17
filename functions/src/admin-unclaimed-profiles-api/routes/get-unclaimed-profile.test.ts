@@ -40,7 +40,11 @@ describe("GET /:email (get unclaimed profile)", () => {
     const mockProfile = toUnclaimedProfileResponse(mockProfileDocument);
 
     const mockGetUnclaimedProfile = mock(
-      ({ email: requestEmail }: { email: string }): Promise<UnclaimedProfileSuccessResponse> => {
+      ({
+        email: requestEmail,
+      }: {
+        email: string;
+      }): Promise<UnclaimedProfileSuccessResponse> => {
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(new NotFoundError("Profile not found"));
         }
@@ -99,7 +103,9 @@ describe("GET /:email (get unclaimed profile)", () => {
     });
 
     it("should accept valid email format", async () => {
-      const { testApp, request, mockProfile } = setup({ email: "valid@example.com" });
+      const { testApp, request, mockProfile } = setup({
+        email: "valid@example.com",
+      });
 
       const response = (await testApp.handle(request)) as Response;
 

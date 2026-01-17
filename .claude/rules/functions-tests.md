@@ -20,12 +20,12 @@ All Firebase Functions tests MUST use the SIFERS pattern to eliminate duplicatio
 ### Complete Example
 
 ```typescript
-describe('PATCH /:memberId', () => {
+describe("PATCH /:memberId", () => {
   interface SetupOptions {
     // Request parameters - defaults for happy path
     body?: Record<string, unknown>;
     memberId?: string;
-    authToken?: string | null;  // null to explicitly omit auth
+    authToken?: string | null; // null to explicitly omit auth
 
     // Scenario flags - configure mock behavior
     memberNotFound?: boolean;
@@ -33,38 +33,38 @@ describe('PATCH /:memberId', () => {
   }
 
   function setup({
-    body = { name: 'Updated Name' },
-    memberId = 'test-member-id',
-    authToken = 'admin-token',
+    body = { name: "Updated Name" },
+    memberId = "test-member-id",
+    authToken = "admin-token",
     memberNotFound = false,
     validationError = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario flags
     const mockUpdateMember = mock((id, updates) => {
       if (memberNotFound) {
-        return Promise.reject(new NotFoundError('Member not found'));
+        return Promise.reject(new NotFoundError("Member not found"));
       }
       if (validationError) {
-        return Promise.reject(new ValidationError('Invalid data'));
+        return Promise.reject(new ValidationError("Invalid data"));
       }
       // Success path
       return Promise.resolve({ uid: id, ...updates });
     });
 
     const testApp = createAdminTestPlugin({
-      memberAdminService: { updateMember: mockUpdateMember }
+      memberAdminService: { updateMember: mockUpdateMember },
     });
 
     // Build request from parameters (hide HTTP details)
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
     if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
+      headers["Authorization"] = `Bearer ${authToken}`;
     }
 
     const request = new Request(`http://localhost/${memberId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers,
       body: JSON.stringify(body),
     });
@@ -73,7 +73,7 @@ describe('PATCH /:memberId', () => {
   }
 
   // Tests are minimal - only specify what varies
-  it('should return 401 without auth', async () => {
+  it("should return 401 without auth", async () => {
     const { testApp, request } = setup({ authToken: null });
 
     // NOTE: `as Response` is required because Elysia's type inference
@@ -83,22 +83,22 @@ describe('PATCH /:memberId', () => {
     expect(response.status).toBe(401);
   });
 
-  it('should reject invalid email', async () => {
-    const { testApp, request } = setup({ body: { email: 'invalid' } });
+  it("should reject invalid email", async () => {
+    const { testApp, request } = setup({ body: { email: "invalid" } });
 
     const response = await testApp.handle(request);
 
     expect(response.status).toBe(422);
   });
 
-  it('should update member successfully', async () => {
-    const { testApp, request } = setup();  // All defaults
+  it("should update member successfully", async () => {
+    const { testApp, request } = setup(); // All defaults
 
     const response = await testApp.handle(request);
 
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.member.name).toBe('Updated Name');
+    expect(body.member.name).toBe("Updated Name");
   });
 });
 ```
@@ -111,10 +111,10 @@ Every parameter should have a default representing a successful request:
 
 ```typescript
 function setup({
-  body = { name: 'Updated Name' },  // Valid data
-  memberId = 'test-member-id',      // Valid ID
-  authToken = 'admin-token',         // Authenticated
-  memberNotFound = false,            // Success scenario
+  body = { name: "Updated Name" }, // Valid data
+  memberId = "test-member-id", // Valid ID
+  authToken = "admin-token", // Authenticated
+  memberNotFound = false, // Success scenario
 } = {}) {
   // ...
 }
@@ -128,10 +128,10 @@ Use `body` as an object (not JSON string):
 
 ```typescript
 // ✅ GOOD - Business-level parameter
-setup({ body: { email: 'new@example.com' } })
+setup({ body: { email: "new@example.com" } });
 
 // ❌ BAD - Exposing JSON implementation
-setup({ body: JSON.stringify({ email: 'new@example.com' }) })
+setup({ body: JSON.stringify({ email: "new@example.com" }) });
 ```
 
 Setup internally handles `JSON.stringify()`.
@@ -142,20 +142,23 @@ Use `null` to explicitly omit optional parameters (since `undefined` uses defaul
 
 ```typescript
 function setup({
-  authToken = 'admin-token',  // Default: authenticated
+  authToken = "admin-token", // Default: authenticated
 } = {}) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (authToken) {  // null is falsy, so header won't be added
-    headers['Authorization'] = `Bearer ${authToken}`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) {
+    // null is falsy, so header won't be added
+    headers["Authorization"] = `Bearer ${authToken}`;
   }
   // ...
 }
 
 // Test without auth
-setup({ authToken: null })  // ✅ Works - null skips default
+setup({ authToken: null }); // ✅ Works - null skips default
 
 // This wouldn't work:
-setup({ authToken: undefined })  // ❌ Would use default 'admin-token'
+setup({ authToken: undefined }); // ❌ Would use default 'admin-token'
 ```
 
 **Note:** ESLint allows `null` in `*.test.ts` files for this pattern.
@@ -171,21 +174,21 @@ function setup({
   serverError = false,
   emailSendFails = false,
 } = {}) {
-  const mockUpdate = mock((id) => {
-    if (memberNotFound) throw new NotFoundError('Not found');
-    if (serverError) throw new Error('DB error');
+  const mockUpdate = mock(id => {
+    if (memberNotFound) throw new NotFoundError("Not found");
+    if (serverError) throw new Error("DB error");
     return Promise.resolve({ uid: id });
   });
 
   const mockEmail = mock(() => {
-    if (emailSendFails) throw new Error('SMTP error');
+    if (emailSendFails) throw new Error("SMTP error");
     return Promise.resolve();
   });
   // ...
 }
 
 // Usage is expressive
-it('should return 404 when not found', async () => {
+it("should return 404 when not found", async () => {
   const { testApp, request } = setup({ memberNotFound: true });
   // ...
 });
@@ -197,13 +200,13 @@ For tests manipulating environment variables, just set them in setup - no cleanu
 
 ```typescript
 function setup({
-  apiKey = 'test-key',  // or null to delete
+  apiKey = "test-key", // or null to delete
 } = {}) {
   // Set environment variable for this test
   if (apiKey === null) {
-    delete process.env['API_KEY'];
+    delete process.env["API_KEY"];
   } else {
-    process.env['API_KEY'] = apiKey;
+    process.env["API_KEY"] = apiKey;
   }
 
   // ... create plugin ...
@@ -212,15 +215,15 @@ function setup({
 }
 
 // No try/finally needed - each test's setup() resets env
-it('should fail without API key', async () => {
+it("should fail without API key", async () => {
   const { testApp, request } = setup({ apiKey: null });
 
   const response = await testApp.handle(request);
   expect(response.status).toBe(503);
 });
 
-it('should succeed with API key', async () => {
-  const { testApp, request } = setup();  // Uses default apiKey
+it("should succeed with API key", async () => {
+  const { testApp, request } = setup(); // Uses default apiKey
 
   const response = await testApp.handle(request);
   expect(response.status).toBe(200);
@@ -235,21 +238,21 @@ it('should succeed with API key', async () => {
 
 ```typescript
 // ❌ BAD - Testing mock arguments
-it('should call service correctly', async () => {
+it("should call service correctly", async () => {
   const { mockUpdate } = setup();
   await testApp.handle(request);
 
-  expect(mockUpdate).toHaveBeenCalledWith('test-id', { name: 'New' });
+  expect(mockUpdate).toHaveBeenCalledWith("test-id", { name: "New" });
 });
 
 // ✅ GOOD - Testing HTTP contract
-it('should update member', async () => {
-  const { testApp, request } = setup({ body: { name: 'New' } });
+it("should update member", async () => {
+  const { testApp, request } = setup({ body: { name: "New" } });
 
   const response = await testApp.handle(request);
 
   expect(response.status).toBe(200);
-  expect((await response.json()).member.name).toBe('New');
+  expect((await response.json()).member.name).toBe("New");
 });
 ```
 
@@ -274,6 +277,7 @@ const response = (await testApp.handle(request)) as Response;
 ```
 
 Elysia's type inference returns `any` when using:
+
 - Plugin composition (`createAdminMembersPlugin()` returning plugin)
 - Mocked services via dependency injection
 - Node adapter (`@elysiajs/node`)
@@ -281,9 +285,10 @@ Elysia's type inference returns `any` when using:
 Without the assertion, TypeScript sees `any` and triggers unsafe access errors. The assertion is safe because `.handle()` always returns a Web API `Response` object at runtime.
 
 **Both assertions are needed:**
+
 ```typescript
-const response = (await testApp.handle(request)) as Response;  // Response type
-const body = (await response.json()) as { error?: string };    // Response body type
+const response = (await testApp.handle(request)) as Response; // Response type
+const body = (await response.json()) as { error?: string }; // Response body type
 ```
 
 ### Test Organization

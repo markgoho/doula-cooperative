@@ -7,12 +7,7 @@
   <!-- Cropper Area -->
   <div class="cropper-wrapper">
     @if (imageUrl()) {
-      <img
-        #cropperImage
-        [src]="imageUrl()"
-        alt="Image to crop"
-        class="cropper-image"
-      />
+      <img #cropperImage [src]="imageUrl()" alt="Image to crop" class="cropper-image" />
     } @else if (imageLoadError()) {
       <div class="error">
         <p>{{ imageLoadError() }}</p>
@@ -26,13 +21,7 @@
 
   <!-- Action Buttons -->
   <div class="actions">
-    <button
-      type="button"
-      class="button button--secondary"
-      (click)="cancel()"
-    >
-      Cancel
-    </button>
+    <button type="button" class="button button--secondary" (click)="cancel()">Cancel</button>
     <button
       type="button"
       class="button button--primary"

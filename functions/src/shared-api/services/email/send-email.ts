@@ -32,7 +32,9 @@ export async function sendEmail(
   // Read API key from environment
   const mailgunApiKey = process.env["MAILGUN_API_KEY"];
   if (!mailgunApiKey) {
-    const error = new Error("MAILGUN_API_KEY environment variable not configured");
+    const error = new Error(
+      "MAILGUN_API_KEY environment variable not configured",
+    );
     logger.error("Email service not configured", {
       errorId: ERROR_IDS.MAILGUN_AUTH_FAILED,
       error,

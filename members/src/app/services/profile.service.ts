@@ -71,7 +71,9 @@ export class ProfileService {
    * Optimistic state takes precedence until the backend catches up.
    */
   readonly profile = computed((): ProfileData | undefined => {
-    const serverProfile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
+    const serverProfile = this.profileResource.hasValue()
+      ? this.profileResource.value()
+      : undefined;
     if (!serverProfile) return undefined;
 
     const optimistic = this.optimisticImage();
@@ -268,9 +270,7 @@ export class ProfileService {
           }
 
           case 409: {
-            throw new Error(
-              'Profile was modified by another operation. Please try again.',
-            );
+            throw new Error('Profile was modified by another operation. Please try again.');
           }
 
           case 504: {
@@ -294,7 +294,9 @@ export class ProfileService {
 
     try {
       await firstValueFrom(
-        this.http.delete<{ success: boolean; deletedFiles: string[] }>(`/api/profiles/${slug}/image`),
+        this.http.delete<{ success: boolean; deletedFiles: string[] }>(
+          `/api/profiles/${slug}/image`,
+        ),
       );
 
       // Set optimistic state to show image as deleted immediately

@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../types/member-document.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**

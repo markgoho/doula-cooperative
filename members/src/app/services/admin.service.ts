@@ -19,10 +19,9 @@ export class AdminService {
   async setAdminClaim(uid: string): Promise<void> {
     // Authorization header added automatically by authInterceptor
     await firstValueFrom(
-      this.httpClient.patch<{ success: boolean; uid: string }>(
-        `/api/admin/members/${uid}/claims`,
-        { admin: true },
-      ),
+      this.httpClient.patch<{ success: boolean; uid: string }>(`/api/admin/members/${uid}/claims`, {
+        admin: true,
+      }),
     );
   }
 
@@ -32,10 +31,9 @@ export class AdminService {
   async removeAdminClaim(uid: string): Promise<void> {
     // Authorization header added automatically by authInterceptor
     await firstValueFrom(
-      this.httpClient.patch<{ success: boolean; uid: string }>(
-        `/api/admin/members/${uid}/claims`,
-        { admin: false },
-      ),
+      this.httpClient.patch<{ success: boolean; uid: string }>(`/api/admin/members/${uid}/claims`, {
+        admin: false,
+      }),
     );
   }
 

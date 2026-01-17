@@ -1,18 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MembershipService } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
-import {
-  createProfileFormGroup,
-  PROFILE_TAGS,
-} from '../shared/profile-form/profile-form-config';
+import { createProfileFormGroup, PROFILE_TAGS } from '../shared/profile-form/profile-form-config';
 import {
   extractProfileData,
   initializeCreateProfileForm,
@@ -22,10 +13,7 @@ import {
 @Component({
   imports: [ReactiveFormsModule],
   templateUrl: './create-profile.html',
-  styleUrls: [
-    '../shared/profile-form/profile-form-styles.scss',
-    './create-profile.scss',
-  ],
+  styleUrls: ['../shared/profile-form/profile-form-styles.scss', './create-profile.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateProfile {

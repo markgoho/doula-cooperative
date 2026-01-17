@@ -96,7 +96,9 @@ describe('AdminDashboard', () => {
     const membersCard = screen.getByRole('link', { name: /Manage member accounts/i });
     expect(membersCard).toHaveAttribute('href', '/admin/members');
 
-    const unclaimedCard = screen.getByRole('link', { name: /Members with profiles who haven't created accounts/i });
+    const unclaimedCard = screen.getByRole('link', {
+      name: /Members with profiles who haven't created accounts/i,
+    });
     expect(unclaimedCard).toHaveAttribute('href', '/admin/unclaimed');
   });
 

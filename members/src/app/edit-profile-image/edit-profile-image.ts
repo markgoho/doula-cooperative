@@ -56,7 +56,9 @@ export class EditProfileImage {
   protected async loadExistingImage(): Promise<void> {
     const slug = this.membershipService.userDocument()?.slug;
     if (!slug) {
-      this.errorMessage.set('Unable to load your image. Please ensure your profile is set up first.');
+      this.errorMessage.set(
+        'Unable to load your image. Please ensure your profile is set up first.',
+      );
       return;
     }
 
@@ -114,13 +116,19 @@ export class EditProfileImage {
 
     try {
       // Use the cropped preview from Cropper.js for optimistic display
-      await this.profileService.uploadProfileImage(result.file, result.cropData, result.previewDataUrl);
+      await this.profileService.uploadProfileImage(
+        result.file,
+        result.cropData,
+        result.previewDataUrl,
+      );
 
       this.successMessage.set('Profile image updated successfully!');
       this.editorState.set('viewing');
       this.selectedFile.set(undefined);
     } catch (error: unknown) {
-      this.errorMessage.set(error instanceof Error ? error.message : 'Upload failed. Please try again.');
+      this.errorMessage.set(
+        error instanceof Error ? error.message : 'Upload failed. Please try again.',
+      );
       this.editorState.set('viewing');
     }
   }
@@ -151,7 +159,9 @@ export class EditProfileImage {
         this.editorState.set('viewing');
       })
       .catch((error: unknown) => {
-        this.errorMessage.set(error instanceof Error ? error.message : 'Delete failed. Please try again.');
+        this.errorMessage.set(
+          error instanceof Error ? error.message : 'Delete failed. Please try again.',
+        );
         this.editorState.set('viewing');
       });
   }

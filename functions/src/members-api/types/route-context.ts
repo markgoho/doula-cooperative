@@ -7,8 +7,10 @@ import type { Services } from "./services.js";
  * @template TParameters - Type of route parameters (e.g., { memberId: string })
  * @template TQuery - Type of query parameters (e.g., { limit?: number; offset?: number })
  */
-export interface RouteContext<TParameters = unknown, TQuery = unknown>
-  extends Services {
+export interface RouteContext<
+  TParameters = unknown,
+  TQuery = unknown,
+> extends Services {
   params: TParameters;
   query: TQuery;
   request: Request;

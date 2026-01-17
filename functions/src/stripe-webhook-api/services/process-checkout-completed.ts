@@ -13,16 +13,16 @@ import {
 } from "../../constants/index.js";
 import { StripeWebhookError } from "../../shared-api/errors/stripe-errors.js";
 import type {
-  EmailServiceInterface,
   EmailMessage,
+  EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { generateSecurePassword } from "../../shared-api/utils/generate-secure-password.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   MailerLiteError,
 } from "../../shared-api/utils/mailerlite.js";
-import { generateSecurePassword } from "../../shared-api/utils/generate-secure-password.js";
 import {
   calculateExpirationDate,
   createStripeMemberDocument,
@@ -51,7 +51,9 @@ function createMailerLiteFailureEmailHtml(options: {
   } = options;
 
   const displayName = escapeHtml(customerName) || "Not provided";
-  const subscriptionStartDate = escapeHtml(subscriptionStart.toDate().toISOString());
+  const subscriptionStartDate = escapeHtml(
+    subscriptionStart.toDate().toISOString(),
+  );
   const expirationDate = escapeHtml(membershipExpiresAt.toDate().toISOString());
 
   return `
@@ -292,8 +294,7 @@ export async function processCheckoutCompleted(options: {
       logger.info(`Created user: ${userRecord.uid}`);
 
       // Set admin claim if email matches admin email
-      const isAdmin =
-        customerEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      const isAdmin = customerEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
       if (isAdmin) {
         try {
           await auth.setCustomUserClaims(userRecord.uid, { admin: true });
@@ -302,7 +303,9 @@ export async function processCheckoutCompleted(options: {
           logger.error("Failed to set admin claim for new user", {
             error: claimError,
             errorMessage:
-              claimError instanceof Error ? claimError.message : "Unknown error",
+              claimError instanceof Error
+                ? claimError.message
+                : "Unknown error",
             errorId: ERROR_IDS.API_STRIPE_WEBHOOK_ADMIN_CLAIM_FAILED,
             uid: userRecord.uid,
             customerEmail,
@@ -588,8 +591,7 @@ export async function processCheckoutCompleted(options: {
           error: firestoreError,
           uid: userRecord.uid,
           originalEmailError: errorMessage,
-          context:
-            "Cascading failure - email failed AND status update failed",
+          context: "Cascading failure - email failed AND status update failed",
           severity: "CRITICAL",
           actionRequired:
             "Check Firestore permissions and manually record email failure status",

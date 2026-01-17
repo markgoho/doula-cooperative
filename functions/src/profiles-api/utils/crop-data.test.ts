@@ -8,9 +8,9 @@ import { validateCropData } from "./crop-data.js";
 describe("validateCropData", () => {
   describe("valid inputs", () => {
     it("should return true for valid crop data with typical dimensions", () => {
-      expect(validateCropData({ x: 100, y: 100, width: 200, height: 200 })).toBe(
-        true,
-      );
+      expect(
+        validateCropData({ x: 100, y: 100, width: 200, height: 200 }),
+      ).toBe(true);
     });
 
     it("should return true for crop at origin", () => {
@@ -24,18 +24,18 @@ describe("validateCropData", () => {
     });
 
     it("should return true for large crop dimensions", () => {
-      expect(
-        validateCropData({ x: 0, y: 0, width: 5000, height: 5000 }),
-      ).toBe(true);
+      expect(validateCropData({ x: 0, y: 0, width: 5000, height: 5000 })).toBe(
+        true,
+      );
     });
 
     it("should return true for various valid dimensions", () => {
       expect(validateCropData({ x: 50, y: 50, width: 150, height: 150 })).toBe(
         true,
       );
-      expect(validateCropData({ x: 200, y: 300, width: 400, height: 500 })).toBe(
-        true,
-      );
+      expect(
+        validateCropData({ x: 200, y: 300, width: 400, height: 500 }),
+      ).toBe(true);
       expect(
         validateCropData({ x: 1000, y: 1000, width: 2000, height: 2000 }),
       ).toBe(true);
@@ -44,7 +44,12 @@ describe("validateCropData", () => {
     it("should return true for boundary values", () => {
       expect(validateCropData({ x: 0, y: 0, width: 1, height: 1 })).toBe(true);
       expect(
-        validateCropData({ x: 10_000, y: 10_000, width: 10_000, height: 10_000 }),
+        validateCropData({
+          x: 10_000,
+          y: 10_000,
+          width: 10_000,
+          height: 10_000,
+        }),
       ).toBe(true);
     });
   });
@@ -63,7 +68,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: "100", y: 0, width: 100, height: 100 }),
       ).toBe(false);
-       
+
       expect(validateCropData({ x: null, y: 0, width: 100, height: 100 })).toBe(
         false,
       );
@@ -87,7 +92,7 @@ describe("validateCropData", () => {
       expect(
         validateCropData({ x: 0, y: "100", width: 100, height: 100 }),
       ).toBe(false);
-       
+
       expect(validateCropData({ x: 0, y: null, width: 100, height: 100 })).toBe(
         false,
       );
@@ -114,10 +119,10 @@ describe("validateCropData", () => {
     });
 
     it("should return false when width is not a number", () => {
-      expect(
-        validateCropData({ x: 0, y: 0, width: "100", height: 100 }),
-      ).toBe(false);
-       
+      expect(validateCropData({ x: 0, y: 0, width: "100", height: 100 })).toBe(
+        false,
+      );
+
       expect(validateCropData({ x: 0, y: 0, width: null, height: 100 })).toBe(
         false,
       );
@@ -144,10 +149,10 @@ describe("validateCropData", () => {
     });
 
     it("should return false when height is not a number", () => {
-      expect(
-        validateCropData({ x: 0, y: 0, width: 100, height: "100" }),
-      ).toBe(false);
-       
+      expect(validateCropData({ x: 0, y: 0, width: 100, height: "100" })).toBe(
+        false,
+      );
+
       expect(validateCropData({ x: 0, y: 0, width: 100, height: null })).toBe(
         false,
       );
@@ -180,7 +185,7 @@ describe("validateCropData", () => {
       expect(validateCropData("not an object")).toBe(false);
       expect(validateCropData(123)).toBe(false);
       expect(validateCropData(true)).toBe(false);
-       
+
       expect(validateCropData(null)).toBe(false);
       expect(validateCropData(undefined)).toBe(false);
       expect(validateCropData([])).toBe(false);

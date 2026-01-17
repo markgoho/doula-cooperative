@@ -165,7 +165,8 @@ export const UploadProfileImageBodySchema = t.Object({
   }),
   mimeType: t.String({
     pattern: "^image/(jpeg|png|webp)$",
-    error: "Invalid image type. Allowed types: image/jpeg, image/png, image/webp",
+    error:
+      "Invalid image type. Allowed types: image/jpeg, image/png, image/webp",
   }),
   cropData: CropDataSchema,
 });
@@ -173,7 +174,9 @@ export const UploadProfileImageBodySchema = t.Object({
 /**
  * Type derived from UploadProfileImageBodySchema.
  */
-export type UploadProfileImageBody = Static<typeof UploadProfileImageBodySchema>;
+export type UploadProfileImageBody = Static<
+  typeof UploadProfileImageBodySchema
+>;
 
 // ============================================================================
 // Response Schemas

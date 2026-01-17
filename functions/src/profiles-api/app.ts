@@ -19,12 +19,14 @@ export function createApp(services?: PartialServices) {
   // IMPORTANT: Firebase Hosting sends the FULL path (doesn't strip prefix)
   // Angular proxy.conf.json is configured to also send the full path (no pathRewrite)
   // This ensures local and production behave identically
-  return new Elysia({ adapter: node(), prefix: "/api/profiles" })
-    .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
-    // Health check route (public)
-    .get("/health", () => healthRoute())
-    // Profile management routes plugin (includes both public and authenticated routes)
-    .use(createProfilesPlugin(services));
+  return (
+    new Elysia({ adapter: node(), prefix: "/api/profiles" })
+      .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+      // Health check route (public)
+      .get("/health", () => healthRoute())
+      // Profile management routes plugin (includes both public and authenticated routes)
+      .use(createProfilesPlugin(services))
+  );
 }
 
 // Export default app instance with real services for production

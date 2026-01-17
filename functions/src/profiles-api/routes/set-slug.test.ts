@@ -25,7 +25,9 @@ describe("POST /slugs (set profile slug)", () => {
     const mockSetSlug = mock(() => {
       if (slugTaken) {
         return Promise.reject(
-          new ConflictError("This slug is already taken. Please choose another."),
+          new ConflictError(
+            "This slug is already taken. Please choose another.",
+          ),
         );
       }
       if (serverError) {

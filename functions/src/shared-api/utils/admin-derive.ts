@@ -35,8 +35,7 @@ export async function adminDerive({
   authService: AuthService;
   logger: Logger;
 }): Promise<AuthResult> {
-  const authorizationHeader =
-    request.headers.get("authorization") ?? undefined;
+  const authorizationHeader = request.headers.get("authorization") ?? undefined;
   try {
     const token = await authService.verifyAdmin(authorizationHeader);
     return { adminToken: token, authError: undefined };

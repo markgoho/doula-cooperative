@@ -67,8 +67,7 @@ export const ERROR_IDS = {
     "admin_send_invitation_auth_create_failed",
   ADMIN_SEND_INVITATION_MEMBER_DOC_FAILED:
     "admin_send_invitation_member_doc_failed",
-  ADMIN_SEND_INVITATION_CLEANUP_FAILED:
-    "admin_send_invitation_cleanup_failed",
+  ADMIN_SEND_INVITATION_CLEANUP_FAILED: "admin_send_invitation_cleanup_failed",
   ADMIN_SEND_INVITATION_CLAIM_FAILED: "admin_send_invitation_claim_failed",
   ADMIN_SEND_INVITATION_RESET_LINK_FAILED:
     "admin_send_invitation_reset_link_failed",
@@ -88,7 +87,8 @@ export const ERROR_IDS = {
   CREATE_PROFILE_PROCESSING_ERROR: "create_profile_processing_error",
   CREATE_PROFILE_GITHUB_AUTH_FAILED: "create_profile_github_auth_failed",
   CREATE_PROFILE_FIRESTORE_READ_ERROR: "create_profile_firestore_read_error",
-  CREATE_PROFILE_FIRESTORE_UPDATE_ERROR: "create_profile_firestore_update_error",
+  CREATE_PROFILE_FIRESTORE_UPDATE_ERROR:
+    "create_profile_firestore_update_error",
   CREATE_PROFILE_SERIALIZATION_ERROR: "create_profile_serialization_error",
 
   // Check slug availability errors
@@ -170,8 +170,7 @@ export const ERROR_IDS = {
     "upload_profile_image_batch_operation_failed",
   UPLOAD_PROFILE_IMAGE_FILE_CHECK_FAILED:
     "upload_profile_image_file_check_failed",
-  UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED:
-    "upload_profile_image_cleanup_failed",
+  UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED: "upload_profile_image_cleanup_failed",
 
   // Delete profile image errors
   DELETE_PROFILE_IMAGE_FAILED: "delete_profile_image_failed",

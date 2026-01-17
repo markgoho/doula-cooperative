@@ -68,8 +68,7 @@ const SendInvitationSuccessSchema = t.Object({
   success: t.Boolean(),
   warning: t.Optional(
     t.String({
-      description:
-        "Warning message if email sent but tracking update failed",
+      description: "Warning message if email sent but tracking update failed",
     }),
   ),
 });
@@ -101,7 +100,9 @@ export function toUnclaimedProfileResponse(
       invitationEmailStatus: document.invitationEmailStatus,
     }),
     ...(document.invitationEmailSentAt !== undefined && {
-      invitationEmailSentAt: document.invitationEmailSentAt.toDate().toISOString(),
+      invitationEmailSentAt: document.invitationEmailSentAt
+        .toDate()
+        .toISOString(),
     }),
     ...(document.invitationEmailError !== undefined && {
       invitationEmailError: document.invitationEmailError,

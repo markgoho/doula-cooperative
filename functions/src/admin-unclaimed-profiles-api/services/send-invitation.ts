@@ -245,7 +245,8 @@ export async function sendInvitation({
         logger.error("Unexpected non-Firebase error creating auth user", {
           errorId: ERROR_IDS.ADMIN_SEND_INVITATION_AUTH_CREATE_FAILED,
           error,
-          errorMessage: error instanceof Error ? error.message : "Unknown error",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
           errorType: error?.constructor?.name,
           email,
         });
@@ -274,12 +275,15 @@ export async function sendInvitation({
         });
       } catch (memberError) {
         // Member doc creation failed - clean up by deleting the auth user
-        logger.error("Failed to create member document, cleaning up auth user", {
-          errorId: ERROR_IDS.ADMIN_SEND_INVITATION_MEMBER_DOC_FAILED,
-          error: memberError,
-          uid: userRecord.uid,
-          email,
-        });
+        logger.error(
+          "Failed to create member document, cleaning up auth user",
+          {
+            errorId: ERROR_IDS.ADMIN_SEND_INVITATION_MEMBER_DOC_FAILED,
+            error: memberError,
+            uid: userRecord.uid,
+            email,
+          },
+        );
 
         try {
           await auth.deleteUser(userRecord.uid);
@@ -408,10 +412,13 @@ export async function sendInvitation({
     // In emulator mode (FUNCTIONS_EMULATOR=true), email sending is automatically skipped
     try {
       await emailService.sendEmail({ message: emailMessage }, logger);
-      logger.info("Invitation email with password reset link sent successfully", {
-        email,
-        uid: userRecord.uid,
-      });
+      logger.info(
+        "Invitation email with password reset link sent successfully",
+        {
+          email,
+          uid: userRecord.uid,
+        },
+      );
     } catch (error) {
       logger.error("Failed to send invitation email", {
         error,
@@ -419,7 +426,8 @@ export async function sendInvitation({
         email,
         uid: userRecord.uid,
         severity: "HIGH",
-        actionRequired: "User was NOT notified - send manual notification or retry",
+        actionRequired:
+          "User was NOT notified - send manual notification or retry",
       });
 
       // Track email failure in Firestore (handle cascading failure)
@@ -442,7 +450,9 @@ export async function sendInvitation({
                 ? firestoreError.message
                 : "Unknown error",
             errorStack:
-              firestoreError instanceof Error ? firestoreError.stack : undefined,
+              firestoreError instanceof Error
+                ? firestoreError.stack
+                : undefined,
             originalEmailError: error,
             originalEmailErrorMessage:
               error instanceof Error ? error.message : "Unknown error",

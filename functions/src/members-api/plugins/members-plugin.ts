@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
@@ -9,7 +10,6 @@ import {
   UpdateNewsletterPreferenceBodySchema,
   UpdateNewsletterPreferenceResponseSchema,
 } from "../schemas/member-schemas.js";
-import { AuthService } from "../../shared-api/services/auth/index.js";
 import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";

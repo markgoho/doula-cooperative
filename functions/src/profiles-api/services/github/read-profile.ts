@@ -1,18 +1,18 @@
 import { logger } from "firebase-functions/v2";
 import { load } from "js-yaml";
 import { App } from "octokit";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
   GITHUB_REPO,
 } from "../../../constants/github-config.js";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError, NotFoundError } from "../../../shared-api/errors/http-error.js";
 import {
-  isGitHubError,
-  isRateLimitError,
-} from "../../utils/github-error.js";
+  HttpError,
+  NotFoundError,
+} from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
+import { isGitHubError, isRateLimitError } from "../../utils/github-error.js";
 import type { ReadProfileResponse } from "./interface.js";
 
 /**
@@ -233,9 +233,7 @@ export async function readProfile(options: {
     };
   } catch (error) {
     // Type guard for GitHub API errors
-    const isGitHubError = (
-      value: unknown,
-    ): value is { status: number } => {
+    const isGitHubError = (value: unknown): value is { status: number } => {
       return typeof value === "object" && value !== null && "status" in value;
     };
 

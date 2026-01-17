@@ -135,7 +135,7 @@ export class ImageCropper implements AfterViewInit, OnDestroy {
       highlight: true,
       responsive: true,
       restore: false,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cropper.js v1.6.2 types are incomplete
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cropper.js v1.6.2 types are incomplete
     } as any);
   }
 

@@ -3,20 +3,20 @@ import {
   type MemberDocument,
   type UnclaimedProfileDocumentData,
 } from "../../collections/index.js";
-import type { AuthUpdateService } from "../services/auth-update/interface.js";
-import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import type {
-  EmailServiceInterface,
   EmailMessage,
+  EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { addNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ClaimProfileResponse } from "../schemas/profile-schemas.js";
+import type { AuthUpdateService } from "../services/auth-update/interface.js";
+import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
 
 /**
  * Creates HTML for MailerLite failure notification email during profile claim

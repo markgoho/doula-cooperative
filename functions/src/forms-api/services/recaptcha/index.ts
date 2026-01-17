@@ -6,4 +6,7 @@ export const RecaptchaService = {
 
 // Re-export for direct imports
 
-export type { RecaptchaVerification, RecaptchaVerifyResponse } from "./types.js";
+export type {
+  RecaptchaVerification,
+  RecaptchaVerifyResponse,
+} from "./types.js";

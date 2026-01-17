@@ -1,14 +1,14 @@
 import { logger } from "firebase-functions/v2";
 import { App } from "octokit";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
   GITHUB_REPO,
 } from "../../../constants/github-config.js";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
-  HttpError,
   ConflictError,
+  HttpError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
 import { serializeToMarkdown } from "../../utils/markdown-serialization.js";
@@ -37,9 +37,7 @@ async function getOctokit() {
 /**
  * Type guard for GitHub API errors.
  */
-function isGitHubError(
-  value: unknown,
-): value is {
+function isGitHubError(value: unknown): value is {
   status: number;
   response?: { headers?: Record<string, string> };
 } {
@@ -49,9 +47,7 @@ function isGitHubError(
 /**
  * Type guard for rate limit errors specifically.
  */
-function isRateLimitError(
-  value: unknown,
-): value is {
+function isRateLimitError(value: unknown): value is {
   status: number;
   response: { headers: Record<string, string> };
 } {
@@ -114,7 +110,10 @@ export async function createProfile(options: {
     }
 
     // Check for file already exists (409 or 422 conflict)
-    if (isGitHubError(error) && (error.status === 409 || error.status === 422)) {
+    if (
+      isGitHubError(error) &&
+      (error.status === 409 || error.status === 422)
+    ) {
       logger.error("GitHub file already exists", {
         errorId: ERROR_IDS.CREATE_PROFILE_GITHUB_CONFLICT,
         slug,

@@ -1,15 +1,15 @@
 import { logger } from "firebase-functions/v2";
 import { App } from "octokit";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
   GITHUB_REPO,
 } from "../../../constants/github-config.js";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
+  ConflictError,
   HttpError,
   NotFoundError,
-  ConflictError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
 import {
@@ -41,9 +41,7 @@ async function getOctokit() {
 /**
  * Type guard for GitHub API errors.
  */
-function isGitHubError(
-  value: unknown,
-): value is {
+function isGitHubError(value: unknown): value is {
   status: number;
   response?: { headers?: Record<string, string> };
 } {
@@ -53,9 +51,7 @@ function isGitHubError(
 /**
  * Type guard for rate limit errors specifically.
  */
-function isRateLimitError(
-  value: unknown,
-): value is {
+function isRateLimitError(value: unknown): value is {
   status: number;
   response: { headers: Record<string, string> };
 } {
@@ -131,7 +127,9 @@ export async function writeProfile(options: {
         slug,
         filePath,
       });
-      throw new NotFoundError("Profile file not found. Please contact support.");
+      throw new NotFoundError(
+        "Profile file not found. Please contact support.",
+      );
     }
 
     if (isGitHubError(error) && error.status === 409) {

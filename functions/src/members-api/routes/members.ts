@@ -1,11 +1,11 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
+import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   toMemberResponse,
   type MemberResponse,
 } from "../schemas/member-schemas.js";
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { MemberService } from "../services/member/interface.js";
 
 /**
@@ -60,7 +60,9 @@ export async function getMemberLogic({
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
-      ...(error !== null && typeof error === "object" && "constructor" in error && { errorType: error.constructor.name }),
+      ...(error !== null &&
+        typeof error === "object" &&
+        "constructor" in error && { errorType: error.constructor.name }),
       memberId,
       hasAuthorizationHeader: !!authorizationHeader,
     };

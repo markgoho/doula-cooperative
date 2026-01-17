@@ -123,7 +123,9 @@ export class AuthService {
         throw new Error('Your session has expired. Please sign in again.');
       }
       if (errorCode === 'auth/network-request-failed') {
-        throw new Error('Network error refreshing session. Please check your connection and try again.');
+        throw new Error(
+          'Network error refreshing session. Please check your connection and try again.',
+        );
       }
 
       throw new Error('Failed to refresh session. Please sign in again.');

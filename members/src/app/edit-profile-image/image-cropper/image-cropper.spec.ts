@@ -13,7 +13,7 @@ vi.mock('cropperjs', () => ({
     getData = mockGetData;
     destroy = vi.fn();
     getCroppedCanvas = mockGetCroppedCanvas;
-  }
+  },
 }));
 
 function createMockFile(name = 'test.jpg', type = 'image/jpeg'): File {
@@ -37,7 +37,13 @@ async function setup(options: { sourceImage?: File } = {}) {
 
   const user = userEvent.setup();
 
-  return { user, onCropConfirmed, onCancelled, sourceImage, unmount: renderResult.fixture.destroy.bind(renderResult.fixture) };
+  return {
+    user,
+    onCropConfirmed,
+    onCancelled,
+    sourceImage,
+    unmount: renderResult.fixture.destroy.bind(renderResult.fixture),
+  };
 }
 
 describe('ImageCropper', () => {

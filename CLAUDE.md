@@ -66,6 +66,7 @@ export const myFunction = onRequest(async (request, response) => {
 - **Auth Blocking Functions** (`beforeUserCreated`): `blockingUserCreated` - creates member document and sets admin claims
 
 **IMPORTANT**: Always use Firebase Functions v2 imports:
+
 ```typescript
 // ✅ CORRECT - Use v2 imports
 import { onCall, onRequest } from "firebase-functions/v2/https";
@@ -161,12 +162,14 @@ import { onCall } from "firebase-functions/https";
 - ✅ **Unit test business logic** without external dependencies
 
 **Rationale**:
+
 - Emulator-based tests are slow, flaky, and test infrastructure instead of business logic
 - They create coupling between tests and database schema/state
 - They make tests harder to maintain and debug
 - Auth emulator exception: necessary for testing authenticated user flows in browser
 
 **Example - Bad (Emulator-Dependent)**:
+
 ```typescript
 // ❌ DON'T: Test depends on Firestore emulator state
 test('claim profile updates member document', async () => {
@@ -179,6 +182,7 @@ test('claim profile updates member document', async () => {
 ```
 
 **Example - Good (Behavior Testing)**:
+
 ```typescript
 // ✅ DO: Test the HTTP endpoint behavior
 test('POST /api/profiles/claim returns success', async () => {

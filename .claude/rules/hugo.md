@@ -33,7 +33,7 @@ Each doula profile is a page bundle under `content/doulas/` containing:
 ```yaml
 title: Doula Name
 credentials: Certifications/qualifications
-tags: ["Birth Doula", "Postpartum Doula"]  # Specialties
+tags: ["Birth Doula", "Postpartum Doula"] # Specialties
 contact:
   website: https://example.com
   phone: "+1-555-0123"
@@ -51,6 +51,7 @@ contact:
 **SCSS:** Component-based structure with page-specific files (landing-page.scss, doula-profile.scss, find-a-doula.scss, etc.)
 
 **TypeScript:** Form handlers in `assets/ts/`:
+
 - `contact-us-form.ts` - Contact form handling
 - `doula-match-form.ts` - Doula matching form logic
 

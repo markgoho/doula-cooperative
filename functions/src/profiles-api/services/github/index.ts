@@ -1,5 +1,5 @@
-import type { ProfileGitHubService as ProfileGitHubServiceInterface } from "./interface.js";
 import { createProfile } from "./create-profile.js";
+import type { ProfileGitHubService as ProfileGitHubServiceInterface } from "./interface.js";
 import { readProfile } from "./read-profile.js";
 import { writeProfile } from "./write-profile.js";
 

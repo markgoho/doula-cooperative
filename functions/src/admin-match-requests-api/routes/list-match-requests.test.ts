@@ -53,7 +53,7 @@ describe("GET / (list match requests)", () => {
 
     const mockListMatchRequests = mock(() => {
       return Promise.resolve({
-        requests: mockMatchRequestDocuments.map((document) =>
+        requests: mockMatchRequestDocuments.map(document =>
           toMatchRequestResponse(document.id, document),
         ),
         total: 2,

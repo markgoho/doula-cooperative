@@ -43,8 +43,7 @@ export const routes: Routes = [
       },
       {
         path: 'members',
-        loadComponent: () =>
-          import('./admin/members/admin-members').then((m) => m.AdminMembers),
+        loadComponent: () => import('./admin/members/admin-members').then((m) => m.AdminMembers),
       },
       {
         path: 'members/:uid',

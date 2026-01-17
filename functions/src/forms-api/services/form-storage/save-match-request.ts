@@ -1,10 +1,10 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   MATCH_REQUESTS_COLLECTION,
   type MatchRequestDocument,
 } from "../../../collections/match-requests.js";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import type { DoulaMatchData } from "./types.js";
 
 /**

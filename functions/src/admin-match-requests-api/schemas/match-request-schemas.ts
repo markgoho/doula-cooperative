@@ -51,10 +51,9 @@ export const ListMatchRequestsQuerySchema = t.Object({
   limit: t.Optional(t.Number({ minimum: 1, maximum: 100, default: 50 })),
   offset: t.Optional(t.Number({ minimum: 0, default: 0 })),
   status: t.Optional(
-    t.Union(
-      [t.Literal("pending"), t.Literal("processed"), t.Literal("all")],
-      { default: "all" },
-    ),
+    t.Union([t.Literal("pending"), t.Literal("processed"), t.Literal("all")], {
+      default: "all",
+    }),
   ),
 });
 

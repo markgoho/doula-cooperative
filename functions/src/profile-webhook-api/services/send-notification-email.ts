@@ -1,7 +1,7 @@
 import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
 import type {
-  EmailServiceInterface,
   EmailMessage,
+  EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { NotificationParameters } from "./types.js";

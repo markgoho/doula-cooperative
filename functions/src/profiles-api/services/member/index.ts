@@ -109,7 +109,9 @@ async function setSlug(options: {
   // Check if slug is available (excluding current user)
   const { available } = await checkSlugAvailable(slug, uid);
   if (!available) {
-    throw new ConflictError("This slug is already taken. Please choose another.");
+    throw new ConflictError(
+      "This slug is already taken. Please choose another.",
+    );
   }
 
   try {

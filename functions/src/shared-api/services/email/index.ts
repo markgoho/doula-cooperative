@@ -9,6 +9,6 @@ export const EmailService = {
 };
 
 // Re-export for convenience
-export { sendEmail } from "./send-email.js";
 export type { EmailService as EmailServiceInterface } from "./interface.js";
+export { sendEmail } from "./send-email.js";
 export type { EmailMessage } from "./types.js";

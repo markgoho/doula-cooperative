@@ -16,7 +16,6 @@ describe("isGitHubError", () => {
   });
 
   it("should return false for null", () => {
-     
     expect(isGitHubError(null)).toBe(false);
   });
 
@@ -102,7 +101,6 @@ describe("isRateLimitError", () => {
   });
 
   it("should return false for non-GitHub errors", () => {
-     
     expect(isRateLimitError(null)).toBe(false);
     expect(isRateLimitError(undefined)).toBe(false);
     expect(isRateLimitError("error")).toBe(false);

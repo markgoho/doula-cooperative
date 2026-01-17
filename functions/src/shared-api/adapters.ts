@@ -1,7 +1,7 @@
-import type { FirebaseResponse } from "./types/firebase-response.js";
 import { logger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
 import { ERROR_IDS } from "../constants/error-ids.js";
+import type { FirebaseResponse } from "./types/firebase-response.js";
 
 /**
  * Convert Firebase Functions request to Web Request.

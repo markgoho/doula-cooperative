@@ -379,7 +379,6 @@ async function setup({
   claimProfileShouldFail = false,
   claimProfileError = new Error('Claim failed'),
 }: SetupOptions = {}) {
-
   const mockUser = isAuthenticated
     ? {
         displayName: userDisplayName,

@@ -57,7 +57,7 @@ export async function listMessages({
     // Apply pagination
     const snapshot = await query.limit(limit).offset(offset).get();
 
-    const messages = snapshot.docs.map((document) =>
+    const messages = snapshot.docs.map(document =>
       toMessageResponse(document.id, document.data() as MessageDocument),
     );
 

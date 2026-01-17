@@ -4,10 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
-import {
-  type ApiMemberResponse,
-  type SubscriptionStatus,
-} from '../api-types/members-api.types';
+import { type ApiMemberResponse, type SubscriptionStatus } from '../api-types/members-api.types';
 
 interface MigratedUserData {
   name: string;

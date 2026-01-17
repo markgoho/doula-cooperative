@@ -19,19 +19,19 @@ import {
   writeProfileLogic,
 } from "../routes/index.js";
 import {
+  CheckSlugAvailableResponseSchema,
+  ClaimProfileResponseSchema,
+  CreateProfileResponseSchema,
+  DeleteImageResponseSchema,
   ProfileDataBodySchema,
+  ReadProfileResponseSchema,
   SetSlugBodySchema,
+  SetSlugResponseSchema,
   SlugParameterSchema,
   SlugQuerySchema,
-  UploadProfileImageBodySchema,
-  ReadProfileResponseSchema,
-  CheckSlugAvailableResponseSchema,
-  SetSlugResponseSchema,
-  WriteProfileResponseSchema,
-  CreateProfileResponseSchema,
-  ClaimProfileResponseSchema,
   UploadImageResponseSchema,
-  DeleteImageResponseSchema,
+  UploadProfileImageBodySchema,
+  WriteProfileResponseSchema,
 } from "../schemas/profile-schemas.js";
 import { AuthUpdateService } from "../services/auth-update/index.js";
 import { ClaimProfileFirestoreService } from "../services/firestore/index.js";

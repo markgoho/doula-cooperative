@@ -18,13 +18,16 @@ import { expect } from "@playwright/test";
 
 test("admin views users", async ({ authenticatedAdminPage }) => {
   // Set up API mocks BEFORE navigating (use regex to match with/without query params)
-  await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ members: [], total: 0 }),
-    });
-  });
+  await authenticatedAdminPage.route(
+    /\/api\/admin\/members(\?|$)/,
+    async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ members: [], total: 0 }),
+      });
+    },
+  );
 
   // Now navigate
   await authenticatedAdminPage.goto("/admin/users");
@@ -47,30 +50,31 @@ The fixture handles sign-in via Firebase Auth emulator with seeded credentials.
 
 ## API Mocking with page.route()
 
-### CRITICAL: page.route() vs page.request.*
+### CRITICAL: page.route() vs page.request.\*
 
 **page.route()** mocks requests made **by the browser** (Angular, fetch, XHR):
 
 ```typescript
 // ✅ CORRECT - Mocks browser-initiated requests
-await page.route('**/api/profiles/me', async (route) => {
+await page.route("**/api/profiles/me", async route => {
   await route.fulfill({ status: 200, body: JSON.stringify(mockData) });
 });
 
 // User navigates, Angular makes fetch() call → mock intercepts it ✅
-await page.goto('/profile/edit');
+await page.goto("/profile/edit");
 ```
 
 **page.request.\*** is **Playwright's HTTP client** (runs in Node.js, NOT browser):
 
 ```typescript
 // ❌ WRONG - Bypasses browser and page.route() mocks entirely!
-await page.route('**/api/profiles/me', /* mock */);
-const response = await page.request.get('/api/profiles/me');
+await page.route("**/api/profiles/me" /* mock */);
+const response = await page.request.get("/api/profiles/me");
 // Mock never triggers! Request goes directly to server, gets 404
 ```
 
 **Never use `page.request.*` in E2E tests**. It bypasses:
+
 - Browser context and route mocks
 - Angular's HttpClient and interceptors
 - CORS handling
@@ -84,14 +88,17 @@ If you need to verify API integration, test through UI or use `page.evaluate()` 
 
 ```typescript
 // ✅ GOOD - Route set up before navigation
-await authenticatedAdminPage.route(/\/api\/admin\/members(\?|$)/, async (route) => {
-  await route.fulfill({ status: 200, body: JSON.stringify(mockData) });
-});
+await authenticatedAdminPage.route(
+  /\/api\/admin\/members(\?|$)/,
+  async route => {
+    await route.fulfill({ status: 200, body: JSON.stringify(mockData) });
+  },
+);
 await page.goto("/admin/users"); // Route is ready to intercept
 
 // ❌ BAD - Route set up after navigation (requests already made)
 await page.goto("/admin/users");
-await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Too late!
+await page.route(/\/api\/admin\/members(\?|$)/ /* ... */); // Too late!
 ```
 
 **Use `page.route()` not `context.route()`** for more reliable interception.
@@ -102,17 +109,17 @@ await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Too late!
 
 ```typescript
 // Glob patterns - `?` is a wildcard character, so avoid for URLs with query params
-await page.route("**/api/users/*", /* ... */); // Matches /api/users/123
+await page.route("**/api/users/*" /* ... */); // Matches /api/users/123
 
 // Use regex for list endpoints (matches path with or without query params)
-await page.route(/\/api\/admin\/members(\?|$)/, /* ... */); // Matches /api/admin/members or /api/admin/members?limit=10
-await page.route(/\/api\/admin\/unclaimed-profiles(\?|$)/, /* ... */); // Same pattern for other list endpoints
+await page.route(/\/api\/admin\/members(\?|$)/ /* ... */); // Matches /api/admin/members or /api/admin/members?limit=10
+await page.route(/\/api\/admin\/unclaimed-profiles(\?|$)/ /* ... */); // Same pattern for other list endpoints
 ```
 
 **Handle both GET and other methods**:
 
 ```typescript
-await page.route(/\/api\/admin\/members(\?|$)/, async (route) => {
+await page.route(/\/api\/admin\/members(\?|$)/, async route => {
   await (route.request().method() === "GET"
     ? route.fulfill({
         status: 200,

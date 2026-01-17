@@ -250,10 +250,14 @@ test.describe('Admin Member Detail Page', () => {
 
     // === Profile Content Display ===
     // Wait for profile content to load (loading happens too fast with mocked data)
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Profile Content' })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Profile Content' }),
+    ).toBeVisible();
 
     // Verify profile image is displayed
-    const profileImage = authenticatedAdminPage.getByRole('img', { name: /Test Member|Profile image/i });
+    const profileImage = authenticatedAdminPage.getByRole('img', {
+      name: /Test Member|Profile image/i,
+    });
     await expect(profileImage).toBeVisible();
     await expect(profileImage).toHaveAttribute('src', mockProfileData.image!);
 
@@ -268,5 +272,4 @@ test.describe('Admin Member Detail Page', () => {
     await expect(authenticatedAdminPage.getByText('test.doula@example.com')).toBeVisible();
     await expect(authenticatedAdminPage.getByText('555-0123')).toBeVisible();
   });
-
 });

@@ -74,10 +74,9 @@ export function handleFirestoreError(
     }
 
     default: {
-      throw new Error(
-        `Firestore operation failed: ${error.message}`,
-        { cause: error },
-      );
+      throw new Error(`Firestore operation failed: ${error.message}`, {
+        cause: error,
+      });
     }
   }
 }
@@ -128,7 +127,7 @@ export function validateRequiredFields(
   resourceId: string,
 ): void {
   const missingFields = requiredFields.filter(
-    (field) => data[field] === undefined,
+    field => data[field] === undefined,
   );
 
   if (missingFields.length > 0) {

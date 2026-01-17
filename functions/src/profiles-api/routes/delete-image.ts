@@ -8,9 +8,9 @@ import {
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { ProfileMemberService } from "../services/member/interface.js";
 import { batchDeleteFiles } from "../utils/github-batch-delete.js";
 import { isRateLimitError } from "../utils/github-error.js";
-import type { ProfileMemberService } from "../services/member/interface.js";
 
 /**
  * All possible profile image file patterns to delete.
@@ -41,9 +41,7 @@ export async function deleteImageLogic({
   profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<
-  { success: true; deletedFiles: string[] } | { error: string }
-> {
+}): Promise<{ success: true; deletedFiles: string[] } | { error: string }> {
   logger.info("Profile image delete initiated", { uid });
 
   try {
@@ -86,7 +84,7 @@ export async function deleteImageLogic({
 
     // Delete all profile image files in a single commit
     const filePaths = IMAGE_FILE_PATTERNS.map(
-      (pattern) => `${baseDirectory}/${slug}${pattern}`,
+      pattern => `${baseDirectory}/${slug}${pattern}`,
     );
 
     try {

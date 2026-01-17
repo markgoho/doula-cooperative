@@ -106,7 +106,9 @@ async function cleanupExistingMember() {
 
     if (memberDocument.exists) {
       await memberDocument.ref.delete();
-      console.log(`   ✓ Deleted member document (auth user will delete automatically)`);
+      console.log(
+        `   ✓ Deleted member document (auth user will delete automatically)`,
+      );
     } else {
       console.log(`   No member document found (OK)`);
     }
@@ -146,7 +148,9 @@ async function seedTestProfile() {
   await cleanupExistingMember();
 
   // Prepare to write import document
-  const documentReference = firestore.collection(IMPORT_COLLECTION).doc(TEST_EMAIL);
+  const documentReference = firestore
+    .collection(IMPORT_COLLECTION)
+    .doc(TEST_EMAIL);
 
   // Prepare profile data
   const profileData: UnclaimedProfileDocumentData = {

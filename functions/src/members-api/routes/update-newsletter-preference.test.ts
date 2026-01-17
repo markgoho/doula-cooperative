@@ -361,6 +361,4 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
       );
     });
   });
-
 });
-

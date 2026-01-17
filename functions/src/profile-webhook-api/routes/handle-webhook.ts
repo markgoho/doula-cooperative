@@ -79,7 +79,10 @@ export async function handleProfileWebhookLogic({
     // Type assertion safe here: validation.isValid guarantees these exist
     if (!commitMessage || !commitSha || !slug) {
       set.status = 500;
-      return { status: "error", error: "Validation passed but payload incomplete" };
+      return {
+        status: "error",
+        error: "Validation passed but payload incomplete",
+      };
     }
 
     // Find member by slug

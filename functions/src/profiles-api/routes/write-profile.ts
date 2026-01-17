@@ -1,7 +1,7 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type {
   ProfileData,
   WriteProfileResponse,

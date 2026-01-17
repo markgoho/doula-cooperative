@@ -53,6 +53,7 @@ test('test with mocked Firebase function', async ({ authenticatedPage }) => {
 ```
 
 **Important**:
+
 - Set up route **before** any page interactions
 - Use function matcher `(url) => url.href.includes('functionName')` for reliability
 - Match Firebase callable response format: `{ result: { ...yourData } }`
@@ -68,7 +69,7 @@ export const myFunction = onCall(async (request) => {
   // Check if running in emulator - skip external API calls in test environment
   const isEmulator = !!process.env['FUNCTIONS_EMULATOR'];
   if (isEmulator) {
-    logger.info("Running in emulator - skipping external API call");
+    logger.info('Running in emulator - skipping external API call');
     // Update Firestore directly without calling external service
     await updateDatabase(request.data);
     return { success: true };
@@ -131,12 +132,14 @@ webServer: [
 ```
 
 **Important**:
+
 - Do NOT use `bun run start` as it starts emulators + Angular + Hugo + Functions watch, causing port conflicts since emulators are started separately
 - The `angular:start` script is defined in root package.json and internally does `cd members && bun start`
 
 ## Firebase Emulator URLs
 
 Firebase Functions in the emulator use this URL pattern:
+
 ```
 http://localhost:5001/<project-id>/<region>/<function-name>
 ```
@@ -178,6 +181,7 @@ test('expired member sees renewal prompt', async ({ authenticatedPage }) => {
 For testing auth-protected routes, use two approaches:
 
 ### Authenticated Tests
+
 Use the `authenticatedPage` fixture which handles sign-in automatically:
 
 ```typescript
@@ -187,6 +191,7 @@ test('authenticated user feature', async ({ authenticatedPage }) => {
 ```
 
 ### Unauthenticated Tests
+
 Use the base Playwright `test` and clear auth state:
 
 ```typescript
@@ -200,6 +205,7 @@ base('unauthenticated redirect', async ({ page, context }) => {
 ## Testing Checklist
 
 Before marking an e2e test complete, verify:
+
 - [ ] Uses Page Object Model
 - [ ] Sets up mocks before page interactions
 - [ ] Tests both success and error states

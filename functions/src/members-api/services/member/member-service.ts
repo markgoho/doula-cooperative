@@ -1,6 +1,6 @@
-import type { MemberDocument } from "../../../types/member-document.js";
 import { NotFoundError } from "../../../shared-api/errors/http-error.js";
 import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
+import type { MemberDocument } from "../../../types/member-document.js";
 import type { MemberService as MemberServiceInterface } from "./interface.js";
 
 /**

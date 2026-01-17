@@ -73,8 +73,7 @@ export async function handleContactFormLogic({
         error: emailError,
         errorMessage:
           emailError instanceof Error ? emailError.message : "Unknown error",
-        errorStack:
-          emailError instanceof Error ? emailError.stack : undefined,
+        errorStack: emailError instanceof Error ? emailError.stack : undefined,
         formType: "contact_form",
         submitterEmail: formData.email,
         submitterName: formData.contactName,

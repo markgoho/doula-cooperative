@@ -200,7 +200,9 @@ export function toMemberResponse(
     response.newsletterSubscribed = document.newsletterSubscribed;
   }
   if (document.newsletterSubscribedAt !== undefined) {
-    response.newsletterSubscribedAt = timestampToIso(document.newsletterSubscribedAt);
+    response.newsletterSubscribedAt = timestampToIso(
+      document.newsletterSubscribedAt,
+    );
   }
   if (document.newsletterUnsubscribedAt !== undefined) {
     response.newsletterUnsubscribedAt = timestampToIso(

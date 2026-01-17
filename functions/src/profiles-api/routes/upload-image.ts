@@ -9,13 +9,13 @@ import {
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { ProfileMemberService } from "../services/member/interface.js";
 import type { CropData } from "../utils/crop-data.js";
 import {
   batchOperateFiles,
   type FileOperation,
 } from "../utils/github-batch-operations.js";
 import { isGitHubError } from "../utils/github-error.js";
-import type { ProfileMemberService } from "../services/member/interface.js";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 const OUTPUT_SIZE = 1200; // Max dimension for output image
@@ -210,7 +210,9 @@ export async function uploadImageLogic({
         error,
       });
       set.status = 500;
-      return { error: "Failed to process image. Please try a different image." };
+      return {
+        error: "Failed to process image. Please try a different image.",
+      };
     }
 
     // Upload to GitHub using batch operations
@@ -226,7 +228,7 @@ export async function uploadImageLogic({
       // Check which files exist to determine create vs update
       const filesToCheck = [
         `${slug}-profile.jpg`,
-        ...avifVariants.map((variant) => variant.filename),
+        ...avifVariants.map(variant => variant.filename),
       ];
 
       const existingFiles = new Map<string, string>(); // filename -> SHA

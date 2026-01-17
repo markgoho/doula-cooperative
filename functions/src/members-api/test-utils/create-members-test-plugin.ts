@@ -1,16 +1,16 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import type { MemberDocument } from "../../types/member-document.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { MemberService } from "../services/member/interface.js";
-import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
   createMockVerifyOwnerOrAdmin,
 } from "../../test-utils/auth-mocks.js";
+import type { MemberDocument } from "../../types/member-document.js";
+import { createMembersPlugin } from "../plugins/members-plugin.js";
+import type { MemberService } from "../services/member/interface.js";
+import type { NewsletterService } from "../services/newsletter/interface.js";
 
 /**
  * Creates the members plugin with default mock services for testing.

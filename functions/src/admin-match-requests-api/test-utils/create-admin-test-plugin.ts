@@ -31,9 +31,7 @@ export function createAdminTestPlugin(overrides?: {
         processedCount: 0,
       }),
     ),
-    getMatchRequest: mock(() =>
-      Promise.resolve({} as MatchRequestResponse),
-    ),
+    getMatchRequest: mock(() => Promise.resolve({} as MatchRequestResponse)),
     updateMatchRequest: mock(() => Promise.resolve({ success: true as const })),
     ...overrides?.matchRequestAdminService,
   };

@@ -70,7 +70,6 @@ describe('Header', () => {
     expect(createLink).toBeVisible();
     expect(createLink).toHaveAttribute('href', '/profile/create');
   });
-
 });
 
 interface SetupOptions {

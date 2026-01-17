@@ -23,7 +23,9 @@ export async function listMessagesLogic({
   messageAdminService,
   logger,
   set,
-}: ListMessagesLogicParameters): Promise<ListMessagesResponse | { error: string }> {
+}: ListMessagesLogicParameters): Promise<
+  ListMessagesResponse | { error: string }
+> {
   try {
     const result = await messageAdminService.listMessages({
       ...(limit !== undefined && { limit }),

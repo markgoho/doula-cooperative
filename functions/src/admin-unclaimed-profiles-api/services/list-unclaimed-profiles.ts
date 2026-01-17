@@ -36,7 +36,7 @@ export async function listUnclaimedProfiles({
       .offset(offset)
       .get();
 
-    const profiles = snapshot.docs.map((document) => {
+    const profiles = snapshot.docs.map(document => {
       const documentData = document.data() as Record<string, unknown>;
       const profile: UnclaimedProfileDocument = {
         ...(documentData as Omit<UnclaimedProfileDocument, "email">),

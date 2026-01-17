@@ -9,9 +9,9 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
 import type {
-  UnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   SendInvitationSuccessResponse,
+  UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
 

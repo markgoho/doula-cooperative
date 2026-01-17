@@ -205,11 +205,8 @@ describe('EditProfileImage', () => {
         'fetch',
         vi.fn().mockImplementation(
           () =>
-            new Promise(resolve => {
-              setTimeout(
-                () => resolve({ ok: false }),
-                100,
-              );
+            new Promise((resolve) => {
+              setTimeout(() => resolve({ ok: false }), 100);
             }),
         ),
       );
@@ -232,10 +229,7 @@ describe('EditProfileImage', () => {
 
     it('should show error message when existing image cannot be loaded', async () => {
       // Mock fetch to return 404 for all extensions
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({ ok: false }),
-      );
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
 
       const { user } = await setup({
         profileData: {

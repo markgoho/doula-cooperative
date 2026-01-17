@@ -18,15 +18,13 @@ import { node } from "@elysiajs/node";
 export function createApp() {
   return new Elysia({
     adapter: node(),
-    prefix: "/api/admin/members"  // Must match firebase.json rewrite source
-  })
-    .use(createAdminMembersPlugin());
+    prefix: "/api/admin/members", // Must match firebase.json rewrite source
+  }).use(createAdminMembersPlugin());
 }
 
 // ❌ WRONG - Missing prefix causes 404s
 export function createApp() {
-  return new Elysia({ adapter: node() })
-    .use(createAdminMembersPlugin());
+  return new Elysia({ adapter: node() }).use(createAdminMembersPlugin());
 }
 ```
 
@@ -74,6 +72,7 @@ Firebase Hosting does NOT strip the path prefix, so Elysia apps must use the `pr
     }
   }
   ```
+
   - Request: `GET /api/admin/members/`
   - Function receives: `GET /api/admin/members/`
   - Elysia `prefix` strips it: matches `GET /`
@@ -1352,12 +1351,14 @@ functions/src/
 ### What Level to Test
 
 **Test at the plugin level (full HTTP contract):**
+
 - Instantiate the full plugin via `create*TestPlugin()` factory
 - Test includes auth guards, derive, route composition
 - Test through `.handle(request)` (HTTP interface)
 - Focus on HTTP contract: request → response
 
 **NEVER test:**
+
 - ❌ Service methods directly
 - ❌ Route logic functions in isolation
 - ❌ Mock call counts or arguments
@@ -1366,25 +1367,27 @@ functions/src/
 ### Testing Pattern
 
 **Use SIFERS pattern** for all tests. See `.claude/rules/functions-tests.md` for complete guide including:
+
 - How to structure setup functions
 - Using proper types and scenario flags
 - Environment variable handling
 - What NOT to test (implementation details)
 
 **Quick example:**
+
 ```typescript
-describe('PATCH /:memberId', () => {
+describe("PATCH /:memberId", () => {
   function setup({
-    body = { name: 'Updated' },
-    memberId = 'test-id',
-    authToken = 'admin-token',
+    body = { name: "Updated" },
+    memberId = "test-id",
+    authToken = "admin-token",
     memberNotFound = false,
   } = {}) {
     // Configure mocks, build request
     return { testApp, request };
   }
 
-  it('should update member', async () => {
+  it("should update member", async () => {
     const { testApp, request } = setup();
     const response = await testApp.handle(request);
     expect(response.status).toBe(200);
@@ -1393,6 +1396,7 @@ describe('PATCH /:memberId', () => {
 ```
 
 **Why we don't test services**:
+
 - Services are implementation details of the HTTP layer
 - Route tests with mocked services provide sufficient coverage
 - Testing services directly couples tests to implementation

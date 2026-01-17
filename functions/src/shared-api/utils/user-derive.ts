@@ -35,8 +35,7 @@ export async function userDerive({
   authService: AuthService;
   logger: Logger;
 }): Promise<UserAuthResult> {
-  const authorizationHeader =
-    request.headers.get("authorization") ?? undefined;
+  const authorizationHeader = request.headers.get("authorization") ?? undefined;
   try {
     const token = await authService.verifyAuthToken(authorizationHeader);
     return { userToken: token, authError: undefined };

@@ -148,13 +148,13 @@ export async function batchOperateFiles(
 
   // 5. Build new tree with all operations
   const pathsToDelete = new Set(
-    operations.filter((op) => op.operation === "delete").map((op) => op.path),
+    operations.filter(op => op.operation === "delete").map(op => op.path),
   );
 
   // Start with existing tree items, excluding files to be deleted
   const newTreeItems = baseTree.tree
-    .filter((item) => !pathsToDelete.has(item.path || ""))
-    .map((item) => ({
+    .filter(item => !pathsToDelete.has(item.path || ""))
+    .map(item => ({
       path: item.path,
       mode: item.mode,
       type: item.type,
@@ -165,8 +165,8 @@ export async function batchOperateFiles(
   const createdFiles: string[] = [];
   const updatedFiles: string[] = [];
   const deletedFiles: string[] = operations
-    .filter((op) => op.operation === "delete")
-    .map((op) => op.path);
+    .filter(op => op.operation === "delete")
+    .map(op => op.path);
 
   // Add/update files for create and update operations
   for (const op of operations) {
@@ -222,7 +222,7 @@ export async function batchOperateFiles(
 
         // Find and update existing tree item
         const existingIndex = newTreeItems.findIndex(
-          (item) => item.path === op.path,
+          item => item.path === op.path,
         );
 
         if (existingIndex === -1) {

@@ -1,7 +1,7 @@
-import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
 import { ERROR_IDS } from "../constants/error-ids.js";
+import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
 import type { Logger } from "../shared-api/types/logger.js";
 import { handleElysiaRequest } from "../shared-api/utils/handle-elysia-request.js";
 

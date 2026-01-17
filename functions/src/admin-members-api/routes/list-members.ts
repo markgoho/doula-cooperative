@@ -28,7 +28,7 @@ export async function listMembersLogic({
     const result = await memberAdminService.listMembers({ logger });
 
     // Check admin status for all members in parallel via service
-    const adminStatusPromises = result.members.map(async (member) => ({
+    const adminStatusPromises = result.members.map(async member => ({
       uid: member.uid,
       isAdmin: await memberAdminService.isAdmin(member.uid, logger),
     }));
@@ -48,7 +48,7 @@ export async function listMembersLogic({
     logger.info("Admin listed members", logContext);
 
     const response: ListMembersResponse = {
-      members: result.members.map((member) =>
+      members: result.members.map(member =>
         toMemberResponse(member, adminStatusMap.get(member.uid) ?? false),
       ),
       total: result.total,

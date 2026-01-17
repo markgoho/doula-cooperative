@@ -99,8 +99,8 @@ async function syncProfileTimestamps() {
   let profileDirectories: string[] = [];
   try {
     profileDirectories = readdirSync(doulasPath, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
   } catch (error) {
     console.error(
       `❌ Error reading doulas directory:`,
@@ -129,7 +129,10 @@ async function syncProfileTimestamps() {
     }
 
     // Only update if we have at least one timestamp
-    if (timestamps.createdAt === undefined && timestamps.updatedAt === undefined) {
+    if (
+      timestamps.createdAt === undefined &&
+      timestamps.updatedAt === undefined
+    ) {
       console.warn(
         `⚠️ No timestamps found in ${slug}/index.md, skipping update`,
       );
@@ -143,9 +146,7 @@ async function syncProfileTimestamps() {
       const querySnapshot = await collection.where("slug", "==", slug).get();
 
       if (querySnapshot.empty) {
-        console.warn(
-          `⚠️ No import document found for slug: ${slug}, skipping`,
-        );
+        console.warn(`⚠️ No import document found for slug: ${slug}, skipping`);
         skippedCount++;
         skippedSlugs.push({ slug, reason: "no import document found" });
         continue;

@@ -1,10 +1,10 @@
 import { mock } from "bun:test";
+import type { EmailService } from "../../shared-api/services/email/interface.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import { createContactUsFormPlugin } from "../plugins/contact-us-form-plugin.js";
 import { createDoulaMatchFormPlugin } from "../plugins/doula-match-form-plugin.js";
-import type { EmailService } from "../../shared-api/services/email/interface.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 
 /**
  * Creates the contact-us-form plugin with default mock services for testing.
@@ -16,9 +16,7 @@ export function createContactUsFormTestPlugin(overrides?: {
   logger?: Logger;
 }) {
   const defaultRecaptchaService: RecaptchaService = {
-    verifyToken: mock(() =>
-      Promise.resolve({ success: true, score: 0.9 }),
-    ),
+    verifyToken: mock(() => Promise.resolve({ success: true, score: 0.9 })),
     ...overrides?.recaptchaService,
   };
 
@@ -51,9 +49,7 @@ export function createDoulaMatchFormTestPlugin(overrides?: {
   logger?: Logger;
 }) {
   const defaultRecaptchaService: RecaptchaService = {
-    verifyToken: mock(() =>
-      Promise.resolve({ success: true, score: 0.9 }),
-    ),
+    verifyToken: mock(() => Promise.resolve({ success: true, score: 0.9 })),
     ...overrides?.recaptchaService,
   };
 

@@ -78,7 +78,10 @@ export function parseMailgunError(error: unknown, emailTo: string): EmailError {
   }
 
   // Check for HTTP status code (Mailgun API errors have status or statusCode)
-  const errorWithStatus = error as Error & { status?: number; statusCode?: number };
+  const errorWithStatus = error as Error & {
+    status?: number;
+    statusCode?: number;
+  };
   const statusCode = errorWithStatus.status ?? errorWithStatus.statusCode;
 
   if (statusCode !== undefined) {
@@ -98,13 +101,17 @@ export function parseMailgunError(error: unknown, emailTo: string): EmailError {
 
       case 400: {
         // 400 typically indicates invalid recipient or malformed request
-        return new EmailInvalidRecipientError(`${baseMessage}: Invalid recipient`);
+        return new EmailInvalidRecipientError(
+          `${baseMessage}: Invalid recipient`,
+        );
       }
 
       case 503:
       case 504: {
         // Service unavailable or gateway timeout - retryable
-        return new EmailNetworkError(`${baseMessage}: Service temporarily unavailable`);
+        return new EmailNetworkError(
+          `${baseMessage}: Service temporarily unavailable`,
+        );
       }
     }
   }
@@ -112,16 +119,27 @@ export function parseMailgunError(error: unknown, emailTo: string): EmailError {
   // Check for network-level errors by error code (not HTTP status)
   const errorWithCode = error as Error & { code?: string };
   if (errorWithCode.code) {
-    const networkErrorCodes = ["ETIMEDOUT", "ECONNREFUSED", "ENOTFOUND", "ECONNRESET", "ENETUNREACH"];
+    const networkErrorCodes = [
+      "ETIMEDOUT",
+      "ECONNREFUSED",
+      "ENOTFOUND",
+      "ECONNRESET",
+      "ENETUNREACH",
+    ];
     if (networkErrorCodes.includes(errorWithCode.code)) {
-      return new EmailNetworkError(`${baseMessage}: Network error - ${error.message}`);
+      return new EmailNetworkError(
+        `${baseMessage}: Network error - ${error.message}`,
+      );
     }
   }
 
   // Fall back to message inspection only as last resort
   const errorMessage = error.message.toLowerCase();
 
-  if (errorMessage.includes("unauthorized") || errorMessage.includes("forbidden")) {
+  if (
+    errorMessage.includes("unauthorized") ||
+    errorMessage.includes("forbidden")
+  ) {
     return new EmailAuthError(`${baseMessage}: Authentication failed`);
   }
 
