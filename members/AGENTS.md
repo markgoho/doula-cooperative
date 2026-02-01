@@ -361,6 +361,68 @@ test('admin performs action with confirmation', async ({ authenticatedAdminPage 
 
 ## Important Patterns
 
+### Web-Native Interaction Elements
+
+**Prefer native HTML elements over JavaScript-based interaction patterns:**
+
+- **Confirmations:** Use `<dialog>` elements instead of `window.confirm()` or `window.alert()`
+- **Modals:** Use `<dialog>` elements with `showModal()` instead of custom modal implementations
+- **Dropdowns:** Use native `<select>` or `<details>/<summary>` when appropriate
+- **Date/Time:** Use native `<input type="date">` or `<input type="time">` inputs
+
+**Benefits of web-native elements:**
+
+- Better accessibility (built-in ARIA roles and keyboard navigation)
+- Consistent browser behavior and styling
+- Easier to test (no need to mock browser dialogs)
+- Progressive enhancement (works without JavaScript)
+
+**Dialog pattern example:**
+
+```typescript
+// Component
+protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
+
+protected showConfirm(): void {
+  this.confirmDialog()?.nativeElement.showModal();
+}
+
+protected closeDialog(): void {
+  this.confirmDialog()?.nativeElement.close();
+}
+```
+
+```html
+<!-- Template -->
+<dialog #confirmDialog class="confirm-dialog" aria-labelledby="dialog-title">
+  <div class="dialog-content">
+    <h3 id="dialog-title">Confirm Action</h3>
+    <p>Are you sure you want to proceed?</p>
+    <div class="dialog-actions">
+      <button type="button" class="button button-secondary" (click)="closeDialog()">Cancel</button>
+      <button type="button" class="button button-danger" (click)="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</dialog>
+```
+
+**E2E testing with dialogs:**
+
+```typescript
+// Open dialog
+await page.deleteButton.click();
+
+// Verify dialog is visible
+const dialog = page.locator('dialog[open]');
+await expect(dialog).toBeVisible();
+
+// Interact with dialog
+await dialog.getByRole('button', { name: /confirm/i }).click();
+
+// Or cancel
+await dialog.getByRole('button', { name: /cancel/i }).click();
+```
+
 ### Zoneless Change Detection
 
 The app uses `provideZonelessChangeDetection()` instead of Zone.js. This means:

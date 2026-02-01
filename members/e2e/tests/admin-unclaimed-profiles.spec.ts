@@ -464,11 +464,16 @@ test.describe('Admin Unclaimed Profiles', () => {
     // === Verify delete button is visible in danger zone ===
     await expect(unclaimedProfilePage.deleteProfileButton).toBeVisible();
 
-    // === Mock browser confirmation dialog (accept) ===
-    authenticatedAdminPage.on('dialog', (dialog) => dialog.accept());
-
-    // === Click delete button ===
+    // === Click delete button to open confirmation dialog ===
     await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify confirmation dialog is visible ===
+    const dialog = authenticatedAdminPage.locator('dialog[open]');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(/confirm deletion/i)).toBeVisible();
+
+    // === Click confirm button in dialog ===
+    await dialog.getByRole('button', { name: /delete profile/i }).click();
 
     // === Verify DELETE request was made ===
     await authenticatedAdminPage.waitForTimeout(500); // Allow time for navigation
@@ -515,15 +520,22 @@ test.describe('Admin Unclaimed Profiles', () => {
     await unclaimedProfilePage.goto('bob.unclaimed@example.com');
     await unclaimedProfilePage.waitForProfileDetails();
 
-    // === Mock browser confirmation dialog (dismiss) ===
-    authenticatedAdminPage.on('dialog', (dialog) => dialog.dismiss());
-
-    // === Click delete button ===
+    // === Click delete button to open confirmation dialog ===
     await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify confirmation dialog is visible ===
+    const dialog = authenticatedAdminPage.locator('dialog[open]');
+    await expect(dialog).toBeVisible();
+
+    // === Click cancel button in dialog ===
+    await dialog.getByRole('button', { name: /cancel/i }).click();
 
     // === Verify DELETE request was NOT made ===
     await authenticatedAdminPage.waitForTimeout(500);
     expect(deleteRequestMade).toBe(false);
+
+    // === Verify dialog is closed ===
+    await expect(dialog).not.toBeVisible();
 
     // === Verify still on detail page ===
     await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
@@ -562,11 +574,15 @@ test.describe('Admin Unclaimed Profiles', () => {
     await unclaimedProfilePage.goto('bob.unclaimed@example.com');
     await unclaimedProfilePage.waitForProfileDetails();
 
-    // === Mock browser confirmation dialog (accept) ===
-    authenticatedAdminPage.on('dialog', (dialog) => dialog.accept());
-
-    // === Click delete button ===
+    // === Click delete button to open confirmation dialog ===
     await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify confirmation dialog is visible ===
+    const dialog = authenticatedAdminPage.locator('dialog[open]');
+    await expect(dialog).toBeVisible();
+
+    // === Click confirm button in dialog ===
+    await dialog.getByRole('button', { name: /delete profile/i }).click();
 
     // === Verify error message appears ===
     await expect(authenticatedAdminPage.getByText(/Failed to delete|error deleting/i)).toBeVisible({

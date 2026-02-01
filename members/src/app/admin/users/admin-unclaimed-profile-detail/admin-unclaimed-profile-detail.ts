@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
@@ -8,14 +16,15 @@ import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-de
   templateUrl: './admin-unclaimed-profile-detail.html',
   styleUrl: './admin-unclaimed-profile-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [AdminUnclaimedProfileDetailService], // Provide service at component level
+  providers: [AdminUnclaimedProfileDetailService],
 })
 export class AdminUnclaimedProfileDetail {
   protected service = inject(AdminUnclaimedProfileDetailService);
   private router = inject(Router);
 
-  // Route parameter binding (enabled via withComponentInputBinding)
   email = input.required<string>();
+
+  protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
 
   protected invitationAlreadySent = computed(() => {
     const resource = this.service.unclaimedProfileResource;
@@ -24,7 +33,6 @@ export class AdminUnclaimedProfileDetail {
   });
 
   constructor() {
-    // Initialize service with email signal
     this.service.init(this.email);
   }
 
@@ -32,14 +40,16 @@ export class AdminUnclaimedProfileDetail {
     await this.service.sendInvitation(this.email());
   }
 
-  protected async deleteProfile(): Promise<void> {
-    if (
-      !confirm(
-        'Are you sure you want to delete this unclaimed profile? This action cannot be undone.',
-      )
-    ) {
-      return;
-    }
+  protected showDeleteConfirm(): void {
+    this.confirmDialog()?.nativeElement.showModal();
+  }
+
+  protected closeDialog(): void {
+    this.confirmDialog()?.nativeElement.close();
+  }
+
+  protected async confirmDelete(): Promise<void> {
+    this.closeDialog();
 
     try {
       await this.service.deleteProfile(this.email());
