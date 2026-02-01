@@ -1,58 +1,34 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import {
-  toMemberResponse,
-  type MemberSuccessResponse,
-} from "../schemas/member-schemas.js";
-import type { MemberAdminService } from "../services/interface.js";
+import { createMemberRouteHandler } from "./route-handler-factory.js";
 
-/**
- * Activate a membership logic (admin only).
- * Admin authentication is handled by the plugin guard.
- *
- * @returns Updated member or error object
- */
-export async function activateMembershipLogic({
-  memberId,
-  subscriptionStart,
-  membershipExpiresAt,
-  adminUid,
-  memberAdminService,
-  logger,
-  set,
-}: {
-  memberId: string;
+interface ActivateMembershipParameters extends Record<string, unknown> {
   subscriptionStart?: string;
   membershipExpiresAt?: string;
-  adminUid: string;
-  memberAdminService: MemberAdminService;
-  logger: Logger;
-  set: { status?: number | string };
-}): Promise<MemberSuccessResponse | { error: string }> {
-  try {
-    const member = await memberAdminService.activateMembership(memberId, {
-      ...(subscriptionStart !== undefined && { subscriptionStart }),
-      ...(membershipExpiresAt !== undefined && { membershipExpiresAt }),
-    });
+}
 
-    logger.info("Admin activated membership", {
+export const activateMembershipLogic =
+  createMemberRouteHandler<ActivateMembershipParameters>({
+    operation: "activated membership",
+    errorId: ERROR_IDS.API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED,
+
+    serviceMethod: (
+      service,
+      memberId,
+      { subscriptionStart, membershipExpiresAt },
+    ) =>
+      service.activateMembership(memberId, {
+        ...(subscriptionStart !== undefined && { subscriptionStart }),
+        ...(membershipExpiresAt !== undefined && { membershipExpiresAt }),
+      }),
+
+    parseParameters: parameters => parameters,
+
+    getLogContext: (memberId, adminUid, member) => ({
       adminUid,
       targetMemberId: memberId,
       subscriptionStart: member.subscriptionStart,
       membershipExpiresAt: member.membershipExpiresAt,
-    });
+    }),
 
-    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
-    return { success: true, member: toMemberResponse(member, isAdmin) };
-  } catch (error) {
-    return handleRouteError({
-      error,
-      operation: "activate membership",
-      errorId: ERROR_IDS.API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED,
-      logger,
-      set,
-      context: { memberId },
-    });
-  }
-}
+    getErrorContext: memberId => ({ memberId }),
+  });

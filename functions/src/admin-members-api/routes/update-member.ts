@@ -1,53 +1,29 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import {
-  toMemberResponse,
-  type MemberSuccessResponse,
-  type UpdateMemberBody,
-} from "../schemas/member-schemas.js";
-import type { MemberAdminService } from "../services/interface.js";
+import type { UpdateMemberBody } from "../schemas/member-schemas.js";
+import { createMemberRouteHandler } from "./route-handler-factory.js";
 
-/**
- * Update a member's fields logic (admin only).
- * Admin authentication is handled by the plugin guard.
- *
- * @returns Updated member or error object
- */
-export async function updateMemberLogic({
-  memberId,
-  updates,
-  adminUid,
-  memberAdminService,
-  logger,
-  set,
-}: {
-  memberId: string;
+interface UpdateMemberParameters extends Record<string, unknown> {
   updates: UpdateMemberBody;
-  adminUid: string;
-  memberAdminService: MemberAdminService;
-  logger: Logger;
-  set: { status?: number | string };
-}): Promise<MemberSuccessResponse | { error: string }> {
-  try {
-    const member = await memberAdminService.updateMember(memberId, updates);
+}
 
-    logger.info("Admin updated member", {
+export const updateMemberLogic =
+  createMemberRouteHandler<UpdateMemberParameters>({
+    operation: "updated member",
+    errorId: ERROR_IDS.API_ADMIN_UPDATE_MEMBER_FAILED,
+
+    serviceMethod: (service, memberId, { updates }) =>
+      service.updateMember(memberId, updates),
+
+    parseParameters: parameters => parameters,
+
+    getLogContext: (memberId, adminUid, _member, { updates }) => ({
       adminUid,
       targetMemberId: memberId,
       updatedFields: Object.keys(updates),
-    });
+    }),
 
-    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
-    return { success: true, member: toMemberResponse(member, isAdmin) };
-  } catch (error) {
-    return handleRouteError({
-      error,
-      operation: "update member",
-      errorId: ERROR_IDS.API_ADMIN_UPDATE_MEMBER_FAILED,
-      logger,
-      set,
-      context: { memberId, updateFields: Object.keys(updates) },
-    });
-  }
-}
+    getErrorContext: (memberId, { updates }) => ({
+      memberId,
+      updateFields: Object.keys(updates),
+    }),
+  });

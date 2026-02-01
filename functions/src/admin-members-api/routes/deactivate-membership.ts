@@ -1,49 +1,26 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import {
-  toMemberResponse,
-  type MemberSuccessResponse,
-} from "../schemas/member-schemas.js";
-import type { MemberAdminService } from "../services/interface.js";
+import { type MemberSuccessResponse } from "../schemas/member-schemas.js";
+import { createMemberRouteHandler } from "./route-handler-factory.js";
 
-/**
- * Deactivate a membership logic (admin only).
- * Admin authentication is handled by the plugin guard.
- *
- * @returns Updated member or error object
- */
-export async function deactivateMembershipLogic({
-  memberId,
-  adminUid,
-  memberAdminService,
-  logger,
-  set,
-}: {
-  memberId: string;
-  adminUid: string;
-  memberAdminService: MemberAdminService;
-  logger: Logger;
-  set: { status?: number | string };
-}): Promise<MemberSuccessResponse | { error: string }> {
-  try {
-    const member = await memberAdminService.deactivateMembership(memberId);
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+export const deactivateMembershipLogic = createMemberRouteHandler<{}>({
+  operation: "deactivated membership",
+  errorId: ERROR_IDS.API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED,
 
-    logger.info("Admin deactivated membership", {
-      adminUid,
-      targetMemberId: memberId,
-    });
+  serviceMethod: (service, memberId) => service.deactivateMembership(memberId),
 
-    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
-    return { success: true, member: toMemberResponse(member, isAdmin) };
-  } catch (error) {
-    return handleRouteError({
-      error,
-      operation: "deactivate membership",
-      errorId: ERROR_IDS.API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED,
-      logger,
-      set,
-      context: { memberId },
-    });
-  }
-}
+  parseParameters: parameters => parameters,
+
+  getLogContext: (memberId, adminUid) => ({
+    adminUid,
+    targetMemberId: memberId,
+  }),
+
+  getErrorContext: memberId => ({ memberId }),
+});
+/* eslint-enable @typescript-eslint/no-empty-object-type */
+
+export type DeactivateMembershipLogic = typeof deactivateMembershipLogic;
+export type DeactivateMembershipResult = Promise<
+  MemberSuccessResponse | { error: string }
+>;
