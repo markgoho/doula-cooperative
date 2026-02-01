@@ -102,18 +102,20 @@ export class AdminMatchRequestDetail {
     const matchRequest = this.service.matchRequestResource.value();
     if (!matchRequest) return;
 
-    this.confirmDialog()?.close();
-    this.pendingAction.set(undefined);
-
-    switch (action) {
-      case 'mark-processed': {
-        await this.service.updateStatus(matchRequest.id, true);
-        break;
+    try {
+      switch (action) {
+        case 'mark-processed': {
+          await this.service.updateStatus(matchRequest.id, true);
+          break;
+        }
+        case 'mark-pending': {
+          await this.service.updateStatus(matchRequest.id, false);
+          break;
+        }
       }
-      case 'mark-pending': {
-        await this.service.updateStatus(matchRequest.id, false);
-        break;
-      }
+    } finally {
+      this.confirmDialog()?.close();
+      this.pendingAction.set(undefined);
     }
   }
 

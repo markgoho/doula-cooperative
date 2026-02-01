@@ -82,18 +82,20 @@ export class AdminMessageDetail {
     const message = this.service.messageResource.value();
     if (!message) return;
 
-    this.confirmDialog()?.close();
-    this.pendingAction.set(undefined);
-
-    switch (action) {
-      case 'mark-processed': {
-        await this.service.updateStatus(message.id, true);
-        break;
+    try {
+      switch (action) {
+        case 'mark-processed': {
+          await this.service.updateStatus(message.id, true);
+          break;
+        }
+        case 'mark-pending': {
+          await this.service.updateStatus(message.id, false);
+          break;
+        }
       }
-      case 'mark-pending': {
-        await this.service.updateStatus(message.id, false);
-        break;
-      }
+    } finally {
+      this.confirmDialog()?.close();
+      this.pendingAction.set(undefined);
     }
   }
 

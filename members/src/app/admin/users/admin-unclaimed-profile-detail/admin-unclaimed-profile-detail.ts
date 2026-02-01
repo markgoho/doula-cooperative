@@ -45,13 +45,13 @@ export class AdminUnclaimedProfileDetail {
   }
 
   protected async onConfirmDelete(): Promise<void> {
-    this.confirmDialog()?.close();
-
     try {
       await this.service.deleteProfile(this.email());
+      this.confirmDialog()?.close();
       await this.router.navigateByUrl('/admin/unclaimed');
     } catch {
       // Error already handled in service (sets actionError signal)
+      this.confirmDialog()?.close();
     }
   }
 

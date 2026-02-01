@@ -98,22 +98,25 @@ export class AdminMemberDetail {
 
   protected async onConfirmDialog(): Promise<void> {
     const action = this.pendingAction();
-    this.confirmDialog()?.close();
-    this.pendingAction.set(undefined);
 
-    switch (action) {
-      case 'activate': {
-        await this.service.activateMembership(this.uid());
-        break;
+    try {
+      switch (action) {
+        case 'activate': {
+          await this.service.activateMembership(this.uid());
+          break;
+        }
+        case 'deactivate': {
+          await this.service.deactivateMembership(this.uid());
+          break;
+        }
+        case 'delete': {
+          await this.deleteUser();
+          break;
+        }
       }
-      case 'deactivate': {
-        await this.service.deactivateMembership(this.uid());
-        break;
-      }
-      case 'delete': {
-        await this.deleteUser();
-        break;
-      }
+    } finally {
+      this.confirmDialog()?.close();
+      this.pendingAction.set(undefined);
     }
   }
 
