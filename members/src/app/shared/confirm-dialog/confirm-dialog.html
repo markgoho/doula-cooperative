@@ -12,7 +12,7 @@
         (click)="onConfirm()"
         [disabled]="disabled()"
       >
-        {{ confirmButtonText() }}
+        {{ disabled() ? 'Processing...' : confirmButtonText() }}
       </button>
     </div>
   </div>
