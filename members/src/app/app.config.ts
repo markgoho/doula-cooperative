@@ -40,8 +40,6 @@ export const appConfig: ApplicationConfig = {
       if (useEmulators) {
         console.log('Connecting to Auth emulator');
         connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-      } else {
-        console.log('Using production Auth');
       }
       return auth;
     }),
@@ -51,8 +49,6 @@ export const appConfig: ApplicationConfig = {
       if (useEmulators) {
         console.log('Connecting to Firestore emulator');
         connectFirestoreEmulator(firestore, 'localhost', 8080);
-      } else {
-        console.log('Using production Firestore');
       }
       return firestore;
     }),
