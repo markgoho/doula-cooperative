@@ -112,7 +112,7 @@ describe("POST /contact-us", () => {
         },
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -127,7 +127,7 @@ describe("POST /contact-us", () => {
         },
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -142,7 +142,7 @@ describe("POST /contact-us", () => {
         },
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -154,7 +154,7 @@ describe("POST /contact-us", () => {
         recaptchaSecretKey: null,
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -173,7 +173,7 @@ describe("POST /contact-us", () => {
         },
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -185,7 +185,7 @@ describe("POST /contact-us", () => {
         recaptchaVerificationFails: true,
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -197,7 +197,7 @@ describe("POST /contact-us", () => {
         recaptchaScoreTooLow: true,
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -209,7 +209,7 @@ describe("POST /contact-us", () => {
     it("should save form and send email on successful submission", async () => {
       const { plugin, request } = setup();
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -227,7 +227,7 @@ describe("POST /contact-us", () => {
         emailSendFails: true,
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -249,7 +249,7 @@ describe("POST /contact-us", () => {
         firestoreSaveFails: true,
       });
 
-      const response = (await plugin.handle(request)) as Response;
+      const response = await plugin.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

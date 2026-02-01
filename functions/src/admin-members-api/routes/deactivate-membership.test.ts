@@ -68,7 +68,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -76,7 +76,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 403 when non-admin tries to deactivate", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
     });
@@ -86,7 +86,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should deactivate membership successfully", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -102,7 +102,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 404 for non-existent member", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });

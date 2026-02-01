@@ -60,7 +60,7 @@ describe("Admin Messages API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -68,7 +68,7 @@ describe("Admin Messages API", () => {
     it("should return 403 when non-admin tries to access", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
     });
@@ -76,7 +76,7 @@ describe("Admin Messages API", () => {
     it("should return messages list when authenticated as admin", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -130,7 +130,7 @@ describe("Admin Messages API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -138,7 +138,7 @@ describe("Admin Messages API", () => {
     it("should return message when authenticated", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as MessageResponse;
@@ -152,7 +152,7 @@ describe("Admin Messages API", () => {
         messageNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });
@@ -202,7 +202,7 @@ describe("Admin Messages API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -210,7 +210,7 @@ describe("Admin Messages API", () => {
     it("should update message when authenticated", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success: boolean };
@@ -220,7 +220,7 @@ describe("Admin Messages API", () => {
     it("should return 422 when body is invalid", async () => {
       const { testApp, request } = setup({ body: {} });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -231,7 +231,7 @@ describe("Admin Messages API", () => {
         messageNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });

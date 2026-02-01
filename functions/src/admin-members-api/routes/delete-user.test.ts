@@ -75,7 +75,7 @@ describe("DELETE /:memberId", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -85,7 +85,7 @@ describe("DELETE /:memberId", () => {
     it("should return 403 when non-admin user tries to delete", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -97,7 +97,7 @@ describe("DELETE /:memberId", () => {
     it("should prevent self-deletion", async () => {
       const { testApp, request } = setup({ memberId: "admin-user" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -107,7 +107,7 @@ describe("DELETE /:memberId", () => {
     it("should prevent deleting other admin users", async () => {
       const { testApp, request } = setup({ memberId: "admin-member-id" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -121,7 +121,7 @@ describe("DELETE /:memberId", () => {
     it("should delete user and return success response", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -137,7 +137,7 @@ describe("DELETE /:memberId", () => {
     it("should return 404 when member not found", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

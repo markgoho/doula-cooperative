@@ -62,7 +62,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -72,7 +72,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 401 when token is invalid", async () => {
       const { testApp, request } = setup({ authToken: "invalid-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -80,7 +80,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should allow authenticated user to set slug", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
     });
@@ -90,7 +90,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 422 when slug is too short", async () => {
       const { testApp, request } = setup({ body: { slug: "a" } });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -98,7 +98,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 422 when slug has uppercase letters", async () => {
       const { testApp, request } = setup({ body: { slug: "Test-Slug" } });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -106,7 +106,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 422 when slug has special characters", async () => {
       const { testApp, request } = setup({ body: { slug: "test_slug" } });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -114,7 +114,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should accept valid slug with lowercase and hyphens", async () => {
       const { testApp, request } = setup({ body: { slug: "jane-doe-doula" } });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
     });
@@ -124,7 +124,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return success when slug is set", async () => {
       const { testApp, request } = setup({ body: { slug: "new-slug" } });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { slug?: string };
@@ -137,7 +137,7 @@ describe("POST /slugs (set profile slug)", () => {
         slugTaken: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
@@ -149,7 +149,7 @@ describe("POST /slugs (set profile slug)", () => {
     it("should return 500 when service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

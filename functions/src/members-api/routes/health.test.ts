@@ -22,7 +22,7 @@ describe("GET /health", () => {
   it("should return 200 status", async () => {
     const { testApp, request } = setup();
 
-    const response = (await testApp.handle(request)) as Response;
+    const response = await testApp.handle(request);
 
     expect(response.status).toBe(200);
   });
@@ -30,7 +30,7 @@ describe("GET /health", () => {
   it("should return ok status in body", async () => {
     const { testApp, request } = setup();
 
-    const response = (await testApp.handle(request)) as Response;
+    const response = await testApp.handle(request);
     const body = (await response.json()) as { status: string };
 
     expect(body.status).toBe("ok");
@@ -40,7 +40,7 @@ describe("GET /health", () => {
     const { testApp, request } = setup();
 
     // Explicitly no Authorization header
-    const response = (await testApp.handle(request)) as Response;
+    const response = await testApp.handle(request);
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as { status: string };

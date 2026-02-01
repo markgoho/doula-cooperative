@@ -108,7 +108,7 @@ describe("POST /:email/invitation", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -118,7 +118,7 @@ describe("POST /:email/invitation", () => {
     it("should return 403 when non-admin tries to send invitation", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -130,7 +130,7 @@ describe("POST /:email/invitation", () => {
     it("should reject invalid email format", async () => {
       const { testApp, request } = setup({ email: "not-an-email" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -138,7 +138,7 @@ describe("POST /:email/invitation", () => {
     it("should accept valid email format", async () => {
       const { testApp, request } = setup({ email: "valid@example.com" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -150,7 +150,7 @@ describe("POST /:email/invitation", () => {
     it("should send invitation when authenticated as admin", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -160,7 +160,7 @@ describe("POST /:email/invitation", () => {
     it("should return success with warning when email sent but tracking failed", async () => {
       const { testApp, request } = setup({ trackingFailed: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -178,7 +178,7 @@ describe("POST /:email/invitation", () => {
     it("should return 404 when profile not found", async () => {
       const { testApp, request } = setup({ profileNotFound: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -188,7 +188,7 @@ describe("POST /:email/invitation", () => {
     it("should return 412 when profile missing required data", async () => {
       const { testApp, request } = setup({ missingRequiredData: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(412);
       const body = (await response.json()) as { error?: string };
@@ -198,7 +198,7 @@ describe("POST /:email/invitation", () => {
     it("should return 500 when auth user creation fails", async () => {
       const { testApp, request } = setup({ authFailed: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -208,7 +208,7 @@ describe("POST /:email/invitation", () => {
     it("should return 500 when member document creation fails", async () => {
       const { testApp, request } = setup({ memberDocumentFailed: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -219,7 +219,7 @@ describe("POST /:email/invitation", () => {
     it("should return 500 when invitation email fails to send", async () => {
       const { testApp, request } = setup({ emailFailed: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

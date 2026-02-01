@@ -72,7 +72,7 @@ describe("POST /:memberId/membership/extend", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -80,7 +80,7 @@ describe("POST /:memberId/membership/extend", () => {
     it("should return 403 when non-admin tries to extend", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
     });
@@ -90,7 +90,7 @@ describe("POST /:memberId/membership/extend", () => {
     it("should require newExpirationDate in request body", async () => {
       const { testApp, request } = setup({ body: {} });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -100,7 +100,7 @@ describe("POST /:memberId/membership/extend", () => {
         body: { newExpirationDate: "not-a-date" },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -110,7 +110,7 @@ describe("POST /:memberId/membership/extend", () => {
     it("should extend membership with new expiration date", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -122,7 +122,7 @@ describe("POST /:memberId/membership/extend", () => {
     it("should return 404 for non-existent member", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });

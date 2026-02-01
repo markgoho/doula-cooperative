@@ -105,7 +105,7 @@ describe("POST /webhook", () => {
     it("should return 400 when stripe-signature header is missing", async () => {
       const { testApp, request } = setup({ stripeSignature: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as {
@@ -122,7 +122,7 @@ describe("POST /webhook", () => {
         signatureInvalid: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as {
@@ -136,7 +136,7 @@ describe("POST /webhook", () => {
     it("should return 500 when Stripe is not configured", async () => {
       const { testApp, request } = setup({ configurationError: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as {
@@ -152,7 +152,7 @@ describe("POST /webhook", () => {
         unexpectedSignatureError: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as {
@@ -168,7 +168,7 @@ describe("POST /webhook", () => {
     it("should return duplicate:true when event was already processed", async () => {
       const { testApp, request } = setup({ eventAlreadyProcessed: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -184,7 +184,7 @@ describe("POST /webhook", () => {
     it("should successfully process a new user checkout", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -211,7 +211,7 @@ describe("POST /webhook", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -235,7 +235,7 @@ describe("POST /webhook", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -255,7 +255,7 @@ describe("POST /webhook", () => {
         processCheckoutError: new HttpError("Duplicate email address", 409),
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
@@ -267,7 +267,7 @@ describe("POST /webhook", () => {
         processCheckoutError: new Error("Database connection failed"),
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as {
@@ -288,7 +288,7 @@ describe("POST /webhook", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { received?: boolean };

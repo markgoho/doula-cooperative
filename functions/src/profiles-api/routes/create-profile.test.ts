@@ -115,7 +115,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -128,7 +128,7 @@ describe("POST /:slug (create profile)", () => {
         authToken: "invalid-token",
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -136,7 +136,7 @@ describe("POST /:slug (create profile)", () => {
     it("should allow authenticated user to create their profile", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(201);
     });
@@ -149,7 +149,7 @@ describe("POST /:slug (create profile)", () => {
         body: { ...validProfileData, title: "" },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -160,7 +160,7 @@ describe("POST /:slug (create profile)", () => {
         body: { ...validProfileData, bio: "" },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -170,7 +170,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 404 when member not found", async () => {
       const { testApp, request } = setup({ memberNotFound: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });
@@ -178,7 +178,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 403 when membership is not active", async () => {
       const { testApp, request } = setup({ membershipNotActive: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
     });
@@ -186,7 +186,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 403 when user has no slug", async () => {
       const { testApp, request } = setup({ memberHasNoSlug: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -198,7 +198,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 201 on successful creation", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(201);
       const body = (await response.json()) as { success?: boolean };
@@ -208,7 +208,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 409 when profile already exists", async () => {
       const { testApp, request } = setup({ profileAlreadyExists: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
@@ -220,7 +220,7 @@ describe("POST /:slug (create profile)", () => {
     it("should return 500 when GitHub service throws unexpected error", async () => {
       const { testApp, request } = setup({ githubError: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

@@ -68,7 +68,7 @@ describe("GET /:requestId (get match request)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -78,7 +78,7 @@ describe("GET /:requestId (get match request)", () => {
     it("should return 403 when non-admin user tries to access", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -90,7 +90,7 @@ describe("GET /:requestId (get match request)", () => {
     it("should return match request when found", async () => {
       const { testApp, request, mockRequest } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as MatchRequestResponse;
@@ -105,7 +105,7 @@ describe("GET /:requestId (get match request)", () => {
         requestNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

@@ -120,7 +120,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -130,7 +130,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should return 401 when token is invalid", async () => {
       const { testApp, request } = setup({ authToken: "invalid-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -140,7 +140,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should return 401 when token is expired", async () => {
       const { testApp, request } = setup({ authToken: "expired-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -154,7 +154,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         authToken: "unverified-email-token",
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(428);
       const body = (await response.json()) as { error?: string };
@@ -164,7 +164,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should return 400 when email is missing from token", async () => {
       const { testApp, request } = setup({ authToken: "no-email-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -176,7 +176,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should successfully claim a profile with valid data", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -186,7 +186,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should return no_profile_to_claim when import document doesn't exist", async () => {
       const { testApp, request } = setup({ profileExists: false });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -200,7 +200,7 @@ describe("POST /:slug/claim (claim profile)", () => {
       // with no_profile_to_claim status instead of crashing.
       const { testApp, request } = setup({ profileExists: false });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -213,7 +213,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         profileHasData: false,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -228,7 +228,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -245,7 +245,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -280,7 +280,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -290,7 +290,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should succeed even when auth displayName update fails (non-critical)", async () => {
       const { testApp, request } = setup({ authUpdateFails: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -300,7 +300,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should succeed even when import deletion fails (non-critical)", async () => {
       const { testApp, request } = setup({ importDeleteFails: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -317,7 +317,7 @@ describe("POST /:slug/claim (claim profile)", () => {
         },
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
 
@@ -335,7 +335,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should succeed with MailerLite integration when MAILERLITE_API_KEY is set", async () => {
       const { testApp, request } = setup({ mailerliteApiKey: "test-api-key" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };
@@ -345,7 +345,7 @@ describe("POST /:slug/claim (claim profile)", () => {
     it("should succeed and send notification email when MailerLite fails", async () => {
       const { testApp, request } = setup({ mailerliteApiKey: "test-api-key" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { status?: string };

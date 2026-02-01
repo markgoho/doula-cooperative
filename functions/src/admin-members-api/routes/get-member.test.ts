@@ -70,7 +70,7 @@ describe("GET /:memberId (get member)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -80,7 +80,7 @@ describe("GET /:memberId (get member)", () => {
     it("should return 403 when non-admin user tries to access", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -90,7 +90,7 @@ describe("GET /:memberId (get member)", () => {
     it("should allow admin to get member", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
     });
@@ -103,7 +103,7 @@ describe("GET /:memberId (get member)", () => {
         memberNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -115,7 +115,7 @@ describe("GET /:memberId (get member)", () => {
     it("should return 500 when service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -130,7 +130,7 @@ describe("GET /:memberId (get member)", () => {
     it("should return member data", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -148,7 +148,7 @@ describe("GET /:memberId (get member)", () => {
     it("should convert Timestamp fields to ISO strings", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       const body = (await response.json()) as {
         createdAt?: string;

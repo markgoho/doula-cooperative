@@ -85,7 +85,7 @@ describe("GET / (list match requests)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -95,7 +95,7 @@ describe("GET / (list match requests)", () => {
     it("should return 403 when non-admin user tries to access", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -105,7 +105,7 @@ describe("GET / (list match requests)", () => {
     it("should allow admin to list match requests", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
     });
@@ -115,7 +115,7 @@ describe("GET / (list match requests)", () => {
     it("should return match requests with proper structure", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -135,7 +135,7 @@ describe("GET / (list match requests)", () => {
     it("should convert Firestore Timestamps to ISO strings", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       const body = (await response.json()) as {
         requests: { submitted?: string }[];

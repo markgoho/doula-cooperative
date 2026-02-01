@@ -66,7 +66,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -74,7 +74,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return profiles when authenticated", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -89,7 +89,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should reject limit below minimum (1)", async () => {
         const { testApp, request } = setup({ limit: 0 });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(422);
       });
@@ -97,7 +97,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should reject limit above maximum (100)", async () => {
         const { testApp, request } = setup({ limit: 101 });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(422);
       });
@@ -105,7 +105,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should reject negative offset", async () => {
         const { testApp, request } = setup({ offset: -1 });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(422);
       });
@@ -113,7 +113,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should accept valid limit and offset", async () => {
         const { testApp, request } = setup({ limit: 50, offset: 10 });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(200);
       });
@@ -160,7 +160,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -168,7 +168,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return profile when authenticated", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -181,7 +181,7 @@ describe("Admin Unclaimed Profiles API", () => {
         profileNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });
@@ -190,7 +190,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should reject invalid email format", async () => {
         const { testApp, request } = setup({ email: "not-an-email" });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(422);
       });
@@ -198,7 +198,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should accept valid email format", async () => {
         const { testApp, request } = setup({ email: "valid@example.com" });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(200);
         const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -250,7 +250,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return 401 when not authenticated", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
     });
@@ -258,7 +258,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should return 403 when not admin", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
     });
@@ -266,7 +266,7 @@ describe("Admin Unclaimed Profiles API", () => {
     it("should send invitation when authenticated as admin", async () => {
       const { testApp, request } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success: boolean };
@@ -279,7 +279,7 @@ describe("Admin Unclaimed Profiles API", () => {
         profileNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
     });
@@ -288,7 +288,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should reject invalid email format", async () => {
         const { testApp, request } = setup({ email: "not-an-email" });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(422);
       });
@@ -296,7 +296,7 @@ describe("Admin Unclaimed Profiles API", () => {
       it("should accept valid email format", async () => {
         const { testApp, request } = setup({ email: "valid@example.com" });
 
-        const response = (await testApp.handle(request)) as Response;
+        const response = await testApp.handle(request);
 
         expect(response.status).toBe(200);
       });

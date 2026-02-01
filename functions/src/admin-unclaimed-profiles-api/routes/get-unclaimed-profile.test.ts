@@ -75,7 +75,7 @@ describe("GET /:email (get unclaimed profile)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -85,7 +85,7 @@ describe("GET /:email (get unclaimed profile)", () => {
     it("should return 403 when non-admin tries to get profile", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -97,7 +97,7 @@ describe("GET /:email (get unclaimed profile)", () => {
     it("should reject invalid email format", async () => {
       const { testApp, request } = setup({ email: "not-an-email" });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(422);
     });
@@ -107,7 +107,7 @@ describe("GET /:email (get unclaimed profile)", () => {
         email: "valid@example.com",
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -119,7 +119,7 @@ describe("GET /:email (get unclaimed profile)", () => {
     it("should return profile when authenticated as admin", async () => {
       const { testApp, request, mockProfile } = setup();
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as UnclaimedProfileSuccessResponse;
@@ -136,7 +136,7 @@ describe("GET /:email (get unclaimed profile)", () => {
         profileNotFound: true,
       });
 
-      const response = (await testApp.handle(request)) as Response;
+      const response = await testApp.handle(request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
