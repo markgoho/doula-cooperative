@@ -1,0 +1,62 @@
+name: Validate Dockerfile Versions
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "functions/package.json"
+      - "members/package.json"
+      - ".github/workflows/validate-versions.yml"
+  push:
+    branches:
+      - trunk
+    paths:
+      - "Dockerfile"
+      - "functions/package.json"
+      - "members/package.json"
+      - ".github/workflows/validate-versions.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Node.js version
+        run: |
+          NODE_VERSION_FUNCTIONS=$(jq -r '.engines.node' functions/package.json)
+          NODE_VERSION_DOCKERFILE=$(grep -oP 'setup_\K[0-9]+' Dockerfile | head -1)
+
+          echo "Functions package.json requires Node.js: $NODE_VERSION_FUNCTIONS"
+          echo "Dockerfile installs Node.js: $NODE_VERSION_DOCKERFILE"
+
+          if [ "$NODE_VERSION_FUNCTIONS" != "$NODE_VERSION_DOCKERFILE" ]; then
+            echo "❌ ERROR: Node.js version mismatch!"
+            echo "  - functions/package.json engines.node: $NODE_VERSION_FUNCTIONS"
+            echo "  - Dockerfile setup_XX.x: $NODE_VERSION_DOCKERFILE"
+            echo ""
+            echo "Please update Dockerfile line containing 'setup_${NODE_VERSION_DOCKERFILE}.x' to 'setup_${NODE_VERSION_FUNCTIONS}.x'"
+            exit 1
+          fi
+
+          echo "✅ Node.js versions match: $NODE_VERSION_FUNCTIONS"
+
+      - name: Validate Playwright version
+        run: |
+          PLAYWRIGHT_VERSION_MEMBERS=$(jq -r '.devDependencies["@playwright/test"]' members/package.json | sed 's/[\^~]//g')
+          PLAYWRIGHT_VERSION_DOCKERFILE=$(grep -oP 'ARG PLAYWRIGHT_VERSION=\K[0-9.]+' Dockerfile)
+
+          echo "Members package.json requires Playwright: $PLAYWRIGHT_VERSION_MEMBERS"
+          echo "Dockerfile installs Playwright: $PLAYWRIGHT_VERSION_DOCKERFILE"
+
+          if [ "$PLAYWRIGHT_VERSION_MEMBERS" != "$PLAYWRIGHT_VERSION_DOCKERFILE" ]; then
+            echo "❌ ERROR: Playwright version mismatch!"
+            echo "  - members/package.json @playwright/test: $PLAYWRIGHT_VERSION_MEMBERS"
+            echo "  - Dockerfile PLAYWRIGHT_VERSION: $PLAYWRIGHT_VERSION_DOCKERFILE"
+            echo ""
+            echo "Please update Dockerfile ARG PLAYWRIGHT_VERSION to $PLAYWRIGHT_VERSION_MEMBERS"
+            exit 1
+          fi
+
+          echo "✅ Playwright versions match: $PLAYWRIGHT_VERSION_MEMBERS"
