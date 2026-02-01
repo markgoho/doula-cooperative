@@ -24,6 +24,7 @@ export class AdminUnclaimedProfileDetailService {
   readonly actionInProgress = signal(false);
   readonly successMessage = signal<string | undefined>(undefined);
   readonly actionError = signal<string | undefined>(undefined);
+  readonly deleteInProgress = signal(false);
 
   /**
    * Initialize the service with the email signal from component input
@@ -50,6 +51,25 @@ export class AdminUnclaimedProfileDetailService {
       this.actionError.set('Failed to send invitation.');
     } finally {
       this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Delete the unclaimed profile
+   */
+  async deleteProfile(email: string): Promise<void> {
+    this.deleteInProgress.set(true);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.deleteUnclaimedProfile(email);
+      // Success - component will handle navigation
+    } catch (error) {
+      console.error('Error deleting unclaimed profile:', error);
+      this.actionError.set('Failed to delete profile.');
+      throw error; // Re-throw so component knows it failed
+    } finally {
+      this.deleteInProgress.set(false);
     }
   }
 }

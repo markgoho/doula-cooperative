@@ -23,4 +23,9 @@ export interface UnclaimedProfileAdminService {
     emailService: EmailServiceInterface;
     logger: Logger;
   }): Promise<SendInvitationSuccessResponse>;
+
+  deleteUnclaimedProfile(options: {
+    email: string;
+    logger: Logger;
+  }): Promise<{ success: true }>;
 }

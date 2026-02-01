@@ -111,4 +111,24 @@
       </div>
     </div>
   </section>
+
+  <section class="danger-zone">
+    <h2>Danger Zone</h2>
+    <p class="warning-notice">
+      Delete this unclaimed profile permanently. Use this when a user cancels their subscription
+      before claiming their account. This action cannot be undone.
+    </p>
+    <button
+      type="button"
+      class="button button-danger"
+      [disabled]="service.deleteInProgress()"
+      (click)="deleteProfile()"
+    >
+      @if (service.deleteInProgress()) {
+        Deleting...
+      } @else {
+        Delete Profile
+      }
+    </button>
+  </section>
 }

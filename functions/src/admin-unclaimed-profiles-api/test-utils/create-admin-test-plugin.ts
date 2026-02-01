@@ -41,6 +41,9 @@ export function createAdminTestPlugin(overrides?: {
     sendInvitation: mock(() =>
       Promise.resolve({ success: true } as SendInvitationSuccessResponse),
     ),
+    deleteUnclaimedProfile: mock(() =>
+      Promise.resolve({ success: true as const }),
+    ),
     ...overrides?.unclaimedProfileAdminService,
   };
 

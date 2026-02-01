@@ -32,9 +32,82 @@ Monorepo with Hugo static site, Firebase Functions, and Angular members portal. 
 
 ## Testing
 
+### General Testing Practices
+
 - Uses Firebase emulators (Firestore: 127.0.0.1:8080, Auth: 127.0.0.1:9099)
 - Test utilities in `src/test-utils/`: setup functions, mock request/response, firestore helpers
 - Follow Arrange-Act-Assert with cleanup in `afterAll` hooks
+
+### Required Test Coverage
+
+**IMPORTANT:** All route logic files MUST have corresponding test files.
+
+- **Route logic files** (`src/*/routes/*.ts`):
+  - MUST have a corresponding test file (`src/*/routes/*.test.ts`)
+  - Tests must cover:
+    - Authentication (401 unauthorized, 403 forbidden)
+    - Input validation (422 for invalid inputs)
+    - Success cases (200/201 responses)
+    - Error handling (404 not found, 500 server errors)
+  - Use `createAdminTestPlugin()` or similar test factory from `test-utils/`
+  - Follow existing test patterns in the same directory
+
+- **Service layer files** (`src/*/services/*.ts`):
+  - Should have tests for complex business logic
+  - Not required for simple CRUD wrappers
+
+- **Test file patterns:**
+
+  ```typescript
+  // Standard structure for route tests
+  describe("HTTP_METHOD /route-path", () => {
+    function setup(options) {
+      /* ... */
+    }
+
+    describe("Authentication", () => {
+      /* 401, 403 tests */
+    });
+    describe("Validation", () => {
+      /* 422 tests */
+    });
+    describe("Success cases", () => {
+      /* 200/201 tests */
+    });
+    describe("Error handling", () => {
+      /* 404, 500 tests */
+    });
+  });
+  ```
+
+### Route Logic Requirements
+
+All route logic functions MUST include proper error handling:
+
+- Wrap service calls in `try/catch` blocks
+- Use `handleRouteError()` from `shared-api/utils/route-error-handler.js` in catch blocks
+- Add corresponding error ID constant to `src/constants/error-ids.ts`
+- Return type must include both success shape and `| { error: string }`
+
+**Example:**
+
+```typescript
+export async function myRouteLogic({ ... }): Promise<SuccessType | { error: string }> {
+  try {
+    const result = await service.doSomething();
+    return result;
+  } catch (error: unknown) {
+    return handleRouteError({
+      error,
+      operation: "operation name",
+      errorId: ERROR_IDS.API_MY_OPERATION_FAILED,
+      logger,
+      set,
+      context: { /* relevant context */ }
+    });
+  }
+}
+```
 
 ## Type Safety
 

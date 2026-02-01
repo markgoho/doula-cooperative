@@ -86,6 +86,23 @@ export type SendInvitationResponse = Static<
   typeof SendInvitationResponseSchema
 >;
 
+const DeleteUnclaimedProfileSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type DeleteUnclaimedProfileSuccessResponse = Static<
+  typeof DeleteUnclaimedProfileSuccessSchema
+>;
+
+export const DeleteUnclaimedProfileResponseSchema = t.Union([
+  DeleteUnclaimedProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type DeleteUnclaimedProfileResponse = Static<
+  typeof DeleteUnclaimedProfileResponseSchema
+>;
+
 export function toUnclaimedProfileResponse(
   document: UnclaimedProfileDocument,
 ): UnclaimedProfileSuccessResponse {

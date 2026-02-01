@@ -114,9 +114,7 @@ export class AdminMembersService {
     );
   }
 
-  async readMemberProfile(
-    uid: string,
-  ): Promise<{
+  async readMemberProfile(uid: string): Promise<{
     title: string;
     bio: string;
     credentials?: string;
@@ -243,6 +241,13 @@ export class AdminMembersService {
         `/api/admin/unclaimed-profiles/${email}/invitation`,
         {},
       ),
+    );
+  }
+
+  async deleteUnclaimedProfile(email: string): Promise<{ success: boolean }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.delete<{ success: boolean }>(`/api/admin/unclaimed-profiles/${email}`),
     );
   }
 }

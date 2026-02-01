@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Router } from '@angular/router';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-de
 })
 export class AdminUnclaimedProfileDetail {
   protected service = inject(AdminUnclaimedProfileDetailService);
+  private router = inject(Router);
 
   // Route parameter binding (enabled via withComponentInputBinding)
   email = input.required<string>();
@@ -28,5 +30,22 @@ export class AdminUnclaimedProfileDetail {
 
   protected async sendInvitation(): Promise<void> {
     await this.service.sendInvitation(this.email());
+  }
+
+  protected async deleteProfile(): Promise<void> {
+    if (
+      !confirm(
+        'Are you sure you want to delete this unclaimed profile? This action cannot be undone.',
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await this.service.deleteProfile(this.email());
+      await this.router.navigateByUrl('/admin/unclaimed');
+    } catch {
+      // Error already handled in service (sets actionError signal)
+    }
   }
 }
