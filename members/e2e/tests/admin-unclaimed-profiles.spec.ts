@@ -425,4 +425,155 @@ test.describe('Admin Unclaimed Profiles', () => {
     // === Verify button remains enabled (can retry) ===
     await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
   });
+
+  test('admin deletes unclaimed profile with confirmation', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+
+    let deleteRequestMade = false;
+
+    // Mock GET and DELETE
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
+      async (route) => {
+        const method = route.request().method();
+        if (method === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        if (method === 'DELETE') {
+          deleteRequestMade = true;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Verify delete button is visible in danger zone ===
+    await expect(unclaimedProfilePage.deleteProfileButton).toBeVisible();
+
+    // === Mock browser confirmation dialog (accept) ===
+    authenticatedAdminPage.on('dialog', (dialog) => dialog.accept());
+
+    // === Click delete button ===
+    await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify DELETE request was made ===
+    await authenticatedAdminPage.waitForTimeout(500); // Allow time for navigation
+    expect(deleteRequestMade).toBe(true);
+
+    // === Verify navigation to unclaimed profiles list ===
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed$/);
+  });
+
+  test('admin cancels profile deletion when rejecting confirmation', async ({
+    authenticatedAdminPage,
+  }) => {
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
+
+    let deleteRequestMade = false;
+
+    // Mock GET and DELETE
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
+      async (route) => {
+        const method = route.request().method();
+        if (method === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        if (method === 'DELETE') {
+          deleteRequestMade = true;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Mock browser confirmation dialog (dismiss) ===
+    authenticatedAdminPage.on('dialog', (dialog) => dialog.dismiss());
+
+    // === Click delete button ===
+    await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify DELETE request was NOT made ===
+    await authenticatedAdminPage.waitForTimeout(500);
+    expect(deleteRequestMade).toBe(false);
+
+    // === Verify still on detail page ===
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
+    await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
+  });
+
+  test('handles profile deletion error with error message', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
+
+    // Mock GET and DELETE with error response
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
+      async (route) => {
+        const method = route.request().method();
+        if (method === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        if (method === 'DELETE') {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to delete profile' }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Mock browser confirmation dialog (accept) ===
+    authenticatedAdminPage.on('dialog', (dialog) => dialog.accept());
+
+    // === Click delete button ===
+    await unclaimedProfilePage.deleteProfileButton.click();
+
+    // === Verify error message appears ===
+    await expect(authenticatedAdminPage.getByText(/Failed to delete|error deleting/i)).toBeVisible({
+      timeout: 5000,
+    });
+
+    // === Verify still on detail page (deletion failed) ===
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
+  });
 });

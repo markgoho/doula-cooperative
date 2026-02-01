@@ -24,6 +24,8 @@ bun run watch    # Build with watch mode
 
 ### Testing
 
+#### Unit Tests
+
 Tests use **Vitest** with Angular CLI (not Karma/Jest):
 
 ```bash
@@ -39,6 +41,51 @@ ng test --include="**/header.spec.ts" --watch=false
 ```
 
 **Note:** The project uses Angular's experimental unit test builder with Vitest. Use `ng test` commands rather than `bun vitest` directly.
+
+#### E2E Tests
+
+E2E tests use **Playwright** and require Firebase emulators:
+
+```bash
+bun run e2e                    # Run all e2e tests
+bun run e2e --ui               # Run with Playwright UI
+bun run e2e --debug            # Run in debug mode
+bun run e2e <test-file-name>   # Run specific test file
+```
+
+**Prerequisites:**
+
+- Firebase emulators must be configured (see `firebase.json`)
+- Playwright browsers must be installed: `npx playwright install`
+- E2E tests are located in `e2e/tests/` directory
+- Page objects are in `e2e/pages/` for reusable selectors
+
+**When to write E2E tests:**
+
+- REQUIRED for admin features that modify data (create, update, delete operations)
+- REQUIRED for user flows involving API calls
+- Test both success and error scenarios
+- Test user interactions (button clicks, form submissions, confirmations)
+- Verify navigation after operations complete
+
+**E2E test structure:**
+
+```typescript
+test('feature description', async ({ authenticatedAdminPage }) => {
+  // Mock API endpoints
+  await authenticatedAdminPage.route('**/api/path', async (route) => {
+    /* ... */
+  });
+
+  // Navigate and interact
+  const page = new PageObject(authenticatedAdminPage);
+  await page.goto();
+  await page.performAction();
+
+  // Verify results
+  await expect(page.element).toBeVisible();
+});
+```
 
 ### Production Build
 
@@ -259,6 +306,57 @@ const mockMembershipService = {
 const user = userEvent.setup();
 await user.type(screen.getByLabelText('Email'), 'test@example.com');
 await user.click(screen.getByRole('button', { name: 'Submit' }));
+```
+
+### E2E Test Requirements
+
+**IMPORTANT:** Admin features that modify data MUST have E2E tests.
+
+**Required E2E tests for:**
+
+- All admin CRUD operations (Create, Read, Update, Delete)
+- User flows involving API calls
+- Multi-step user interactions (confirmations, navigation)
+
+**E2E test files:**
+
+- Located in `e2e/tests/` directory
+- Page objects in `e2e/pages/` for reusable selectors
+- Follow existing comment patterns (e.g., `// === Verify results ===`)
+
+**What to test:**
+
+- Success scenarios with mocked API responses
+- Error scenarios (404, 500, network errors)
+- User confirmations (accept and reject)
+- Navigation after operations
+- Loading states and error messages
+
+**Example E2E test structure:**
+
+```typescript
+test('admin performs action with confirmation', async ({ authenticatedAdminPage }) => {
+  const mockData = {
+    /* ... */
+  };
+
+  await authenticatedAdminPage.route('**/api/path', async (route) => {
+    const method = route.request().method();
+    if (method === 'POST') {
+      await route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+      return;
+    }
+    await route.continue();
+  });
+
+  const page = new PageObject(authenticatedAdminPage);
+  await page.goto();
+
+  authenticatedAdminPage.on('dialog', (dialog) => dialog.accept());
+  await page.actionButton.click();
+
+  await expect(authenticatedAdminPage).toHaveURL(/\/expected-path$/);
+});
 ```
 
 ## Important Patterns

@@ -16,6 +16,7 @@ export class AdminUnclaimedProfileDetailPage {
 
   // Actions (reused across tests)
   readonly sendInvitationButton: Locator;
+  readonly deleteProfileButton: Locator;
 
   // Status messages (reused for state verification)
   readonly loadingText: Locator;
@@ -33,6 +34,7 @@ export class AdminUnclaimedProfileDetailPage {
 
     // Actions - matches both "Send Invitation" and "Invitation Already Sent"
     this.sendInvitationButton = page.getByRole('button', { name: /Invitation/ });
+    this.deleteProfileButton = page.getByRole('button', { name: /Delete Profile/ });
 
     // Status messages
     this.loadingText = page.getByText('Loading details...');
