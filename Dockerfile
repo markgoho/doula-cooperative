@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG HUGO_VERSION=0.154.2
 ARG DART_SASS_VERSION=1.97.2
 ARG BUN_VERSION=1.3.5
-ARG PLAYWRIGHT_VERSION=1.57.0
+ARG PLAYWRIGHT_VERSION=1.58.1
 
 # 1. Install base dependencies and Java 21 (required for Firebase emulators - firebase-tools requires Java 21+)
 RUN apt-get update && apt-get install -y --no-install-recommends \
