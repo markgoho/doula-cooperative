@@ -1,12 +1,6 @@
 import { Timestamp } from '@angular/fire/firestore';
 import type { ApiMemberResponse } from '../api-types/members-api.types';
 
-// Re-export types from API types for convenience
-
-/**
- * Member domain model for the Angular admin application.
- * Alias for the API response type.
- */
 export type Member = ApiMemberResponse;
 
 export interface UnclaimedProfile {

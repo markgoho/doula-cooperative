@@ -56,3 +56,22 @@ export interface ApiListMembersResponse {
   total: number;
   warning?: string;
 }
+
+/**
+ * Unclaimed profile response from GET /api/admin/unclaimed-profiles
+ * Represents pre-imported profiles from legacy system stored in migrated_users_import collection.
+ * All timestamp fields are ISO 8601 strings.
+ */
+export interface ApiUnclaimedProfileResponse {
+  email: string;
+  name: string;
+  subscriptionStart: string; // ISO 8601
+  lastPayment?: string; // ISO 8601
+  nextPayment?: string; // ISO 8601
+  slug?: string;
+  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
+  invitationEmailSentAt?: string; // ISO 8601
+  invitationEmailError?: string;
+  createdAt?: string; // ISO 8601
+  updatedAt?: string; // ISO 8601
+}
