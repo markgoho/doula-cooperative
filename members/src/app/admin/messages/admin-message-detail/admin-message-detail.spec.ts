@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Message } from '../../admin.types';
@@ -116,7 +116,7 @@ describe('AdminMessageDetail', () => {
     ).toBeVisible();
 
     // Click confirm
-    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Mark as Processed' }));
 
     expect(mockService.updateStatus).toHaveBeenCalledWith('123', true);
   });

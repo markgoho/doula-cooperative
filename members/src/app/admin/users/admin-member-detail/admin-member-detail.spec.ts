@@ -207,7 +207,7 @@ describe('AdminUserDetail', () => {
     await user.click(activateButton);
 
     // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    const confirmButton = screen.getByRole('button', { name: 'Activate' });
     await user.click(confirmButton);
 
     // Assert
@@ -231,7 +231,7 @@ describe('AdminUserDetail', () => {
     await user.click(activateButton);
 
     // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    const confirmButton = screen.getByRole('button', { name: 'Activate' });
     await user.click(confirmButton);
 
     // Assert
@@ -320,7 +320,7 @@ describe('AdminUserDetail', () => {
     ).toBeVisible();
 
     // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    const confirmButton = screen.getByRole('button', { name: 'Delete' });
     await user.click(confirmButton);
 
     // Assert - deleteUser service method should have been called
@@ -340,7 +340,7 @@ describe('AdminUserDetail', () => {
     await user.click(deleteButton);
 
     // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    const confirmButton = screen.getByRole('button', { name: 'Delete' });
     await user.click(confirmButton);
 
     // Assert
