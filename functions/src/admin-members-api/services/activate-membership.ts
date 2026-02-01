@@ -1,14 +1,9 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import {
   validateAndConvertDate,
   validateMembershipDates,
 } from "../../shared-api/utils/date-validator.js";
-import {
-  handleFirestoreError,
-  validateDocumentData,
-  validateRequiredFields,
-} from "../../shared-api/utils/firestore-error-handler.js";
+import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
@@ -49,36 +44,13 @@ export async function activateMembership(
     ? validateAndConvertDate(options.membershipExpiresAt, "membershipExpiresAt")
     : Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
 
-  try {
-    await MemberFirestoreService.updateMember(memberId, {
+  return updateMemberWithValidation({
+    memberId,
+    updates: {
       membershipActive: true,
       subscriptionStart: startDate,
       membershipExpiresAt: expiresAt,
-    });
-  } catch (error) {
-    handleFirestoreError(error, "activate membership", memberId);
-  }
-
-  const updatedDocument = await MemberFirestoreService.getMemberByUid(memberId);
-  const data = validateDocumentData<MemberDocument>(
-    updatedDocument as unknown as {
-      exists: boolean;
-      data: () => MemberDocument | undefined;
-      id: string;
     },
-    "Member",
-    memberId,
-  );
-
-  validateRequiredFields(
-    data as unknown as Record<string, unknown>,
-    ["email", "createdAt"],
-    "Member",
-    memberId,
-  );
-
-  return {
-    ...data,
-    uid: updatedDocument.id,
-  };
+    operation: "activate membership",
+  });
 }
