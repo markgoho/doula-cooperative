@@ -152,65 +152,55 @@ export function toMemberResponse(
   document: MemberDocument,
   isAdmin: boolean,
 ): MemberResponse {
-  const response: MemberResponse = {
+  return {
     uid: document.uid,
     email: document.email,
     createdAt: timestampToIso(document.createdAt),
     isAdmin,
+    ...(document.name !== undefined && { name: document.name }),
+    ...(document.subscriptionStart !== undefined && {
+      subscriptionStart: timestampToIso(document.subscriptionStart),
+    }),
+    ...(document.membershipActive !== undefined && {
+      membershipActive: document.membershipActive,
+    }),
+    ...(document.membershipExpiresAt !== undefined && {
+      membershipExpiresAt: timestampToIso(document.membershipExpiresAt),
+    }),
+    ...(document.slug !== undefined && { slug: document.slug }),
+    ...(document.profileCreatedAt !== undefined && {
+      profileCreatedAt: timestampToIso(document.profileCreatedAt),
+    }),
+    ...(document.stripeCustomerId !== undefined && {
+      stripeCustomerId: document.stripeCustomerId,
+    }),
+    ...(document.stripeSubscriptionId !== undefined && {
+      stripeSubscriptionId: document.stripeSubscriptionId,
+    }),
+    ...(document.subscriptionStatus !== undefined && {
+      subscriptionStatus: document.subscriptionStatus,
+    }),
+    ...(document.welcomeEmailStatus !== undefined && {
+      welcomeEmailStatus: document.welcomeEmailStatus,
+    }),
+    ...(document.welcomeEmailSentAt !== undefined && {
+      welcomeEmailSentAt: timestampToIso(document.welcomeEmailSentAt),
+    }),
+    ...(document.welcomeEmailError !== undefined && {
+      welcomeEmailError: document.welcomeEmailError,
+    }),
+    ...(document.newsletterSubscribed !== undefined && {
+      newsletterSubscribed: document.newsletterSubscribed,
+    }),
+    ...(document.newsletterSubscribedAt !== undefined && {
+      newsletterSubscribedAt: timestampToIso(document.newsletterSubscribedAt),
+    }),
+    ...(document.newsletterUnsubscribedAt !== undefined && {
+      newsletterUnsubscribedAt: timestampToIso(
+        document.newsletterUnsubscribedAt,
+      ),
+    }),
   };
-
-  // Add optional fields if they exist
-  if (document.name !== undefined) {
-    response.name = document.name;
-  }
-  if (document.subscriptionStart !== undefined) {
-    response.subscriptionStart = timestampToIso(document.subscriptionStart);
-  }
-  if (document.membershipActive !== undefined) {
-    response.membershipActive = document.membershipActive;
-  }
-  if (document.membershipExpiresAt !== undefined) {
-    response.membershipExpiresAt = timestampToIso(document.membershipExpiresAt);
-  }
-  if (document.slug !== undefined) {
-    response.slug = document.slug;
-  }
-  if (document.profileCreatedAt !== undefined) {
-    response.profileCreatedAt = timestampToIso(document.profileCreatedAt);
-  }
-  if (document.stripeCustomerId !== undefined) {
-    response.stripeCustomerId = document.stripeCustomerId;
-  }
-  if (document.stripeSubscriptionId !== undefined) {
-    response.stripeSubscriptionId = document.stripeSubscriptionId;
-  }
-  if (document.subscriptionStatus !== undefined) {
-    response.subscriptionStatus = document.subscriptionStatus;
-  }
-  if (document.welcomeEmailStatus !== undefined) {
-    response.welcomeEmailStatus = document.welcomeEmailStatus;
-  }
-  if (document.welcomeEmailSentAt !== undefined) {
-    response.welcomeEmailSentAt = timestampToIso(document.welcomeEmailSentAt);
-  }
-  if (document.welcomeEmailError !== undefined) {
-    response.welcomeEmailError = document.welcomeEmailError;
-  }
-  if (document.newsletterSubscribed !== undefined) {
-    response.newsletterSubscribed = document.newsletterSubscribed;
-  }
-  if (document.newsletterSubscribedAt !== undefined) {
-    response.newsletterSubscribedAt = timestampToIso(
-      document.newsletterSubscribedAt,
-    );
-  }
-  if (document.newsletterUnsubscribedAt !== undefined) {
-    response.newsletterUnsubscribedAt = timestampToIso(
-      document.newsletterUnsubscribedAt,
-    );
-  }
-
-  return response;
 }
 
 /**
