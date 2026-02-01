@@ -171,7 +171,7 @@ test.describe('Admin Messages Page', () => {
     await expect(dialog).toBeVisible();
 
     // Confirm the action
-    await dialog.getByRole('button', { name: 'Confirm' }).click();
+    await dialog.getByRole('button', { name: 'Mark as Processed' }).click();
 
     // Verify success message appears
     await expect(authenticatedAdminPage.getByText('Message marked as processed')).toBeVisible();

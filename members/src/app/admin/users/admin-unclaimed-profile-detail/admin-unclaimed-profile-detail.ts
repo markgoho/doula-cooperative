@@ -3,16 +3,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  ElementRef,
   inject,
   input,
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 @Component({
-  imports: [DatePipe],
+  imports: [DatePipe, ConfirmDialog],
   templateUrl: './admin-unclaimed-profile-detail.html',
   styleUrl: './admin-unclaimed-profile-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +24,7 @@ export class AdminUnclaimedProfileDetail {
 
   email = input.required<string>();
 
-  protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
+  protected confirmDialog = viewChild(ConfirmDialog);
 
   protected invitationAlreadySent = computed(() => {
     const resource = this.service.unclaimedProfileResource;
@@ -41,15 +41,11 @@ export class AdminUnclaimedProfileDetail {
   }
 
   protected showDeleteConfirm(): void {
-    this.confirmDialog()?.nativeElement.showModal();
+    this.confirmDialog()?.showModal();
   }
 
-  protected closeDialog(): void {
-    this.confirmDialog()?.nativeElement.close();
-  }
-
-  protected async confirmDelete(): Promise<void> {
-    this.closeDialog();
+  protected async onConfirmDelete(): Promise<void> {
+    this.confirmDialog()?.close();
 
     try {
       await this.service.deleteProfile(this.email());
@@ -57,5 +53,9 @@ export class AdminUnclaimedProfileDetail {
     } catch {
       // Error already handled in service (sets actionError signal)
     }
+  }
+
+  protected onCancelDelete(): void {
+    this.confirmDialog()?.close();
   }
 }

@@ -83,16 +83,12 @@
   </section>
 }
 
-<!-- Confirmation Dialog -->
-<dialog #confirmDialog class="confirm-dialog">
-  <div class="dialog-content">
-    <h3>{{ getActionTitle() }}</h3>
-    <p>{{ getActionMessage() }}</p>
-    <div class="dialog-actions">
-      <button class="button" (click)="cancelAction()">Cancel</button>
-      <button class="button" (click)="confirmAction()" [disabled]="service.actionInProgress()">
-        {{ service.actionInProgress() ? 'Processing...' : 'Confirm' }}
-      </button>
-    </div>
-  </div>
-</dialog>
+<app-confirm-dialog
+  [title]="dialogConfig().title"
+  [message]="dialogConfig().message"
+  [confirmButtonText]="dialogConfig().confirmText"
+  [confirmButtonVariant]="dialogConfig().variant"
+  [disabled]="service.actionInProgress()"
+  (confirmed)="onConfirmDialog()"
+  (cancelled)="onCancelDialog()"
+/>

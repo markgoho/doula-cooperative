@@ -3,19 +3,26 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
-  ElementRef,
   inject,
   input,
   signal,
   viewChild,
 } from '@angular/core';
 import { Tag } from '../../../tag/tag';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminMessageDetailService } from './admin-message-detail.service';
 
 type ConfirmAction = 'mark-processed' | 'mark-pending';
 
+interface DialogConfig {
+  title: string;
+  message: string;
+  confirmText: string;
+  variant: 'primary' | 'danger';
+}
+
 @Component({
-  imports: [DatePipe, Tag],
+  imports: [DatePipe, Tag, ConfirmDialog],
   templateUrl: './admin-message-detail.html',
   styleUrl: './admin-message-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,8 +35,14 @@ export class AdminMessageDetail {
   id = input.required<string>();
 
   // Component-specific UI state
-  protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
+  protected confirmDialog = viewChild(ConfirmDialog);
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
+  protected dialogConfig = signal<DialogConfig>({
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    variant: 'primary',
+  });
 
   constructor() {
     // Sync route id parameter to service signal
@@ -40,20 +53,37 @@ export class AdminMessageDetail {
 
   protected showMarkProcessedConfirm(): void {
     this.pendingAction.set('mark-processed');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Mark as Processed',
+      message:
+        'Are you sure you want to mark this message as processed? This indicates that the message has been handled.',
+      confirmText: 'Mark as Processed',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
   }
 
   protected showMarkPendingConfirm(): void {
     this.pendingAction.set('mark-pending');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Mark as Pending',
+      message:
+        'Are you sure you want to mark this message as pending? This indicates that the message has not yet been handled.',
+      confirmText: 'Mark as Pending',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
   }
 
-  protected async confirmAction(): Promise<void> {
+  protected async onConfirmDialog(): Promise<void> {
     const action = this.pendingAction();
     if (!action) return;
 
     const message = this.service.messageResource.value();
     if (!message) return;
+
+    this.confirmDialog()?.close();
+    this.pendingAction.set(undefined);
 
     switch (action) {
       case 'mark-processed': {
@@ -65,29 +95,10 @@ export class AdminMessageDetail {
         break;
       }
     }
+  }
 
-    this.confirmDialog()?.nativeElement.close();
+  protected onCancelDialog(): void {
+    this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
-  }
-
-  protected cancelAction(): void {
-    this.confirmDialog()?.nativeElement.close();
-    this.pendingAction.set(undefined);
-  }
-
-  protected getActionTitle(): string {
-    const action = this.pendingAction();
-    if (!action) return '';
-
-    return action === 'mark-processed' ? 'Mark as Processed' : 'Mark as Pending';
-  }
-
-  protected getActionMessage(): string {
-    const action = this.pendingAction();
-    if (!action) return '';
-
-    return action === 'mark-processed'
-      ? 'Are you sure you want to mark this message as processed? This indicates that the message has been handled.'
-      : 'Are you sure you want to mark this message as pending? This indicates that the message has not yet been handled.';
   }
 }

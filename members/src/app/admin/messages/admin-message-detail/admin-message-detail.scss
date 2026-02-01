@@ -124,37 +124,3 @@
   background: #fdecea;
   border-radius: var(--border-radius-md);
 }
-
-// Confirmation Dialog
-.confirm-dialog {
-  border: 1px solid var(--brown-300);
-  border-radius: var(--border-radius-md);
-  padding: 0;
-  max-width: 400px;
-
-  &::backdrop {
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  .dialog-content {
-    padding: var(--space-l);
-
-    h3 {
-      margin-block-start: 0;
-      margin-block-end: var(--space-m);
-      color: var(--brown-500);
-    }
-
-    p {
-      margin-block-end: var(--space-l);
-      color: var(--brown-500);
-      line-height: 1.6;
-    }
-  }
-
-  .dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-s);
-  }
-}

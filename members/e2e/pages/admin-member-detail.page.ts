@@ -19,7 +19,6 @@ export class AdminMemberDetailPage {
   // Confirm Dialog
   readonly confirmDialog: Locator;
   readonly confirmMessage: Locator;
-  readonly confirmButton: Locator;
   readonly cancelButton: Locator;
 
   constructor(page: Page) {
@@ -41,7 +40,6 @@ export class AdminMemberDetailPage {
     // Confirm dialog
     this.confirmDialog = page.getByRole('dialog');
     this.confirmMessage = this.confirmDialog.getByText(/Are you sure/);
-    this.confirmButton = this.confirmDialog.getByRole('button', { name: 'Confirm' });
     this.cancelButton = this.confirmDialog.getByRole('button', { name: 'Cancel' });
   }
 
@@ -57,19 +55,19 @@ export class AdminMemberDetailPage {
   async activateMembership(): Promise<void> {
     await this.activateButton.click();
     await this.confirmDialog.waitFor({ state: 'visible' });
-    await this.confirmButton.click();
+    await this.confirmDialog.getByRole('button', { name: 'Activate' }).click();
   }
 
   async deactivateMembership(): Promise<void> {
     await this.deactivateButton.click();
     await this.confirmDialog.waitFor({ state: 'visible' });
-    await this.confirmButton.click();
+    await this.confirmDialog.getByRole('button', { name: 'Deactivate' }).click();
   }
 
   async deleteUser(): Promise<void> {
     await this.deleteButton.click();
     await this.confirmDialog.waitFor({ state: 'visible' });
-    await this.confirmButton.click();
+    await this.confirmDialog.getByRole('button', { name: 'Delete' }).click();
   }
 
   async cancelAction(): Promise<void> {

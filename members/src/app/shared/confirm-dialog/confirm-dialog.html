@@ -1,0 +1,19 @@
+<dialog #dialog class="confirm-dialog" [attr.aria-labelledby]="'dialog-title-' + title()">
+  <div class="dialog-content">
+    <h3 [id]="'dialog-title-' + title()">{{ title() }}</h3>
+    <p>{{ message() }}</p>
+    <div class="dialog-actions">
+      <button type="button" class="button button-secondary" (click)="onCancel()">
+        {{ cancelButtonText() }}
+      </button>
+      <button
+        type="button"
+        [class]="'button' + (confirmButtonVariant() === 'danger' ? ' button-danger' : '')"
+        (click)="onConfirm()"
+        [disabled]="disabled()"
+      >
+        {{ confirmButtonText() }}
+      </button>
+    </div>
+  </div>
+</dialog>

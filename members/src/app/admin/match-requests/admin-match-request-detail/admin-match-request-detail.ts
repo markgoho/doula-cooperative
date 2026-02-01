@@ -4,21 +4,28 @@ import {
   Component,
   computed,
   effect,
-  ElementRef,
   inject,
   input,
   signal,
   viewChild,
 } from '@angular/core';
 import { Tag } from '../../../tag/tag';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { SERVICE_LABELS_LONG } from '../match-request.constants';
 import { isValidDueDate, parseDueDate, type DueDate } from '../match-request.utilities';
 import { AdminMatchRequestDetailService } from './admin-match-request-detail.service';
 
 type ConfirmAction = 'mark-processed' | 'mark-pending';
 
+interface DialogConfig {
+  title: string;
+  message: string;
+  confirmText: string;
+  variant: 'primary' | 'danger';
+}
+
 @Component({
-  imports: [DatePipe, Tag],
+  imports: [DatePipe, Tag, ConfirmDialog],
   templateUrl: './admin-match-request-detail.html',
   styleUrl: './admin-match-request-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,8 +38,14 @@ export class AdminMatchRequestDetail {
   id = input.required<string>();
 
   // Component-specific UI state
-  protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
+  protected confirmDialog = viewChild(ConfirmDialog);
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
+  protected dialogConfig = signal<DialogConfig>({
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    variant: 'primary',
+  });
 
   // Check if requesting birth support
   protected isBirthSupport = computed(() => {
@@ -60,20 +73,37 @@ export class AdminMatchRequestDetail {
 
   protected showMarkProcessedConfirm(): void {
     this.pendingAction.set('mark-processed');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Mark as Processed',
+      message:
+        'Are you sure you want to mark this match request as processed? This indicates that the request has been sent to doulas.',
+      confirmText: 'Mark as Processed',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
   }
 
   protected showMarkPendingConfirm(): void {
     this.pendingAction.set('mark-pending');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Mark as Pending',
+      message:
+        'Are you sure you want to mark this match request as pending? This indicates that the request has not yet been sent to doulas.',
+      confirmText: 'Mark as Pending',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
   }
 
-  protected async confirmAction(): Promise<void> {
+  protected async onConfirmDialog(): Promise<void> {
     const action = this.pendingAction();
     if (!action) return;
 
     const matchRequest = this.service.matchRequestResource.value();
     if (!matchRequest) return;
+
+    this.confirmDialog()?.close();
+    this.pendingAction.set(undefined);
 
     switch (action) {
       case 'mark-processed': {
@@ -85,29 +115,10 @@ export class AdminMatchRequestDetail {
         break;
       }
     }
+  }
 
-    this.confirmDialog()?.nativeElement.close();
+  protected onCancelDialog(): void {
+    this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
-  }
-
-  protected cancelAction(): void {
-    this.confirmDialog()?.nativeElement.close();
-    this.pendingAction.set(undefined);
-  }
-
-  protected getActionTitle(): string {
-    const action = this.pendingAction();
-    if (!action) return '';
-
-    return action === 'mark-processed' ? 'Mark as Processed' : 'Mark as Pending';
-  }
-
-  protected getActionMessage(): string {
-    const action = this.pendingAction();
-    if (!action) return '';
-
-    return action === 'mark-processed'
-      ? 'Are you sure you want to mark this match request as processed? This indicates that the request has been sent to doulas.'
-      : 'Are you sure you want to mark this match request as pending? This indicates that the request has not yet been sent to doulas.';
   }
 }

@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  ElementRef,
   inject,
   input,
   signal,
@@ -11,12 +10,20 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import type { Member } from '../../admin.types';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
 type ConfirmAction = 'activate' | 'deactivate' | 'delete';
 
+interface DialogConfig {
+  title: string;
+  message: string;
+  confirmText: string;
+  variant: 'primary' | 'danger';
+}
+
 @Component({
-  imports: [DatePipe],
+  imports: [DatePipe, ConfirmDialog],
   templateUrl: './admin-member-detail.html',
   styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +37,14 @@ export class AdminMemberDetail {
   uid = input.required<string>();
 
   // Component-specific UI state
-  protected confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
+  protected confirmDialog = viewChild(ConfirmDialog);
   protected pendingAction = signal<ConfirmAction | undefined>(undefined);
+  protected dialogConfig = signal<DialogConfig>({
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    variant: 'primary',
+  });
 
   protected isTargetUserAdmin = computed(() => {
     const resource = this.service.memberResource;
@@ -46,27 +59,47 @@ export class AdminMemberDetail {
 
   protected showActivateConfirm(): void {
     this.pendingAction.set('activate');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Confirm Activation',
+      message: 'Are you sure you want to activate this membership?',
+      confirmText: 'Activate',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
   }
 
   protected showDeactivateConfirm(): void {
     this.pendingAction.set('deactivate');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Confirm Deactivation',
+      message: 'Are you sure you want to deactivate this membership?',
+      confirmText: 'Deactivate',
+      variant: 'danger',
+    });
+    this.confirmDialog()?.showModal();
   }
 
   protected showDeleteConfirm(): void {
     this.pendingAction.set('delete');
-    this.confirmDialog()?.nativeElement.showModal();
+    this.dialogConfig.set({
+      title: 'Confirm Deletion',
+      message:
+        'Are you sure you want to permanently delete this user account? This action cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    this.confirmDialog()?.showModal();
   }
 
-  protected closeDialog(): void {
-    this.confirmDialog()?.nativeElement.close();
+  protected onCancelDialog(): void {
+    this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
   }
 
-  protected async confirmAction(): Promise<void> {
+  protected async onConfirmDialog(): Promise<void> {
     const action = this.pendingAction();
-    this.closeDialog();
+    this.confirmDialog()?.close();
+    this.pendingAction.set(undefined);
 
     switch (action) {
       case 'activate': {
@@ -80,24 +113,6 @@ export class AdminMemberDetail {
       case 'delete': {
         await this.deleteUser();
         break;
-      }
-    }
-  }
-
-  protected getConfirmMessage(): string {
-    const action = this.pendingAction();
-    switch (action) {
-      case 'activate': {
-        return 'Are you sure you want to activate this membership?';
-      }
-      case 'deactivate': {
-        return 'Are you sure you want to deactivate this membership?';
-      }
-      case 'delete': {
-        return 'Are you sure you want to permanently delete this user account? This action cannot be undone.';
-      }
-      default: {
-        return '';
       }
     }
   }
