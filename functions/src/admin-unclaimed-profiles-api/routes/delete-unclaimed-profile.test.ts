@@ -15,6 +15,7 @@ describe("DELETE /:email", () => {
 
     // Scenario flags
     profileNotFound?: boolean;
+    mailerliteFailure?: boolean;
   }
 
   function setup({
@@ -27,19 +28,28 @@ describe("DELETE /:email", () => {
         email: requestEmail,
       }: {
         email: string;
+        mailerliteApiKey: string;
+        emailService: unknown;
       }): Promise<{ success: true }> => {
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(
             new NotFoundError("Unclaimed profile not found"),
           );
         }
+        // Note: mailerliteFailure doesn't cause the deletion to fail (best-effort)
+        // It's handled internally by the service
         return Promise.resolve({ success: true });
       },
     );
 
+    const mockSendEmail = mock(() => Promise.resolve());
+
     const testApp = createAdminTestPlugin({
       unclaimedProfileAdminService: {
         deleteUnclaimedProfile: mockDeleteUnclaimedProfile,
+      },
+      emailService: {
+        sendEmail: mockSendEmail,
       },
     });
 
@@ -54,7 +64,7 @@ describe("DELETE /:email", () => {
       headers,
     });
 
-    return { testApp, request };
+    return { testApp, request, mockDeleteUnclaimedProfile, mockSendEmail };
   }
 
   describe("Authentication", () => {
@@ -108,6 +118,17 @@ describe("DELETE /:email", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
+    });
+
+    it("should pass mailerliteApiKey and emailService to the service", async () => {
+      const { testApp, request, mockDeleteUnclaimedProfile } = setup();
+
+      await testApp.handle(request);
+
+      expect(mockDeleteUnclaimedProfile).toHaveBeenCalled();
+      const callArguments = mockDeleteUnclaimedProfile.mock.calls[0]?.[0];
+      expect(callArguments).toHaveProperty("mailerliteApiKey");
+      expect(callArguments).toHaveProperty("emailService");
     });
   });
 

@@ -26,6 +26,8 @@ export interface UnclaimedProfileAdminService {
 
   deleteUnclaimedProfile(options: {
     email: string;
+    mailerliteApiKey: string;
+    emailService: EmailServiceInterface;
     logger: Logger;
   }): Promise<{ success: true }>;
 }

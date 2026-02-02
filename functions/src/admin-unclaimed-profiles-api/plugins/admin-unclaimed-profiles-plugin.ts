@@ -123,13 +123,16 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
           params,
           adminToken,
           unclaimedProfileAdminService,
+          emailService,
           logger,
           set,
         }) =>
           deleteUnclaimedProfileLogic({
             email: params.email,
             adminUid: getAdminUid(adminToken, logger),
+            mailerliteApiKey: process.env["MAILERLITE_API_KEY"] ?? "",
             unclaimedProfileAdminService,
+            emailService,
             logger,
             set,
           }),
