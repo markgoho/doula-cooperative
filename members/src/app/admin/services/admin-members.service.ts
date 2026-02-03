@@ -157,7 +157,7 @@ export class AdminMembersService {
     };
   }
 
-  async listUnclaimedProfiles(limit = 50, offset = 0): Promise<ListUnclaimedProfilesResponse> {
+  async listUnclaimedProfiles(limit = 100, offset = 0): Promise<ListUnclaimedProfilesResponse> {
     // Authorization header added automatically by authInterceptor
     const parameters = new HttpParams()
       .set('limit', limit.toString())
