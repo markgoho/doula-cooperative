@@ -12,7 +12,14 @@
         (click)="onConfirm()"
         [disabled]="disabled()"
       >
-        {{ disabled() ? 'Processing...' : confirmButtonText() }}
+        @if (disabled()) {
+          <span class="button-loading">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Processing...</span>
+          </span>
+        } @else {
+          {{ confirmButtonText() }}
+        }
       </button>
     </div>
   </div>
