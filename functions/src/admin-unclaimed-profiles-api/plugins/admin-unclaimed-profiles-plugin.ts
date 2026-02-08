@@ -6,12 +6,15 @@ import { adminDerive } from "../../shared-api/utils/admin-derive.js";
 import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
+  changeEmailAndResendLogic,
   deleteUnclaimedProfileLogic,
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
   sendInvitationLogic,
 } from "../routes/index.js";
 import {
+  ChangeEmailAndResendResponseSchema,
+  ChangeEmailBodySchema,
   DeleteUnclaimedProfileResponseSchema,
   EmailParameterSchema,
   ListUnclaimedProfilesQuerySchema,
@@ -114,6 +117,33 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
         {
           params: EmailParameterSchema,
           response: SendInvitationResponseSchema,
+        },
+      )
+      // POST /:email/change-email - Change email and resend invitation
+      .post(
+        "/:email/change-email",
+        async ({
+          params,
+          body,
+          adminToken,
+          unclaimedProfileAdminService,
+          emailService,
+          logger,
+          set,
+        }) =>
+          changeEmailAndResendLogic({
+            oldEmail: params.email,
+            newEmail: body.newEmail,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            emailService,
+            logger,
+            set,
+          }),
+        {
+          params: EmailParameterSchema,
+          body: ChangeEmailBodySchema,
+          response: ChangeEmailAndResendResponseSchema,
         },
       )
       // DELETE /:email - Delete unclaimed profile

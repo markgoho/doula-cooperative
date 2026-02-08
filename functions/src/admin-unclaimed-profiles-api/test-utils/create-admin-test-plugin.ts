@@ -9,19 +9,14 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
 import type {
+  ChangeEmailAndResendSuccessResponse,
+  DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
 
-/**
- * Creates the admin-unclaimed-profiles plugin with default mock services for testing.
- * Tests only the admin-unclaimed-profiles plugin in isolation - no full app composition needed.
- *
- * @param overrides - Partial method overrides for services
- * @returns Configured admin-unclaimed-profiles plugin with mocked services
- */
 export function createAdminTestPlugin(overrides?: {
   unclaimedProfileAdminService?: Partial<UnclaimedProfileAdminService>;
   authService?: Partial<AuthService>;
@@ -41,8 +36,15 @@ export function createAdminTestPlugin(overrides?: {
     sendInvitation: mock(() =>
       Promise.resolve({ success: true } as SendInvitationSuccessResponse),
     ),
+    changeEmailAndResend: mock(() =>
+      Promise.resolve({
+        success: true,
+      } as ChangeEmailAndResendSuccessResponse),
+    ),
     deleteUnclaimedProfile: mock(() =>
-      Promise.resolve({ success: true as const }),
+      Promise.resolve({
+        success: true,
+      } as DeleteUnclaimedProfileSuccessResponse),
     ),
     ...overrides?.unclaimedProfileAdminService,
   };
