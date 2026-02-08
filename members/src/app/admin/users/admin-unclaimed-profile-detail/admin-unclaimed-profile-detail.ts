@@ -37,6 +37,9 @@ export class AdminUnclaimedProfileDetail {
   protected showChangeEmailForm = signal(false);
   protected newEmailValue = signal('');
 
+  protected showUpdateEmailForm = signal(false);
+  protected updateEmailValue = signal('');
+
   constructor() {
     this.service.init(this.email);
   }
@@ -66,6 +69,13 @@ export class AdminUnclaimedProfileDetail {
 
   protected async changeEmailAndResend(): Promise<void> {
     const newEmail = await this.service.changeEmailAndResend(this.email(), this.newEmailValue());
+    if (newEmail !== undefined) {
+      await this.router.navigate(['/admin/unclaimed', newEmail]);
+    }
+  }
+
+  protected async updateEmail(): Promise<void> {
+    const newEmail = await this.service.updateEmail(this.email(), this.updateEmailValue());
     if (newEmail !== undefined) {
       await this.router.navigate(['/admin/unclaimed', newEmail]);
     }

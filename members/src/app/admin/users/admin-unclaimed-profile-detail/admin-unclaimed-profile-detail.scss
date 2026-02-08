@@ -168,3 +168,34 @@ section > h2 {
   display: flex;
   gap: var(--space-s);
 }
+
+.update-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  margin-block-start: var(--space-s);
+
+  label {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--step--1);
+    color: var(--brown-500);
+  }
+
+  input[type='email'] {
+    padding: var(--space-xs) var(--space-s);
+    border: 1px solid var(--brown-300);
+    border-radius: var(--border-radius-md);
+    font-size: var(--step-0);
+  }
+}
+
+.update-email-actions {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.button-small {
+  padding: var(--space-3xs) var(--space-xs);
+  font-size: var(--step--1);
+  margin-inline-start: var(--space-s);
+}

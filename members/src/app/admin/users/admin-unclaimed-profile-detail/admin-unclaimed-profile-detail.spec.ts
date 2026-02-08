@@ -324,6 +324,103 @@ describe('AdminUnclaimedProfileDetail', () => {
     // Assert
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('should show Update Email button when invitation not sent', async () => {
+    // Arrange & Act
+    await setup();
+
+    // Assert
+    const button = await screen.findByRole('button', { name: 'Update Email' });
+    expect(button).toBeVisible();
+  });
+
+  it('should not show Update Email button when invitation already sent', async () => {
+    // Arrange & Act
+    await setup({ invitationEmailStatus: 'sent' });
+
+    // Assert
+    await screen.findByRole('button', { name: 'Invitation Already Sent' });
+    expect(screen.queryByRole('button', { name: 'Update Email' })).not.toBeInTheDocument();
+  });
+
+  it('should show update email form when Update Email button clicked', async () => {
+    // Arrange
+    const { user } = await setup();
+
+    const updateButton = await screen.findByRole('button', { name: 'Update Email' });
+
+    // Act
+    await user.click(updateButton);
+
+    // Assert
+    expect(screen.getByLabelText('New Email Address')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Confirm Update' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  });
+
+  it('should hide update email form when Cancel clicked', async () => {
+    // Arrange
+    const { user } = await setup();
+
+    const updateButton = await screen.findByRole('button', { name: 'Update Email' });
+    await user.click(updateButton);
+    expect(screen.getByLabelText('New Email Address')).toBeVisible();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(screen.queryByLabelText('New Email Address')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update Email' })).toBeVisible();
+  });
+
+  it('should disable Confirm Update button when email input is empty', async () => {
+    // Arrange
+    const { user } = await setup();
+
+    const updateButton = await screen.findByRole('button', { name: 'Update Email' });
+
+    // Act
+    await user.click(updateButton);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Confirm Update' })).toBeDisabled();
+  });
+
+  it('should navigate to new email route after successful update email', async () => {
+    // Arrange
+    const { component, router, mockService } = await setup();
+    mockService.updateEmail.mockResolvedValue('updated@example.com');
+
+    const instance = component.fixture.componentInstance as unknown as {
+      updateEmailValue: { set(value: string): void };
+      updateEmail(): Promise<void>;
+    };
+    instance.updateEmailValue.set('updated@example.com');
+
+    // Act
+    await instance.updateEmail();
+
+    // Assert
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/unclaimed', 'updated@example.com']);
+  });
+
+  it('should not navigate when update email fails', async () => {
+    // Arrange
+    const { component, router } = await setup({ shouldFailUpdateEmail: true });
+
+    const instance = component.fixture.componentInstance as unknown as {
+      updateEmailValue: { set(value: string): void };
+      updateEmail(): Promise<void>;
+    };
+    instance.updateEmailValue.set('updated@example.com');
+
+    // Act
+    await instance.updateEmail();
+
+    // Assert
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
 
 interface SetupOptions {
@@ -338,6 +435,7 @@ interface SetupOptions {
   shouldFailLoad?: boolean;
   shouldFailSendInvitation?: boolean;
   shouldFailChangeEmail?: boolean;
+  shouldFailUpdateEmail?: boolean;
   shouldKeepLoading?: boolean;
   shouldKeepSendingInvitation?: boolean;
   errorMessage?: string;
@@ -356,6 +454,7 @@ async function setup(options: SetupOptions = {}) {
     shouldFailLoad = false,
     shouldFailSendInvitation = false,
     shouldFailChangeEmail = false,
+    shouldFailUpdateEmail = false,
     shouldKeepLoading = false,
     shouldKeepSendingInvitation = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
@@ -423,6 +522,12 @@ async function setup(options: SetupOptions = {}) {
       }
       return Promise.resolve({ success: true });
     }),
+    updateEmail: vi.fn().mockImplementation(() => {
+      if (shouldFailUpdateEmail) {
+        return Promise.reject(new Error('Failed'));
+      }
+      return Promise.resolve({ success: true });
+    }),
   };
 
   // Mock the service to avoid resource() lifecycle issues in CI
@@ -461,6 +566,16 @@ async function setup(options: SetupOptions = {}) {
         );
         return newEmail;
       }),
+    updateEmail: vi.fn().mockImplementation(async (_oldEmail: string, newEmail: string) => {
+      if (shouldFailUpdateEmail) {
+        mockService.actionError.set('Failed to update email.');
+        return;
+      }
+      mockService.successMessage.set(`Email updated to ${newEmail}`);
+      return newEmail;
+    }),
+    deleteInProgress: signal(false),
+    deleteProfile: vi.fn().mockResolvedValue(undefined),
   };
 
   const router = { navigate: vi.fn().mockResolvedValue(true) };

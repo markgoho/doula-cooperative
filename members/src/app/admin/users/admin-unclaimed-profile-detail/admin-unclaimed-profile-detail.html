@@ -26,7 +26,50 @@
       <dd>{{ profile.name }}</dd>
 
       <dt>Email:</dt>
-      <dd>{{ profile.email }}</dd>
+      <dd>
+        {{ profile.email }}
+        @if (!invitationAlreadySent()) {
+          @if (showUpdateEmailForm()) {
+            <div class="update-email-form">
+              <label for="update-email">New Email Address</label>
+              <input
+                id="update-email"
+                type="email"
+                [ngModel]="updateEmailValue()"
+                (ngModelChange)="updateEmailValue.set($event)"
+                placeholder="Enter new email address"
+                [disabled]="service.actionInProgress()"
+              />
+              <div class="update-email-actions">
+                <button
+                  type="button"
+                  class="button"
+                  (click)="updateEmail()"
+                  [disabled]="service.actionInProgress() || updateEmailValue() === ''"
+                >
+                  {{ service.actionInProgress() ? 'Processing...' : 'Confirm Update' }}
+                </button>
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="showUpdateEmailForm.set(false)"
+                  [disabled]="service.actionInProgress()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button
+              type="button"
+              class="button button-secondary button-small"
+              (click)="showUpdateEmailForm.set(true)"
+            >
+              Update Email
+            </button>
+          }
+        }
+      </dd>
 
       <dt>Has Profile:</dt>
       <dd>

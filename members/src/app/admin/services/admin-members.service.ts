@@ -263,4 +263,13 @@ export class AdminMembersService {
       ),
     );
   }
+
+  async updateEmail(email: string, newEmail: string): Promise<{ success: boolean }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.patch<{ success: boolean }>(`/api/admin/unclaimed-profiles/${email}`, {
+        newEmail,
+      }),
+    );
+  }
 }

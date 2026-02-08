@@ -96,4 +96,26 @@ export class AdminUnclaimedProfileDetailService {
       this.actionInProgress.set(false);
     }
   }
+
+  /**
+   * Update the email on an unclaimed profile (pre-invitation only).
+   * Returns the new email on success so the component can navigate to the new URL.
+   */
+  async updateEmail(oldEmail: string, newEmail: string): Promise<string | undefined> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.updateEmail(oldEmail, newEmail);
+      this.successMessage.set(`Email updated to ${newEmail}`);
+      return newEmail;
+    } catch (error) {
+      console.error('Error updating email:', error);
+      this.actionError.set('Failed to update email.');
+      return undefined;
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
 }
