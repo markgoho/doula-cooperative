@@ -240,6 +240,14 @@ export const ERROR_IDS = {
     "api_admin_delete_unclaimed_profile_notification_failed",
   API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
   API_ADMIN_CHANGE_EMAIL_FAILED: "api_admin_change_email_failed",
+  API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",
+
+  // Admin update email (pre-invitation) errors
+  ADMIN_UPDATE_EMAIL_INVALID_EMAIL: "admin_update_email_invalid_email",
+  ADMIN_UPDATE_EMAIL_PROFILE_NOT_FOUND: "admin_update_email_profile_not_found",
+  ADMIN_UPDATE_EMAIL_NEW_EMAIL_EXISTS: "admin_update_email_new_email_exists",
+  ADMIN_UPDATE_EMAIL_ALREADY_INVITED: "admin_update_email_already_invited",
+  ADMIN_UPDATE_EMAIL_MOVE_FAILED: "admin_update_email_move_failed",
 
   // Specific admin error scenarios
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",

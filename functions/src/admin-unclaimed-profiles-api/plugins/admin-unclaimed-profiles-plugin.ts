@@ -11,6 +11,7 @@ import {
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
   sendInvitationLogic,
+  updateEmailLogic,
 } from "../routes/index.js";
 import {
   ChangeEmailAndResendResponseSchema,
@@ -21,6 +22,7 @@ import {
   ListUnclaimedProfilesResponseSchema,
   SendInvitationResponseSchema,
   UnclaimedProfileResponseSchema,
+  UpdateEmailResponseSchema,
 } from "../schemas/unclaimed-profile-schemas.js";
 import { UnclaimedProfileAdminService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -144,6 +146,31 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
           params: EmailParameterSchema,
           body: ChangeEmailBodySchema,
           response: ChangeEmailAndResendResponseSchema,
+        },
+      )
+      // PATCH /:email - Update email (pre-invitation only)
+      .patch(
+        "/:email",
+        async ({
+          params,
+          body,
+          adminToken,
+          unclaimedProfileAdminService,
+          logger,
+          set,
+        }) =>
+          updateEmailLogic({
+            oldEmail: params.email,
+            newEmail: body.newEmail,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        {
+          params: EmailParameterSchema,
+          body: ChangeEmailBodySchema,
+          response: UpdateEmailResponseSchema,
         },
       )
       // DELETE /:email - Delete unclaimed profile

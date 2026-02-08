@@ -41,6 +41,11 @@ export function createAdminTestPlugin(overrides?: {
         success: true,
       } as ChangeEmailAndResendSuccessResponse),
     ),
+    updateEmail: mock(() =>
+      Promise.resolve({
+        success: true,
+      } as { success: true }),
+    ),
     deleteUnclaimedProfile: mock(() =>
       Promise.resolve({
         success: true,

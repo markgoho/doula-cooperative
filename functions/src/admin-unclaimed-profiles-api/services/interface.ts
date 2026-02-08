@@ -32,6 +32,12 @@ export interface UnclaimedProfileAdminService {
     logger: Logger;
   }): Promise<ChangeEmailAndResendSuccessResponse>;
 
+  updateEmail(options: {
+    oldEmail: string;
+    newEmail: string;
+    logger: Logger;
+  }): Promise<{ success: true }>;
+
   deleteUnclaimedProfile(options: {
     email: string;
     mailerliteApiKey: string;

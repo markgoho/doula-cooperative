@@ -116,6 +116,21 @@ export type ChangeEmailAndResendResponse = Static<
   typeof ChangeEmailAndResendResponseSchema
 >;
 
+const UpdateEmailSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type UpdateEmailSuccessResponse = Static<
+  typeof UpdateEmailSuccessSchema
+>;
+
+export const UpdateEmailResponseSchema = t.Union([
+  UpdateEmailSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateEmailResponse = Static<typeof UpdateEmailResponseSchema>;
+
 const DeleteUnclaimedProfileSuccessSchema = t.Object({
   success: t.Literal(true),
 });

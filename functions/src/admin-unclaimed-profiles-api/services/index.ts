@@ -3,6 +3,7 @@ import { deleteUnclaimedProfile } from "./delete-unclaimed-profile.js";
 import { getUnclaimedProfile } from "./get-unclaimed-profile.js";
 import { listUnclaimedProfiles } from "./list-unclaimed-profiles.js";
 import { sendInvitation } from "./send-invitation.js";
+import { updateEmail } from "./update-email.js";
 
 /**
  * Service object for admin unclaimed profile management operations.
@@ -13,6 +14,7 @@ export const UnclaimedProfileAdminService = {
   getUnclaimedProfile,
   sendInvitation,
   changeEmailAndResend,
+  updateEmail,
   deleteUnclaimedProfile,
 };
 
@@ -22,3 +24,4 @@ export { deleteUnclaimedProfile } from "./delete-unclaimed-profile.js";
 export { getUnclaimedProfile } from "./get-unclaimed-profile.js";
 export { listUnclaimedProfiles } from "./list-unclaimed-profiles.js";
 export { sendInvitation } from "./send-invitation.js";
+export { updateEmail } from "./update-email.js";
