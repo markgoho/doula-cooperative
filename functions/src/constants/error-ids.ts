@@ -72,6 +72,14 @@ export const ERROR_IDS = {
   ADMIN_SEND_INVITATION_RESET_LINK_FAILED:
     "admin_send_invitation_reset_link_failed",
 
+  // Admin change email and resend errors
+  ADMIN_CHANGE_EMAIL_INVALID_EMAIL: "admin_change_email_invalid_email",
+  ADMIN_CHANGE_EMAIL_PROFILE_NOT_FOUND: "admin_change_email_profile_not_found",
+  ADMIN_CHANGE_EMAIL_NEW_EMAIL_EXISTS: "admin_change_email_new_email_exists",
+  ADMIN_CHANGE_EMAIL_CLEANUP_FAILED: "admin_change_email_cleanup_failed",
+  ADMIN_CHANGE_EMAIL_MOVE_FAILED: "admin_change_email_move_failed",
+  ADMIN_CHANGE_EMAIL_RESEND_FAILED: "admin_change_email_resend_failed",
+
   // Write profile errors
   WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
   WRITE_PROFILE_GITHUB_NOT_FOUND: "write_profile_github_not_found",
@@ -231,6 +239,7 @@ export const ERROR_IDS = {
   API_ADMIN_DELETE_UNCLAIMED_PROFILE_NOTIFICATION_FAILED:
     "api_admin_delete_unclaimed_profile_notification_failed",
   API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
+  API_ADMIN_CHANGE_EMAIL_FAILED: "api_admin_change_email_failed",
 
   // Specific admin error scenarios
   API_ADMIN_PROTECTED_FIELD_UPDATE: "api_admin_protected_field_update",

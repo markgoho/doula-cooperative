@@ -86,6 +86,36 @@ export type SendInvitationResponse = Static<
   typeof SendInvitationResponseSchema
 >;
 
+export const ChangeEmailBodySchema = t.Object({
+  newEmail: t.String({
+    format: "email",
+    description: "The new email address for the unclaimed profile",
+  }),
+});
+
+const ChangeEmailAndResendSuccessSchema = t.Object({
+  success: t.Boolean(),
+  warning: t.Optional(
+    t.String({
+      description:
+        "Warning message if email changed but resend had partial issues",
+    }),
+  ),
+});
+
+export type ChangeEmailAndResendSuccessResponse = Static<
+  typeof ChangeEmailAndResendSuccessSchema
+>;
+
+export const ChangeEmailAndResendResponseSchema = t.Union([
+  ChangeEmailAndResendSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type ChangeEmailAndResendResponse = Static<
+  typeof ChangeEmailAndResendResponseSchema
+>;
+
 const DeleteUnclaimedProfileSuccessSchema = t.Object({
   success: t.Literal(true),
 });
