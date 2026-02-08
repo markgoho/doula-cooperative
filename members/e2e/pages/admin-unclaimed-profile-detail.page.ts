@@ -16,16 +16,13 @@ export class AdminUnclaimedProfileDetailPage {
 
   // Actions (reused across tests)
   readonly sendInvitationButton: Locator;
-<<<<<<< HEAD
   readonly deleteProfileButton: Locator;
-=======
   readonly changeEmailButton: Locator;
 
   // Change email form
   readonly newEmailInput: Locator;
   readonly confirmChangeButton: Locator;
   readonly cancelChangeButton: Locator;
->>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
 
   // Status messages (reused for state verification)
   readonly loadingText: Locator;
@@ -44,9 +41,7 @@ export class AdminUnclaimedProfileDetailPage {
 
     // Actions - matches both "Send Invitation" and "Invitation Already Sent"
     this.sendInvitationButton = page.getByRole('button', { name: /Invitation/ });
-<<<<<<< HEAD
     this.deleteProfileButton = page.getByRole('button', { name: /Delete Profile/ });
-=======
     this.changeEmailButton = page.getByRole('button', {
       name: 'Change Email & Resend Invitation',
     });
@@ -55,7 +50,6 @@ export class AdminUnclaimedProfileDetailPage {
     this.newEmailInput = page.getByLabel('New Email Address');
     this.confirmChangeButton = page.getByRole('button', { name: 'Confirm Change & Resend' });
     this.cancelChangeButton = page.getByRole('button', { name: 'Cancel' });
->>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
 
     // Status messages
     this.loadingText = page.getByText('Loading details...');
