@@ -1,9 +1,26 @@
 {{- $description := .Site.Params.description -}}
 {{- if .IsPage -}}
-  {{- with .Description -}}
-    {{- $description = . -}}
+  {{- if eq .Type "doulas" -}}
+    {{- $parts := slice -}}
+    {{- with .Params.credentials -}}
+      {{- $parts = $parts | append . -}}
+    {{- end -}}
+    {{- with .Params.tags -}}
+      {{- $parts = $parts | append (delimit . ", ") -}}
+    {{- end -}}
+    {{- $prefix := delimit $parts " · " -}}
+    {{- $bio := .Summary | plainify | truncate 200 -}}
+    {{- if $prefix -}}
+      {{- $description = printf "%s — %s" $prefix $bio -}}
+    {{- else -}}
+      {{- $description = $bio -}}
+    {{- end -}}
   {{- else -}}
-    {{- $description = .Summary -}}
+    {{- with .Description -}}
+      {{- $description = . -}}
+    {{- else -}}
+      {{- $description = .Summary -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -23,7 +40,7 @@
 {{- if eq .Type "doulas" -}}
   <meta property="og:type" content="profile" />
 
-  {{ with .Resources.GetMatch "*profile-600.avif" }}
+  {{ with .Resources.GetMatch "*profile.jpg" }}
     <meta property="og:image" content="{{ .Permalink }}" />
     <meta name="twitter:image" content="{{ .Permalink }}" />
   {{ end }}
@@ -32,8 +49,8 @@
   <meta property="og:type" content="website" />
   <meta
     property="og:image"
-    content="{{ .Site.BaseURL }}/assets/images/hero-section-small.avif" />
+    content="{{ .Site.BaseURL }}assets/images/hero-section.jpg" />
   <meta
     name="twitter:image"
-    content="{{ .Site.BaseURL }}/assets/images/hero-section-small.avif" />
+    content="{{ .Site.BaseURL }}assets/images/hero-section.jpg" />
 {{ end }}
