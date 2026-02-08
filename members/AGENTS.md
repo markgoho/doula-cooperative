@@ -359,6 +359,40 @@ test('admin performs action with confirmation', async ({ authenticatedAdminPage 
 });
 ```
 
+### Component-Level Providers in Tests
+
+When a component declares `providers: [SomeService]` in its `@Component` decorator, Angular creates a new instance at the component level. In tests, you **must** mock all of that service's dependencies in the test `providers` array, because the real service may still be instantiated during component creation.
+
+Always ensure mock objects for upstream services (e.g., `mockAdminMembersService`) include **all methods** the real service calls — not just the ones under test. Missing methods cause `"is not a function"` errors at runtime.
+
+```typescript
+// ❌ Missing method that the real service calls internally
+const mockAdminMembersService = {
+  getUnclaimedProfile,
+  sendInvitation,
+};
+
+// ✅ All methods present, even ones not directly under test
+const mockAdminMembersService = {
+  getUnclaimedProfile,
+  sendInvitation,
+  changeEmailAndResend: vi.fn().mockResolvedValue({ success: true }),
+};
+```
+
+### Unit vs Integration Tests
+
+Unit tests (`*.spec.ts`) should test **one unit of behavior** per test. Multi-step user flows (open form → fill → submit → verify navigation + success message) belong in e2e tests (`e2e/tests/*.spec.ts`) using Playwright.
+
+For component methods that are `protected` (template-bound), access them via the component instance with a type cast:
+
+```typescript
+const instance = component.fixture.componentInstance as unknown as {
+  myMethod(): Promise<void>;
+};
+await instance.myMethod();
+```
+
 ## Important Patterns
 
 ### Web-Native Interaction Elements

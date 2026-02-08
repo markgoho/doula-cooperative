@@ -110,6 +110,14 @@ cd hugo && hugo --minify                       # Production build
 
 ## NOTES
 
+### Before Starting New Work
+
+**ALWAYS pull the latest `trunk` before starting any new feature or fix.** This project commits directly to `trunk`, so other work (including other AI sessions) may have landed since your last pull. Starting from stale state causes painful merge conflicts during push.
+
+```bash
+git pull --rebase origin trunk
+```
+
 ### Testing Requirements
 
 - **Functions:** ALL route logic files MUST have tests covering auth/validation/success/errors

@@ -101,12 +101,6 @@ section > h2 {
   font-size: var(--step--2);
   color: var(--color-error, #d93025);
 }
-.error-detail {
-  display: block;
-  margin-block-start: var(--space-3xs);
-  font-size: var(--step--2);
-  color: var(--color-error, #d93025);
-}
 
 .danger-zone {
   background: var(--brown-000);
