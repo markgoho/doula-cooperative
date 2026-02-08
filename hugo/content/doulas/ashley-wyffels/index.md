@@ -11,7 +11,6 @@ tags:
   - "Childbirth Educator"
 contact:
   business_name: "Doulas and Beyond"
-  website: "doulasandbeyond.com"
   phone: 585-469-1782
   email: "doulasandbeyond@gmail.com"
 draft: false
