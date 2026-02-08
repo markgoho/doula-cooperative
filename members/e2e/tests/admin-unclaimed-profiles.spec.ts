@@ -426,6 +426,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
   });
 
+<<<<<<< HEAD
   test('admin deletes unclaimed profile with confirmation', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
 
@@ -493,6 +494,16 @@ test.describe('Admin Unclaimed Profiles', () => {
     // Mock GET and DELETE
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
+=======
+  test('admin changes email and resends invitation successfully', async ({
+    authenticatedAdminPage,
+  }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
+    let changeEmailPostMade = false;
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
+>>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
       async (route) => {
         const method = route.request().method();
         if (method === 'GET') {
@@ -503,8 +514,13 @@ test.describe('Admin Unclaimed Profiles', () => {
           });
           return;
         }
+<<<<<<< HEAD
         if (method === 'DELETE') {
           deleteRequestMade = true;
+=======
+        if (method === 'POST' && route.request().url().includes('/change-email')) {
+          changeEmailPostMade = true;
+>>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -516,6 +532,7 @@ test.describe('Admin Unclaimed Profiles', () => {
       },
     );
 
+<<<<<<< HEAD
     const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
     await unclaimedProfilePage.goto('bob.unclaimed@example.com');
     await unclaimedProfilePage.waitForProfileDetails();
@@ -563,6 +580,23 @@ test.describe('Admin Unclaimed Profiles', () => {
             status: 500,
             contentType: 'application/json',
             body: JSON.stringify({ error: 'Failed to delete profile' }),
+=======
+    // Mock the new email profile page (will navigate here after success)
+    const updatedProfile: ApiUnclaimedProfileResponse = {
+      ...mockProfile,
+      email: 'newalice@example.com',
+      invitationEmailSentAt: new Date().toISOString(),
+    };
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/newalice@example.com**',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(updatedProfile),
+>>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
           });
           return;
         }
@@ -571,6 +605,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     );
 
     const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+<<<<<<< HEAD
     await unclaimedProfilePage.goto('bob.unclaimed@example.com');
     await unclaimedProfilePage.waitForProfileDetails();
 
@@ -591,5 +626,107 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Verify still on detail page (deletion failed) ===
     await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
+=======
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Verify Change Email button visible (invitation already sent) ===
+    await expect(unclaimedProfilePage.changeEmailButton).toBeVisible();
+
+    // === Fill and submit change email form ===
+    await unclaimedProfilePage.fillAndSubmitChangeEmail('newalice@example.com');
+
+    // === Verify success message appears ===
+    await expect(unclaimedProfilePage.successMessage).toBeVisible({ timeout: 5000 });
+    await expect(unclaimedProfilePage.successMessage).toContainText(
+      'Email changed to newalice@example.com and invitation resent successfully',
+    );
+
+    // === Verify navigated to new email route ===
+    await authenticatedAdminPage.waitForURL('**/admin/unclaimed/newalice@example.com', {
+      timeout: 5000,
+    });
+
+    // === Verify the POST was made ===
+    expect(changeEmailPostMade).toBe(true);
+  });
+
+  test('handles change email failure with error message', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
+      async (route) => {
+        const method = route.request().method();
+        if (method === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        if (method === 'POST' && route.request().url().includes('/change-email')) {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to change email' }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Fill and submit change email form ===
+    await unclaimedProfilePage.fillAndSubmitChangeEmail('newalice@example.com');
+
+    // === Verify error message appears ===
+    await expect(unclaimedProfilePage.errorMessage).toBeVisible({ timeout: 5000 });
+
+    // === Verify still on original page (no navigation) ===
+    await expect(authenticatedAdminPage).toHaveURL(
+      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
+    );
+  });
+
+  test('admin cancels change email form', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Open change email form ===
+    await unclaimedProfilePage.changeEmailButton.click();
+    await expect(unclaimedProfilePage.newEmailInput).toBeVisible();
+    await expect(unclaimedProfilePage.confirmChangeButton).toBeVisible();
+
+    // === Cancel ===
+    await unclaimedProfilePage.cancelChangeButton.click();
+
+    // === Verify form is hidden and original button is back ===
+    await expect(unclaimedProfilePage.newEmailInput).not.toBeVisible();
+    await expect(unclaimedProfilePage.changeEmailButton).toBeVisible();
+>>>>>>> 6d5f9ef (test: add e2e tests for change email and resend invitation flow)
   });
 });
