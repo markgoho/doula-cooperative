@@ -18,7 +18,8 @@
 {{ end }}
 
 {{ define "main" }}
-  {{ $searchType := .File.BaseFileName }}
+  {{ $searchType := "" }}
+  {{ with .File }}{{ $searchType = .BaseFileName }}{{ end }}
   <h1 style="view-transition-name: title-{{ $searchType }}">
     {{ .Title }}
   </h1>
