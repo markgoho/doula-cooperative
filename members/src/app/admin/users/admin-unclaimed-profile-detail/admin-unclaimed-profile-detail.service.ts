@@ -72,4 +72,28 @@ export class AdminUnclaimedProfileDetailService {
       this.deleteInProgress.set(false);
     }
   }
+
+  /**
+   * Change the email on an unclaimed profile and resend the invitation.
+   * Returns the new email on success so the component can navigate to the new URL.
+   */
+  async changeEmailAndResend(oldEmail: string, newEmail: string): Promise<string | undefined> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.changeEmailAndResend(oldEmail, newEmail);
+      this.successMessage.set(
+        result.warning ?? `Email changed to ${newEmail} and invitation resent successfully`,
+      );
+      return newEmail;
+    } catch (error) {
+      console.error('Error changing email and resending invitation:', error);
+      this.actionError.set('Failed to change email and resend invitation.');
+      return undefined;
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
 }

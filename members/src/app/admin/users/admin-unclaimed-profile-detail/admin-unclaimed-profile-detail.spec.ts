@@ -1,4 +1,5 @@
 import { computed, signal } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -213,6 +214,116 @@ describe('AdminUnclaimedProfileDetail', () => {
     // Clean up - resolve the promise with proper response
     resolveSendInvitationPromise({ success: true });
   });
+
+  it('should show Change Email button when invitation already sent', async () => {
+    // Arrange & Act
+    await setup({ invitationEmailStatus: 'sent' });
+
+    // Assert
+    const button = await screen.findByRole('button', {
+      name: 'Change Email & Resend Invitation',
+    });
+    expect(button).toBeVisible();
+  });
+
+  it('should not show Change Email button when invitation not sent', async () => {
+    // Arrange & Act
+    await setup();
+
+    // Assert
+    await screen.findByRole('button', { name: 'Send Invitation' });
+    expect(
+      screen.queryByRole('button', { name: 'Change Email & Resend Invitation' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show email input form when Change Email button clicked', async () => {
+    // Arrange
+    const { user } = await setup({ invitationEmailStatus: 'sent' });
+
+    const changeButton = await screen.findByRole('button', {
+      name: 'Change Email & Resend Invitation',
+    });
+
+    // Act
+    await user.click(changeButton);
+
+    // Assert
+    expect(screen.getByLabelText('New Email Address')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Confirm Change & Resend' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  });
+
+  it('should hide form when Cancel clicked', async () => {
+    // Arrange
+    const { user } = await setup({ invitationEmailStatus: 'sent' });
+
+    const changeButton = await screen.findByRole('button', {
+      name: 'Change Email & Resend Invitation',
+    });
+    await user.click(changeButton);
+    expect(screen.getByLabelText('New Email Address')).toBeVisible();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(screen.queryByLabelText('New Email Address')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Change Email & Resend Invitation' })).toBeVisible();
+  });
+
+  it('should disable Confirm button when email input is empty', async () => {
+    // Arrange
+    const { user } = await setup({ invitationEmailStatus: 'sent' });
+
+    const changeButton = await screen.findByRole('button', {
+      name: 'Change Email & Resend Invitation',
+    });
+
+    // Act
+    await user.click(changeButton);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Confirm Change & Resend' })).toBeDisabled();
+  });
+
+  it('should navigate to new email route after successful change', async () => {
+    // Arrange
+    const { component, router, mockService } = await setup({ invitationEmailStatus: 'sent' });
+    mockService.changeEmailAndResend.mockResolvedValue('new@example.com');
+
+    const instance = component.fixture.componentInstance as unknown as {
+      newEmailValue: { set(value: string): void };
+      changeEmailAndResend(): Promise<void>;
+    };
+    instance.newEmailValue.set('new@example.com');
+
+    // Act
+    await instance.changeEmailAndResend();
+
+    // Assert
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/unclaimed', 'new@example.com']);
+  });
+
+  it('should not navigate when change email fails', async () => {
+    // Arrange
+    const { component, router } = await setup({
+      invitationEmailStatus: 'sent',
+      shouldFailChangeEmail: true,
+    });
+
+    const instance = component.fixture.componentInstance as unknown as {
+      newEmailValue: { set(value: string): void };
+      changeEmailAndResend(): Promise<void>;
+    };
+    instance.newEmailValue.set('new@example.com');
+
+    // Act
+    await instance.changeEmailAndResend();
+
+    // Assert
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
 
 interface SetupOptions {
@@ -226,6 +337,7 @@ interface SetupOptions {
   nextPayment?: typeof Timestamp.prototype | undefined;
   shouldFailLoad?: boolean;
   shouldFailSendInvitation?: boolean;
+  shouldFailChangeEmail?: boolean;
   shouldKeepLoading?: boolean;
   shouldKeepSendingInvitation?: boolean;
   errorMessage?: string;
@@ -243,6 +355,7 @@ async function setup(options: SetupOptions = {}) {
     nextPayment,
     shouldFailLoad = false,
     shouldFailSendInvitation = false,
+    shouldFailChangeEmail = false,
     shouldKeepLoading = false,
     shouldKeepSendingInvitation = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
@@ -304,6 +417,12 @@ async function setup(options: SetupOptions = {}) {
   const mockAdminMembersService = {
     getUnclaimedProfile,
     sendInvitation,
+    changeEmailAndResend: vi.fn().mockImplementation(() => {
+      if (shouldFailChangeEmail) {
+        return Promise.reject(new Error('Failed'));
+      }
+      return Promise.resolve({ success: true });
+    }),
   };
 
   // Mock the service to avoid resource() lifecycle issues in CI
@@ -330,10 +449,26 @@ async function setup(options: SetupOptions = {}) {
       mockService.successMessage.set('Invitation sent successfully');
       return;
     }),
+    changeEmailAndResend: vi
+      .fn()
+      .mockImplementation(async (_oldEmail: string, newEmail: string) => {
+        if (shouldFailChangeEmail) {
+          mockService.actionError.set('Failed to change email and resend invitation.');
+          return;
+        }
+        mockService.successMessage.set(
+          `Email changed to ${newEmail} and invitation resent successfully`,
+        );
+        return newEmail;
+      }),
   };
+
+  const router = { navigate: vi.fn().mockResolvedValue(true) };
 
   const component = await render(AdminUnclaimedProfileDetail, {
     providers: [
+      provideRouter([]),
+      { provide: Router, useValue: router },
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       { provide: AdminUnclaimedProfileDetailService, useValue: mockService },
     ],
@@ -349,6 +484,8 @@ async function setup(options: SetupOptions = {}) {
     resolveProfilePromise: resolveProfilePromise!,
     resolveSendInvitationPromise: resolveSendInvitationPromise!,
     mockAdminMembersService,
+    mockService,
+    router,
   };
 }
 

@@ -250,4 +250,17 @@ export class AdminMembersService {
       this.httpClient.delete<{ success: boolean }>(`/api/admin/unclaimed-profiles/${email}`),
     );
   }
+
+  async changeEmailAndResend(
+    email: string,
+    newEmail: string,
+  ): Promise<{ success: boolean; warning?: string }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean; warning?: string }>(
+        `/api/admin/unclaimed-profiles/${email}/change-email`,
+        { newEmail },
+      ),
+    );
+  }
 }

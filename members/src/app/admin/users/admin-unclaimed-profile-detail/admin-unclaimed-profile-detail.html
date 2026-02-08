@@ -109,6 +109,50 @@
           }}
         </button>
       </div>
+
+      @if (invitationAlreadySent()) {
+        <div class="change-email-section">
+          @if (showChangeEmailForm()) {
+            <div class="change-email-form">
+              <label for="new-email">New Email Address</label>
+              <input
+                id="new-email"
+                type="email"
+                [ngModel]="newEmailValue()"
+                (ngModelChange)="newEmailValue.set($event)"
+                placeholder="Enter new email address"
+                [disabled]="service.actionInProgress()"
+              />
+              <div class="change-email-actions">
+                <button
+                  type="button"
+                  class="button"
+                  (click)="changeEmailAndResend()"
+                  [disabled]="service.actionInProgress() || newEmailValue() === ''"
+                >
+                  {{ service.actionInProgress() ? 'Processing...' : 'Confirm Change & Resend' }}
+                </button>
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="showChangeEmailForm.set(false)"
+                  [disabled]="service.actionInProgress()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="showChangeEmailForm.set(true)"
+            >
+              Change Email & Resend Invitation
+            </button>
+          }
+        </div>
+      }
     </div>
   </section>
 

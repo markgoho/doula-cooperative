@@ -101,6 +101,12 @@ section > h2 {
   font-size: var(--step--2);
   color: var(--color-error, #d93025);
 }
+.error-detail {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-size: var(--step--2);
+  color: var(--color-error, #d93025);
+}
 
 .danger-zone {
   background: var(--brown-000);
@@ -137,4 +143,34 @@ section > h2 {
       cursor: not-allowed;
     }
   }
+}
+
+.change-email-section {
+  margin-block-start: var(--space-m);
+  padding-block-start: var(--space-m);
+  border-block-start: 1px solid var(--brown-300);
+}
+
+.change-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+
+  label {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--step--1);
+    color: var(--brown-500);
+  }
+
+  input[type='email'] {
+    padding: var(--space-xs) var(--space-s);
+    border: 1px solid var(--brown-300);
+    border-radius: var(--border-radius-md);
+    font-size: var(--step-0);
+  }
+}
+
+.change-email-actions {
+  display: flex;
+  gap: var(--space-s);
 }
