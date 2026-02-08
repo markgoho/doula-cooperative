@@ -1,4 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -83,7 +84,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -93,7 +94,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 401 when token is invalid", async () => {
       const { testApp, request } = setup({ authToken: "invalid-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -110,7 +111,7 @@ describe("POST /:slug/image (upload profile image)", () => {
         },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -124,7 +125,7 @@ describe("POST /:slug/image (upload profile image)", () => {
         },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -138,7 +139,7 @@ describe("POST /:slug/image (upload profile image)", () => {
         },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -148,7 +149,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 428 when user has no slug", async () => {
       const { testApp, request } = setup({ memberHasNoSlug: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(428);
       const body = (await response.json()) as { error?: string };
@@ -160,7 +161,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 500 on unexpected errors", async () => {
       const { testApp, request } = setup({ unexpectedError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -175,7 +176,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       delete process.env["GITHUB_APP_ID"];
 
       const { testApp, request } = setup();
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       // Restore the environment variable
       if (originalValue !== undefined) {
@@ -192,7 +193,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       delete process.env["GITHUB_PRIVATE_KEY"];
 
       const { testApp, request } = setup();
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       if (originalValue !== undefined) {
         process.env["GITHUB_PRIVATE_KEY"] = originalValue;
@@ -208,7 +209,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       delete process.env["GITHUB_INSTALLATION_ID"];
 
       const { testApp, request } = setup();
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       if (originalValue !== undefined) {
         process.env["GITHUB_INSTALLATION_ID"] = originalValue;

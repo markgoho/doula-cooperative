@@ -5,10 +5,10 @@ import {
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
-import type { ChangeEmailAndResendSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
+import type { UpdateEmailSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
-describe("POST /:email/change-email", () => {
+describe("PATCH /:email", () => {
   interface SetupOptions {
     oldEmail?: string;
     newEmail?: string;
@@ -17,9 +17,8 @@ describe("POST /:email/change-email", () => {
     profileNotFound?: boolean;
     newEmailAlreadyExists?: boolean;
     sameEmail?: boolean;
+    alreadyInvited?: boolean;
     moveFailed?: boolean;
-    resendFailed?: boolean;
-    cleanupWarning?: boolean;
   }
 
   function setup({
@@ -29,62 +28,49 @@ describe("POST /:email/change-email", () => {
     profileNotFound = false,
     newEmailAlreadyExists = false,
     sameEmail = false,
+    alreadyInvited = false,
     moveFailed = false,
-    resendFailed = false,
-    cleanupWarning = false,
   }: SetupOptions = {}) {
-    const mockChangeEmailAndResend = mock(
-      (): Promise<ChangeEmailAndResendSuccessResponse> => {
-        if (profileNotFound) {
-          return Promise.reject(
-            new NotFoundError("Unclaimed profile not found"),
-          );
-        }
-        if (sameEmail) {
-          return Promise.reject(
-            new HttpError(
-              "New email address must be different from the current email.",
-              400,
-            ),
-          );
-        }
-        if (newEmailAlreadyExists) {
-          return Promise.reject(
-            new ConflictError(
-              "An unclaimed profile with that email already exists.",
-            ),
-          );
-        }
-        if (moveFailed) {
-          return Promise.reject(
-            new HttpError(
-              "Failed to move profile to new email address. Please try again.",
-              500,
-            ),
-          );
-        }
-        if (resendFailed) {
-          return Promise.reject(
-            new HttpError(
-              "Profile email was changed but the invitation failed to send. Please try sending the invitation manually from the new profile page.",
-              500,
-            ),
-          );
-        }
-        if (cleanupWarning) {
-          return Promise.resolve({
-            success: true,
-            warning:
-              "Old member document could not be cleaned up. Manual cleanup may be needed.",
-          });
-        }
-        return Promise.resolve({ success: true });
-      },
-    );
+    const mockUpdateEmail = mock((): Promise<UpdateEmailSuccessResponse> => {
+      if (profileNotFound) {
+        return Promise.reject(new NotFoundError("Unclaimed profile not found"));
+      }
+      if (sameEmail) {
+        return Promise.reject(
+          new HttpError(
+            "New email address must be different from the current email.",
+            400,
+          ),
+        );
+      }
+      if (newEmailAlreadyExists) {
+        return Promise.reject(
+          new ConflictError(
+            "An unclaimed profile with that email already exists.",
+          ),
+        );
+      }
+      if (alreadyInvited) {
+        return Promise.reject(
+          new ConflictError(
+            "This profile has already been invited. Use 'Change Email & Resend' instead.",
+          ),
+        );
+      }
+      if (moveFailed) {
+        return Promise.reject(
+          new HttpError(
+            "Failed to update profile email address. Please try again.",
+            500,
+          ),
+        );
+      }
+      return Promise.resolve({ success: true as const });
+    });
 
     const testApp = createAdminTestPlugin({
       unclaimedProfileAdminService: {
-        changeEmailAndResend: mockChangeEmailAndResend,
+        updateEmail: mockUpdateEmail,
       },
     });
 
@@ -95,8 +81,8 @@ describe("POST /:email/change-email", () => {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
 
-    const request = new Request(`http://localhost/${oldEmail}/change-email`, {
-      method: "POST",
+    const request = new Request(`http://localhost/${oldEmail}`, {
+      method: "PATCH",
       headers,
       body: JSON.stringify({ newEmail }),
     });
@@ -115,7 +101,7 @@ describe("POST /:email/change-email", () => {
       expect(body.error).toBe("Missing Authorization header");
     });
 
-    it("should return 403 when non-admin tries to change email", async () => {
+    it("should return 403 when non-admin tries to update email", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
       const response = await handleRequest(testApp, request);
@@ -157,8 +143,8 @@ describe("POST /:email/change-email", () => {
     });
   });
 
-  describe("Successful email change", () => {
-    it("should change email and resend invitation", async () => {
+  describe("Successful email update", () => {
+    it("should update email for pre-invitation profile", async () => {
       const { testApp, request } = setup();
 
       const response = await handleRequest(testApp, request);
@@ -166,20 +152,6 @@ describe("POST /:email/change-email", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
-    });
-
-    it("should return success with warning when cleanup had issues", async () => {
-      const { testApp, request } = setup({ cleanupWarning: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(200);
-      const body = (await response.json()) as {
-        success?: boolean;
-        warning?: string;
-      };
-      expect(body.success).toBe(true);
-      expect(body.warning).toContain("cleanup");
     });
   });
 
@@ -214,6 +186,16 @@ describe("POST /:email/change-email", () => {
       expect(body.error).toContain("already exists");
     });
 
+    it("should return 409 when profile has already been invited", async () => {
+      const { testApp, request } = setup({ alreadyInvited: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(409);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("already been invited");
+    });
+
     it("should return 500 when profile move fails", async () => {
       const { testApp, request } = setup({ moveFailed: true });
 
@@ -221,17 +203,7 @@ describe("POST /:email/change-email", () => {
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("Failed to move profile");
-    });
-
-    it("should return 500 when invitation resend fails after move", async () => {
-      const { testApp, request } = setup({ resendFailed: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("invitation failed to send");
+      expect(body.error).toContain("Failed to update profile");
     });
   });
 });

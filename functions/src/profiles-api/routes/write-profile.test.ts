@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import type { WriteProfileResponse } from "../services/github/interface.js";
 import {
   createProfilesTestPlugin,
@@ -109,7 +110,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -119,7 +120,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 401 when token is invalid", async () => {
       const { testApp, request } = setup({ authToken: "invalid-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
     });
@@ -127,7 +128,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should allow authenticated user to update their profile", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -139,7 +140,7 @@ describe("PUT /:slug (update profile)", () => {
         body: { ...validProfileData, title: "" },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -149,7 +150,7 @@ describe("PUT /:slug (update profile)", () => {
         body: { ...validProfileData, bio: "" },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -159,7 +160,7 @@ describe("PUT /:slug (update profile)", () => {
         body: { ...validProfileData, title: "a".repeat(201) },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -169,7 +170,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 404 when member not found", async () => {
       const { testApp, request } = setup({ memberNotFound: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
     });
@@ -177,7 +178,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 403 when membership is not active", async () => {
       const { testApp, request } = setup({ membershipInactive: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -187,7 +188,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 403 when user has no slug (no profile yet)", async () => {
       const { testApp, request } = setup({ memberHasNoSlug: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -199,7 +200,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return success on successful update", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -209,7 +210,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 409 when GitHub conflict occurs", async () => {
       const { testApp, request } = setup({ conflictError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(409);
     });
@@ -219,7 +220,7 @@ describe("PUT /:slug (update profile)", () => {
     it("should return 500 when GitHub service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

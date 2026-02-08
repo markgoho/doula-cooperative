@@ -4,6 +4,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -88,7 +89,7 @@ describe("PATCH /:memberId", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -98,7 +99,7 @@ describe("PATCH /:memberId", () => {
     it("should return 403 when non-admin user tries to update", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -110,7 +111,7 @@ describe("PATCH /:memberId", () => {
     it("should reject updates with invalid email format", async () => {
       const { testApp, request } = setup({ body: { email: "not-an-email" } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -118,7 +119,7 @@ describe("PATCH /:memberId", () => {
     it("should reject empty name strings", async () => {
       const { testApp, request } = setup({ body: { name: "" } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -128,7 +129,7 @@ describe("PATCH /:memberId", () => {
         body: { subscriptionStart: "not-a-date" },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -138,7 +139,7 @@ describe("PATCH /:memberId", () => {
     it("should update member and return updated document", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -155,7 +156,7 @@ describe("PATCH /:memberId", () => {
         body: { name: "New Name", email: "new@example.com" },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -172,7 +173,7 @@ describe("PATCH /:memberId", () => {
     it("should return 404 when member not found", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -184,7 +185,7 @@ describe("PATCH /:memberId", () => {
     it("should convert Timestamp fields to ISO strings", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       const body = (await response.json()) as {
         member?: { createdAt?: string };

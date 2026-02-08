@@ -1,4 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
@@ -41,7 +42,7 @@ describe("GET /slugs/check (check slug availability)", () => {
     it("should allow access without authentication", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -54,7 +55,7 @@ describe("GET /slugs/check (check slug availability)", () => {
         available: true,
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { available?: boolean };
@@ -67,7 +68,7 @@ describe("GET /slugs/check (check slug availability)", () => {
         available: false,
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { available?: boolean };
@@ -79,7 +80,7 @@ describe("GET /slugs/check (check slug availability)", () => {
     it("should return 500 when service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

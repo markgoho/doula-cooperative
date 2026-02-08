@@ -4,6 +4,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -90,7 +91,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -100,7 +101,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should return 403 when non-admin user tries to update claims", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -112,7 +113,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should successfully grant admin claim", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -126,7 +127,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should successfully revoke admin claim", async () => {
       const { testApp, request } = setup({ body: { admin: false } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -143,7 +144,7 @@ describe("PATCH /:memberId/claims", () => {
         body: { admin: false },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -153,7 +154,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should return 404 when user does not exist", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -163,7 +164,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should return 400 when UID format is invalid", async () => {
       const { testApp, request } = setup({ memberId: "invalid-uid-format" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -173,7 +174,7 @@ describe("PATCH /:memberId/claims", () => {
     it("should handle empty body (no claims to update)", async () => {
       const { testApp, request } = setup({ body: {} });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {

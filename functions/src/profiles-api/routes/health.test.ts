@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createApp } from "../app.js";
 
 function setup() {
@@ -22,7 +23,7 @@ describe("GET /health", () => {
   it("should return 200 status", async () => {
     const { testApp, request } = setup();
 
-    const response = await testApp.handle(request);
+    const response = await handleRequest(testApp, request);
 
     expect(response.status).toBe(200);
   });
@@ -30,7 +31,7 @@ describe("GET /health", () => {
   it("should return ok status in body", async () => {
     const { testApp, request } = setup();
 
-    const response = await testApp.handle(request);
+    const response = await handleRequest(testApp, request);
     const body = (await response.json()) as { status: string };
 
     expect(body.status).toBe("ok");
@@ -40,7 +41,7 @@ describe("GET /health", () => {
     const { testApp, request } = setup();
 
     // Explicitly no Authorization header
-    const response = await testApp.handle(request);
+    const response = await handleRequest(testApp, request);
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as { status: string };

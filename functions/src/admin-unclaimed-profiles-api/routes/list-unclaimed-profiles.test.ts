@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { toUnclaimedProfileResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -62,7 +63,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -72,7 +73,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should return 403 when non-admin tries to list profiles", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -84,7 +85,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should return profiles when authenticated as admin", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -100,7 +101,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should reject limit below minimum (1)", async () => {
       const { testApp, request } = setup({ limit: "0" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -108,7 +109,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should reject limit above maximum (100)", async () => {
       const { testApp, request } = setup({ limit: "101" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -116,7 +117,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should reject negative offset", async () => {
       const { testApp, request } = setup({ offset: "-1" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -124,7 +125,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should accept valid limit and offset", async () => {
       const { testApp, request } = setup({ limit: "10", offset: "5" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -132,7 +133,7 @@ describe("GET / (list unclaimed profiles)", () => {
     it("should use default values when limit and offset not provided", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });

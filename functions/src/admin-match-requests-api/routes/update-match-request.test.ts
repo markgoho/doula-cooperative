@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -58,7 +59,7 @@ describe("PATCH /:requestId (update match request)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -68,7 +69,7 @@ describe("PATCH /:requestId (update match request)", () => {
     it("should return 403 when non-admin user tries to access", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -80,7 +81,7 @@ describe("PATCH /:requestId (update match request)", () => {
     it("should update match request status when authorized", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success: boolean };
@@ -92,7 +93,7 @@ describe("PATCH /:requestId (update match request)", () => {
     it("should return 422 when sent field is missing", async () => {
       const { testApp, request } = setup({ body: {} });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -100,7 +101,7 @@ describe("PATCH /:requestId (update match request)", () => {
     it("should return 422 when sent is not a boolean", async () => {
       const { testApp, request } = setup({ body: { sent: "not-a-boolean" } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -113,7 +114,7 @@ describe("PATCH /:requestId (update match request)", () => {
         requestNotFound: true,
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

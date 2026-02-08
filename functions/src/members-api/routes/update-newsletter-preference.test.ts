@@ -6,6 +6,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
 /**
@@ -151,7 +152,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -161,7 +162,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return 403 when non-owner tries to update newsletter preference", async () => {
       const { testApp, request } = setup({ authToken: "non-owner-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -173,7 +174,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should allow owner to update their own newsletter preference", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -190,7 +191,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         body: { subscribed: false },
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -206,7 +207,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should successfully subscribe to newsletter", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -220,7 +221,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should successfully unsubscribe from newsletter", async () => {
       const { testApp, request } = setup({ body: { subscribed: false } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -237,7 +238,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         authToken: "admin-token",
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -252,7 +253,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         authToken: "admin-token",
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
@@ -266,7 +267,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should reject request without subscribed field", async () => {
       const { testApp, request } = setup({ body: {} });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -274,7 +275,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should reject request with non-boolean subscribed value", async () => {
       const { testApp, request } = setup({ body: { subscribed: "true" } });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -291,7 +292,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         body: JSON.stringify({ subscribed: true }),
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
     });
@@ -312,7 +313,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
         },
       );
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -322,7 +323,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return JSON content type", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       const contentType = response.headers.get("content-type");
       expect(contentType).toContain("application/json");
@@ -331,7 +332,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return success field in response", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
@@ -342,7 +343,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return 500 for unexpected errors", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -352,7 +353,7 @@ describe("PATCH /:memberId/newsletter-preference (authenticated)", () => {
     it("should return 503 when MAILERLITE_API_KEY is not configured", async () => {
       const { testApp, request } = setup({ mailerliteApiKey: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(503);
       const body = (await response.json()) as { error?: string };

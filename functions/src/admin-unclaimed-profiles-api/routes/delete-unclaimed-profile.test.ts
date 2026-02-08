@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -71,7 +72,7 @@ describe("DELETE /:email", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error?: string };
@@ -81,7 +82,7 @@ describe("DELETE /:email", () => {
     it("should return 403 when non-admin user tries to delete", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
@@ -93,7 +94,7 @@ describe("DELETE /:email", () => {
     it("should reject invalid email format", async () => {
       const { testApp, request } = setup({ email: "not-an-email" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -101,7 +102,7 @@ describe("DELETE /:email", () => {
     it("should accept valid email format", async () => {
       const { testApp, request } = setup({ email: "valid@example.com" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -113,7 +114,7 @@ describe("DELETE /:email", () => {
     it("should delete unclaimed profile when authenticated as admin", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as { success?: boolean };
@@ -123,7 +124,7 @@ describe("DELETE /:email", () => {
     it("should pass mailerliteApiKey and emailService to the service", async () => {
       const { testApp, request, mockDeleteUnclaimedProfile } = setup();
 
-      await testApp.handle(request);
+      await handleRequest(testApp, request);
 
       expect(mockDeleteUnclaimedProfile).toHaveBeenCalled();
       const callArguments = mockDeleteUnclaimedProfile.mock.calls[0]?.[0];
@@ -136,7 +137,7 @@ describe("DELETE /:email", () => {
     it("should return 404 when profile not found", async () => {
       const { testApp, request } = setup({ profileNotFound: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };

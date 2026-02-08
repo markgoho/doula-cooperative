@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -68,7 +69,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 401 when no authorization header is provided", async () => {
       const { testApp, request } = setup({ authToken: null });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
     });
@@ -76,7 +77,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 403 when non-admin tries to deactivate", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
     });
@@ -86,7 +87,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should deactivate membership successfully", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
@@ -102,7 +103,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     it("should return 404 for non-existent member", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
     });

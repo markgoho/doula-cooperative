@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import { handleRequest } from "../../test-utils/handle-request.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
@@ -57,7 +58,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should allow access without authentication", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -65,7 +66,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should work with authentication (but not require it)", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -75,7 +76,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should return structured profile data on success", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as ProfileData;
@@ -90,7 +91,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should include image URL when available", async () => {
       const { testApp, request } = setup();
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       const body = (await response.json()) as ProfileData;
       expect(body.image).toBe("https://example.com/image.jpg");
@@ -99,7 +100,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should not include image when not available", async () => {
       const { testApp, request } = setup({ noImage: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       const body = (await response.json()) as ProfileData;
       expect(body.title).toBeDefined();
@@ -114,7 +115,7 @@ describe("GET /:slug (read profile by slug)", () => {
         notFound: true,
       });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
@@ -124,7 +125,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should return 500 when GitHub service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -138,7 +139,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should accept valid slug with lowercase letters and hyphens", async () => {
       const { testApp, request } = setup({ slug: "jane-doe" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -146,7 +147,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should accept slug with numbers", async () => {
       const { testApp, request } = setup({ slug: "jane-doe-123" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
     });
@@ -154,7 +155,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should reject slug with uppercase letters", async () => {
       const { testApp, request } = setup({ slug: "Jane-Doe" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
       // Elysia returns plain text for validation errors
@@ -165,7 +166,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should reject slug with special characters", async () => {
       const { testApp, request } = setup({ slug: "jane_doe" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
@@ -173,7 +174,7 @@ describe("GET /:slug (read profile by slug)", () => {
     it("should reject slug that is too short", async () => {
       const { testApp, request } = setup({ slug: "a" });
 
-      const response = await testApp.handle(request);
+      const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
     });
