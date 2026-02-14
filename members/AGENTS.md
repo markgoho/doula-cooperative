@@ -211,6 +211,27 @@ Uses ESLint (not TSLint) with:
 - Component selector prefix: `app-`
 - SCSS is the style language (not CSS)
 
+### SCSS Styling
+
+**Shared styles:**
+
+Use Angular component `styleUrls` array (NOT `@import` or `@use`) to include shared SCSS files:
+
+```typescript
+@Component({
+  styleUrls: ['../shared/shared-styles.scss', './component-styles.scss'],
+  // ...
+})
+```
+
+**Why:** `@import` is deprecated in Dart Sass 3.0. Component metadata is Angular-idiomatic and avoids deprecation warnings.
+
+**Admin shared styles:**
+
+- `src/app/admin/shared/admin-stats.scss` - Header stats layout
+- `src/app/admin/users/admin-table-shared.scss` - Table styles
+- Use CSS variables: `var(--color-error)`, `var(--space-m)`, `var(--brown-500)`
+
 ## Testing Guidelines
 
 ### Test Framework
@@ -221,6 +242,12 @@ Tests use **@testing-library/angular** with **Vitest** (not Karma or Jest).
 
 - `src/test-setup.ts` - Imports `@testing-library/jest-dom/vitest` matchers
 - `src/test-providers.ts` - Default test providers (zoneless change detection)
+
+**CRITICAL RULES:**
+
+1. **NO vitest imports in test files** - `describe`, `it`, `expect`, `vi` are globally available via vitest configuration. NEVER import these from `'vitest'`.
+
+2. **NEVER mock presentational components** - Components that render UI (dialogs, modals, forms) should use real implementations in tests. Only mock data services and external APIs. Test what users see, not implementation details.
 
 ### Test File Patterns
 
