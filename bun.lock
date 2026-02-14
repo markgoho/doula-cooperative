@@ -5,15 +5,15 @@
     "": {
       "name": "doula-cooperative",
       "devDependencies": {
-        "@types/bun": "^1.3.8",
+        "@types/bun": "^1.3.9",
         "eslint": "^9.39.2",
         "eslint-plugin-unicorn": "^62.0.0",
-        "firebase-tools": "^15.5.1",
+        "firebase-tools": "^15.6.0",
         "prettier": "^3.8.1",
         "prettier-plugin-go-template": "^0.0.15",
         "prettier-plugin-organize-imports": "^4.3.0",
         "sharp": "^0.34.5",
-        "typescript-eslint": "^8.54.0",
+        "typescript-eslint": "^8.55.0",
       },
       "peerDependencies": {
         "typescript": "^5.9.3",
