@@ -98,6 +98,7 @@ export const ERROR_IDS = {
   CREATE_PROFILE_FIRESTORE_UPDATE_ERROR:
     "create_profile_firestore_update_error",
   CREATE_PROFILE_SERIALIZATION_ERROR: "create_profile_serialization_error",
+  CREATE_PROFILE_NOTIFICATION_FAILED: "create_profile_notification_failed",
 
   // Check slug availability errors
   CHECK_SLUG_FIRESTORE_ERROR: "check_slug_firestore_error",

@@ -42,6 +42,7 @@ describe("POST /:slug (create profile)", () => {
     memberHasNoSlug?: boolean;
     profileAlreadyExists?: boolean;
     githubError?: boolean;
+    emailError?: boolean;
   }
 
   function setup({
@@ -53,6 +54,7 @@ describe("POST /:slug (create profile)", () => {
     memberHasNoSlug = false,
     profileAlreadyExists = false,
     githubError = false,
+    emailError = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario flags
     const mockVerifyMembership = mock(() => {
@@ -86,12 +88,22 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve({ success: true });
     });
 
+    const mockSendEmail = mock(() => {
+      if (emailError) {
+        return Promise.reject(new Error("Mailgun API error"));
+      }
+      return Promise.resolve();
+    });
+
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
       },
       profileGitHubService: {
         createProfile: mockCreateProfile,
+      },
+      emailService: {
+        sendEmail: mockSendEmail,
       },
     });
 
@@ -109,7 +121,7 @@ describe("POST /:slug (create profile)", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request };
+    return { testApp, request, mockSendEmail };
   }
 
   describe("Authentication", () => {
@@ -228,6 +240,39 @@ describe("POST /:slug (create profile)", () => {
       expect(body.error).toBeDefined();
       // Should NOT expose internal error details
       expect(body.error).not.toContain("rate limit");
+    });
+  });
+
+  describe("Email notification", () => {
+    it("should send notification email on successful profile creation", async () => {
+      const { testApp, request, mockSendEmail } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(201);
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return 201 even when notification email fails", async () => {
+      const { testApp, request, mockSendEmail } = setup({ emailError: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(201);
+      const body = (await response.json()) as { success?: boolean };
+      expect(body.success).toBe(true);
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not send notification email when profile creation fails", async () => {
+      const { testApp, request, mockSendEmail } = setup({
+        profileAlreadyExists: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(409);
+      expect(mockSendEmail).not.toHaveBeenCalled();
     });
   });
 });

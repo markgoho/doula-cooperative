@@ -232,6 +232,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           userToken,
           profileGitHubService,
           profileMemberService,
+          emailService,
           logger,
           set,
         }) => {
@@ -247,6 +248,7 @@ export function createProfilesPlugin(services?: PartialServices) {
             data: body,
             profileGitHubService,
             profileMemberService,
+            emailService,
             logger,
             set,
           });
