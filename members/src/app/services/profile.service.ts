@@ -153,8 +153,9 @@ export class ProfileService {
     try {
       await firstValueFrom(this.http.post<{ success: boolean }>(`/api/profiles/${slug}`, data));
 
-      // Only reload on success
-      this.profileResource.reload();
+      // Do NOT reload here — the profile file on GitHub may not be available yet
+      // due to eventual consistency. The edit page will handle loading the profile
+      // after navigation, giving GitHub time to propagate the file.
     } catch (error: unknown) {
       console.error('Profile creation failed:', {
         error: error instanceof Error ? error.message : String(error),

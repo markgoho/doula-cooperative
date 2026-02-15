@@ -43,6 +43,24 @@ describe('EditProfile', () => {
     });
   });
 
+  describe('error state', () => {
+    it('should show error message with retry button when profile fails to load', async () => {
+      await setup({ hasProfile: false });
+
+      expect(screen.getByText('Profile Load Error')).toBeVisible();
+      expect(screen.getByRole('button', { name: /Retry/i })).toBeVisible();
+    });
+
+    it('should call reload when retry button is clicked', async () => {
+      const { user, mockProfileService } = await setup({ hasProfile: false });
+
+      const retryButton = screen.getByRole('button', { name: /Retry/i });
+      await user.click(retryButton);
+
+      expect(mockProfileService.profileResource.reload).toHaveBeenCalled();
+    });
+  });
+
   describe('form initialization', () => {
     it('should populate form with profile data', async () => {
       await setup();
@@ -321,13 +339,22 @@ async function setup({
 
   const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
 
+  const resolveStatus = (): string => {
+    if (profileResourceLoading) return 'loading';
+    if (!hasProfile && userHasSlug) return 'error';
+    if (profileValue !== undefined) return 'resolved';
+    return 'idle';
+  };
+
   const mockProfileService = {
     profile: signal(profileValue),
     profileResource: {
-      isLoading: vi.fn(() => profileResourceLoading),
+      isLoading: signal(profileResourceLoading),
       hasValue: vi.fn(() => !profileResourceLoading && profileValue !== undefined),
       value: vi.fn(() => profileValue),
       error: vi.fn(() => (!hasProfile && userHasSlug ? new Error('Profile not found') : undefined)),
+      status: signal(resolveStatus()),
+      reload: vi.fn(),
     },
     getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),
     updateProfile: vi.fn().mockImplementation(async () => {

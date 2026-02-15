@@ -9,6 +9,9 @@ import {
   markAllTouched,
 } from '../shared/profile-form/profile-form-utilities';
 
+const MAX_AUTO_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+
 @Component({
   imports: [ReactiveFormsModule],
   templateUrl: './edit-profile.html',
@@ -28,14 +31,29 @@ export class EditProfile {
   protected errorMessage = signal('');
   protected successMessage = signal('');
 
+  private autoRetryCount = 0;
+
   constructor() {
-    // Initialize form when profile data loads
     effect(() => {
       const profile = this.profile();
       if (profile && !this.profileForm.dirty) {
         initializeEditProfileForm(this.profileForm, profile);
       }
     });
+
+    effect(() => {
+      const status = this.profileService.profileResource.status();
+      if (status === 'error' && this.autoRetryCount < MAX_AUTO_RETRIES) {
+        this.autoRetryCount++;
+        setTimeout(() => {
+          this.profileService.profileResource.reload();
+        }, RETRY_DELAY_MS);
+      }
+    });
+  }
+
+  protected retryLoadProfile(): void {
+    this.profileService.profileResource.reload();
   }
 
   protected async onSubmit() {

@@ -225,6 +225,11 @@
 } @else {
   <div class="no-profile-message">
     <h2>Profile Load Error</h2>
-    <p>We encountered an issue loading your profile. Please try refreshing the page.</p>
+    <p>We encountered an issue loading your profile.</p>
+    @if (profileResource.isLoading()) {
+      <p>Retrying...</p>
+    } @else {
+      <button class="button button--primary" (click)="retryLoadProfile()">Retry</button>
+    }
   </div>
 }
