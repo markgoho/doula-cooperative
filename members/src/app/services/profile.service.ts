@@ -235,8 +235,10 @@ export class ProfileService {
         this.saveOptimisticState({ url: previewUrl, slug });
       }
 
-      // Reload profile - will auto-clear optimistic state when backend catches up
-      this.profileResource.reload();
+      // Don't reload here — the backend (GitHub) has eventual consistency and
+      // the stale server response would immediately clear the optimistic state.
+      // The optimistic state handles the UI, and the next natural profile load
+      // (navigation, page refresh) will pick up the real server data.
     } catch (error: unknown) {
       console.error('Profile image upload failed:', {
         error: error instanceof Error ? error.message : String(error),
@@ -302,9 +304,6 @@ export class ProfileService {
 
       // Set optimistic state to show image as deleted immediately
       this.saveOptimisticState({ deleted: true, slug });
-
-      // Reload profile - will auto-clear optimistic state when backend catches up
-      this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile image delete failed:', {
         error: error instanceof Error ? error.message : String(error),
