@@ -55,6 +55,12 @@ export class ImageCropper implements AfterViewInit, OnDestroy {
   /** Signal for image loading error state */
   protected readonly imageLoadError = signal<string | undefined>(undefined);
 
+  /** Signal for current zoom level (scale) */
+  protected readonly zoomLevel = signal(1);
+
+  /** Signal for live preview URL */
+  protected readonly previewUrl = signal<string | undefined>(undefined);
+
   constructor() {
     // Load image when source changes
     effect(() => {
@@ -85,6 +91,64 @@ export class ImageCropper implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     // Clean up Cropper instance
     this.cropperInstance?.destroy();
+  }
+
+  /** Zoom in by 0.1 */
+  protected zoomIn(): void {
+    this.cropperInstance?.zoom(0.1);
+  }
+
+  /** Zoom out by 0.1 */
+  protected zoomOut(): void {
+    this.cropperInstance?.zoom(-0.1);
+  }
+
+  /** handle zoom slider change */
+  protected onZoomSlider(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = Number.parseFloat(input.value);
+    this.cropperInstance?.zoomTo(value);
+  }
+
+  /** Rotate 90 degrees left */
+  protected rotateLeft(): void {
+    this.cropperInstance?.rotate(-90);
+    this.updatePreview();
+  }
+
+  /** Rotate 90 degrees right */
+  protected rotateRight(): void {
+    this.cropperInstance?.rotate(90);
+    this.updatePreview();
+  }
+
+  /** Reset crop box and transformations */
+  protected resetTransform(): void {
+    this.cropperInstance?.reset();
+    // After reset, we need to get the new zoom level
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const imageData = (this.cropperInstance as any).getImageData();
+    // Zoom ratio isn't directly in getData, but we can infer or just rely on the event
+    // Let's manually update zoom level.
+    if (imageData && imageData.width && imageData.naturalWidth) {
+      this.zoomLevel.set(imageData.width / imageData.naturalWidth);
+    }
+    this.updatePreview();
+  }
+
+  /** Update the live preview signal */
+  protected updatePreview(): void {
+    if (!this.cropperInstance) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const canvas = (this.cropperInstance as any).getCroppedCanvas({
+      width: 120,
+      height: 120,
+    });
+
+    if (canvas) {
+      this.previewUrl.set(canvas.toDataURL('image/jpeg', 0.8));
+    }
   }
 
   private loadImage(file: File): void {
@@ -123,7 +187,7 @@ export class ImageCropper implements AfterViewInit, OnDestroy {
       viewMode: 1, // Restrict crop box to within the canvas
       cropBoxResizable: true,
       cropBoxMovable: true,
-      zoomable: false, // Disable zoom
+      zoomable: true, // Enable zoom
       dragMode: 'move', // Drag to move the image
       minContainerWidth: 350,
       minContainerHeight: 350,
@@ -135,6 +199,27 @@ export class ImageCropper implements AfterViewInit, OnDestroy {
       highlight: true,
       responsive: true,
       restore: false,
+      ready: () => {
+        // Set initial zoom level
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const imageData = (this.cropperInstance as any).getImageData();
+        if (imageData) {
+          this.zoomLevel.set(imageData.width / imageData.naturalWidth);
+        }
+        this.updatePreview();
+      },
+      cropend: () => this.updatePreview(),
+      cropmove: () => this.updatePreview(),
+      zoom: (event: CustomEvent) => {
+        // event.detail.ratio is the old ratio in some versions, or new?
+        // documentation says: event.detail.ratio: The new image aspect ratio
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const detail = (event as any).detail;
+        if (detail && typeof detail.ratio === 'number') {
+          this.zoomLevel.set(detail.ratio);
+        }
+        this.updatePreview();
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cropper.js v1.6.2 types are incomplete
     } as any);
   }

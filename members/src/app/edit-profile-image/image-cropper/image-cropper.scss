@@ -1,7 +1,7 @@
 // Note: Cropper.js CSS is imported globally in angular.json
 
 .cropper-container {
-  max-width: 500px;
+  max-width: 700px;
   margin: 0 auto;
 }
 
@@ -11,15 +11,56 @@
   text-align: center;
 }
 
+.cropper-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: 600px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.cropper-main {
+  flex: 1;
+  min-width: 0; // Prevent flex item overflow
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cropper-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 // Wrapper for the cropper
 .cropper-wrapper {
   width: 100%;
-  max-width: 500px;
+  // max-width removed to let it fill the flex item
   min-height: 350px;
-  margin: 0 auto 1.5rem;
+  background-color: var(--gray-50);
+  // Add subtle grid pattern
+  background-image:
+    linear-gradient(45deg, var(--gray-200) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--gray-200) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--gray-200) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--gray-200) 75%);
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
 
   // The actual image that Cropper.js will transform
   .cropper-image {
@@ -33,10 +74,8 @@
     align-items: center;
     justify-content: center;
     min-height: 350px;
-    background-color: var(--gray-100);
-    border-radius: 8px;
-    color: var(--gray-500);
     width: 100%;
+    color: var(--gray-500);
 
     p {
       margin: 0;
@@ -49,12 +88,142 @@
   }
 }
 
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+
+  .zoom-slider {
+    flex: 1;
+    max-width: 200px;
+    height: 6px;
+    background: var(--gray-300);
+    border-radius: 3px;
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--teal-500);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--teal-500);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+.cropper-sidebar {
+  display: flex;
+  justify-content: center;
+
+  @media (min-width: 600px) {
+    width: 150px;
+    flex-shrink: 0;
+    padding-top: 3rem; // Align roughly with crop center
+  }
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.preview-label {
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.preview-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--gray-100);
+  border: 4px solid white;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--gray-200);
+  }
+}
+
+.icon-button {
+  width: 44px; // Mobile friendly touch target
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  background-color: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+
+  &:hover {
+    background-color: var(--gray-50);
+    color: var(--teal-600);
+    border-color: var(--teal-500);
+  }
+
+  &:active {
+    background-color: var(--teal-50);
+  }
+}
+
 // Override Cropper.js styles for branding
 :host ::ng-deep {
   // Style the crop box border with teal accent
   .cropper-view-box {
-    outline: 3px solid var(--teal-500);
-    outline-offset: -3px;
+    outline: 2px solid var(--teal-500);
+    outline-offset: -1px;
+    border-radius: 0; // Square crop
+  }
+
+  // Make the face darker outside the crop box
+  .cropper-modal {
+    opacity: 0.6;
+    background-color: black;
   }
 
   // Style the center indicator
@@ -66,13 +235,17 @@
   // Style crop box corner points
   .cropper-point {
     background-color: var(--teal-500);
-    opacity: 0.9;
+    width: 8px;
+    height: 8px;
+    opacity: 1;
   }
 
   // Style the crop box lines
   .cropper-line {
-    background-color: var(--teal-500);
-    opacity: 0.6;
+    background-color: transparent; // Hide grid lines for cleaner look
+    &.line-dashed {
+      border-color: rgba(255, 255, 255, 0.5);
+    }
   }
 }
 
@@ -82,4 +255,12 @@
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
+
+  @media (max-width: 400px) {
+    flex-direction: column;
+
+    .button {
+      width: 100%;
+    }
+  }
 }
