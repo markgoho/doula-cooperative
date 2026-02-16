@@ -1,4 +1,4 @@
-import type { UploadResponse } from "imagekit/dist/libs/interfaces/UploadResponse.js";
+import type ImageKit from "@imagekit/nodejs";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
@@ -48,10 +48,10 @@ export async function uploadImageLogic({
       };
     }
 
-    let uploadResult: UploadResponse;
+    let uploadResult: ImageKit.FileUploadResponse;
     try {
       const imagekit = getImageKitClient();
-      uploadResult = await imagekit.upload({
+      uploadResult = await imagekit.files.upload({
         file: imageData,
         fileName: `${slug}-profile`,
         folder: `/doulas/${slug}`,
@@ -78,6 +78,17 @@ export async function uploadImageLogic({
       return {
         error: "Failed to upload image. Please try again.",
       };
+    }
+
+    if (!uploadResult.url) {
+      logger.error("ImageKit upload returned no URL", {
+        errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_FAILED,
+        uid,
+        slug,
+        fileId: uploadResult.fileId,
+      });
+      set.status = 500;
+      return { error: "Failed to upload image. Please try again." };
     }
 
     return { success: true, url: uploadResult.url };

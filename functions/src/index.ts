@@ -9,7 +9,7 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { onRequest } from "firebase-functions/v2/https";
-import { IMAGEKIT_SECRETS } from "./constants/imagekit-secrets.js";
+import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";

@@ -31,7 +31,7 @@ export async function imagekitAuthLogic({
 
     // Get ImageKit client and generate auth parameters
     const imagekit = getImageKitClient();
-    const authParameters = imagekit.getAuthenticationParameters();
+    const authParameters = imagekit.helper.getAuthenticationParameters();
 
     logger.info("ImageKit auth parameters generated", {
       uid,

@@ -1,7 +1,5 @@
-import ImageKit from "imagekit";
+import ImageKit from "@imagekit/nodejs";
 import { HttpError } from "../../shared-api/errors/http-error.js";
-
-const IMAGEKIT_ENDPOINT = "https://ik.imagekit.io/doulacoop";
 
 let cachedClient: ImageKit | undefined;
 
@@ -15,20 +13,12 @@ export function getImageKitClient(): ImageKit {
   }
 
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
-  const publicKey = process.env["IMAGEKIT_PUBLIC_KEY"];
 
-  if (!privateKey || !publicKey) {
-    throw new HttpError(
-      "Missing ImageKit configuration (private or public key)",
-      500,
-    );
+  if (!privateKey) {
+    throw new HttpError("Missing ImageKit configuration (private key)", 500);
   }
 
-  cachedClient = new ImageKit({
-    privateKey,
-    publicKey,
-    urlEndpoint: IMAGEKIT_ENDPOINT,
-  });
+  cachedClient = new ImageKit({ privateKey });
 
   return cachedClient;
 }

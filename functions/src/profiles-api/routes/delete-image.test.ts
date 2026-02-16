@@ -7,7 +7,6 @@ import {
 
 // Set module-level environment variables for ImageKit
 process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
-process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
 
 /**
  * Tests for DELETE /:slug/image (delete profile image).
@@ -59,8 +58,8 @@ describe("DELETE /:slug/image (delete profile image)", () => {
 
     void mock.module("../utils/imagekit-client.js", () => ({
       getImageKitClient: () => ({
-        listFiles: mockListFiles,
-        deleteFile: mockDeleteFile,
+        assets: { list: mockListFiles },
+        files: { delete: mockDeleteFile },
       }),
     }));
 

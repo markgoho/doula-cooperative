@@ -8,7 +8,6 @@ import { _resetImageKitClient } from "../utils/imagekit-client.js";
 
 // Set ImageKit env vars for tests
 process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
-process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
 
 /**
  * Tests for POST /:slug/image (upload profile image).
@@ -69,14 +68,13 @@ describe("POST /:slug/image (upload profile image)", () => {
     void mock.module("../utils/imagekit-client.js", () => ({
       getImageKitClient: () => {
         const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
-        const publicKey = process.env["IMAGEKIT_PUBLIC_KEY"];
-        if (!privateKey || !publicKey) {
+        if (!privateKey) {
           throw Object.assign(
-            new Error("Missing ImageKit configuration (private or public key)"),
+            new Error("Missing ImageKit configuration (private key)"),
             { status: 500 },
           );
         }
-        return { upload: mockUpload };
+        return { files: { upload: mockUpload } };
       },
       _resetImageKitClient: () => {
         /* noop */
@@ -259,24 +257,6 @@ describe("POST /:slug/image (upload profile image)", () => {
 
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PRIVATE_KEY"] = originalValue;
-      }
-      _resetImageKitClient();
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toBeDefined();
-    });
-
-    it("should return 500 when IMAGEKIT_PUBLIC_KEY is missing", async () => {
-      const originalValue = process.env["IMAGEKIT_PUBLIC_KEY"];
-      delete process.env["IMAGEKIT_PUBLIC_KEY"];
-      _resetImageKitClient();
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["IMAGEKIT_PUBLIC_KEY"] = originalValue;
       }
       _resetImageKitClient();
 

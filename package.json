@@ -28,7 +28,7 @@
     "eslint": "^9.39.2",
     "eslint-plugin-unicorn": "^62.0.0",
     "firebase-tools": "^15.6.0",
-    "imagekit": "^6.0.0",
+    "@imagekit/nodejs": "^7.3.0",
     "prettier": "^3.8.1",
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.3.0",

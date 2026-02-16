@@ -1,12 +1,11 @@
 #!/usr/bin/env bun
 import { Glob } from "bun";
 
-const IMAGEKIT_PUBLIC_KEY = process.env["IMAGEKIT_PUBLIC_KEY"] ?? "";
 const IMAGEKIT_PRIVATE_KEY = process.env["IMAGEKIT_PRIVATE_KEY"] ?? "";
 
-if (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY) {
+if (!IMAGEKIT_PRIVATE_KEY) {
   console.error(
-    "Missing IMAGEKIT_PUBLIC_KEY or IMAGEKIT_PRIVATE_KEY. Bun loads these from .env automatically.",
+    "Missing IMAGEKIT_PRIVATE_KEY. Bun loads these from .env automatically.",
   );
   process.exit(1);
 }
@@ -51,18 +50,16 @@ async function uploadToImageKit(
     return;
   }
 
-  const { default: ImageKitClient } = await import("imagekit");
+  const { default: ImageKitClient } = await import("@imagekit/nodejs");
 
   const imagekit = new ImageKitClient({
-    publicKey: IMAGEKIT_PUBLIC_KEY,
     privateKey: IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: "https://ik.imagekit.io/doulacoop",
   });
 
   const imageBuffer = await Bun.file(imagePath).arrayBuffer();
   const imageBase64 = Buffer.from(imageBuffer).toString("base64");
 
-  await imagekit.upload({
+  await imagekit.files.upload({
     file: imageBase64,
     fileName: `${slug}-profile`,
     folder: `/doulas/${slug}`,

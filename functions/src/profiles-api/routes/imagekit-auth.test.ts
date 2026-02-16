@@ -1,5 +1,5 @@
+import ImageKit from "@imagekit/nodejs";
 import { describe, expect, it, mock } from "bun:test";
-import ImageKit from "imagekit";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import {
@@ -15,8 +15,6 @@ void mock.module("../utils/imagekit-client.js", () => ({
   getImageKitClient: () => {
     realClient ??= new ImageKit({
       privateKey: process.env["IMAGEKIT_PRIVATE_KEY"] ?? "",
-      publicKey: process.env["IMAGEKIT_PUBLIC_KEY"] ?? "",
-      urlEndpoint: "https://ik.imagekit.io/doulacoop",
     });
     return realClient;
   },
@@ -28,7 +26,6 @@ void mock.module("../utils/imagekit-client.js", () => ({
 describe("GET /auth (ImageKit auth)", () => {
   // Ensure env vars are set for tests
   process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
-  process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
 
   interface SetupOptions {
     authToken?: string | null;
@@ -139,24 +136,6 @@ describe("GET /auth (ImageKit auth)", () => {
 
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PRIVATE_KEY"] = originalValue;
-      }
-      _resetImageKitClient();
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("ImageKit");
-    });
-
-    it("should return 500 when IMAGEKIT_PUBLIC_KEY is missing", async () => {
-      const originalValue = process.env["IMAGEKIT_PUBLIC_KEY"];
-      delete process.env["IMAGEKIT_PUBLIC_KEY"];
-      _resetImageKitClient();
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["IMAGEKIT_PUBLIC_KEY"] = originalValue;
       }
       _resetImageKitClient();
 

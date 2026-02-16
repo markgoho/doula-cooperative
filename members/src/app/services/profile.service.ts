@@ -288,11 +288,7 @@ export class ProfileService {
     }
 
     try {
-      await firstValueFrom(
-        this.http.delete<{ success: boolean; deletedFiles: string[] }>(
-          `/api/profiles/${slug}/image`,
-        ),
-      );
+      await firstValueFrom(this.http.delete<{ success: boolean }>(`/api/profiles/${slug}/image`));
 
       // Set optimistic state to show image as deleted immediately
       this.saveOptimisticState({ deleted: true, slug });

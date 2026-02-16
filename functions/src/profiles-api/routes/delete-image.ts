@@ -31,7 +31,7 @@ export async function deleteImageLogic({
     const expectedPath = `/doulas/${slug}/${slug}-profile`;
     try {
       const imagekit = getImageKitClient();
-      const results = await imagekit.listFiles({
+      const results = await imagekit.assets.list({
         searchQuery: `name="${slug}-profile"`,
         path: `/doulas/${slug}`,
         limit: 1,
@@ -39,7 +39,7 @@ export async function deleteImageLogic({
 
       const firstResult = results[0];
       if (firstResult && "fileId" in firstResult) {
-        await imagekit.deleteFile(firstResult.fileId);
+        await imagekit.files.delete(firstResult.fileId);
         logger.info("Successfully deleted image from ImageKit", {
           uid,
           slug,

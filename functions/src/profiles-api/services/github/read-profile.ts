@@ -3,6 +3,7 @@ import { load } from "js-yaml";
 import { App } from "octokit";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { GITHUB_OWNER, GITHUB_REPO } from "../../../constants/github-config.js";
+import { IMAGEKIT_BASE_URL } from "../../../constants/imagekit.js";
 import {
   HttpError,
   NotFoundError,
@@ -111,8 +112,6 @@ async function getOctokit() {
 
   return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
 }
-
-const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/doulacoop";
 
 /**
  * Read a profile's content from GitHub.
