@@ -40,18 +40,15 @@
 {{- if eq .Type "doulas" -}}
   <meta property="og:type" content="profile" />
 
-  {{ with .Params.imagekit_path }}
+  {{ $slug := path.Base .File.Dir }}
+  {{ $profileImage := printf "%s-profile-300.avif" $slug }}
+  {{ with .Resources.GetMatch $profileImage }}
     <meta
       property="og:image"
-      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/{{ . }}" />
+      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
     <meta
       name="twitter:image"
-      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/{{ . }}" />
-  {{ else }}
-    {{ with .Resources.GetMatch "*profile.jpg" }}
-      <meta property="og:image" content="{{ .Permalink }}" />
-      <meta name="twitter:image" content="{{ .Permalink }}" />
-    {{ end }}
+      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
   {{ end }}
 
 {{ else }}

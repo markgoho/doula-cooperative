@@ -11,14 +11,12 @@ import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { ReadProfileResponse } from "./interface.js";
 
 /** Front matter fields parsed from YAML (superset of ProfileData fields). */
-interface ParsedFrontMatter extends Partial<ProfileData> {
-  imagekit_path?: string;
-}
+type ParsedFrontMatter = Partial<ProfileData>;
 
 /**
  * Parse profile markdown content into structured ProfileData.
  * Extracts YAML front matter and markdown body.
- * If imagekit_path is present in front matter, derives the ImageKit URL.
+ * Image URL is derived deterministically from the slug.
  */
 function parseProfileMarkdown(content: string, slug: string): ProfileData {
   // Parse front matter (YAML between --- markers)
@@ -88,10 +86,8 @@ function parseProfileMarkdown(content: string, slug: string): ProfileData {
     data.contact = parsed.contact;
   }
 
-  // Derive image URL from front matter imagekit_path (source of truth)
-  if (parsed.imagekit_path) {
-    data.image = `${IMAGEKIT_BASE_URL}/${parsed.imagekit_path}`;
-  }
+  // Derive deterministic ImageKit URL from slug
+  data.image = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
 
   return data;
 }
@@ -120,7 +116,7 @@ const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/doulacoop";
 
 /**
  * Read a profile's content from GitHub.
- * Image URL is derived from front matter imagekit_path field.
+ * Image URL is derived deterministically from the slug.
  */
 export async function readProfile(options: {
   slug: string;

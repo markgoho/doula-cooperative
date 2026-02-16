@@ -9,11 +9,6 @@ import {
 process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
 process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
 
-// Set GitHub env vars for tests (for front matter update)
-process.env["GITHUB_APP_ID"] = "123456";
-process.env["GITHUB_PRIVATE_KEY"] = "fake-private-key-for-testing";
-process.env["GITHUB_INSTALLATION_ID"] = "789012";
-
 /**
  * Tests for POST /:slug/image (upload profile image).
  * Served at /api/profiles/:slug/image via Firebase rewrite.
@@ -174,16 +169,6 @@ describe("POST /:slug/image (upload profile image)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
-    });
-  });
-
-  describe("GitHub configuration", () => {
-    it("should succeed even when GitHub secrets are missing (soft failure for front matter update)", () => {
-      // This test would require actually mocking ImageKit upload to succeed
-      // Then checking that GitHub front matter failure doesn't fail the request
-      // For now, skip this test as it's integration-level behavior
-      // Unit tests focus on hard failures (auth, validation, ImageKit config)
-      expect(true).toBe(true);
     });
   });
 

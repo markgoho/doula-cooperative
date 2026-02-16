@@ -21,11 +21,4 @@ export interface ProfileGitHubService {
     slug: string;
     data: ProfileData;
   }): Promise<WriteProfileResponse>;
-
-  updateFrontMatterImagePath(options: {
-    slug: string;
-    imagekitPath: string;
-  }): Promise<void>;
-
-  removeFrontMatterImagePath(options: { slug: string }): Promise<void>;
 }

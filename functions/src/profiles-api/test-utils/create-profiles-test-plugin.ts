@@ -86,8 +86,6 @@ export function createProfilesTestPlugin(overrides?: {
     ),
     writeProfile: mock(() => Promise.resolve({ success: true as const })),
     createProfile: mock(() => Promise.resolve({ success: true as const })),
-    updateFrontMatterImagePath: mock(() => Promise.resolve()),
-    removeFrontMatterImagePath: mock(() => Promise.resolve()),
     ...overrides?.profileGitHubService,
   };
 

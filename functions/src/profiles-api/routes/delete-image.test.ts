@@ -76,14 +76,9 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockRemoveFrontMatterImagePath = mock(() => Promise.resolve());
-
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
-      },
-      profileGitHubService: {
-        removeFrontMatterImagePath: mockRemoveFrontMatterImagePath,
       },
     });
 
@@ -102,7 +97,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       request,
       mockDeleteFile,
       mockListFiles,
-      mockRemoveFrontMatterImagePath,
     };
   }
 
@@ -152,13 +146,7 @@ describe("DELETE /:slug/image (delete profile image)", () => {
 
   describe("Success cases", () => {
     it("should search ImageKit and delete the found file", async () => {
-      const {
-        testApp,
-        request,
-        mockListFiles,
-        mockDeleteFile,
-        mockRemoveFrontMatterImagePath,
-      } = setup();
+      const { testApp, request, mockListFiles, mockDeleteFile } = setup();
 
       const response = await handleRequest(testApp, request);
 
@@ -168,9 +156,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
 
       expect(mockListFiles).toHaveBeenCalled();
       expect(mockDeleteFile).toHaveBeenCalledWith("ik-file-123");
-      expect(mockRemoveFrontMatterImagePath).toHaveBeenCalledWith({
-        slug: "test-user",
-      });
     });
 
     it("should succeed when no ImageKit file is found (already deleted)", async () => {

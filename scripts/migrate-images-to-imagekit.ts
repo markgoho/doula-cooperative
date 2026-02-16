@@ -16,7 +16,6 @@ interface MigrationResult {
   slug: string;
   status: "success" | "skipped" | "error";
   reason?: string;
-  imagekitPath?: string;
 }
 
 // Find source image in profile directory (priority order)
@@ -37,54 +36,19 @@ async function findSourceImage(
   return undefined;
 }
 
-// Check if front matter already has imagekit_path
-async function hasImagekitPath(markdownPath: string): Promise<boolean> {
-  try {
-    const content = await Bun.file(markdownPath).text();
-    return content.includes("imagekit_path:");
-  } catch {
-    return false;
-  }
-}
-
-// Surgically insert imagekit_path into front matter
-async function insertImagekitPath(
-  markdownPath: string,
-  imagekitPath: string,
-  dryRun: boolean,
-): Promise<void> {
-  const content = await Bun.file(markdownPath).text();
-
-  // Find closing --- (skip opening ---)
-  const frontMatterEnd = content.indexOf("\n---\n", 4);
-  if (frontMatterEnd === -1) {
-    throw new Error("No front matter closing --- found");
-  }
-
-  // Insert before closing ---
-  const beforeClosing = content.slice(0, frontMatterEnd + 1);
-  const afterClosing = content.slice(frontMatterEnd + 1);
-  const newContent =
-    beforeClosing + `imagekit_path: "${imagekitPath}"\n` + afterClosing;
-
-  if (!dryRun) {
-    await Bun.write(markdownPath, newContent);
-  }
-}
-
-// Upload image to ImageKit
+// Upload image to ImageKit with deterministic path (overwrites existing)
 async function uploadToImageKit(
   imagePath: string,
   slug: string,
   dryRun: boolean,
-): Promise<{ path: string }> {
+): Promise<void> {
   const imagekitPath = `/doulas/${slug}/${slug}-profile`;
 
   if (dryRun) {
     console.log(
       `  [DRY RUN] Would upload ${imagePath} to ImageKit at ${imagekitPath}`,
     );
-    return { path: imagekitPath };
+    return;
   }
 
   const { default: ImageKitClient } = await import("imagekit");
@@ -98,13 +62,12 @@ async function uploadToImageKit(
   const imageBuffer = await Bun.file(imagePath).arrayBuffer();
   const imageBase64 = Buffer.from(imageBuffer).toString("base64");
 
-  const result = await imagekit.upload({
+  await imagekit.upload({
     file: imageBase64,
     fileName: `${slug}-profile`,
     folder: `/doulas/${slug}`,
+    useUniqueFileName: false, // Deterministic path — no random suffix
   });
-
-  return { path: result.filePath };
 }
 
 // Process single profile
@@ -115,14 +78,6 @@ async function processProfile(
 ): Promise<MigrationResult> {
   console.log(`\nProcessing: ${slug}`);
 
-  const markdownPath = `${profileDirectory}/index.md`;
-
-  // Check if already migrated
-  if (await hasImagekitPath(markdownPath)) {
-    console.log("  Skipped: Already has imagekit_path");
-    return { slug, status: "skipped", reason: "already_migrated" };
-  }
-
   // Find source image
   const imagePath = await findSourceImage(profileDirectory, slug);
   if (!imagePath) {
@@ -131,19 +86,10 @@ async function processProfile(
   }
 
   try {
-    // Upload to ImageKit
-    const { path: imagekitPath } = await uploadToImageKit(
-      imagePath,
-      slug,
-      dryRun,
-    );
-    console.log(`  Uploaded to ImageKit: ${imagekitPath}`);
+    await uploadToImageKit(imagePath, slug, dryRun);
+    console.log(`  Uploaded to ImageKit: /doulas/${slug}/${slug}-profile`);
 
-    // Insert into front matter
-    await insertImagekitPath(markdownPath, imagekitPath, dryRun);
-    console.log(`  Updated front matter`);
-
-    return { slug, status: "success", imagekitPath };
+    return { slug, status: "success" };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`  Error: ${errorMessage}`);

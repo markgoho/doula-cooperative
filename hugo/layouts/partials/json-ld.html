@@ -4,12 +4,10 @@
   "@type": "Person",
   "name": "{{ .Title }}",
   "url": "{{ .Permalink }}",
-  {{- with .Params.imagekit_path -}}
-  "image": "https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/{{ . }}",
-  {{- else -}}
   {{- $slug := path.Base .File.Dir -}}
-  {{ $profileImage := printf "%s-profile-600.avif" $slug }}
-  {{ with .Resources.GetMatch $profileImage }}"image": "{{ .Permalink }}",{{ end }}
+  {{- $profileImage := printf "%s-profile-600.avif" $slug -}}
+  {{- with .Resources.GetMatch $profileImage -}}
+  "image": "https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile",
   {{- end -}}
   "description": "{{ .Summary | plainify | safeJS }}",
   "jobTitle": "Doula",
