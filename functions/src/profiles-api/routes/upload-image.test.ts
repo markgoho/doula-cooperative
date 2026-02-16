@@ -38,6 +38,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     // Scenario flags
     memberHasNoSlug?: boolean;
     unexpectedError?: boolean;
+    uploadFails?: boolean;
   }
 
   function setup({
@@ -46,7 +47,42 @@ describe("POST /:slug/image (upload profile image)", () => {
     authToken = "valid-token",
     memberHasNoSlug = false,
     unexpectedError = false,
+    uploadFails = false,
   }: SetupOptions = {}) {
+    const mockUpload = mock(() => {
+      if (uploadFails) {
+        throw new Error("ImageKit upload failed");
+      }
+      return Promise.resolve({
+        fileId: "ik-file-456",
+        name: "test-user-profile",
+        url: "https://ik.imagekit.io/doulacoop/doulas/test-user/test-user-profile",
+        filePath: "/doulas/test-user/test-user-profile",
+        thumbnailUrl: "",
+        height: 800,
+        width: 600,
+        size: 12_345,
+        fileType: "image",
+      });
+    });
+
+    void mock.module("../utils/imagekit-client.js", () => ({
+      getImageKitClient: () => {
+        const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
+        const publicKey = process.env["IMAGEKIT_PUBLIC_KEY"];
+        if (!privateKey || !publicKey) {
+          throw Object.assign(
+            new Error("Missing ImageKit configuration (private or public key)"),
+            { status: 500 },
+          );
+        }
+        return { upload: mockUpload };
+      },
+      _resetImageKitClient: () => {
+        /* noop */
+      },
+    }));
+
     // Configure mocks based on scenario flags
     const mockVerifyMembership = mock(() => {
       if (unexpectedError) {
@@ -80,7 +116,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request };
+    return { testApp, request, mockUpload };
   }
 
   describe("Authentication", () => {
@@ -153,6 +189,62 @@ describe("POST /:slug/image (upload profile image)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
+    });
+  });
+
+  describe("Success cases", () => {
+    it("should upload image and return URL on success", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        url?: string;
+      };
+      expect(body.success).toBe(true);
+      expect(body.url).toContain("ik.imagekit.io");
+    });
+
+    it("should pass pre-transformation to resize images on upload", async () => {
+      const { testApp, request, mockUpload } = setup();
+
+      await handleRequest(testApp, request);
+
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transformation: {
+            pre: "w-2400,h-2400",
+          },
+        }),
+      );
+    });
+
+    it("should upload with correct fileName and folder for the slug", async () => {
+      const { testApp, request, mockUpload } = setup();
+
+      await handleRequest(testApp, request);
+
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fileName: "test-user-profile",
+          folder: "/doulas/test-user",
+          useUniqueFileName: false,
+        }),
+      );
+    });
+  });
+
+  describe("ImageKit upload errors", () => {
+    it("should return 500 when ImageKit upload fails", async () => {
+      const { testApp, request } = setup({ uploadFails: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("Failed to upload image");
     });
   });
 

@@ -56,6 +56,9 @@ export async function uploadImageLogic({
         fileName: `${slug}-profile`,
         folder: `/doulas/${slug}`,
         useUniqueFileName: false,
+        transformation: {
+          pre: "w-2400,h-2400",
+        },
       });
 
       logger.info("Image uploaded to ImageKit successfully", {
