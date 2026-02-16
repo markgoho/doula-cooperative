@@ -42,13 +42,22 @@
       </div>
     }
 
-    <!-- Cropping State -->
-    @if (editorState() === 'cropping' && selectedFile()) {
-      <app-image-cropper
-        [sourceImage]="selectedFile()!"
-        (cropConfirmed)="onCropConfirmed($event)"
-        (cancelled)="onCropCancelled()"
-      />
+    <!-- Selecting State -->
+    @if (editorState() === 'selecting' && previewUrl()) {
+      <div class="preview-state">
+        <h2>Preview</h2>
+        <div class="preview-image-container">
+          <img [src]="previewUrl()" alt="Preview" class="profile-image-preview" />
+        </div>
+        <div class="actions">
+          <button type="button" class="button button--secondary" (click)="cancelSelection()">
+            Cancel
+          </button>
+          <button type="button" class="button button--primary" (click)="uploadSelectedFile()">
+            Upload Photo
+          </button>
+        </div>
+      </div>
     } @else if (editorState() === 'uploading') {
       <!-- Uploading State -->
       <div class="processing-state">
@@ -74,12 +83,6 @@
             Remove Photo
           </button>
         </div>
-      </div>
-    } @else if (editorState() === 'loading-existing') {
-      <!-- Loading Existing Image -->
-      <div class="processing-state">
-        <div class="spinner" aria-hidden="true"></div>
-        <p>Loading your photo for editing...</p>
       </div>
     } @else {
       <!-- Viewing State -->
@@ -111,12 +114,6 @@
 
       <!-- Action Buttons -->
       <div class="actions">
-        @if (profile.image) {
-          <button type="button" class="button button--primary" (click)="loadExistingImage()">
-            Edit Photo
-          </button>
-        }
-
         <label
           for="image-upload"
           class="button {{ profile.image ? 'button--secondary' : 'button--primary' }}"

@@ -9,6 +9,7 @@
 
 import { getApps, initializeApp } from "firebase-admin/app";
 import { onRequest } from "firebase-functions/v2/https";
+import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
@@ -75,7 +76,7 @@ export const adminUnclaimedProfilesApi = onRequest(
 
 // Profiles API (members.doulacooperative.com)
 export const profilesApi = onRequest(
-  { invoker: "public", secrets: PROFILE_SECRETS },
+  { invoker: "public", secrets: [...PROFILE_SECRETS, ...IMAGEKIT_SECRETS] },
   async (request, response) => {
     const { handleProfilesApi } = await import("./profiles-api/handler.js");
     await handleProfilesApi(request, response);

@@ -145,16 +145,6 @@ export const SlugParameterSchema = t.Object({
 export type SlugParameter = Static<typeof SlugParameterSchema>;
 
 /**
- * Crop data schema for image uploads.
- */
-export const CropDataSchema = t.Object({
-  x: t.Number({ minimum: 0, error: "X coordinate must be >= 0" }),
-  y: t.Number({ minimum: 0, error: "Y coordinate must be >= 0" }),
-  width: t.Number({ minimum: 1, error: "Width must be > 0" }),
-  height: t.Number({ minimum: 1, error: "Height must be > 0" }),
-});
-
-/**
  * Upload profile image request schema.
  */
 export const UploadProfileImageBodySchema = t.Object({
@@ -167,7 +157,6 @@ export const UploadProfileImageBodySchema = t.Object({
     error:
       "Invalid image type. Allowed types: image/jpeg, image/png, image/webp",
   }),
-  cropData: CropDataSchema,
 });
 
 /**
@@ -330,6 +319,7 @@ export type ClaimProfileResponse = Static<typeof ClaimProfileResponseSchema>;
  */
 const UploadImageSuccessSchema = t.Object({
   success: t.Literal(true),
+  url: t.String(),
 });
 
 export type UploadImageSuccessResponse = Static<
@@ -349,7 +339,6 @@ export type UploadImageResponse = Static<typeof UploadImageResponseSchema>;
  */
 const DeleteImageSuccessSchema = t.Object({
   success: t.Literal(true),
-  deletedFiles: t.Array(t.String()),
 });
 
 export type DeleteImageSuccessResponse = Static<
@@ -362,3 +351,24 @@ export const DeleteImageResponseSchema = t.Union([
 ]);
 
 export type DeleteImageResponse = Static<typeof DeleteImageResponseSchema>;
+
+/**
+ * Success response for ImageKit auth endpoint.
+ * GET /api/profiles/auth
+ */
+const ImageKitAuthSuccessSchema = t.Object({
+  token: t.String(),
+  expire: t.Number(),
+  signature: t.String(),
+});
+
+export type ImageKitAuthSuccessResponse = Static<
+  typeof ImageKitAuthSuccessSchema
+>;
+
+export const ImageKitAuthResponseSchema = t.Union([
+  ImageKitAuthSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type ImageKitAuthResponse = Static<typeof ImageKitAuthResponseSchema>;

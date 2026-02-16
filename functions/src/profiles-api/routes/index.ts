@@ -19,3 +19,6 @@ export { claimProfileLogic } from "./claim-profile.js";
 export { uploadImageLogic } from "./upload-image.js";
 
 export { deleteImageLogic } from "./delete-image.js";
+
+export type { ImageKitAuthResponse } from "../schemas/profile-schemas.js";
+export { imagekitAuthLogic } from "./imagekit-auth.js";

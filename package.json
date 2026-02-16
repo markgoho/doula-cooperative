@@ -19,13 +19,16 @@
     "functions:start": "cd functions && bun run build:watch",
     "start": "bun run --parallel emulators:start functions:start angular:start hugo:dev",
     "start:prod": "VITE_USE_PRODUCTION=true bun run angular:start",
-    "e2e": "cd members && bun run e2e"
+    "e2e": "cd members && bun run e2e",
+    "migrate:imagekit": "bun scripts/migrate-images-to-imagekit.ts",
+    "migrate:imagekit:dry": "bun scripts/migrate-images-to-imagekit.ts --dry-run"
   },
   "devDependencies": {
     "@types/bun": "^1.3.9",
     "eslint": "^9.39.2",
     "eslint-plugin-unicorn": "^62.0.0",
     "firebase-tools": "^15.6.0",
+    "@imagekit/nodejs": "^7.3.0",
     "prettier": "^3.8.1",
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-organize-imports": "^4.3.0",

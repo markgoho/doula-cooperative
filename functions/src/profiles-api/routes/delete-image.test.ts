@@ -5,24 +5,26 @@ import {
   mockMemberDocument,
 } from "../test-utils/create-profiles-test-plugin.js";
 
+// Set module-level environment variables for ImageKit
+process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
+
 /**
- * Tests for DELETE /me/image (delete profile image).
- * Served at /api/profiles/me/image via Firebase rewrite.
+ * Tests for DELETE /:slug/image (delete profile image).
+ * Served at /api/profiles/:slug/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  *
- * Note: These tests focus on HTTP contract (authentication, error responses).
- * Actual GitHub deletion logic is tested in integration tests
- * that run with mocked GitHub API.
+ * Tests verify ImageKit search + deletion and error handling.
+ * GitHub front matter update is a soft failure — not tested at unit level.
  */
 describe("DELETE /:slug/image (delete profile image)", () => {
   interface SetupOptions {
-    // Request parameters
     slug?: string;
     authToken?: string | null;
 
-    // Scenario flags
     memberHasNoSlug?: boolean;
+    imagekitListReturnsEmpty?: boolean;
+    imagekitDeleteFails?: boolean;
     unexpectedError?: boolean;
   }
 
@@ -30,9 +32,37 @@ describe("DELETE /:slug/image (delete profile image)", () => {
     slug = "test-user",
     authToken = "valid-token",
     memberHasNoSlug = false,
+    imagekitListReturnsEmpty = false,
+    imagekitDeleteFails = false,
     unexpectedError = false,
   }: SetupOptions = {}) {
-    // Configure mocks based on scenario flags
+    const mockDeleteFile = mock(() => {
+      if (imagekitDeleteFails) {
+        throw new Error("ImageKit deletion failed");
+      }
+      return Promise.resolve();
+    });
+
+    const mockListFiles = mock(() => {
+      if (imagekitListReturnsEmpty) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([
+        {
+          fileId: "ik-file-123",
+          name: "test-user-profile",
+          filePath: "/doulas/test-user/test-user-profile",
+        },
+      ]);
+    });
+
+    void mock.module("../utils/imagekit-client.js", () => ({
+      getImageKitClient: () => ({
+        assets: { list: mockListFiles },
+        files: { delete: mockDeleteFile },
+      }),
+    }));
+
     const mockVerifyMembership = mock(() => {
       if (unexpectedError) {
         throw new Error("Unexpected database error");
@@ -51,7 +81,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       },
     });
 
-    // Build request from parameters
     const headers: Record<string, string> = {};
     if (authToken) {
       headers["Authorization"] = `Bearer ${authToken}`;
@@ -62,7 +91,12 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       headers,
     });
 
-    return { testApp, request };
+    return {
+      testApp,
+      request,
+      mockDeleteFile,
+      mockListFiles,
+    };
   }
 
   describe("Authentication", () => {
@@ -109,7 +143,49 @@ describe("DELETE /:slug/image (delete profile image)", () => {
     });
   });
 
+  describe("Success cases", () => {
+    it("should search ImageKit and delete the found file", async () => {
+      const { testApp, request, mockListFiles, mockDeleteFile } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success?: boolean };
+      expect(body.success).toBe(true);
+
+      expect(mockListFiles).toHaveBeenCalled();
+      expect(mockDeleteFile).toHaveBeenCalledWith("ik-file-123");
+    });
+
+    it("should succeed when no ImageKit file is found (already deleted)", async () => {
+      const { testApp, request, mockDeleteFile, mockListFiles } = setup({
+        imagekitListReturnsEmpty: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success?: boolean };
+      expect(body.success).toBe(true);
+
+      expect(mockListFiles).toHaveBeenCalled();
+      expect(mockDeleteFile).not.toHaveBeenCalled();
+    });
+  });
+
   describe("Error handling", () => {
+    it("should return 500 when ImageKit deletion fails", async () => {
+      const { testApp, request } = setup({
+        imagekitDeleteFails: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("delete profile image");
+    });
+
     it("should return 500 on unexpected errors", async () => {
       const { testApp, request } = setup({ unexpectedError: true });
 
@@ -118,58 +194,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
-    });
-  });
-
-  describe("GitHub configuration", () => {
-    it("should return 500 when GITHUB_APP_ID is missing", async () => {
-      // Save and clear the environment variable
-      const originalValue = process.env["GITHUB_APP_ID"];
-      delete process.env["GITHUB_APP_ID"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      // Restore the environment variable
-      if (originalValue !== undefined) {
-        process.env["GITHUB_APP_ID"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
-    });
-
-    it("should return 500 when GITHUB_PRIVATE_KEY is missing", async () => {
-      const originalValue = process.env["GITHUB_PRIVATE_KEY"];
-      delete process.env["GITHUB_PRIVATE_KEY"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["GITHUB_PRIVATE_KEY"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
-    });
-
-    it("should return 500 when GITHUB_INSTALLATION_ID is missing", async () => {
-      const originalValue = process.env["GITHUB_INSTALLATION_ID"];
-      delete process.env["GITHUB_INSTALLATION_ID"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["GITHUB_INSTALLATION_ID"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
     });
   });
 });

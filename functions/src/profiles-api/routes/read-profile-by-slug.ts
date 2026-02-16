@@ -6,12 +6,6 @@ import type {
   ReadProfileResponse,
 } from "../services/github/interface.js";
 
-/**
- * Route logic for reading a profile by slug (public endpoint).
- * GET /api/profiles/by-slug/:slug
- *
- * No authentication required - profile content is public.
- */
 export async function readProfileBySlugLogic({
   slug,
   profileGitHubService,
@@ -24,8 +18,9 @@ export async function readProfileBySlugLogic({
   set: { status?: number | string };
 }): Promise<ReadProfileResponse | { error: string }> {
   try {
-    // Read profile from GitHub (returns structured ProfileData)
-    const profileData = await profileGitHubService.readProfile({ slug });
+    const profileData = await profileGitHubService.readProfile({
+      slug,
+    });
 
     logger.info("Successfully read profile by slug", { slug });
 

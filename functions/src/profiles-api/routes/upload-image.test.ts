@@ -4,6 +4,10 @@ import {
   createProfilesTestPlugin,
   mockMemberDocument,
 } from "../test-utils/create-profiles-test-plugin.js";
+import { _resetImageKitClient } from "../utils/imagekit-client.js";
+
+// Set ImageKit env vars for tests
+process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
 
 /**
  * Tests for POST /:slug/image (upload profile image).
@@ -12,8 +16,7 @@ import {
  * Uses createProfilesTestPlugin() factory with mocked services.
  *
  * Note: These tests focus on HTTP contract (authentication, validation, error responses).
- * Actual image processing and GitHub upload logic is tested in integration tests
- * that run with emulators and mocked GitHub API.
+ * ImageKit upload is mocked at the SDK level. Integration tests cover actual uploads.
  */
 describe("POST /:slug/image (upload profile image)", () => {
   // Mock base64 image data (1x1 red pixel PNG)
@@ -23,7 +26,6 @@ describe("POST /:slug/image (upload profile image)", () => {
   const validRequest = {
     imageData: mockImageData,
     mimeType: "image/png",
-    cropData: { x: 0, y: 0, width: 100, height: 100 },
   };
 
   interface SetupOptions {
@@ -35,6 +37,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     // Scenario flags
     memberHasNoSlug?: boolean;
     unexpectedError?: boolean;
+    uploadFails?: boolean;
   }
 
   function setup({
@@ -43,7 +46,41 @@ describe("POST /:slug/image (upload profile image)", () => {
     authToken = "valid-token",
     memberHasNoSlug = false,
     unexpectedError = false,
+    uploadFails = false,
   }: SetupOptions = {}) {
+    const mockUpload = mock(() => {
+      if (uploadFails) {
+        throw new Error("ImageKit upload failed");
+      }
+      return Promise.resolve({
+        fileId: "ik-file-456",
+        name: "test-user-profile",
+        url: "https://ik.imagekit.io/doulacoop/doulas/test-user/test-user-profile",
+        filePath: "/doulas/test-user/test-user-profile",
+        thumbnailUrl: "",
+        height: 800,
+        width: 600,
+        size: 12_345,
+        fileType: "image",
+      });
+    });
+
+    void mock.module("../utils/imagekit-client.js", () => ({
+      getImageKitClient: () => {
+        const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
+        if (!privateKey) {
+          throw Object.assign(
+            new Error("Missing ImageKit configuration (private key)"),
+            { status: 500 },
+          );
+        }
+        return { files: { upload: mockUpload } };
+      },
+      _resetImageKitClient: () => {
+        /* noop */
+      },
+    }));
+
     // Configure mocks based on scenario flags
     const mockVerifyMembership = mock(() => {
       if (unexpectedError) {
@@ -77,7 +114,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request };
+    return { testApp, request, mockUpload };
   }
 
   describe("Authentication", () => {
@@ -107,7 +144,6 @@ describe("POST /:slug/image (upload profile image)", () => {
       const { testApp, request } = setup({
         body: {
           mimeType: "image/png",
-          cropData: { x: 0, y: 0, width: 100, height: 100 },
         },
       });
 
@@ -121,21 +157,6 @@ describe("POST /:slug/image (upload profile image)", () => {
         body: {
           imageData: mockImageData,
           mimeType: "image/gif",
-          cropData: { x: 0, y: 0, width: 100, height: 100 },
-        },
-      });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(422);
-    });
-
-    it("should return 422 when cropData is invalid", async () => {
-      const { testApp, request } = setup({
-        body: {
-          imageData: mockImageData,
-          mimeType: "image/png",
-          cropData: { x: -1, y: 0, width: 100, height: 100 },
         },
       });
 
@@ -169,55 +190,79 @@ describe("POST /:slug/image (upload profile image)", () => {
     });
   });
 
-  describe("GitHub configuration", () => {
-    it("should return 500 when GITHUB_APP_ID is missing", async () => {
-      // Save and clear the environment variable
-      const originalValue = process.env["GITHUB_APP_ID"];
-      delete process.env["GITHUB_APP_ID"];
-
+  describe("Success cases", () => {
+    it("should upload image and return URL on success", async () => {
       const { testApp, request } = setup();
+
       const response = await handleRequest(testApp, request);
 
-      // Restore the environment variable
-      if (originalValue !== undefined) {
-        process.env["GITHUB_APP_ID"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        url?: string;
+      };
+      expect(body.success).toBe(true);
+      expect(body.url).toContain("ik.imagekit.io");
     });
 
-    it("should return 500 when GITHUB_PRIVATE_KEY is missing", async () => {
-      const originalValue = process.env["GITHUB_PRIVATE_KEY"];
-      delete process.env["GITHUB_PRIVATE_KEY"];
+    it("should pass pre-transformation to resize images on upload", async () => {
+      const { testApp, request, mockUpload } = setup();
 
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
+      await handleRequest(testApp, request);
 
-      if (originalValue !== undefined) {
-        process.env["GITHUB_PRIVATE_KEY"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transformation: {
+            pre: "w-2400,h-2400",
+          },
+        }),
+      );
     });
 
-    it("should return 500 when GITHUB_INSTALLATION_ID is missing", async () => {
-      const originalValue = process.env["GITHUB_INSTALLATION_ID"];
-      delete process.env["GITHUB_INSTALLATION_ID"];
+    it("should upload with correct fileName and folder for the slug", async () => {
+      const { testApp, request, mockUpload } = setup();
+
+      await handleRequest(testApp, request);
+
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fileName: "test-user-profile",
+          folder: "/doulas/test-user",
+          useUniqueFileName: false,
+        }),
+      );
+    });
+  });
+
+  describe("ImageKit upload errors", () => {
+    it("should return 500 when ImageKit upload fails", async () => {
+      const { testApp, request } = setup({ uploadFails: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("Failed to upload image");
+    });
+  });
+
+  describe("ImageKit configuration", () => {
+    it("should return 500 when IMAGEKIT_PRIVATE_KEY is missing", async () => {
+      const originalValue = process.env["IMAGEKIT_PRIVATE_KEY"];
+      delete process.env["IMAGEKIT_PRIVATE_KEY"];
+      _resetImageKitClient();
 
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
 
       if (originalValue !== undefined) {
-        process.env["GITHUB_INSTALLATION_ID"] = originalValue;
+        process.env["IMAGEKIT_PRIVATE_KEY"] = originalValue;
       }
+      _resetImageKitClient();
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
+      expect(body.error).toBeDefined();
     });
   });
 });

@@ -67,4 +67,12 @@ export interface ProfileMemberService {
    * @param uid - Firebase Auth user ID
    */
   setProfileCreatedAt(uid: string): Promise<void>;
+
+  /**
+   * Get a member document by slug.
+   *
+   * @param slug - Profile slug
+   * @returns Promise with member document or undefined if not found
+   */
+  getMemberBySlug(slug: string): Promise<MemberDocument | undefined>;
 }
