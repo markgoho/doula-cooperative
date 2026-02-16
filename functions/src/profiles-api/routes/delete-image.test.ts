@@ -5,15 +5,17 @@ import {
   mockMemberDocument,
 } from "../test-utils/create-profiles-test-plugin.js";
 
+// Set module-level environment variables for ImageKit
+process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
+process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
+
 /**
  * Tests for DELETE /me/image (delete profile image).
  * Served at /api/profiles/me/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  *
- * Note: These tests focus on HTTP contract (authentication, error responses).
- * Actual GitHub deletion logic is tested in integration tests
- * that run with mocked GitHub API.
+ * Tests verify ImageKit deletion, Firestore updates, and error handling.
  */
 describe("DELETE /:slug/image (delete profile image)", () => {
   interface SetupOptions {
@@ -23,6 +25,8 @@ describe("DELETE /:slug/image (delete profile image)", () => {
 
     // Scenario flags
     memberHasNoSlug?: boolean;
+    memberHasNoImage?: boolean;
+    imagekitDeleteFails?: boolean;
     unexpectedError?: boolean;
   }
 
@@ -30,9 +34,38 @@ describe("DELETE /:slug/image (delete profile image)", () => {
     slug = "test-user",
     authToken = "valid-token",
     memberHasNoSlug = false,
+    memberHasNoImage = false,
+    imagekitDeleteFails = false,
     unexpectedError = false,
   }: SetupOptions = {}) {
-    // Configure mocks based on scenario flags
+    // Mock ImageKit deleteFile
+    const mockDeleteFile = mock(() => {
+      if (imagekitDeleteFails) {
+        throw new Error("ImageKit deletion failed");
+      }
+      return Promise.resolve();
+    });
+
+    // Mock getImageKitClient to return mocked ImageKit instance
+    void mock.module("../utils/imagekit-client.js", () => ({
+      getImageKitClient: () => ({
+        deleteFile: mockDeleteFile,
+      }),
+    }));
+
+    // Mock MemberFirestoreService updateMember
+    const mockUpdateMember = mock(() => Promise.resolve());
+
+    void mock.module(
+      "../../shared-api/services/member-firestore/index.js",
+      () => ({
+        MemberFirestoreService: {
+          updateMember: mockUpdateMember,
+        },
+      }),
+    );
+
+    // Configure member service mocks
     const mockVerifyMembership = mock(() => {
       if (unexpectedError) {
         throw new Error("Unexpected database error");
@@ -45,9 +78,20 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
+    const mockGetMemberBySlug = mock(() => {
+      if (memberHasNoImage) {
+        const memberDocumentWithoutImage = { ...mockMemberDocument };
+        delete memberDocumentWithoutImage.imagekitFileId;
+        delete memberDocumentWithoutImage.imagekitPath;
+        return Promise.resolve(memberDocumentWithoutImage);
+      }
+      return Promise.resolve(mockMemberDocument);
+    });
+
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
+        getMemberBySlug: mockGetMemberBySlug,
       },
     });
 
@@ -62,7 +106,13 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       headers,
     });
 
-    return { testApp, request };
+    return {
+      testApp,
+      request,
+      mockDeleteFile,
+      mockUpdateMember,
+      mockGetMemberBySlug,
+    };
   }
 
   describe("Authentication", () => {
@@ -109,7 +159,67 @@ describe("DELETE /:slug/image (delete profile image)", () => {
     });
   });
 
+  describe("Success cases", () => {
+    it("should delete image from ImageKit and clear Firestore fields", async () => {
+      const { testApp, request, mockDeleteFile, mockUpdateMember } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success?: boolean };
+      expect(body.success).toBe(true);
+
+      // Verify ImageKit deleteFile was called with correct fileId
+      expect(mockDeleteFile).toHaveBeenCalledWith("test-imagekit-file-id");
+
+      // Verify Firestore update was called
+      expect(mockUpdateMember).toHaveBeenCalled();
+    });
+
+    it("should succeed when profile has no image (imagekitFileId is undefined)", async () => {
+      const {
+        testApp,
+        request,
+        mockDeleteFile,
+        mockUpdateMember,
+        mockGetMemberBySlug,
+      } = setup({
+        memberHasNoImage: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success?: boolean };
+      expect(body.success).toBe(true);
+
+      // Verify getMemberBySlug was called
+      expect(mockGetMemberBySlug).toHaveBeenCalled();
+
+      // Verify ImageKit deleteFile was NOT called
+      expect(mockDeleteFile).not.toHaveBeenCalled();
+
+      // Verify Firestore update was NOT called
+      expect(mockUpdateMember).not.toHaveBeenCalled();
+    });
+  });
+
   describe("Error handling", () => {
+    it("should return 500 when ImageKit deletion fails", async () => {
+      const { testApp, request, mockUpdateMember } = setup({
+        imagekitDeleteFails: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("delete profile image");
+
+      // Verify Firestore update was NOT called since ImageKit deletion failed
+      expect(mockUpdateMember).not.toHaveBeenCalled();
+    });
+
     it("should return 500 on unexpected errors", async () => {
       const { testApp, request } = setup({ unexpectedError: true });
 
@@ -118,58 +228,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
-    });
-  });
-
-  describe("GitHub configuration", () => {
-    it("should return 500 when GITHUB_APP_ID is missing", async () => {
-      // Save and clear the environment variable
-      const originalValue = process.env["GITHUB_APP_ID"];
-      delete process.env["GITHUB_APP_ID"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      // Restore the environment variable
-      if (originalValue !== undefined) {
-        process.env["GITHUB_APP_ID"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
-    });
-
-    it("should return 500 when GITHUB_PRIVATE_KEY is missing", async () => {
-      const originalValue = process.env["GITHUB_PRIVATE_KEY"];
-      delete process.env["GITHUB_PRIVATE_KEY"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["GITHUB_PRIVATE_KEY"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
-    });
-
-    it("should return 500 when GITHUB_INSTALLATION_ID is missing", async () => {
-      const originalValue = process.env["GITHUB_INSTALLATION_ID"];
-      delete process.env["GITHUB_INSTALLATION_ID"];
-
-      const { testApp, request } = setup();
-      const response = await handleRequest(testApp, request);
-
-      if (originalValue !== undefined) {
-        process.env["GITHUB_INSTALLATION_ID"] = originalValue;
-      }
-
-      expect(response.status).toBe(500);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("GitHub configuration");
     });
   });
 });

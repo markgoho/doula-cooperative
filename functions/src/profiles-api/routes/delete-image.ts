@@ -1,34 +1,14 @@
-import { App } from "octokit";
+import { FieldValue } from "firebase-admin/firestore";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import {
-  GITHUB_BRANCH,
-  GITHUB_OWNER,
-  GITHUB_REPO,
-} from "../../constants/github-config.js";
-import { HttpError } from "../../shared-api/errors/http-error.js";
+import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
-import { batchDeleteFiles } from "../utils/github-batch-delete.js";
-import { isRateLimitError } from "../utils/github-error.js";
-
-/**
- * All possible profile image file patterns to delete.
- * Includes source images and generated AVIF variants.
- */
-const IMAGE_FILE_PATTERNS = [
-  "-profile.jpg",
-  "-profile.jpeg",
-  "-profile.png",
-  "-profile.webp",
-  "-profile-1200.avif",
-  "-profile-600.avif",
-  "-profile-300.avif",
-];
+import { getImageKitClient } from "../utils/imagekit-client.js";
 
 /**
  * Delete profile image for authenticated user.
- * Deletes all profile image variants from GitHub.
+ * Deletes image from ImageKit and clears Firestore fields.
  * DELETE /api/profiles/me/image
  */
 export async function deleteImageLogic({
@@ -41,7 +21,7 @@ export async function deleteImageLogic({
   profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<{ success: true; deletedFiles: string[] } | { error: string }> {
+}): Promise<{ success: true } | { error: string }> {
   logger.info("Profile image delete initiated", { uid });
 
   try {
@@ -56,78 +36,63 @@ export async function deleteImageLogic({
       };
     }
 
-    // Verify GitHub secrets are configured
-    const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-    const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-    const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
+    // Get member document to retrieve imagekitFileId
+    const memberDocument = await profileMemberService.getMemberBySlug(slug);
 
-    if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-      logger.error("Missing GitHub secrets for profile image delete", {
-        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_FAILED,
-        hasAppId: Boolean(GITHUB_APP_ID),
-        hasPrivateKey: Boolean(GITHUB_PRIVATE_KEY),
-        hasInstallationId: Boolean(GITHUB_INSTALLATION_ID),
-      });
-      throw new HttpError("Missing GitHub configuration", 500);
-    }
-
-    // Initialize GitHub client
-    const app = new App({
-      appId: GITHUB_APP_ID,
-      privateKey: GITHUB_PRIVATE_KEY,
-    });
-    const octokit = await app.getInstallationOctokit(
-      Number.parseInt(GITHUB_INSTALLATION_ID),
-    );
-
-    const baseDirectory = `hugo/content/doulas/${slug}`;
-
-    // Delete all profile image files in a single commit
-    const filePaths = IMAGE_FILE_PATTERNS.map(
-      pattern => `${baseDirectory}/${slug}${pattern}`,
-    );
-
-    try {
-      const result = await batchDeleteFiles({
-        octokit,
-        owner: GITHUB_OWNER,
-        repo: GITHUB_REPO,
-        branch: GITHUB_BRANCH,
-        filePaths,
-        commitMessage: `Delete all profile images for ${slug}`,
-      });
-
-      logger.info(`Successfully deleted profile images for ${slug}`, {
-        deletedFiles: result.deletedFiles,
-        commitSha: result.commitSha,
-      });
-
-      return {
-        success: true,
-        deletedFiles: result.deletedFiles,
-      };
-    } catch (error: unknown) {
-      // Rate limit error
-      if (isRateLimitError(error)) {
-        logger.error("GitHub API rate limit exceeded during delete", {
-          errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT,
-          uid,
-          slug,
-        });
-        set.status = 429;
-        return { error: "Too many requests. Please try again later." };
-      }
-
-      // Other errors
-      logger.error("Failed to delete profile images", {
-        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_GITHUB_FAILED,
+    // If no imagekitFileId exists, consider it already deleted (success case)
+    if (!memberDocument?.imagekitFileId) {
+      logger.info("No ImageKit file ID found for profile, skipping deletion", {
         uid,
         slug,
+      });
+      return { success: true };
+    }
+
+    // Delete from ImageKit
+    try {
+      const imagekit = getImageKitClient();
+      await imagekit.deleteFile(memberDocument.imagekitFileId);
+
+      logger.info("Successfully deleted image from ImageKit", {
+        uid,
+        slug,
+        fileId: memberDocument.imagekitFileId,
+      });
+    } catch (error: unknown) {
+      logger.error("Failed to delete image from ImageKit", {
+        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FAILED,
+        uid,
+        slug,
+        fileId: memberDocument.imagekitFileId,
         error,
       });
       set.status = 500;
       return { error: "Failed to delete profile image. Please try again." };
     }
+
+    // Clear imagekitPath and imagekitFileId from Firestore
+    try {
+      await MemberFirestoreService.updateMember(uid, {
+        imagekitPath: FieldValue.delete(),
+        imagekitFileId: FieldValue.delete(),
+      });
+
+      logger.info("Successfully cleared ImageKit fields from Firestore", {
+        uid,
+        slug,
+      });
+    } catch (error: unknown) {
+      logger.error("Failed to clear ImageKit fields from Firestore", {
+        errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FAILED,
+        uid,
+        slug,
+        error,
+      });
+      // Firestore update failed, but ImageKit deletion succeeded
+      // Consider this a partial success - don't fail the request
+    }
+
+    return { success: true };
   } catch (error: unknown) {
     return handleRouteError({
       error,

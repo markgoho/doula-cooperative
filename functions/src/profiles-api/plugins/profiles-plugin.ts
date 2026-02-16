@@ -329,6 +329,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           body,
           userToken,
           profileMemberService,
+          profileGitHubService,
           logger,
           set,
         }) => {
@@ -342,8 +343,8 @@ export function createProfilesPlugin(services?: PartialServices) {
           return uploadImageLogic({
             uid: getUserUid(userToken, logger),
             imageData: body.imageData,
-            cropData: body.cropData,
             profileMemberService,
+            profileGitHubService,
             logger,
             set,
           });
