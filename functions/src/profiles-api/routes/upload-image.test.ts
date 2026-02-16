@@ -213,7 +213,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       expect(mockUpload).toHaveBeenCalledWith(
         expect.objectContaining({
           transformation: {
-            pre: "w-2400,h-2400",
+            pre: "w-2400,h-2400,c-at_max",
           },
         }),
       );
