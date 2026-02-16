@@ -20,6 +20,16 @@ type OptimisticImageState = OptimisticImageUpload | OptimisticImageDelete | unde
 
 const OPTIMISTIC_IMAGE_KEY = 'optimisticProfileImage';
 
+const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
+
+/**
+ * Build an ImageKit display URL with transformations and default image fallback.
+ * Matches the Hugo site's URL pattern so missing images show a default placeholder.
+ */
+function buildImageKitDisplayUrl(slug: string, width: number, height: number): string {
+  return `${IMAGEKIT_BASE_URL}/tr:w-${width},h-${height},fo-face,di-default-profile.png/doulas/${slug}/${slug}-profile`;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -87,6 +97,56 @@ export class ProfileService {
     }
 
     return serverProfile;
+  });
+
+  /**
+   * Display-ready profile image URL with ImageKit transformations and default fallback.
+   * Always returns a valid URL (shows default placeholder when no custom image exists).
+   * Returns undefined only when no profile or slug is available.
+   */
+  readonly profileImageUrl = computed((): string | undefined => {
+    const slug = this.membershipService.userDocument()?.slug;
+    if (!slug) return undefined;
+
+    const profile = this.profile();
+    if (!profile) return undefined;
+
+    // If optimistic upload set a URL with transforms, use it directly
+    const optimistic = this.optimisticImage();
+    if (optimistic && optimistic.slug === slug && 'url' in optimistic) {
+      return optimistic.url;
+    }
+
+    // Build display URL with default image fallback (matches Hugo site pattern)
+    return buildImageKitDisplayUrl(slug, 300, 300);
+  });
+
+  /**
+   * Whether the user has a custom uploaded profile image.
+   * False when image was deleted (optimistic) or never uploaded.
+   * Used to show informational copy about the default placeholder.
+   */
+  readonly hasCustomImage = computed((): boolean => {
+    const profile = this.profile();
+    if (!profile) return false;
+
+    const optimistic = this.optimisticImage();
+    const slug = this.membershipService.userDocument()?.slug;
+
+    // Optimistic delete means no custom image
+    if (optimistic && slug && optimistic.slug === slug && 'deleted' in optimistic) {
+      return false;
+    }
+
+    // Optimistic upload means we just uploaded one
+    if (optimistic && slug && optimistic.slug === slug && 'url' in optimistic) {
+      return true;
+    }
+
+    // Check if profile has an image field (backend always sets it, so this is always true
+    // unless optimistic delete cleared it). Since backend always sets image, we return true
+    // here — the only "no custom image" state we can detect is optimistic delete.
+    return !!profile.image;
   });
 
   async updateProfile(data: ProfileData): Promise<void> {
