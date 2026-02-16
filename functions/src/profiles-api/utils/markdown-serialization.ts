@@ -50,8 +50,11 @@ export function serializeToMarkdown(
   };
 
   // Add optional metadata fields
+  // Hugo only needs a date-only value (YYYY-MM-DD) for the `date` field;
+  // strip any time component from ISO strings to keep the front matter clean.
   if (existingMetadata?.date) {
-    frontMatter.date = existingMetadata.date;
+    const [dateOnly] = existingMetadata.date.split("T");
+    frontMatter.date = dateOnly ?? existingMetadata.date;
   }
   if (existingMetadata?.createdAt) {
     frontMatter.createdAt = existingMetadata.createdAt;
@@ -92,11 +95,16 @@ export function serializeToMarkdown(
     }
   }
 
-  // Use js-yaml to generate YAML front matter
-  const yamlFrontMatter = dump(frontMatter, {
-    lineWidth: -1, // Don't wrap lines
-    noRefs: true, // Don't use YAML references
+  let yamlFrontMatter = dump(frontMatter, {
+    lineWidth: -1,
+    noRefs: true,
   }).trim();
+
+  // js-yaml quotes date-like strings (YAML 1.1 interprets them as Date objects).
+  // Hugo expects an unquoted YYYY-MM-DD for the `date` field.
+  if (frontMatter.date) {
+    yamlFrontMatter = yamlFrontMatter.replace(/^date: '(.+)'$/m, "date: $1");
+  }
 
   return `---
 ${yamlFrontMatter}
@@ -104,6 +112,16 @@ ${yamlFrontMatter}
 
 ${data.bio.trim()}
 `;
+}
+
+function stripYamlQuotes(value: string): string {
+  if (
+    (value.startsWith("'") && value.endsWith("'")) ||
+    (value.startsWith('"') && value.endsWith('"'))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
 }
 
 /**
@@ -139,17 +157,17 @@ export function parseExistingMetadata(content: string): {
 
   const dateMatch = /^date:\s*(.+)$/m.exec(frontMatter);
   if (dateMatch?.[1]) {
-    metadata.date = dateMatch[1].trim();
+    metadata.date = stripYamlQuotes(dateMatch[1].trim());
   }
 
   const createdAtMatch = /^createdAt:\s*(.+)$/m.exec(frontMatter);
   if (createdAtMatch?.[1]) {
-    metadata.createdAt = createdAtMatch[1].trim();
+    metadata.createdAt = stripYamlQuotes(createdAtMatch[1].trim());
   }
 
   const updatedAtMatch = /^updatedAt:\s*(.+)$/m.exec(frontMatter);
   if (updatedAtMatch?.[1]) {
-    metadata.updatedAt = updatedAtMatch[1].trim();
+    metadata.updatedAt = stripYamlQuotes(updatedAtMatch[1].trim());
   }
 
   const draftMatch = /^draft:\s*(.+)$/m.exec(frontMatter);
