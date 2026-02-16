@@ -13,6 +13,7 @@ import {
   claimProfileLogic,
   createProfileLogic,
   deleteImageLogic,
+  imagekitAuthLogic,
   readProfileBySlugLogic,
   setSlugLogic,
   uploadImageLogic,
@@ -23,6 +24,7 @@ import {
   ClaimProfileResponseSchema,
   CreateProfileResponseSchema,
   DeleteImageResponseSchema,
+  ImageKitAuthResponseSchema,
   ProfileDataBodySchema,
   ReadProfileResponseSchema,
   SetSlugBodySchema,
@@ -367,6 +369,21 @@ export function createProfilesPlugin(services?: PartialServices) {
         {
           params: SlugParameterSchema,
           response: DeleteImageResponseSchema,
+        },
+      )
+
+      // GET /auth - Get ImageKit auth parameters (authenticated)
+      .get(
+        "/auth",
+        ({ userToken, profileMemberService, logger, set }) =>
+          imagekitAuthLogic({
+            uid: getUserUid(userToken, logger),
+            profileMemberService,
+            logger,
+            set,
+          }),
+        {
+          response: ImageKitAuthResponseSchema,
         },
       )
   );

@@ -362,3 +362,24 @@ export const DeleteImageResponseSchema = t.Union([
 ]);
 
 export type DeleteImageResponse = Static<typeof DeleteImageResponseSchema>;
+
+/**
+ * Success response for ImageKit auth endpoint.
+ * GET /api/profiles/auth
+ */
+const ImageKitAuthSuccessSchema = t.Object({
+  token: t.String(),
+  expire: t.Number(),
+  signature: t.String(),
+});
+
+export type ImageKitAuthSuccessResponse = Static<
+  typeof ImageKitAuthSuccessSchema
+>;
+
+export const ImageKitAuthResponseSchema = t.Union([
+  ImageKitAuthSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type ImageKitAuthResponse = Static<typeof ImageKitAuthResponseSchema>;

@@ -181,6 +181,9 @@ export const ERROR_IDS = {
     "upload_profile_image_file_check_failed",
   UPLOAD_PROFILE_IMAGE_CLEANUP_FAILED: "upload_profile_image_cleanup_failed",
 
+  // ImageKit auth errors
+  IMAGEKIT_AUTH_FAILED: "imagekit_auth_failed",
+
   // Delete profile image errors
   DELETE_PROFILE_IMAGE_FAILED: "delete_profile_image_failed",
   DELETE_PROFILE_IMAGE_FIRESTORE_READ_ERROR:
