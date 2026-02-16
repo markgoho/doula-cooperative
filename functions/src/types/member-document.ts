@@ -53,16 +53,6 @@ export interface MemberDocument {
   newsletterSubscribed?: boolean;
   newsletterSubscribedAt?: Timestamp;
   newsletterUnsubscribedAt?: Timestamp;
-  /**
-   * ImageKit file path for the member's profile image.
-   * Used to construct the ImageKit URL: https://ik.imagekit.io/doulacoop/{imagekitPath}
-   */
-  imagekitPath?: string;
-  /**
-   * ImageKit file ID for the member's profile image.
-   * Used for file management operations (update, delete).
-   */
-  imagekitFileId?: string;
 }
 
 /**

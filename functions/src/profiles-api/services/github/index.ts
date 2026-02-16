@@ -1,6 +1,10 @@
 import { createProfile } from "./create-profile.js";
 import type { ProfileGitHubService as ProfileGitHubServiceInterface } from "./interface.js";
 import { readProfile } from "./read-profile.js";
+import {
+  removeFrontMatterImagePath,
+  updateFrontMatterImagePath,
+} from "./update-front-matter.js";
 import { writeProfile } from "./write-profile.js";
 
 /**
@@ -16,9 +20,8 @@ export const ProfileGitHubService: ProfileGitHubServiceInterface = {
   readProfile,
   writeProfile,
   createProfile,
+  updateFrontMatterImagePath,
+  removeFrontMatterImagePath,
 };
 
 export type { ReadProfileResponse, WriteProfileResponse } from "./interface.js";
-
-// Note: ProfileGitHubService type is exported from ./interface.js directly
-// The const ProfileGitHubService above implements that interface

@@ -10,22 +10,21 @@ process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
 process.env["IMAGEKIT_PUBLIC_KEY"] = "test-public-key";
 
 /**
- * Tests for DELETE /me/image (delete profile image).
- * Served at /api/profiles/me/image via Firebase rewrite.
+ * Tests for DELETE /:slug/image (delete profile image).
+ * Served at /api/profiles/:slug/image via Firebase rewrite.
  *
  * Uses createProfilesTestPlugin() factory with mocked services.
  *
- * Tests verify ImageKit deletion, Firestore updates, and error handling.
+ * Tests verify ImageKit search + deletion and error handling.
+ * GitHub front matter update is a soft failure — not tested at unit level.
  */
 describe("DELETE /:slug/image (delete profile image)", () => {
   interface SetupOptions {
-    // Request parameters
     slug?: string;
     authToken?: string | null;
 
-    // Scenario flags
     memberHasNoSlug?: boolean;
-    memberHasNoImage?: boolean;
+    imagekitListReturnsEmpty?: boolean;
     imagekitDeleteFails?: boolean;
     unexpectedError?: boolean;
   }
@@ -34,11 +33,10 @@ describe("DELETE /:slug/image (delete profile image)", () => {
     slug = "test-user",
     authToken = "valid-token",
     memberHasNoSlug = false,
-    memberHasNoImage = false,
+    imagekitListReturnsEmpty = false,
     imagekitDeleteFails = false,
     unexpectedError = false,
   }: SetupOptions = {}) {
-    // Mock ImageKit deleteFile
     const mockDeleteFile = mock(() => {
       if (imagekitDeleteFails) {
         throw new Error("ImageKit deletion failed");
@@ -46,26 +44,26 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       return Promise.resolve();
     });
 
-    // Mock getImageKitClient to return mocked ImageKit instance
+    const mockListFiles = mock(() => {
+      if (imagekitListReturnsEmpty) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([
+        {
+          fileId: "ik-file-123",
+          name: "test-user-profile",
+          filePath: "/doulas/test-user/test-user-profile",
+        },
+      ]);
+    });
+
     void mock.module("../utils/imagekit-client.js", () => ({
       getImageKitClient: () => ({
+        listFiles: mockListFiles,
         deleteFile: mockDeleteFile,
       }),
     }));
 
-    // Mock MemberFirestoreService updateMember
-    const mockUpdateMember = mock(() => Promise.resolve());
-
-    void mock.module(
-      "../../shared-api/services/member-firestore/index.js",
-      () => ({
-        MemberFirestoreService: {
-          updateMember: mockUpdateMember,
-        },
-      }),
-    );
-
-    // Configure member service mocks
     const mockVerifyMembership = mock(() => {
       if (unexpectedError) {
         throw new Error("Unexpected database error");
@@ -78,24 +76,17 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockGetMemberBySlug = mock(() => {
-      if (memberHasNoImage) {
-        const memberDocumentWithoutImage = { ...mockMemberDocument };
-        delete memberDocumentWithoutImage.imagekitFileId;
-        delete memberDocumentWithoutImage.imagekitPath;
-        return Promise.resolve(memberDocumentWithoutImage);
-      }
-      return Promise.resolve(mockMemberDocument);
-    });
+    const mockRemoveFrontMatterImagePath = mock(() => Promise.resolve());
 
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
-        getMemberBySlug: mockGetMemberBySlug,
+      },
+      profileGitHubService: {
+        removeFrontMatterImagePath: mockRemoveFrontMatterImagePath,
       },
     });
 
-    // Build request from parameters
     const headers: Record<string, string> = {};
     if (authToken) {
       headers["Authorization"] = `Bearer ${authToken}`;
@@ -110,8 +101,8 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       testApp,
       request,
       mockDeleteFile,
-      mockUpdateMember,
-      mockGetMemberBySlug,
+      mockListFiles,
+      mockRemoveFrontMatterImagePath,
     };
   }
 
@@ -160,8 +151,14 @@ describe("DELETE /:slug/image (delete profile image)", () => {
   });
 
   describe("Success cases", () => {
-    it("should delete image from ImageKit and clear Firestore fields", async () => {
-      const { testApp, request, mockDeleteFile, mockUpdateMember } = setup();
+    it("should search ImageKit and delete the found file", async () => {
+      const {
+        testApp,
+        request,
+        mockListFiles,
+        mockDeleteFile,
+        mockRemoveFrontMatterImagePath,
+      } = setup();
 
       const response = await handleRequest(testApp, request);
 
@@ -169,22 +166,16 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
 
-      // Verify ImageKit deleteFile was called with correct fileId
-      expect(mockDeleteFile).toHaveBeenCalledWith("test-imagekit-file-id");
-
-      // Verify Firestore update was called
-      expect(mockUpdateMember).toHaveBeenCalled();
+      expect(mockListFiles).toHaveBeenCalled();
+      expect(mockDeleteFile).toHaveBeenCalledWith("ik-file-123");
+      expect(mockRemoveFrontMatterImagePath).toHaveBeenCalledWith({
+        slug: "test-user",
+      });
     });
 
-    it("should succeed when profile has no image (imagekitFileId is undefined)", async () => {
-      const {
-        testApp,
-        request,
-        mockDeleteFile,
-        mockUpdateMember,
-        mockGetMemberBySlug,
-      } = setup({
-        memberHasNoImage: true,
+    it("should succeed when no ImageKit file is found (already deleted)", async () => {
+      const { testApp, request, mockDeleteFile, mockListFiles } = setup({
+        imagekitListReturnsEmpty: true,
       });
 
       const response = await handleRequest(testApp, request);
@@ -193,20 +184,14 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       const body = (await response.json()) as { success?: boolean };
       expect(body.success).toBe(true);
 
-      // Verify getMemberBySlug was called
-      expect(mockGetMemberBySlug).toHaveBeenCalled();
-
-      // Verify ImageKit deleteFile was NOT called
+      expect(mockListFiles).toHaveBeenCalled();
       expect(mockDeleteFile).not.toHaveBeenCalled();
-
-      // Verify Firestore update was NOT called
-      expect(mockUpdateMember).not.toHaveBeenCalled();
     });
   });
 
   describe("Error handling", () => {
     it("should return 500 when ImageKit deletion fails", async () => {
-      const { testApp, request, mockUpdateMember } = setup({
+      const { testApp, request } = setup({
         imagekitDeleteFails: true,
       });
 
@@ -215,9 +200,6 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toContain("delete profile image");
-
-      // Verify Firestore update was NOT called since ImageKit deletion failed
-      expect(mockUpdateMember).not.toHaveBeenCalled();
     });
 
     it("should return 500 on unexpected errors", async () => {

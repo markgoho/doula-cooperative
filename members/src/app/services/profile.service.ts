@@ -216,19 +216,16 @@ export class ProfileService {
       // Convert file to base64
       const imageData = await this.fileToBase64(file);
 
-      const response = await firstValueFrom(
+      await firstValueFrom(
         this.http.post<{ success: boolean; url: string }>(`/api/profiles/${slug}/image`, {
           imageData,
           mimeType: file.type,
         }),
       );
 
-      // Set optimistic state for immediate display using the returned ImageKit URL
-      if (response.url) {
-        // Apply face-focus transform for thumbnail display
-        const optimisticUrl = `${response.url}?tr=w-300,h-300,fo-face`;
-        this.saveOptimisticState({ url: optimisticUrl, slug });
-      }
+      // Set optimistic state using deterministic ImageKit URL derived from slug
+      const optimisticUrl = `https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/${slug}/${slug}-profile`;
+      this.saveOptimisticState({ url: optimisticUrl, slug });
 
       // Don't reload here — the backend (GitHub) has eventual consistency and
       // the stale server response would immediately clear the optimistic state.

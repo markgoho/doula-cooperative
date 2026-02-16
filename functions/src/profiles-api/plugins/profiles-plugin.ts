@@ -141,17 +141,10 @@ export function createProfilesPlugin(services?: PartialServices) {
       // GET /:slug - Read profile by slug (no auth)
       .get(
         "/:slug",
-        async ({
-          params,
-          profileGitHubService,
-          profileMemberService,
-          logger,
-          set,
-        }) =>
+        async ({ params, profileGitHubService, logger, set }) =>
           readProfileBySlugLogic({
             slug: params.slug,
             profileGitHubService,
-            profileMemberService,
             logger,
             set,
           }),
@@ -359,7 +352,14 @@ export function createProfilesPlugin(services?: PartialServices) {
       // DELETE /:slug/image - Delete profile image (must own slug or be admin)
       .delete(
         "/:slug/image",
-        async ({ params, userToken, profileMemberService, logger, set }) => {
+        async ({
+          params,
+          userToken,
+          profileMemberService,
+          profileGitHubService,
+          logger,
+          set,
+        }) => {
           await validateSlugOwnershipOrAdmin({
             urlSlug: params.slug,
             userToken,
@@ -370,6 +370,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           return deleteImageLogic({
             uid: getUserUid(userToken, logger),
             profileMemberService,
+            profileGitHubService,
             logger,
             set,
           });

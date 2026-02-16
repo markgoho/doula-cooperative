@@ -8,12 +8,17 @@ import {
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
-import type { ProfileMemberService } from "../member/interface.js";
 import type { ReadProfileResponse } from "./interface.js";
+
+/** Front matter fields parsed from YAML (superset of ProfileData fields). */
+interface ParsedFrontMatter extends Partial<ProfileData> {
+  imagekit_path?: string;
+}
 
 /**
  * Parse profile markdown content into structured ProfileData.
  * Extracts YAML front matter and markdown body.
+ * If imagekit_path is present in front matter, derives the ImageKit URL.
  */
 function parseProfileMarkdown(content: string, slug: string): ProfileData {
   // Parse front matter (YAML between --- markers)
@@ -44,10 +49,10 @@ function parseProfileMarkdown(content: string, slug: string): ProfileData {
   }
 
   // Parse YAML front matter
-  let parsed: Partial<ProfileData>;
+  let parsed: ParsedFrontMatter;
   try {
-    parsed = load(frontMatter) as Partial<ProfileData>;
-  } catch (error) {
+    parsed = load(frontMatter) as ParsedFrontMatter;
+  } catch (error: unknown) {
     logger.error("Failed to parse YAML front matter", {
       errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
       slug,
@@ -83,6 +88,11 @@ function parseProfileMarkdown(content: string, slug: string): ProfileData {
     data.contact = parsed.contact;
   }
 
+  // Derive image URL from front matter imagekit_path (source of truth)
+  if (parsed.imagekit_path) {
+    data.image = `${IMAGEKIT_BASE_URL}/${parsed.imagekit_path}`;
+  }
+
   return data;
 }
 
@@ -109,13 +119,13 @@ async function getOctokit() {
 const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/doulacoop";
 
 /**
- * Read a profile's content and image from GitHub and Firestore.
+ * Read a profile's content from GitHub.
+ * Image URL is derived from front matter imagekit_path field.
  */
 export async function readProfile(options: {
   slug: string;
-  profileMemberService: ProfileMemberService;
 }): Promise<ReadProfileResponse> {
-  const { slug, profileMemberService } = options;
+  const { slug } = options;
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
   const octokit = await getOctokit();
@@ -135,17 +145,7 @@ export async function readProfile(options: {
 
     const profileData = parseProfileMarkdown(content, slug);
 
-    const member = await profileMemberService.getMemberBySlug(slug);
-    const imagekitPath = member?.imagekitPath;
-
-    const image = imagekitPath
-      ? `${IMAGEKIT_BASE_URL}/${imagekitPath}`
-      : undefined;
-
-    return {
-      ...profileData,
-      ...(image !== undefined && { image }),
-    };
+    return profileData;
   } catch (error) {
     const isGitHubError = (value: unknown): value is { status: number } => {
       return typeof value === "object" && value !== null && "status" in value;

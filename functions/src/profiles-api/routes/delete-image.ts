@@ -1,31 +1,26 @@
-import { FieldValue } from "firebase-admin/firestore";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 import { getImageKitClient } from "../utils/imagekit-client.js";
 
-/**
- * Delete profile image for authenticated user.
- * Deletes image from ImageKit and clears Firestore fields.
- * DELETE /api/profiles/me/image
- */
 export async function deleteImageLogic({
   uid,
   profileMemberService,
+  profileGitHubService,
   logger,
   set,
 }: {
   uid: string;
   profileMemberService: ProfileMemberService;
+  profileGitHubService: ProfileGitHubService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<{ success: true } | { error: string }> {
   logger.info("Profile image delete initiated", { uid });
 
   try {
-    // Verify user has active membership and get slug FIRST
     const member = await profileMemberService.verifyActiveMembership(uid);
     const slug = member.slug;
 
@@ -36,60 +31,62 @@ export async function deleteImageLogic({
       };
     }
 
-    // Get member document to retrieve imagekitFileId
-    const memberDocument = await profileMemberService.getMemberBySlug(slug);
-
-    // If no imagekitFileId exists, consider it already deleted (success case)
-    if (!memberDocument?.imagekitFileId) {
-      logger.info("No ImageKit file ID found for profile, skipping deletion", {
-        uid,
-        slug,
-      });
-      return { success: true };
-    }
-
-    // Delete from ImageKit
+    // Search ImageKit for the file by known path convention
+    const expectedPath = `/doulas/${slug}/${slug}-profile`;
     try {
       const imagekit = getImageKitClient();
-      await imagekit.deleteFile(memberDocument.imagekitFileId);
-
-      logger.info("Successfully deleted image from ImageKit", {
-        uid,
-        slug,
-        fileId: memberDocument.imagekitFileId,
+      const results = await imagekit.listFiles({
+        searchQuery: `name="${slug}-profile"`,
+        path: `/doulas/${slug}`,
+        limit: 1,
       });
+
+      const firstResult = results[0];
+      if (firstResult && "fileId" in firstResult) {
+        await imagekit.deleteFile(firstResult.fileId);
+        logger.info("Successfully deleted image from ImageKit", {
+          uid,
+          slug,
+          fileId: firstResult.fileId,
+        });
+      } else {
+        logger.info("No ImageKit file found at expected path, skipping", {
+          uid,
+          slug,
+          expectedPath,
+        });
+      }
     } catch (error: unknown) {
       logger.error("Failed to delete image from ImageKit", {
         errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FAILED,
         uid,
         slug,
-        fileId: memberDocument.imagekitFileId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       set.status = 500;
       return { error: "Failed to delete profile image. Please try again." };
     }
 
-    // Clear imagekitPath and imagekitFileId from Firestore
+    // Remove imagekit_path from GitHub front matter
     try {
-      await MemberFirestoreService.updateMember(uid, {
-        imagekitPath: FieldValue.delete(),
-        imagekitFileId: FieldValue.delete(),
-      });
+      await profileGitHubService.removeFrontMatterImagePath({ slug });
 
-      logger.info("Successfully cleared ImageKit fields from Firestore", {
+      logger.info("Removed imagekit_path from GitHub front matter", {
         uid,
         slug,
       });
     } catch (error: unknown) {
-      logger.error("Failed to clear ImageKit fields from Firestore", {
+      logger.error("Failed to update GitHub front matter", {
         errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FAILED,
         uid,
         slug,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
-      // Firestore update failed, but ImageKit deletion succeeded
-      // Consider this a partial success - don't fail the request
+      // Don't fail - ImageKit deletion succeeded
+      logger.warn(
+        "Image deleted from ImageKit but GitHub front matter update failed",
+        { uid, slug },
+      );
     }
 
     return { success: true };
