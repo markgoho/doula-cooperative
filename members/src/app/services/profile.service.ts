@@ -11,7 +11,7 @@ const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
  * Matches the Hugo site's URL pattern so missing images show a default placeholder.
  */
 function buildImageKitDisplayUrl(slug: string, width: number, height: number): string {
-  return `${IMAGEKIT_BASE_URL}/tr:w-${width},h-${height},fo-face,di-default-profile.png/doulas/${slug}/${slug}-profile`;
+  return `${IMAGEKIT_BASE_URL}/tr:w-${width},h-${height},fo-face,z-0.5,di-default-profile.png/doulas/${slug}/${slug}-profile`;
 }
 
 @Injectable({
@@ -27,11 +27,7 @@ export class ProfileService {
    */
   private readonly imageExistsOnServer = signal<boolean | undefined>(undefined);
 
-  /**
-   * Cache-busting version counter. Bumped after upload/delete to force
-   * ImageKit CDN to serve a fresh response instead of a cached one.
-   */
-  private readonly imageVersion = signal(0);
+  private readonly imageCacheBust = signal(Date.now());
 
   constructor() {
     // Clean up any leftover optimistic state from the old implementation
@@ -48,8 +44,8 @@ export class ProfileService {
       const slug = this.membershipService.userDocument()?.slug;
       if (!profile?.image || !slug) return;
 
-      // Track version so the effect re-runs after upload/delete
-      this.imageVersion();
+      // Track cache-bust so the effect re-runs after upload/delete
+      this.imageCacheBust();
 
       this.checkImageExists(slug);
     });
@@ -83,9 +79,7 @@ export class ProfileService {
     const profile = this.profile();
     if (!profile) return undefined;
 
-    const version = this.imageVersion();
-    const baseUrl = buildImageKitDisplayUrl(slug, 300, 300);
-    return version > 0 ? `${baseUrl}?v=${version}` : baseUrl;
+    return `${buildImageKitDisplayUrl(slug, 300, 300)}?v=${this.imageCacheBust()}`;
   });
 
   /**
@@ -233,8 +227,8 @@ export class ProfileService {
         }),
       );
 
-      // Image is now on ImageKit — bump version to bust CDN cache
-      this.imageVersion.update((v) => v + 1);
+      // Image is now on ImageKit — set timestamp to bust CDN + browser cache
+      this.imageCacheBust.set(Date.now());
       this.imageExistsOnServer.set(true);
     } catch (error: unknown) {
       console.error('Profile image upload failed:', {
@@ -295,8 +289,8 @@ export class ProfileService {
     try {
       await firstValueFrom(this.http.delete<{ success: boolean }>(`/api/profiles/${slug}/image`));
 
-      // Image is now deleted — bump version to bust CDN cache
-      this.imageVersion.update((v) => v + 1);
+      // Image is now deleted — set timestamp to bust CDN + browser cache
+      this.imageCacheBust.set(Date.now());
       this.imageExistsOnServer.set(false);
     } catch (error: unknown) {
       console.error('Profile image delete failed:', {
@@ -351,12 +345,10 @@ export class ProfileService {
   }
 
   private checkImageExists(slug: string): void {
-    const version = this.imageVersion();
-    const rawUrl = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
-    const urlWithCacheBust = version > 0 ? `${rawUrl}?v=${version}` : rawUrl;
+    const url = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile?v=${this.imageCacheBust()}`;
     this.imageExistsOnServer.set(undefined);
 
-    void fetch(urlWithCacheBust, { method: 'HEAD' }).then(
+    void fetch(url, { method: 'HEAD' }).then(
       (response) => this.imageExistsOnServer.set(response.ok),
       () => this.imageExistsOnServer.set(undefined),
     );

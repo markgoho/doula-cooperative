@@ -290,7 +290,7 @@ async function setup({ profileData, uploadError, deleteError }: SetupOptions = {
     profileImageUrl: signal(
       hasCustomImage
         ? profileData!.image
-        : 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
+        : 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
     ),
     hasCustomImage: signal(hasCustomImage),
     uploadProfileImage: uploadMock,

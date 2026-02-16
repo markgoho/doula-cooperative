@@ -73,7 +73,9 @@ export class EditProfileImage {
     try {
       await this.profileService.uploadProfileImage(file);
 
-      this.successMessage.set('Profile image updated successfully!');
+      this.successMessage.set(
+        'Profile image updated! Your public profile will reflect this change shortly.',
+      );
       this.cancelSelection();
     } catch (error: unknown) {
       this.errorMessage.set(
