@@ -1,12 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { type CropData } from '../types/crop-data';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
-
-// Re-export for consumers
-export type { CropData } from '../types/crop-data';
 
 /** Optimistic state for image uploads - stores the preview URL */
 interface OptimisticImageUpload {
@@ -206,13 +202,11 @@ export class ProfileService {
   }
 
   /**
-   * Upload a profile image with crop data.
-   * The server will apply the crop and save the image.
+   * Upload a profile image.
+   * The server will upload to ImageKit and update the profile.
    * @param file - The image file to upload
-   * @param cropData - Crop coordinates and zoom
-   * @param previewUrl - Optional preview URL for optimistic display
    */
-  async uploadProfileImage(file: File, cropData: CropData, previewUrl?: string): Promise<void> {
+  async uploadProfileImage(file: File): Promise<void> {
     const slug = this.membershipService.userDocument()?.slug;
     if (!slug) {
       throw new Error('User slug not found. Please refresh the page.');
@@ -222,17 +216,18 @@ export class ProfileService {
       // Convert file to base64
       const imageData = await this.fileToBase64(file);
 
-      await firstValueFrom(
-        this.http.post<{ success: boolean }>(`/api/profiles/${slug}/image`, {
+      const response = await firstValueFrom(
+        this.http.post<{ success: boolean; url: string }>(`/api/profiles/${slug}/image`, {
           imageData,
           mimeType: file.type,
-          cropData,
         }),
       );
 
-      // Set optimistic state for immediate display
-      if (previewUrl) {
-        this.saveOptimisticState({ url: previewUrl, slug });
+      // Set optimistic state for immediate display using the returned ImageKit URL
+      if (response.url) {
+        // Apply face-focus transform for thumbnail display
+        const optimisticUrl = `${response.url}?tr=w-300,h-300,fo-face`;
+        this.saveOptimisticState({ url: optimisticUrl, slug });
       }
 
       // Don't reload here — the backend (GitHub) has eventual consistency and
