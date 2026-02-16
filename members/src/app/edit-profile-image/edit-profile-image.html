@@ -97,9 +97,18 @@
         </div>
       } @else {
         <div class="no-image">
-          <div class="no-image-icon" aria-hidden="true">📷</div>
-          <p>No profile image set yet.</p>
-          <p class="no-image-hint">Add a photo to help clients recognize you.</p>
+          @if (profileService.profileImageUrl()) {
+            <img
+              [src]="profileService.profileImageUrl()"
+              alt="Default profile placeholder"
+              class="profile-image-large default-image"
+            />
+          }
+          <p>No custom profile image set.</p>
+          <p class="no-image-hint">
+            A default placeholder is shown on your public profile. Add a photo to help clients
+            recognize you.
+          </p>
         </div>
       }
 

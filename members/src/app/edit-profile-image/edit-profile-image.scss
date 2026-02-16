@@ -79,9 +79,9 @@
   border: 2px dashed var(--gray-300);
 }
 
-.no-image-icon {
-  font-size: 3rem;
+.no-image .default-image {
   margin-bottom: 1rem;
+  opacity: 0.7;
 }
 
 .no-image-hint {

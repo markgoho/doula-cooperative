@@ -64,6 +64,37 @@ describe('EditProfileImage', () => {
     });
   });
 
+  describe('when profile has no custom image', () => {
+    it('should show default placeholder image', async () => {
+      await setup({
+        profileData: { title: 'Jane Doe', bio: 'Experienced doula' },
+      });
+
+      const image = screen.getByRole('img', { name: /default profile placeholder/i });
+      expect(image).toBeVisible();
+      expect(image.getAttribute('src')).toContain('di-default-profile.png');
+    });
+
+    it('should show informational text about default placeholder', async () => {
+      await setup({
+        profileData: { title: 'Jane Doe', bio: 'Experienced doula' },
+      });
+
+      expect(screen.getByText(/no custom profile image set/i)).toBeVisible();
+      expect(
+        screen.getByText(/default placeholder is shown on your public profile/i),
+      ).toBeVisible();
+    });
+
+    it('should show Add Photo button', async () => {
+      await setup({
+        profileData: { title: 'Jane Doe', bio: 'Experienced doula' },
+      });
+
+      expect(screen.getByText(/add photo/i)).toBeVisible();
+    });
+  });
+
   describe('file selection', () => {
     it('should show error for invalid file type', async () => {
       const { user } = await setup({
@@ -245,8 +276,10 @@ async function setup({ profileData, uploadError, deleteError }: SetupOptions = {
       value: signal(profileData),
       error: signal(undefined),
     },
-    // profile() computed that includes optimistic state
     profile: signal(profileData),
+    profileImageUrl: signal(
+      'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
+    ),
     uploadProfileImage: uploadMock,
     deleteProfileImage: deleteMock,
   } as unknown as ProfileService;

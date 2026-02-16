@@ -259,11 +259,12 @@ describe('EditProfile', () => {
   });
 
   describe('profile image', () => {
-    it('should display profile image when present', async () => {
+    it('should display profile image using profileImageUrl', async () => {
       await setup();
 
-      const image = screen.getByRole('img', { name: 'Profile image' }) as HTMLImageElement;
-      expect(image.src).toContain('jane.jpg');
+      const image = screen.getByRole('img', { name: /profile image of jane doe/i });
+      expect(image.getAttribute('src')).toContain('ik.imagekit.io');
+      expect(image.getAttribute('src')).toContain('di-default-profile.png');
     });
 
     it('should show edit profile image link', async () => {
@@ -272,12 +273,25 @@ describe('EditProfile', () => {
       const editImageLink = screen.getByRole('link', { name: 'Edit Profile Image' });
       expect(editImageLink).toHaveAttribute('href', '/profile/image');
     });
+
+    it('should show default image message when no custom image is set', async () => {
+      await setup({ hasCustomImage: false });
+
+      expect(screen.getByText(/no custom profile image set/i)).toBeVisible();
+    });
+
+    it('should not show default image message when custom image exists', async () => {
+      await setup({ hasCustomImage: true });
+
+      expect(screen.queryByText(/no custom profile image set/i)).not.toBeInTheDocument();
+    });
   });
 });
 
 interface SetupOptions {
   profileData?: ProfileData;
   hasProfile?: boolean;
+  hasCustomImage?: boolean;
   updateShouldFail?: boolean;
   errorMessage?: string;
   delayUpdate?: boolean;
@@ -289,6 +303,7 @@ interface SetupOptions {
 async function setup({
   profileData,
   hasProfile = true,
+  hasCustomImage = true,
   updateShouldFail = false,
   errorMessage,
   delayUpdate = false,
@@ -348,6 +363,12 @@ async function setup({
 
   const mockProfileService = {
     profile: signal(profileValue),
+    profileImageUrl: signal(
+      hasProfile && userHasSlug
+        ? 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,di-default-profile.png/doulas/jane-doe/jane-doe-profile'
+        : undefined,
+    ),
+    hasCustomImage: signal(hasCustomImage),
     profileResource: {
       isLoading: signal(profileResourceLoading),
       hasValue: vi.fn(() => !profileResourceLoading && profileValue !== undefined),

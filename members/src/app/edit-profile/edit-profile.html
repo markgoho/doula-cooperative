@@ -192,8 +192,17 @@
       <!-- Profile Image Link -->
       <div class="form-group">
         <span class="form__label">Profile Image</span>
-        @if (profile?.image) {
-          <img [src]="profile.image" alt="Profile image" class="profile-image-preview" />
+        @if (profileService.profileImageUrl()) {
+          <img
+            [src]="profileService.profileImageUrl()"
+            alt="Profile image of {{ profile?.title }}"
+            class="profile-image-preview"
+          />
+        }
+        @if (!profileService.hasCustomImage()) {
+          <p class="form__help-text">
+            No custom profile image set. A default placeholder is shown on your public profile.
+          </p>
         }
         <a href="/profile/image" class="button button--secondary">Edit Profile Image</a>
       </div>
