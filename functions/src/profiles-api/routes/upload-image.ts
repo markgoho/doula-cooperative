@@ -57,7 +57,7 @@ export async function uploadImageLogic({
         folder: `/doulas/${slug}`,
         useUniqueFileName: false,
         transformation: {
-          pre: "w-2400,h-2400",
+          pre: "w-2400,h-2400,c-at_max",
         },
       });
 

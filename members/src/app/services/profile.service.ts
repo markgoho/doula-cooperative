@@ -4,22 +4,6 @@ import { firstValueFrom } from 'rxjs';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
-/** Optimistic state for image uploads - stores the preview URL */
-interface OptimisticImageUpload {
-  url: string;
-  slug: string;
-}
-
-/** Optimistic state for image deletions */
-interface OptimisticImageDelete {
-  deleted: true;
-  slug: string;
-}
-
-type OptimisticImageState = OptimisticImageUpload | OptimisticImageDelete | undefined;
-
-const OPTIMISTIC_IMAGE_KEY = 'optimisticProfileImage';
-
 const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
 
 /**
@@ -38,38 +22,36 @@ export class ProfileService {
   private membershipService = inject(MembershipService);
 
   /**
-   * Optimistic image state - stores preview URL after upload or deleted flag after delete.
-   * Persisted to localStorage for cross-refresh persistence, auto-cleared when backend catches up.
-   */
-  private readonly optimisticImage = signal<OptimisticImageState>(this.loadOptimisticState());
-
-  /**
    * Whether the image actually exists on ImageKit (server-side check via HEAD request).
    * undefined = not yet checked, true = exists, false = 404.
-   * Reset when slug changes, updated after profile loads.
    */
   private readonly imageExistsOnServer = signal<boolean | undefined>(undefined);
 
+  /**
+   * Cache-busting version counter. Bumped after upload/delete to force
+   * ImageKit CDN to serve a fresh response instead of a cached one.
+   */
+  private readonly imageVersion = signal(0);
+
   constructor() {
-    // When profile loads with an image URL, check if the image actually exists on ImageKit.
+    // Clean up any leftover optimistic state from the old implementation
+    try {
+      localStorage.removeItem('optimisticProfileImage');
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    // When profile loads, check if the image actually exists on ImageKit.
     // This detects "no custom image" even though the backend always sets profile.image.
     effect(() => {
       const profile = this.profile();
       const slug = this.membershipService.userDocument()?.slug;
       if (!profile?.image || !slug) return;
 
-      // Skip server check if optimistic state already tells us
-      const optimistic = this.optimisticImage();
-      if (optimistic && optimistic.slug === slug) return;
+      // Track version so the effect re-runs after upload/delete
+      this.imageVersion();
 
-      // HEAD request to raw ImageKit URL (no di- fallback) to check if image exists
-      const rawUrl = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
-      this.imageExistsOnServer.set(undefined); // reset while checking
-
-      void fetch(rawUrl, { method: 'HEAD' }).then(
-        (response) => this.imageExistsOnServer.set(response.ok),
-        () => this.imageExistsOnServer.set(undefined), // network error — don't assume
-      );
+      this.checkImageExists(slug);
     });
   }
 
@@ -81,58 +63,18 @@ export class ProfileService {
       return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
     },
     loader: async ({ params }) => {
-      const profileData = await this.fetchProfileFromServer(params.slug);
-      const userSlug = params.slug;
-
-      // Backend has image - clear optimistic upload state only if it's for the current user
-      if (profileData.image) {
-        const optimistic = this.optimisticImage();
-        if (optimistic && 'url' in optimistic && optimistic.slug === userSlug) {
-          this.saveOptimisticState(undefined);
-        }
-      } else {
-        // Backend confirms no image - clear optimistic delete state only if it's for the current user
-        const optimistic = this.optimisticImage();
-        if (optimistic && 'deleted' in optimistic && optimistic.slug === userSlug) {
-          this.saveOptimisticState(undefined);
-        }
-      }
-
-      return profileData;
+      return this.fetchProfileFromServer(params.slug);
     },
   });
 
-  /**
-   * Computed profile that merges optimistic image state with server data.
-   * Optimistic state takes precedence until the backend catches up.
-   */
+  /** Profile data from the server. */
   readonly profile = computed((): ProfileData | undefined => {
-    const serverProfile = this.profileResource.hasValue()
-      ? this.profileResource.value()
-      : undefined;
-    if (!serverProfile) return undefined;
-
-    const optimistic = this.optimisticImage();
-    const userSlug = this.membershipService.userDocument()?.slug;
-
-    // Only apply optimistic state if it matches current user's slug
-    if (optimistic && optimistic.slug === userSlug) {
-      if ('deleted' in optimistic) {
-        // Remove the image for delete state
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { image: _, ...profileWithoutImage } = serverProfile;
-        return profileWithoutImage as ProfileData;
-      }
-      return { ...serverProfile, image: optimistic.url };
-    }
-
-    return serverProfile;
+    return this.profileResource.hasValue() ? this.profileResource.value() : undefined;
   });
 
   /**
    * Display-ready profile image URL with ImageKit transformations and default fallback.
-   * Always returns a valid URL (shows default placeholder when no custom image exists).
-   * Returns undefined only when no profile or slug is available.
+   * Includes a cache-busting version param after upload/delete to force a fresh CDN response.
    */
   readonly profileImageUrl = computed((): string | undefined => {
     const slug = this.membershipService.userDocument()?.slug;
@@ -141,38 +83,19 @@ export class ProfileService {
     const profile = this.profile();
     if (!profile) return undefined;
 
-    // If optimistic upload set a URL with transforms, use it directly
-    const optimistic = this.optimisticImage();
-    if (optimistic && optimistic.slug === slug && 'url' in optimistic) {
-      return optimistic.url;
-    }
-
-    // Build display URL with default image fallback (matches Hugo site pattern)
-    return buildImageKitDisplayUrl(slug, 300, 300);
+    const version = this.imageVersion();
+    const baseUrl = buildImageKitDisplayUrl(slug, 300, 300);
+    return version > 0 ? `${baseUrl}?v=${version}` : baseUrl;
   });
 
   /**
-   * Whether the user has a custom uploaded profile image.
-   * False when image was deleted (optimistic) or never uploaded.
-   * Used to show informational copy about the default placeholder.
+   * Whether the user has a custom uploaded profile image (via HEAD check).
+   * Defaults to true while checking to avoid flickering the "no image" UI.
    */
   readonly hasCustomImage = computed((): boolean => {
     const profile = this.profile();
     if (!profile) return false;
 
-    const optimistic = this.optimisticImage();
-    const slug = this.membershipService.userDocument()?.slug;
-
-    if (optimistic && slug && optimistic.slug === slug && 'deleted' in optimistic) {
-      return false;
-    }
-
-    if (optimistic && slug && optimistic.slug === slug && 'url' in optimistic) {
-      return true;
-    }
-
-    // Use server-side HEAD check result; default to true while still checking
-    // to avoid flickering the "no image" UI before the check completes
     return this.imageExistsOnServer() ?? true;
   });
 
@@ -310,14 +233,9 @@ export class ProfileService {
         }),
       );
 
-      // Set optimistic state using deterministic ImageKit URL derived from slug
-      const optimisticUrl = `https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/${slug}/${slug}-profile`;
-      this.saveOptimisticState({ url: optimisticUrl, slug });
-
-      // Don't reload here — the backend (GitHub) has eventual consistency and
-      // the stale server response would immediately clear the optimistic state.
-      // The optimistic state handles the UI, and the next natural profile load
-      // (navigation, page refresh) will pick up the real server data.
+      // Image is now on ImageKit — bump version to bust CDN cache
+      this.imageVersion.update((v) => v + 1);
+      this.imageExistsOnServer.set(true);
     } catch (error: unknown) {
       console.error('Profile image upload failed:', {
         error: error instanceof Error ? error.message : String(error),
@@ -377,8 +295,9 @@ export class ProfileService {
     try {
       await firstValueFrom(this.http.delete<{ success: boolean }>(`/api/profiles/${slug}/image`));
 
-      // Set optimistic state to show image as deleted immediately
-      this.saveOptimisticState({ deleted: true, slug });
+      // Image is now deleted — bump version to bust CDN cache
+      this.imageVersion.update((v) => v + 1);
+      this.imageExistsOnServer.set(false);
     } catch (error: unknown) {
       console.error('Profile image delete failed:', {
         error: error instanceof Error ? error.message : String(error),
@@ -431,74 +350,15 @@ export class ProfileService {
     });
   }
 
-  /**
-   * Load optimistic image state from localStorage.
-   * Called once during service initialization.
-   */
-  private loadOptimisticState(): OptimisticImageState {
-    try {
-      const stored = localStorage.getItem(OPTIMISTIC_IMAGE_KEY);
-      if (!stored) return undefined;
+  private checkImageExists(slug: string): void {
+    const version = this.imageVersion();
+    const rawUrl = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
+    const urlWithCacheBust = version > 0 ? `${rawUrl}?v=${version}` : rawUrl;
+    this.imageExistsOnServer.set(undefined);
 
-      const parsed: unknown = JSON.parse(stored);
-
-      // Validate structure before returning
-      if (!this.isValidOptimisticState(parsed)) {
-        console.warn('Invalid optimistic state in localStorage, clearing', { parsed });
-        localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
-        return undefined;
-      }
-
-      return parsed as OptimisticImageState;
-    } catch (error) {
-      console.error('Failed to load optimistic state, clearing', { error });
-      localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
-      return undefined;
-    }
-  }
-
-  /**
-   * Validate that an unknown value matches the OptimisticImageState structure.
-   */
-  private isValidOptimisticState(value: unknown): value is OptimisticImageState {
-    if (!value || typeof value !== 'object') return false;
-    if (!('slug' in value) || typeof value.slug !== 'string') return false;
-
-    // Check for upload state (has url)
-    if ('url' in value) {
-      return typeof value.url === 'string';
-    }
-
-    // Check for delete state (has deleted)
-    if ('deleted' in value) {
-      return value.deleted === true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Save optimistic image state to both signal and localStorage.
-   * Pass null to clear the state.
-   * Image URLs with data URIs are not persisted to avoid quota errors.
-   */
-  private saveOptimisticState(state: OptimisticImageState): void {
-    this.optimisticImage.set(state);
-    try {
-      if (state) {
-        // Don't persist image URLs with base64 data to localStorage (can exceed quota)
-        // They only need to exist in memory until the profile resource reloads
-        const shouldPersist = !('url' in state) || !state.url.startsWith('data:');
-
-        if (shouldPersist) {
-          localStorage.setItem(OPTIMISTIC_IMAGE_KEY, JSON.stringify(state));
-        }
-      } else {
-        localStorage.removeItem(OPTIMISTIC_IMAGE_KEY);
-      }
-    } catch (error) {
-      console.warn('Failed to persist optimistic state to localStorage', { error });
-      // State is still set in memory, just won't persist across page refreshes
-    }
+    void fetch(urlWithCacheBust, { method: 'HEAD' }).then(
+      (response) => this.imageExistsOnServer.set(response.ok),
+      () => this.imageExistsOnServer.set(undefined),
+    );
   }
 }
