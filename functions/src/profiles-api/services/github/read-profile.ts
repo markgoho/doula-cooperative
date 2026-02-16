@@ -2,17 +2,13 @@ import { logger } from "firebase-functions/v2";
 import { load } from "js-yaml";
 import { App } from "octokit";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import {
-  GITHUB_BRANCH,
-  GITHUB_OWNER,
-  GITHUB_REPO,
-} from "../../../constants/github-config.js";
+import { GITHUB_OWNER, GITHUB_REPO } from "../../../constants/github-config.js";
 import {
   HttpError,
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
-import { isGitHubError, isRateLimitError } from "../../utils/github-error.js";
+import type { ProfileMemberService } from "../member/interface.js";
 import type { ReadProfileResponse } from "./interface.js";
 
 /**
@@ -110,129 +106,47 @@ async function getOctokit() {
   return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
 }
 
-/**
- * Attempts to find a profile image, with fallback from AVIF to JPEG.
- * This ensures users see their image immediately after upload (JPEG),
- * before the AVIF conversion workflow completes.
- */
-async function findProfileImage(
-  slug: string,
-  octokit: Awaited<ReturnType<typeof getOctokit>>,
-): Promise<string | undefined> {
-  const baseDirectory = `hugo/content/doulas/${slug}`;
-  const baseUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/refs/heads/${GITHUB_BRANCH}`;
-
-  // Image candidates in priority order: optimized AVIF first, then raw JPEG
-  const imageCandidates = [
-    {
-      path: `${baseDirectory}/${slug}-profile-600.avif`,
-      description: "optimized AVIF",
-    },
-    { path: `${baseDirectory}/${slug}-profile.jpg`, description: "raw JPEG" },
-  ];
-
-  for (const candidate of imageCandidates) {
-    try {
-      const { data: imageData } = await octokit.rest.repos.getContent({
-        owner: GITHUB_OWNER,
-        repo: GITHUB_REPO,
-        path: candidate.path,
-      });
-
-      if ("content" in imageData) {
-        logger.info(`Found ${candidate.description} for slug ${slug}`);
-        return `${baseUrl}/${candidate.path}`;
-      }
-    } catch (error) {
-      // Check for 404 - this is expected when image doesn't exist
-      if (isGitHubError(error) && error.status === 404) {
-        logger.info(`${candidate.description} not found for slug ${slug}`, {
-          path: candidate.path,
-        });
-        continue; // Try next candidate
-      }
-
-      // Check for rate limiting - should fail fast, not try more requests
-      if (isRateLimitError(error)) {
-        logger.error(
-          "GitHub API rate limit exceeded while checking profile image",
-          {
-            errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
-            slug,
-            path: candidate.path,
-          },
-        );
-        throw new HttpError(
-          "Unable to load profile image due to rate limiting. Please try again later.",
-          429,
-        );
-      }
-
-      // Log unexpected errors with full context and fail the operation
-      logger.error("Unexpected error checking for profile image", {
-        errorId: ERROR_IDS.API_PROFILE_READ_FAILED,
-        slug,
-        path: candidate.path,
-        candidateDescription: candidate.description,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        errorStack: error instanceof Error ? error.stack : undefined,
-        errorType: error?.constructor?.name,
-        githubStatus: isGitHubError(error) ? error.status : undefined,
-      });
-
-      // Re-throw to surface the error to the user
-      // Don't mask infrastructure problems as "no image"
-      throw new HttpError(
-        "Unable to check for profile image. Please try again.",
-        500,
-      );
-    }
-  }
-
-  logger.info(`No profile image found for slug ${slug}`);
-  return undefined;
-}
+const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/doulacoop";
 
 /**
- * Read a profile's content and image from GitHub.
+ * Read a profile's content and image from GitHub and Firestore.
  */
 export async function readProfile(options: {
   slug: string;
+  profileMemberService: ProfileMemberService;
 }): Promise<ReadProfileResponse> {
-  const { slug } = options;
+  const { slug, profileMemberService } = options;
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
   const octokit = await getOctokit();
 
   try {
-    // Fetch the markdown content
     const { data: fileData } = await octokit.rest.repos.getContent({
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       path: filePath,
     });
 
-    // Safety check to ensure we got a file and not a directory
     if (!("content" in fileData)) {
       throw new Error("Path did not resolve to a file.");
     }
 
-    // Decode the markdown content
     const content = Buffer.from(fileData.content, "base64").toString("utf8");
 
-    // Parse markdown into structured ProfileData
     const profileData = parseProfileMarkdown(content, slug);
 
-    // Check if profile image exists
-    const image = await findProfileImage(slug, octokit);
+    const member = await profileMemberService.getMemberBySlug(slug);
+    const imagekitPath = member?.imagekitPath;
+
+    const image = imagekitPath
+      ? `${IMAGEKIT_BASE_URL}/${imagekitPath}`
+      : undefined;
 
     return {
       ...profileData,
       ...(image !== undefined && { image }),
     };
   } catch (error) {
-    // Type guard for GitHub API errors
     const isGitHubError = (value: unknown): value is { status: number } => {
       return typeof value === "object" && value !== null && "status" in value;
     };

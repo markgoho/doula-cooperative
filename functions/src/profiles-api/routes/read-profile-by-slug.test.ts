@@ -39,7 +39,8 @@ describe("GET /:slug (read profile by slug)", () => {
       }
       return Promise.resolve({
         ...mockProfileData,
-        image: "https://example.com/image.jpg",
+        image:
+          "https://ik.imagekit.io/doulacoop/test-user/test-user-profile.jpg",
       });
     });
 
@@ -94,7 +95,9 @@ describe("GET /:slug (read profile by slug)", () => {
       const response = await handleRequest(testApp, request);
 
       const body = (await response.json()) as ProfileData;
-      expect(body.image).toBe("https://example.com/image.jpg");
+      expect(body.image).toBe(
+        "https://ik.imagekit.io/doulacoop/test-user/test-user-profile.jpg",
+      );
     });
 
     it("should not include image when not available", async () => {

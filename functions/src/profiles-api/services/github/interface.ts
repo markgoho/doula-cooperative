@@ -1,4 +1,5 @@
 import type { ProfileData } from "../../schemas/profile-schemas.js";
+import type { ProfileMemberService } from "../member/interface.js";
 
 /**
  * Response from reading a profile from GitHub.
@@ -26,10 +27,14 @@ export interface ProfileGitHubService {
    * Parses markdown front matter and returns structured ProfileData.
    *
    * @param options.slug - The profile slug (directory name)
+   * @param options.profileMemberService - Service for fetching member data
    * @returns Promise with parsed profile data and optional image URL
    * @throws HttpError if profile not found, YAML parsing fails, or GitHub API fails
    */
-  readProfile(options: { slug: string }): Promise<ReadProfileResponse>;
+  readProfile(options: {
+    slug: string;
+    profileMemberService: ProfileMemberService;
+  }): Promise<ReadProfileResponse>;
 
   /**
    * Update an existing profile on GitHub.

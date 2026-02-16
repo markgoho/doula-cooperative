@@ -5,6 +5,7 @@ import type {
   ProfileGitHubService,
   ReadProfileResponse,
 } from "../services/github/interface.js";
+import type { ProfileMemberService } from "../services/member/interface.js";
 
 /**
  * Route logic for reading a profile by slug (public endpoint).
@@ -15,17 +16,21 @@ import type {
 export async function readProfileBySlugLogic({
   slug,
   profileGitHubService,
+  profileMemberService,
   logger,
   set,
 }: {
   slug: string;
   profileGitHubService: ProfileGitHubService;
+  profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ReadProfileResponse | { error: string }> {
   try {
-    // Read profile from GitHub (returns structured ProfileData)
-    const profileData = await profileGitHubService.readProfile({ slug });
+    const profileData = await profileGitHubService.readProfile({
+      slug,
+      profileMemberService,
+    });
 
     logger.info("Successfully read profile by slug", { slug });
 

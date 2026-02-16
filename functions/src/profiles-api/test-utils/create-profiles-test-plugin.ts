@@ -26,6 +26,8 @@ export const mockMemberDocument: MemberDocument = {
   membershipExpiresAt: Timestamp.now(),
   slug: "test-user",
   profileCreatedAt: Timestamp.now(),
+  imagekitPath: "test-user/test-user-profile.jpg",
+  imagekitFileId: "test-imagekit-file-id",
 };
 
 /**
@@ -80,7 +82,8 @@ export function createProfilesTestPlugin(overrides?: {
     readProfile: mock(() =>
       Promise.resolve({
         ...mockProfileData,
-        image: "https://example.com/image.jpg",
+        image:
+          "https://ik.imagekit.io/doulacoop/test-user/test-user-profile.jpg",
       }),
     ),
     writeProfile: mock(() => Promise.resolve({ success: true as const })),
@@ -96,6 +99,7 @@ export function createProfilesTestPlugin(overrides?: {
     checkSlugAvailable: mock(() => Promise.resolve({ available: true })),
     setSlug: mock(() => Promise.resolve({ slug: "test-user" })),
     setProfileCreatedAt: mock(() => Promise.resolve()),
+    getMemberBySlug: mock(() => Promise.resolve({ ...mockMemberDocument })),
     ...overrides?.profileMemberService,
   };
 

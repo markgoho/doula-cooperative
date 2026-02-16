@@ -142,14 +142,48 @@ async function setProfileCreatedAt(uid: string): Promise<void> {
 
     logger.info("Set profileCreatedAt timestamp for user", { uid });
   } catch (error) {
-    // Log error but don't fail the whole operation
     logger.error("Failed to update profileCreatedAt timestamp", {
       errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
       uid,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
-    // Don't throw - this is a non-critical update
+  }
+}
+
+/**
+ * Get a member document by slug.
+ */
+async function getMemberBySlug(
+  slug: string,
+): Promise<MemberDocument | undefined> {
+  try {
+    const database = getFirestore();
+    const query = database
+      .collection(MEMBERS_COLLECTION)
+      .where("slug", "==", slug)
+      .limit(1);
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      return undefined;
+    }
+
+    const document = snapshot.docs[0];
+    if (!document) {
+      return undefined;
+    }
+
+    return document.data() as MemberDocument;
+  } catch (error) {
+    logger.error("Failed to get member by slug", {
+      errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
+      slug,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw new HttpError("Failed to retrieve member information", 500);
   }
 }
 
@@ -162,6 +196,7 @@ export const ProfileMemberService: ProfileMemberServiceInterface = {
   checkSlugAvailable,
   setSlug,
   setProfileCreatedAt,
+  getMemberBySlug,
 };
 
 export type { SetSlugResponse, SlugAvailabilityResponse } from "./interface.js";

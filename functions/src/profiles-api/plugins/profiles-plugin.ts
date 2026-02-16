@@ -141,10 +141,17 @@ export function createProfilesPlugin(services?: PartialServices) {
       // GET /:slug - Read profile by slug (no auth)
       .get(
         "/:slug",
-        async ({ params, profileGitHubService, logger, set }) =>
+        async ({
+          params,
+          profileGitHubService,
+          profileMemberService,
+          logger,
+          set,
+        }) =>
           readProfileBySlugLogic({
             slug: params.slug,
             profileGitHubService,
+            profileMemberService,
             logger,
             set,
           }),
