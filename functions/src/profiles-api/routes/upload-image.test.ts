@@ -4,6 +4,7 @@ import {
   createProfilesTestPlugin,
   mockMemberDocument,
 } from "../test-utils/create-profiles-test-plugin.js";
+import { _resetImageKitClient } from "../utils/imagekit-client.js";
 
 // Set ImageKit env vars for tests
 process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
@@ -26,7 +27,6 @@ describe("POST /:slug/image (upload profile image)", () => {
   const validRequest = {
     imageData: mockImageData,
     mimeType: "image/png",
-    cropData: { x: 0, y: 0, width: 100, height: 100 },
   };
 
   interface SetupOptions {
@@ -110,7 +110,6 @@ describe("POST /:slug/image (upload profile image)", () => {
       const { testApp, request } = setup({
         body: {
           mimeType: "image/png",
-          cropData: { x: 0, y: 0, width: 100, height: 100 },
         },
       });
 
@@ -124,21 +123,6 @@ describe("POST /:slug/image (upload profile image)", () => {
         body: {
           imageData: mockImageData,
           mimeType: "image/gif",
-          cropData: { x: 0, y: 0, width: 100, height: 100 },
-        },
-      });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(422);
-    });
-
-    it("should return 422 when cropData is invalid", async () => {
-      const { testApp, request } = setup({
-        body: {
-          imageData: mockImageData,
-          mimeType: "image/png",
-          cropData: { x: -1, y: 0, width: 100, height: 100 },
         },
       });
 
@@ -176,6 +160,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 500 when IMAGEKIT_PRIVATE_KEY is missing", async () => {
       const originalValue = process.env["IMAGEKIT_PRIVATE_KEY"];
       delete process.env["IMAGEKIT_PRIVATE_KEY"];
+      _resetImageKitClient();
 
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
@@ -183,6 +168,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PRIVATE_KEY"] = originalValue;
       }
+      _resetImageKitClient();
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -192,6 +178,7 @@ describe("POST /:slug/image (upload profile image)", () => {
     it("should return 500 when IMAGEKIT_PUBLIC_KEY is missing", async () => {
       const originalValue = process.env["IMAGEKIT_PUBLIC_KEY"];
       delete process.env["IMAGEKIT_PUBLIC_KEY"];
+      _resetImageKitClient();
 
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
@@ -199,6 +186,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PUBLIC_KEY"] = originalValue;
       }
+      _resetImageKitClient();
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

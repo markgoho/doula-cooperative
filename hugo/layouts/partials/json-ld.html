@@ -5,7 +5,7 @@
   "name": "{{ .Title }}",
   "url": "{{ .Permalink }}",
   {{- $slug := path.Base .File.Dir -}}
-  "image": "https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile",
+  "image": "https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile",
   "description": "{{ .Summary | plainify | safeJS }}",
   "jobTitle": "Doula",
   {{ with .Params.contact -}}

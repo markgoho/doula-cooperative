@@ -1,14 +1,9 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { ImageKitAuthSuccessResponse } from "../schemas/profile-schemas.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 import { getImageKitClient } from "../utils/imagekit-client.js";
-
-export interface ImageKitAuthResponse {
-  token: string;
-  expire: number;
-  signature: string;
-}
 
 /**
  * Get ImageKit auth parameters for client-side uploads.
@@ -27,7 +22,7 @@ export async function imagekitAuthLogic({
   profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<ImageKitAuthResponse | { error: string }> {
+}): Promise<ImageKitAuthSuccessResponse | { error: string }> {
   logger.info("ImageKit auth request initiated", { uid });
 
   try {

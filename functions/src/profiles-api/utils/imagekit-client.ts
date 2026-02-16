@@ -2,13 +2,18 @@ import ImageKit from "imagekit";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 
 const IMAGEKIT_ENDPOINT = "https://ik.imagekit.io/doulacoop";
-const IMAGEKIT_PUBLIC_KEY = "public_PL5PBznSIhZ2PrWR9H";
+
+let cachedClient: ImageKit | undefined;
 
 /**
- * Get initialized ImageKit client instance.
+ * Get initialized ImageKit client instance (lazy singleton).
  * Throws HttpError if required env vars are missing.
  */
 export function getImageKitClient(): ImageKit {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
   const publicKey = process.env["IMAGEKIT_PUBLIC_KEY"];
 
@@ -19,9 +24,16 @@ export function getImageKitClient(): ImageKit {
     );
   }
 
-  return new ImageKit({
+  cachedClient = new ImageKit({
     privateKey,
-    publicKey: publicKey || IMAGEKIT_PUBLIC_KEY,
+    publicKey,
     urlEndpoint: IMAGEKIT_ENDPOINT,
   });
+
+  return cachedClient;
+}
+
+/** @internal Reset cached client (for tests only). */
+export function _resetImageKitClient(): void {
+  cachedClient = undefined;
 }

@@ -1,10 +1,29 @@
 import { describe, expect, it, mock } from "bun:test";
+import ImageKit from "imagekit";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
 } from "../test-utils/create-profiles-test-plugin.js";
+import { _resetImageKitClient } from "../utils/imagekit-client.js";
+
+// Restore real ImageKit client — delete-image.test.ts replaces this module
+// via mock.module with a stub missing getAuthenticationParameters.
+let realClient: ImageKit | undefined;
+void mock.module("../utils/imagekit-client.js", () => ({
+  getImageKitClient: () => {
+    realClient ??= new ImageKit({
+      privateKey: process.env["IMAGEKIT_PRIVATE_KEY"] ?? "",
+      publicKey: process.env["IMAGEKIT_PUBLIC_KEY"] ?? "",
+      urlEndpoint: "https://ik.imagekit.io/doulacoop",
+    });
+    return realClient;
+  },
+  _resetImageKitClient: () => {
+    realClient = undefined;
+  },
+}));
 
 describe("GET /auth (ImageKit auth)", () => {
   // Ensure env vars are set for tests
@@ -113,6 +132,7 @@ describe("GET /auth (ImageKit auth)", () => {
     it("should return 500 when IMAGEKIT_PRIVATE_KEY is missing", async () => {
       const originalValue = process.env["IMAGEKIT_PRIVATE_KEY"];
       delete process.env["IMAGEKIT_PRIVATE_KEY"];
+      _resetImageKitClient();
 
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
@@ -120,6 +140,7 @@ describe("GET /auth (ImageKit auth)", () => {
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PRIVATE_KEY"] = originalValue;
       }
+      _resetImageKitClient();
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
@@ -129,6 +150,7 @@ describe("GET /auth (ImageKit auth)", () => {
     it("should return 500 when IMAGEKIT_PUBLIC_KEY is missing", async () => {
       const originalValue = process.env["IMAGEKIT_PUBLIC_KEY"];
       delete process.env["IMAGEKIT_PUBLIC_KEY"];
+      _resetImageKitClient();
 
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
@@ -136,6 +158,7 @@ describe("GET /auth (ImageKit auth)", () => {
       if (originalValue !== undefined) {
         process.env["IMAGEKIT_PUBLIC_KEY"] = originalValue;
       }
+      _resetImageKitClient();
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
