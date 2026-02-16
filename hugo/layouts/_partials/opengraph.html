@@ -40,9 +40,18 @@
 {{- if eq .Type "doulas" -}}
   <meta property="og:type" content="profile" />
 
-  {{ with .Resources.GetMatch "*profile.jpg" }}
-    <meta property="og:image" content="{{ .Permalink }}" />
-    <meta name="twitter:image" content="{{ .Permalink }}" />
+  {{ with .Params.imagekit_path }}
+    <meta
+      property="og:image"
+      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/{{ . }}" />
+    <meta
+      name="twitter:image"
+      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/{{ . }}" />
+  {{ else }}
+    {{ with .Resources.GetMatch "*profile.jpg" }}
+      <meta property="og:image" content="{{ .Permalink }}" />
+      <meta name="twitter:image" content="{{ .Permalink }}" />
+    {{ end }}
   {{ end }}
 
 {{ else }}
