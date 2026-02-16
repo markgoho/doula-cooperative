@@ -3,19 +3,14 @@
   style="view-transition-name: profile-{{ .Title | md5 }};">
   <a href="{{ .RelPermalink }}" class="profile-card">
     {{ $slug := path.Base .File.Dir }}
-    {{ $profileImage := printf "%s-profile-300.avif" $slug }}
-    {{ with .Resources.GetMatch $profileImage }}
-      <img
-        loading="lazy"
-        height="300"
-        width="300"
-        src="https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile"
-        alt="Headshot of {{ $.Title }}"
-        class="headshot"
-        style="view-transition-name: headshot-{{ $.Title | md5 }};" />
-    {{ else }}
-      <div class="placeholder-image"></div>
-    {{ end }}
+    <img
+      loading="lazy"
+      height="300"
+      width="300"
+      src="https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile"
+      alt="Headshot of {{ .Title }}"
+      class="headshot"
+      style="view-transition-name: headshot-{{ .Title | md5 }};" />
     <h2 class="name" style="view-transition-name: name-{{ .Title | md5 }};">
       {{ .Title }}
     </h2>

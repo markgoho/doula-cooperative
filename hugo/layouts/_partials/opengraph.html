@@ -41,16 +41,12 @@
   <meta property="og:type" content="profile" />
 
   {{ $slug := path.Base .File.Dir }}
-  {{ $profileImage := printf "%s-profile-300.avif" $slug }}
-  {{ with .Resources.GetMatch $profileImage }}
-    <meta
-      property="og:image"
-      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
-    <meta
-      name="twitter:image"
-      content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
-  {{ end }}
-
+  <meta
+    property="og:image"
+    content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
+  <meta
+    name="twitter:image"
+    content="https://ik.imagekit.io/doulacoop/tr:w-1200,h-630,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile" />
 {{ else }}
   <meta property="og:type" content="website" />
   <meta

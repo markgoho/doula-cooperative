@@ -23,28 +23,24 @@
 
     <section class="headshot">
       {{ $slug := path.Base .File.Dir }}
-      {{ $profileImage300 := printf "%s-profile-300.avif" $slug }}
-      {{ with .Resources.GetMatch $profileImage300 }}
-        <picture>
-          <source
-            media="(min-width: 600px)"
-            srcset="
-              https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile    600w,
-              https://ik.imagekit.io/doulacoop/tr:w-1200,h-1200,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 1200w
-            "
-            sizes="(min-width: 600px) 600px" />
-          <img
-            src="https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile"
-            srcset="
-              https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 300w,
-              https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 600w
-            "
-            alt="Headshot of {{ $.Title }}"
-            class="headshot__image"
-            style="view-transition-name: headshot-{{ $.Title | md5 }};" />
-        </picture>
-      {{ end }}
-
+      <picture>
+        <source
+          media="(min-width: 600px)"
+          srcset="
+            https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile    600w,
+            https://ik.imagekit.io/doulacoop/tr:w-1200,h-1200,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 1200w
+          "
+          sizes="(min-width: 600px) 600px" />
+        <img
+          src="https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile"
+          srcset="
+            https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 300w,
+            https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face/doulas/{{ $slug }}/{{ $slug }}-profile 600w
+          "
+          alt="Headshot of {{ .Title }}"
+          class="headshot__image"
+          style="view-transition-name: headshot-{{ .Title | md5 }};" />
+      </picture>
 
       <div class="tags">
         {{ with .Params.tags }}
