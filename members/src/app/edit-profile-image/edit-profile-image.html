@@ -86,11 +86,11 @@
       </div>
     } @else {
       <!-- Viewing State -->
-      @if (profile.image) {
+      @if (profileService.hasCustomImage()) {
         <div class="current-image">
           <h2>Current Profile Image</h2>
           <img
-            [src]="profile.image"
+            [src]="profileService.profileImageUrl()"
             alt="Profile image of {{ profile.title }}"
             class="profile-image-large"
           />

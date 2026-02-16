@@ -269,6 +269,8 @@ async function setup({ profileData, uploadError, deleteError }: SetupOptions = {
     ? vi.fn().mockRejectedValue(deleteError)
     : vi.fn().mockResolvedValue(undefined);
 
+  const hasCustomImage = profileData?.image !== undefined;
+
   const mockProfileService = {
     profileResource: {
       isLoading: signal(false),
@@ -278,8 +280,11 @@ async function setup({ profileData, uploadError, deleteError }: SetupOptions = {
     },
     profile: signal(profileData),
     profileImageUrl: signal(
-      'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
+      hasCustomImage
+        ? profileData!.image
+        : 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
     ),
+    hasCustomImage: signal(hasCustomImage),
     uploadProfileImage: uploadMock,
     deleteProfileImage: deleteMock,
   } as unknown as ProfileService;
