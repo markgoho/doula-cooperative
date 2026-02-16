@@ -195,8 +195,13 @@
         @if (profileService.profileImageUrl()) {
           <img
             [src]="profileService.profileImageUrl()"
-            alt="Profile image of {{ profile?.title }}"
+            [alt]="
+              profileService.hasCustomImage()
+                ? 'Profile image of ' + profile?.title
+                : 'Default profile placeholder'
+            "
             class="profile-image-preview"
+            [class.default-image]="!profileService.hasCustomImage()"
           />
         }
         @if (!profileService.hasCustomImage()) {

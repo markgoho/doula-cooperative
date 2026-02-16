@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, computed, inject, resource, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
@@ -42,6 +42,36 @@ export class ProfileService {
    * Persisted to localStorage for cross-refresh persistence, auto-cleared when backend catches up.
    */
   private readonly optimisticImage = signal<OptimisticImageState>(this.loadOptimisticState());
+
+  /**
+   * Whether the image actually exists on ImageKit (server-side check via HEAD request).
+   * undefined = not yet checked, true = exists, false = 404.
+   * Reset when slug changes, updated after profile loads.
+   */
+  private readonly imageExistsOnServer = signal<boolean | undefined>(undefined);
+
+  constructor() {
+    // When profile loads with an image URL, check if the image actually exists on ImageKit.
+    // This detects "no custom image" even though the backend always sets profile.image.
+    effect(() => {
+      const profile = this.profile();
+      const slug = this.membershipService.userDocument()?.slug;
+      if (!profile?.image || !slug) return;
+
+      // Skip server check if optimistic state already tells us
+      const optimistic = this.optimisticImage();
+      if (optimistic && optimistic.slug === slug) return;
+
+      // HEAD request to raw ImageKit URL (no di- fallback) to check if image exists
+      const rawUrl = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
+      this.imageExistsOnServer.set(undefined); // reset while checking
+
+      void fetch(rawUrl, { method: 'HEAD' }).then(
+        (response) => this.imageExistsOnServer.set(response.ok),
+        () => this.imageExistsOnServer.set(undefined), // network error — don't assume
+      );
+    });
+  }
 
   // Resource automatically loads profile based on membership status
   readonly profileResource = resource({
@@ -133,20 +163,17 @@ export class ProfileService {
     const optimistic = this.optimisticImage();
     const slug = this.membershipService.userDocument()?.slug;
 
-    // Optimistic delete means no custom image
     if (optimistic && slug && optimistic.slug === slug && 'deleted' in optimistic) {
       return false;
     }
 
-    // Optimistic upload means we just uploaded one
     if (optimistic && slug && optimistic.slug === slug && 'url' in optimistic) {
       return true;
     }
 
-    // Check if profile has an image field (backend always sets it, so this is always true
-    // unless optimistic delete cleared it). Since backend always sets image, we return true
-    // here — the only "no custom image" state we can detect is optimistic delete.
-    return !!profile.image;
+    // Use server-side HEAD check result; default to true while still checking
+    // to avoid flickering the "no image" UI before the check completes
+    return this.imageExistsOnServer() ?? true;
   });
 
   async updateProfile(data: ProfileData): Promise<void> {

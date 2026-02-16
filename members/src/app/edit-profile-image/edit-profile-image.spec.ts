@@ -93,6 +93,14 @@ describe('EditProfileImage', () => {
 
       expect(screen.getByText(/add photo/i)).toBeVisible();
     });
+
+    it('should NOT show Remove Photo button', async () => {
+      await setup({
+        profileData: { title: 'Jane Doe', bio: 'Experienced doula' },
+      });
+
+      expect(screen.queryByRole('button', { name: /remove photo/i })).not.toBeInTheDocument();
+    });
   });
 
   describe('file selection', () => {

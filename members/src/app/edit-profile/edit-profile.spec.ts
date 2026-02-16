@@ -285,6 +285,12 @@ describe('EditProfile', () => {
 
       expect(screen.queryByText(/no custom profile image set/i)).not.toBeInTheDocument();
     });
+
+    it('should show default placeholder alt text when no custom image', async () => {
+      await setup({ hasCustomImage: false });
+
+      expect(screen.getByRole('img', { name: /default profile placeholder/i })).toBeVisible();
+    });
   });
 });
 
