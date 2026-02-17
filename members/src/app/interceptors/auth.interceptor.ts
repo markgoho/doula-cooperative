@@ -1,7 +1,8 @@
-import { type HttpInterceptorFn } from '@angular/common/http';
+import { type HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
-import { from, switchMap } from 'rxjs';
+import { Auth, signOut } from '@angular/fire/auth';
+import { Router } from '@angular/router';
+import { EMPTY, catchError, from, switchMap } from 'rxjs';
 
 /**
  * API paths that require authentication.
@@ -10,12 +11,13 @@ import { from, switchMap } from 'rxjs';
 const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/profiles/', '/api/members/'];
 
 /**
- * HTTP Interceptor that automatically adds Firebase Auth token to requests.
+ * HTTP Interceptor that manages Firebase Auth tokens on API requests.
  *
  * Applies to all requests matching paths in AUTHENTICATED_API_PATHS.
  * - Gets the current user's ID token from Firebase Auth
  * - Adds it as a Bearer token in the Authorization header
  * - If no user is authenticated, request proceeds without modification
+ * - On 401 responses, signs the user out and redirects to /sign-in
  *
  * @example
  * // In app.config.ts
@@ -27,6 +29,7 @@ const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/profiles/', '/api/members/
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(Auth);
+  const router = inject(Router);
 
   // Only intercept authenticated API requests
   const requiresAuth = AUTHENTICATED_API_PATHS.some((path) => request.url.includes(path));
@@ -51,6 +54,20 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       });
 
       return next(authRequest);
+    }),
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        // Token is invalid/revoked — sign out and redirect to sign-in
+        signOut(auth).then(
+          () => void router.navigate(['/sign-in']),
+          (signOutError: unknown) => {
+            console.error('Sign out after 401 failed:', signOutError);
+            void router.navigate(['/sign-in']);
+          },
+        );
+        return EMPTY;
+      }
+      throw error;
     }),
   );
 };
