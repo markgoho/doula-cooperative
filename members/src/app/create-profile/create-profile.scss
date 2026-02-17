@@ -1,5 +1,10 @@
 // Create Profile Specific Styles
 
+:host {
+  display: block;
+  container: profileform / inline-size;
+}
+
 .welcome-message {
   background-color: var(--teal-100);
   border-left: 4px solid var(--teal-500);

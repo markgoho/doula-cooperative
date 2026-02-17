@@ -8,136 +8,124 @@
     <p>Loading your profile...</p>
   </div>
 } @else if (profile) {
-  <div class="image-editor-container">
-    <!-- Error Message -->
-    @if (errorMessage()) {
-      <div class="message message--error" role="alert">
-        <p>{{ errorMessage() }}</p>
-        <button
-          type="button"
-          class="message-dismiss"
-          (click)="clearMessages()"
-          aria-label="Dismiss"
-        >
-          ×
-        </button>
-      </div>
-    }
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="message message--error" role="alert">
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+        ×
+      </button>
+    </div>
+  }
 
-    <!-- Success Message -->
-    @if (successMessage()) {
-      <div class="message message--success" role="status">
-        <p>{{ successMessage() }}</p>
-        <button
-          type="button"
-          class="message-dismiss"
-          (click)="clearMessages()"
-          aria-label="Dismiss"
-        >
-          ×
-        </button>
-      </div>
-    }
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="message message--success" role="status">
+      <p>{{ successMessage() }}</p>
+      <button type="button" class="message-dismiss" (click)="clearMessages()" aria-label="Dismiss">
+        ×
+      </button>
+    </div>
+  }
 
-    <!-- Selecting State -->
-    @if (editorState() === 'selecting' && previewUrl()) {
-      <div class="preview-state">
-        <h2>Preview</h2>
-        <div class="preview-image-container">
-          <img [src]="previewUrl()" alt="Preview" class="profile-image-preview" />
-        </div>
-        <div class="actions">
-          <button type="button" class="button button--secondary" (click)="cancelSelection()">
-            Cancel
-          </button>
-          <button type="button" class="button button--primary" (click)="uploadSelectedFile()">
-            Upload Photo
-          </button>
-        </div>
+  <!-- Selecting State -->
+  @if (editorState() === 'selecting' && previewUrl()) {
+    <div class="preview-state">
+      <h2>Preview</h2>
+      <div class="preview-image-container">
+        <img [src]="previewUrl()" alt="Preview" class="profile-image-preview" />
       </div>
-    } @else if (editorState() === 'uploading') {
-      <!-- Uploading State -->
-      <div class="processing-state">
-        <div class="spinner" aria-hidden="true"></div>
-        <p>Uploading your photo...</p>
-      </div>
-    } @else if (editorState() === 'deleting') {
-      <!-- Deleting State -->
-      <div class="processing-state">
-        <div class="spinner" aria-hidden="true"></div>
-        <p>Removing your photo...</p>
-      </div>
-    } @else if (editorState() === 'confirming-delete') {
-      <!-- Delete Confirmation -->
-      <div class="confirm-delete">
-        <h2>Remove Profile Photo?</h2>
-        <p>Are you sure you want to remove your profile photo? This cannot be undone.</p>
-        <div class="actions">
-          <button type="button" class="button button--secondary" (click)="cancelDelete()">
-            Cancel
-          </button>
-          <button type="button" class="button button--danger" (click)="confirmDelete()">
-            Remove Photo
-          </button>
-        </div>
-      </div>
-    } @else {
-      <!-- Viewing State -->
-      @let hasCustom = profileService.hasCustomImage();
-      @let imageUrl = profileService.profileImageUrl();
-      <div [class]="hasCustom ? 'current-image' : 'no-image'">
-        @if (hasCustom) {
-          <h2>Current Profile Image</h2>
-        }
-        <img
-          [src]="imageUrl"
-          [alt]="hasCustom ? 'Profile image of ' + profile.title : 'Default profile placeholder'"
-          class="profile-image-large"
-          [class.default-image]="!hasCustom"
-        />
-        @if (!hasCustom) {
-          <p>No custom profile image set.</p>
-          <p class="no-image-hint">
-            A default placeholder is shown on your public profile. Add a photo to help clients
-            recognize you.
-          </p>
-        }
-      </div>
-
-      <!-- File Input (hidden) -->
-      <input
-        type="file"
-        id="image-upload"
-        accept="image/jpeg,image/png,image/webp"
-        class="visually-hidden"
-        (change)="onFileSelected($event)"
-      />
-
-      <!-- Action Buttons -->
       <div class="actions">
-        <label
-          for="image-upload"
-          class="button {{ hasCustom ? 'button--secondary' : 'button--primary' }}"
-        >
-          @if (hasCustom) {
-            Change Photo
-          } @else {
-            Add Photo
-          }
-        </label>
+        <button type="button" class="button button--secondary" (click)="cancelSelection()">
+          Cancel
+        </button>
+        <button type="button" class="button button--primary" (click)="uploadSelectedFile()">
+          Upload Photo
+        </button>
+      </div>
+    </div>
+  } @else if (editorState() === 'uploading') {
+    <!-- Uploading State -->
+    <div class="processing-state">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Uploading your photo...</p>
+    </div>
+  } @else if (editorState() === 'deleting') {
+    <!-- Deleting State -->
+    <div class="processing-state">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Removing your photo...</p>
+    </div>
+  } @else if (editorState() === 'confirming-delete') {
+    <!-- Delete Confirmation -->
+    <div class="confirm-delete">
+      <h2>Remove Profile Photo?</h2>
+      <p>Are you sure you want to remove your profile photo? This cannot be undone.</p>
+      <div class="actions">
+        <button type="button" class="button button--secondary" (click)="cancelDelete()">
+          Cancel
+        </button>
+        <button type="button" class="button button--danger" (click)="confirmDelete()">
+          Remove Photo
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- Viewing State -->
+    @let hasCustom = profileService.hasCustomImage();
+    @let imageUrl = profileService.profileImageUrl();
+    <div [class]="hasCustom ? 'current-image' : 'no-image'">
+      @if (hasCustom) {
+        <h2>Current Profile Image</h2>
+      }
+      <img
+        [src]="imageUrl"
+        [alt]="hasCustom ? 'Profile image of ' + profile.title : 'Default profile placeholder'"
+        class="profile-image-large"
+        [class.default-image]="!hasCustom"
+      />
+      @if (!hasCustom) {
+        <p>No custom profile image set.</p>
+        <p class="no-image-hint">
+          A default placeholder is shown on your public profile. Add a photo to help clients
+          recognize you.
+        </p>
+      }
+    </div>
 
+    <!-- File Input (hidden) -->
+    <input
+      type="file"
+      id="image-upload"
+      accept="image/jpeg,image/png,image/webp"
+      class="visually-hidden"
+      (change)="onFileSelected($event)"
+    />
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <label
+        for="image-upload"
+        class="button {{ hasCustom ? 'button--secondary' : 'button--primary' }}"
+      >
         @if (hasCustom) {
-          <button type="button" class="button button--danger" (click)="startDelete()">
-            Remove Photo
-          </button>
+          Change Photo
+        } @else {
+          Add Photo
         }
-      </div>
+      </label>
 
-      <div class="back-link">
-        <a routerLink="/profile">← Back to Profile</a>
-      </div>
-    }
-  </div>
+      @if (hasCustom) {
+        <button type="button" class="button button--danger" (click)="startDelete()">
+          Remove Photo
+        </button>
+      }
+    </div>
+
+    <div class="back-link">
+      <a routerLink="/profile">← Back to Profile</a>
+    </div>
+  }
 } @else {
   <div class="no-profile-message">
     <h2>Profile Setup Required</h2>

@@ -7,198 +7,196 @@
     <p>Loading...</p>
   </div>
 } @else {
-  <div class="form-container">
-    <div class="welcome-message">
-      <p>
-        Welcome to the Doula Cooperative! Let's set up your professional profile. This information
-        will be displayed in our public doula directory.
-      </p>
+  <div class="welcome-message">
+    <p>
+      Welcome to the Doula Cooperative! Let's set up your professional profile. This information
+      will be displayed in our public doula directory.
+    </p>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+    <!-- Success Message -->
+    @if (successMessage()) {
+      <div class="form__success-message">
+        {{ successMessage() }}
+      </div>
+    }
+
+    <!-- Error Message -->
+    @if (errorMessage()) {
+      <div class="form__error-message">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Title Field -->
+    <div class="form-group">
+      <label for="title" class="form__label">Name *</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        placeholder="Enter your full name"
+        class="form__input"
+        [class.error]="titleControl?.invalid && titleControl?.touched"
+      />
+      @if (titleControl?.invalid && titleControl?.touched) {
+        <div class="form__error-message">
+          @if (titleControl?.errors?.['required']) {
+            <span>Name is required</span>
+          }
+        </div>
+      }
     </div>
 
-    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-      <!-- Success Message -->
-      @if (successMessage()) {
-        <div class="form__success-message">
-          {{ successMessage() }}
-        </div>
-      }
+    <!-- Pronouns Field (optional) -->
+    <div class="form-group">
+      <label for="pronouns" class="form__label">Pronouns (optional)</label>
+      <input
+        id="pronouns"
+        type="text"
+        formControlName="pronouns"
+        placeholder="e.g., she/her, he/him, they/them"
+        class="form__input"
+      />
+    </div>
 
-      <!-- Error Message -->
-      @if (errorMessage()) {
+    <!-- Credentials Field -->
+    <div class="form-group">
+      <label for="credentials" class="form__label">Credentials</label>
+      <input
+        id="credentials"
+        type="text"
+        formControlName="credentials"
+        placeholder="e.g., CD(DONA), CLC, IBCLC"
+        class="form__input"
+      />
+    </div>
+
+    <!-- Tags Selection -->
+    <div class="form-group">
+      <div class="form__label" role="group" aria-labelledby="services-label">
+        <span id="services-label">Professional Category *</span>
+      </div>
+      <p class="form__help-text">Select all that apply</p>
+      <div class="tags-container">
+        @for (tag of availableTags; track tag; let i = $index) {
+          <label class="checkbox-label">
+            <input type="checkbox" [formControl]="getTagControl(i)" class="checkbox-input" />
+            <span class="checkbox-text">{{ tag }}</span>
+          </label>
+        }
+      </div>
+      @if (tagsArray.invalid && tagsArray.touched) {
         <div class="form__error-message">
-          {{ errorMessage() }}
+          <span>Please select at least one service or specialty</span>
         </div>
       }
+    </div>
 
-      <!-- Title Field -->
+    <!-- Bio Field -->
+    <div class="form-group">
+      <label for="bio" class="form__label">Bio *</label>
+      <textarea
+        id="bio"
+        formControlName="bio"
+        placeholder="Tell us about yourself, your experience, and your approach to doula work..."
+        class="form__textarea"
+        rows="10"
+        [class.error]="bioControl?.invalid && bioControl?.touched"
+      ></textarea>
+      @if (bioControl?.invalid && bioControl?.touched) {
+        <div class="form__error-message">
+          @if (bioControl?.errors?.['required']) {
+            <span>Bio is required</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Contact Information Section -->
+    <fieldset class="form-fieldset">
+      <legend class="form__legend">Contact Information</legend>
+
+      <!-- Business Name -->
       <div class="form-group">
-        <label for="title" class="form__label">Name *</label>
+        <label for="businessName" class="form__label">Business Name</label>
         <input
-          id="title"
+          id="businessName"
           type="text"
-          formControlName="title"
-          placeholder="Enter your full name"
+          formControlName="businessName"
+          placeholder="Your business name"
           class="form__input"
-          [class.error]="titleControl?.invalid && titleControl?.touched"
         />
-        @if (titleControl?.invalid && titleControl?.touched) {
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label for="phone" class="form__label">Phone</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          placeholder="585-123-4567"
+          class="form__input"
+        />
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email" class="form__label">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="your@email.com"
+          class="form__input"
+          [class.error]="emailControl?.invalid && emailControl?.touched"
+        />
+        @if (emailControl?.invalid && emailControl?.touched) {
           <div class="form__error-message">
-            @if (titleControl?.errors?.['required']) {
-              <span>Name is required</span>
+            @if (emailControl?.errors?.['email']) {
+              <span>Please enter a valid email address</span>
             }
           </div>
         }
       </div>
 
-      <!-- Pronouns Field (optional) -->
+      <!-- Website -->
       <div class="form-group">
-        <label for="pronouns" class="form__label">Pronouns (optional)</label>
+        <label for="website" class="form__label">Website</label>
         <input
-          id="pronouns"
+          id="website"
           type="text"
-          formControlName="pronouns"
-          placeholder="e.g., she/her, he/him, they/them"
+          formControlName="website"
+          placeholder="yourwebsite.com or https://yourwebsite.com"
           class="form__input"
         />
+        <p class="form__help-text">You can include https:// or just enter the domain</p>
       </div>
+    </fieldset>
 
-      <!-- Credentials Field -->
-      <div class="form-group">
-        <label for="credentials" class="form__label">Credentials</label>
-        <input
-          id="credentials"
-          type="text"
-          formControlName="credentials"
-          placeholder="e.g., CD(DONA), CLC, IBCLC"
-          class="form__input"
-        />
-      </div>
-
-      <!-- Tags Selection -->
-      <div class="form-group">
-        <div class="form__label" role="group" aria-labelledby="services-label">
-          <span id="services-label">Professional Category *</span>
-        </div>
-        <p class="form__help-text">Select all that apply</p>
-        <div class="tags-container">
-          @for (tag of availableTags; track tag; let i = $index) {
-            <label class="checkbox-label">
-              <input type="checkbox" [formControl]="getTagControl(i)" class="checkbox-input" />
-              <span class="checkbox-text">{{ tag }}</span>
-            </label>
-          }
-        </div>
-        @if (tagsArray.invalid && tagsArray.touched) {
-          <div class="form__error-message">
-            <span>Please select at least one service or specialty</span>
-          </div>
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="button button--secondary"
+        (click)="onCancel()"
+        [disabled]="loading()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="button button--primary"
+        [disabled]="loading() || profileForm.invalid"
+      >
+        @if (loading()) {
+          <span>Creating...</span>
+        } @else {
+          <span>Create Profile</span>
         }
-      </div>
-
-      <!-- Bio Field -->
-      <div class="form-group">
-        <label for="bio" class="form__label">Bio *</label>
-        <textarea
-          id="bio"
-          formControlName="bio"
-          placeholder="Tell us about yourself, your experience, and your approach to doula work..."
-          class="form__textarea"
-          rows="10"
-          [class.error]="bioControl?.invalid && bioControl?.touched"
-        ></textarea>
-        @if (bioControl?.invalid && bioControl?.touched) {
-          <div class="form__error-message">
-            @if (bioControl?.errors?.['required']) {
-              <span>Bio is required</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Contact Information Section -->
-      <fieldset class="form-fieldset">
-        <legend class="form__legend">Contact Information</legend>
-
-        <!-- Business Name -->
-        <div class="form-group">
-          <label for="businessName" class="form__label">Business Name</label>
-          <input
-            id="businessName"
-            type="text"
-            formControlName="businessName"
-            placeholder="Your business name"
-            class="form__input"
-          />
-        </div>
-
-        <!-- Phone -->
-        <div class="form-group">
-          <label for="phone" class="form__label">Phone</label>
-          <input
-            id="phone"
-            type="tel"
-            formControlName="phone"
-            placeholder="585-123-4567"
-            class="form__input"
-          />
-        </div>
-
-        <!-- Email -->
-        <div class="form-group">
-          <label for="email" class="form__label">Email</label>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="your@email.com"
-            class="form__input"
-            [class.error]="emailControl?.invalid && emailControl?.touched"
-          />
-          @if (emailControl?.invalid && emailControl?.touched) {
-            <div class="form__error-message">
-              @if (emailControl?.errors?.['email']) {
-                <span>Please enter a valid email address</span>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Website -->
-        <div class="form-group">
-          <label for="website" class="form__label">Website</label>
-          <input
-            id="website"
-            type="text"
-            formControlName="website"
-            placeholder="yourwebsite.com or https://yourwebsite.com"
-            class="form__input"
-          />
-          <p class="form__help-text">You can include https:// or just enter the domain</p>
-        </div>
-      </fieldset>
-
-      <!-- Form Actions -->
-      <div class="form-actions">
-        <button
-          type="button"
-          class="button button--secondary"
-          (click)="onCancel()"
-          [disabled]="loading()"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="button button--primary"
-          [disabled]="loading() || profileForm.invalid"
-        >
-          @if (loading()) {
-            <span>Creating...</span>
-          } @else {
-            <span>Create Profile</span>
-          }
-        </button>
-      </div>
-    </form>
-  </div>
+      </button>
+    </div>
+  </form>
 }

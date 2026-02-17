@@ -122,21 +122,6 @@ section > h2 {
     font-size: var(--step--1);
     color: var(--brown-600);
   }
-
-  .button-danger {
-    background: var(--color-error, #d93025);
-    color: white;
-    font-weight: var(--font-weight-semibold);
-
-    &:hover:not(:disabled) {
-      background: #c02818;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-  }
 }
 
 .change-email-section {

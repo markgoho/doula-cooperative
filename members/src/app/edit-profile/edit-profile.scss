@@ -1,5 +1,10 @@
 // Edit Profile Specific Styles
 
+:host {
+  display: block;
+  container: profileform / inline-size;
+}
+
 // Profile Image Preview
 .profile-image-preview {
   width: 200px;

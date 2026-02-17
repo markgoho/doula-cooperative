@@ -213,6 +213,68 @@ Uses ESLint (not TSLint) with:
 
 ### SCSS Styling
 
+**Host-first component styling:**
+
+Use `:host` instead of wrapping template content in a container `<div>`. The component's host element IS the container — there's no need for an extra wrapper.
+
+```html
+<!-- ✅ Correct: No wrapper div, content lives directly in the template -->
+<h1>Page Title</h1>
+@if (loading()) {
+<p>Loading...</p>
+} @else {
+<!-- page content -->
+}
+```
+
+```html
+<!-- ❌ Wrong: Extra nesting that :host eliminates -->
+<div class="page-container">
+  <h1>Page Title</h1>
+  <!-- content -->
+</div>
+```
+
+**Page (routed) components — `:host { display: block }` only:**
+
+Components rendered via `<router-outlet>` must NOT set layout properties (`max-width`, `margin-inline`, `padding`) on `:host`. Page-level layout (max-width, centering, padding) is handled by `<main class="main container">` in `app.html`. If a page needs a narrower content area, use an inner element — not `:host`.
+
+```scss
+// ✅ Correct: Page component — layout comes from the app shell's .container
+:host {
+  display: block;
+}
+```
+
+```scss
+// ❌ Wrong: Page component should not duplicate the app shell's layout
+:host {
+  display: block;
+  max-width: 800px;
+  margin-inline: auto;
+  padding: var(--space-m);
+}
+```
+
+**UI (non-routed) components — `:host` CAN have layout styling:**
+
+Reusable components (tags, cards, form controls, etc.) that are NOT rendered by `<router-outlet>` may set `max-width`, `margin`, `padding`, `flex`, `grid`, etc. on `:host` as needed.
+
+```scss
+// ✅ Correct: UI component — owns its own layout
+:host {
+  display: inline-flex;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--border-radius-md);
+}
+```
+
+**When a wrapper div IS appropriate:**
+
+- Semantic grouping (e.g., `<form>`, `<fieldset>`, `<dialog>`)
+- Conditional containers (e.g., a section that only appears in certain states)
+- CSS container queries on a descendant that does NOT wrap the entire component content (if it wraps everything, use `:host` instead)
+
 **Shared styles:**
 
 Use Angular component `styleUrls` array (NOT `@import` or `@use`) to include shared SCSS files:

@@ -337,6 +337,15 @@ main h1 {
   }
 }
 
+.button--danger {
+  background: var(--color-error, #d93025);
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in oklch, var(--color-error, #d93025) 85%, black);
+  }
+}
+
 .form__success-message {
   background-color: color-mix(in oklch, var(--teal-300) 30%, var(--brown-000));
   color: var(--brown-600);

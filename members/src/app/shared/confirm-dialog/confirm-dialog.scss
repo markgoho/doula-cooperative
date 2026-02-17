@@ -58,39 +58,6 @@
     }
   }
 
-  /* Button variants scoped to dialog */
-  .button-secondary {
-    background-color: transparent;
-    color: var(--teal-500);
-    border: 2px solid var(--teal-500);
-
-    &:hover:not(:disabled),
-    &:focus-visible:not(:disabled) {
-      background-color: var(--teal-500);
-      color: var(--brown-100);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .button-danger {
-    background: #d93025;
-    color: var(--brown-100);
-
-    &:hover:not(:disabled),
-    &:focus-visible:not(:disabled) {
-      background: #c12819;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
   /* Stack buttons on very small screens using container query */
   @container (max-width: 20rem) {
     .dialog-actions {

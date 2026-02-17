@@ -1,13 +1,7 @@
 // Shared Profile Form Styles
 // Used by both create-profile and edit-profile components
-
-// Form Container & Layout
-.form-container {
-  container: profileform / inline-size;
-  max-width: 50rem;
-  margin-inline: auto;
-  padding: var(--space-m);
-}
+// Note: Container query (container: profileform / inline-size) is set on :host
+// in each component's own SCSS file.
 
 .profile-form {
   display: grid;
@@ -167,23 +161,6 @@
     button {
       width: 100%;
     }
-  }
-}
-
-// Button Variants
-.button--primary {
-  /* Inherits from global .button (Teal-500 background) */
-}
-
-.button--secondary {
-  background-color: transparent;
-  color: var(--teal-500);
-  border: 2px solid var(--teal-500);
-
-  &:hover,
-  &:focus {
-    background-color: var(--teal-500);
-    color: var(--brown-100);
   }
 }
 
