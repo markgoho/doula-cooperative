@@ -242,6 +242,8 @@ export const ERROR_IDS = {
     "api_admin_delete_unclaimed_profile_mailerlite_failed",
   API_ADMIN_DELETE_UNCLAIMED_PROFILE_NOTIFICATION_FAILED:
     "api_admin_delete_unclaimed_profile_notification_failed",
+  API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED:
+    "api_admin_delete_unclaimed_profile_draft_failed",
   API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
   API_ADMIN_CHANGE_EMAIL_FAILED: "api_admin_change_email_failed",
   API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",

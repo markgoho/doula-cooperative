@@ -5,6 +5,7 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
+import { draftProfile } from "../../profiles-api/services/github/index.js";
 import {
   HttpError,
   NotFoundError,
@@ -90,18 +91,99 @@ async function sendUnsubscribeFailureNotification({
 }
 
 /**
+ * Creates HTML for profile draft failure notification email
+ */
+function createDraftFailureEmailHtml({
+  email,
+  slug,
+  errorMessage,
+}: {
+  email: string;
+  slug: string;
+  errorMessage: string;
+}): string {
+  return `
+    <h2>Hugo Profile Draft Failed</h2>
+    <p>An admin deleted an unclaimed profile, but setting the Hugo profile to draft failed.</p>
+
+    <h3>Profile Details:</h3>
+    <ul>
+      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
+      <li><strong>Slug:</strong> ${escapeHtml(slug)}</li>
+    </ul>
+
+    <h3>Error Details:</h3>
+    <p>${escapeHtml(errorMessage)}</p>
+
+    <p><strong>Action Required:</strong> Manually set <code>draft: true</code> in the Hugo profile at <code>hugo/content/doulas/${escapeHtml(slug)}/index.md</code>.</p>
+  `;
+}
+
+/**
+ * Sends notification email when profile drafting fails during profile deletion
+ */
+async function sendDraftFailureNotification({
+  email,
+  slug,
+  errorMessage,
+  emailService,
+  logger,
+}: {
+  email: string;
+  slug: string;
+  errorMessage: string;
+  emailService: EmailServiceInterface;
+  logger: Logger;
+}): Promise<void> {
+  try {
+    const notificationEmail: EmailMessage = {
+      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+      to: NEWSLETTER_EMAIL,
+      subject:
+        "Hugo Profile Draft Failed During Profile Deletion - Action Required",
+      html: createDraftFailureEmailHtml({
+        email,
+        slug,
+        errorMessage,
+      }),
+    };
+
+    await emailService.sendEmail({ message: notificationEmail }, logger);
+    logger.info("Sent profile draft failure notification email", {
+      email,
+      slug,
+    });
+  } catch (emailError) {
+    logger.error(
+      "CRITICAL: Failed to send profile draft failure notification email",
+      {
+        errorId:
+          ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_NOTIFICATION_FAILED,
+        email,
+        slug,
+        error: emailError,
+        severity: "CRITICAL",
+        context: "Hugo profile draft failed AND notification email failed",
+        originalError: errorMessage,
+      },
+    );
+  }
+}
+
+/**
  * Delete an unclaimed profile from the migrated_users_import collection.
  * This is used to remove profiles for users who have cancelled their subscription
  * before claiming their account.
  *
  * Also unsubscribes the email from the MailerLite newsletter (best-effort).
+ * If the profile has a slug, sets the Hugo profile to draft (best-effort).
  */
 export async function deleteUnclaimedProfile(options: {
   email: string;
   mailerliteApiKey: string;
   emailService: EmailServiceInterface;
   logger: Logger;
-}): Promise<{ success: true }> {
+}): Promise<{ success: true; profileDrafted?: boolean }> {
   const { email, mailerliteApiKey, emailService, logger } = options;
 
   try {
@@ -157,14 +239,58 @@ export async function deleteUnclaimedProfile(options: {
       });
     }
 
+    // Best-effort: Set Hugo profile to draft if the profile has a slug
+    const documentData = document.data();
+    const slug =
+      documentData !== undefined && typeof documentData["slug"] === "string"
+        ? documentData["slug"]
+        : undefined;
+    let profileDrafted: boolean | undefined;
+
+    if (slug !== undefined && slug.length > 0) {
+      try {
+        await draftProfile({ slug });
+        logger.info("Set Hugo profile to draft", { email, slug });
+        profileDrafted = true;
+      } catch (draftError) {
+        profileDrafted = false;
+        const draftErrorMessage =
+          draftError instanceof Error ? draftError.message : "Unknown error";
+
+        logger.error(
+          "Failed to set Hugo profile to draft during profile deletion",
+          {
+            errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
+            email,
+            slug,
+            error: draftError,
+            errorMessage: draftErrorMessage,
+            actionRequired: "Manually set draft: true in the Hugo profile",
+          },
+        );
+
+        await sendDraftFailureNotification({
+          email,
+          slug,
+          errorMessage: draftErrorMessage,
+          emailService,
+          logger,
+        });
+      }
+    }
+
     // Delete the document
     await documentReference.delete();
 
     logger.info("Unclaimed profile deleted successfully", {
       email,
+      ...(profileDrafted !== undefined && { profileDrafted }),
     });
 
-    return { success: true };
+    return {
+      success: true,
+      ...(profileDrafted !== undefined && { profileDrafted }),
+    };
   } catch (error) {
     // Re-throw known HTTP errors (NotFoundError, etc.)
     if (error instanceof HttpError) {

@@ -2,6 +2,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
   ChangeEmailAndResendSuccessResponse,
+  DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
@@ -43,5 +44,5 @@ export interface UnclaimedProfileAdminService {
     mailerliteApiKey: string;
     emailService: EmailServiceInterface;
     logger: Logger;
-  }): Promise<{ success: true }>;
+  }): Promise<DeleteUnclaimedProfileSuccessResponse>;
 }

@@ -34,6 +34,14 @@ export class AdminUnclaimedProfileDetail {
     return resource.value().invitationEmailStatus === 'sent';
   });
 
+  protected deleteConfirmMessage = computed(() => {
+    const resource = this.service.unclaimedProfileResource;
+    if (resource.hasValue() && resource.value().slug) {
+      return 'This will remove the unclaimed profile, unsubscribe from the newsletter, and set the public doula profile to draft.';
+    }
+    return 'This will remove the unclaimed profile and unsubscribe from the newsletter.';
+  });
+
   protected showChangeEmailForm = signal(false);
   protected newEmailValue = signal('');
 

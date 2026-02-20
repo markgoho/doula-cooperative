@@ -20,7 +20,7 @@ export async function deleteUnclaimedProfileLogic({
   emailService: EmailServiceInterface;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<{ success: true } | { error: string }> {
+}): Promise<{ success: true; profileDrafted?: boolean } | { error: string }> {
   try {
     logger.info("Admin delete unclaimed profile request", {
       adminUid,

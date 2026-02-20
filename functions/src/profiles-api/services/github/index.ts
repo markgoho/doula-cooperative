@@ -9,4 +9,5 @@ export const ProfileGitHubService: ProfileGitHubServiceInterface = {
   createProfile,
 };
 
+export { draftProfile } from "./draft-profile.js";
 export type { ReadProfileResponse, WriteProfileResponse } from "./interface.js";

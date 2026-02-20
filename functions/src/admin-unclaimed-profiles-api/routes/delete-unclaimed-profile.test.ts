@@ -17,12 +17,14 @@ describe("DELETE /:email", () => {
     // Scenario flags
     profileNotFound?: boolean;
     mailerliteFailure?: boolean;
+    profileDrafted?: boolean;
   }
 
   function setup({
     email = "test@example.com",
     authToken = "admin-token",
     profileNotFound = false,
+    profileDrafted,
   }: SetupOptions = {}) {
     const mockDeleteUnclaimedProfile = mock(
       ({
@@ -31,7 +33,7 @@ describe("DELETE /:email", () => {
         email: string;
         mailerliteApiKey: string;
         emailService: unknown;
-      }): Promise<{ success: true }> => {
+      }): Promise<{ success: true; profileDrafted?: boolean }> => {
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(
             new NotFoundError("Unclaimed profile not found"),
@@ -39,7 +41,10 @@ describe("DELETE /:email", () => {
         }
         // Note: mailerliteFailure doesn't cause the deletion to fail (best-effort)
         // It's handled internally by the service
-        return Promise.resolve({ success: true });
+        return Promise.resolve({
+          success: true,
+          ...(profileDrafted !== undefined && { profileDrafted }),
+        });
       },
     );
 
@@ -130,6 +135,48 @@ describe("DELETE /:email", () => {
       const callArguments = mockDeleteUnclaimedProfile.mock.calls[0]?.[0];
       expect(callArguments).toHaveProperty("mailerliteApiKey");
       expect(callArguments).toHaveProperty("emailService");
+    });
+
+    it("should include profileDrafted true when profile had a slug", async () => {
+      const { testApp, request } = setup({ profileDrafted: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profileDrafted?: boolean;
+      };
+      expect(body.success).toBe(true);
+      expect(body.profileDrafted).toBe(true);
+    });
+
+    it("should include profileDrafted false when drafting failed", async () => {
+      const { testApp, request } = setup({ profileDrafted: false });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profileDrafted?: boolean;
+      };
+      expect(body.success).toBe(true);
+      expect(body.profileDrafted).toBe(false);
+    });
+
+    it("should omit profileDrafted when profile had no slug", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profileDrafted?: boolean;
+      };
+      expect(body.success).toBe(true);
+      expect(body.profileDrafted).toBeUndefined();
     });
   });
 

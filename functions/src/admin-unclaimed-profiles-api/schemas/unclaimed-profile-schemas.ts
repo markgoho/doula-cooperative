@@ -133,6 +133,7 @@ export type UpdateEmailResponse = Static<typeof UpdateEmailResponseSchema>;
 
 const DeleteUnclaimedProfileSuccessSchema = t.Object({
   success: t.Literal(true),
+  profileDrafted: t.Optional(t.Boolean()),
 });
 
 export type DeleteUnclaimedProfileSuccessResponse = Static<
