@@ -20,7 +20,7 @@ bun start
 # Individual services
 bun run hugo:dev              # Hugo dev server (localhost:1313)
 bun run angular:start         # Angular dev server (localhost:4200)
-bun run emulators:start       # Firebase emulators (Firestore:8080, Auth:9099, Functions:5001)
+bun run emulators:start       # Firebase emulators (Firestore:8090, Auth:9099, Functions:5001)
 bun run functions:start       # Watch mode for TypeScript compilation
 
 # Build commands
@@ -220,7 +220,7 @@ test('user can claim profile', async ({ authenticatedUserPage }) => {
 ## Firebase Configuration
 
 Hosting targets: `main-site` (Hugo), `members-site` (Angular)
-Emulator ports: Auth:9099, Functions:5001, Firestore:8080
+Emulator ports: Auth:9099, Functions:5001, Firestore:8090
 
 ## Testing Accounts
 

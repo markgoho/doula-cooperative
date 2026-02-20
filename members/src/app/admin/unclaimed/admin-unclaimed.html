@@ -2,6 +2,21 @@
 
 <div class="header-stats">
   <span>Total Unclaimed: {{ totalUnclaimed() }}</span>
+  <button
+    class="button button--secondary small"
+    (click)="refreshPaymentDates()"
+    [disabled]="refreshing()"
+  >
+    @if (refreshing()) {
+      Refreshing...
+    } @else {
+      Refresh Payment Dates
+    }
+  </button>
 </div>
+
+@if (refreshResult()) {
+  <p class="refresh-result" role="status">{{ refreshResult() }}</p>
+}
 
 <app-unclaimed-profiles-table [profilesResource]="unclaimedResource" />

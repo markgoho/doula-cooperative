@@ -121,8 +121,8 @@ async function syncCollectionToEmulator() {
   const productionDatabase = getFirestore(productionApp);
 
   // Initialize emulator app
-  console.log("🔧 Connecting to EMULATOR Firestore at localhost:8080...");
-  process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8080";
+  console.log("🔧 Connecting to EMULATOR Firestore at localhost:8090...");
+  process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8090";
   process.env["GCLOUD_PROJECT"] = "doula-cooperative";
 
   const emulatorApp = initializeApp({

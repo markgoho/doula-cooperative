@@ -10,6 +10,7 @@ import {
   deleteUnclaimedProfileLogic,
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
+  refreshPaymentDatesLogic,
   sendInvitationLogic,
   updateEmailLogic,
 } from "../routes/index.js";
@@ -20,6 +21,7 @@ import {
   EmailParameterSchema,
   ListUnclaimedProfilesQuerySchema,
   ListUnclaimedProfilesResponseSchema,
+  RefreshPaymentDatesResponseSchema,
   SendInvitationResponseSchema,
   UnclaimedProfileResponseSchema,
   UpdateEmailResponseSchema,
@@ -73,6 +75,20 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
         {
           query: ListUnclaimedProfilesQuerySchema,
           response: ListUnclaimedProfilesResponseSchema,
+        },
+      )
+      // POST /refresh-payment-dates - Bulk refresh stale payment dates
+      .post(
+        "/refresh-payment-dates",
+        async ({ adminToken, unclaimedProfileAdminService, logger, set }) =>
+          refreshPaymentDatesLogic({
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        {
+          response: RefreshPaymentDatesResponseSchema,
         },
       )
       // GET /:email - Get unclaimed profile by email

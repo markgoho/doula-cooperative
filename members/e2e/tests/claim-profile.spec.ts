@@ -56,7 +56,7 @@ test.describe('Claim Profile Flow', () => {
     });
 
     // Mock Firestore REST API - no migrated profile exists (404)
-    await authenticatedUserPage.route('**/localhost:8080/**', async (route) => {
+    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
       await route.fulfill({
         status: 404,
         contentType: 'application/json',
@@ -89,7 +89,7 @@ test.describe('Claim Profile Flow', () => {
     });
 
     // Mock Firestore REST API - return claimable profile with slug
-    await authenticatedUserPage.route('**/localhost:8080/**', async (route) => {
+    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -134,7 +134,7 @@ test.describe('Claim Profile Flow', () => {
     });
 
     // Mock Firestore REST API - return claimable profile with slug
-    await authenticatedUserPage.route('**/localhost:8080/**', async (route) => {
+    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -183,7 +183,7 @@ test.describe('Claim Profile Flow', () => {
     });
 
     // Mock Firestore REST API - return claimable profile
-    await authenticatedUserPage.route('**/localhost:8080/**', async (route) => {
+    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

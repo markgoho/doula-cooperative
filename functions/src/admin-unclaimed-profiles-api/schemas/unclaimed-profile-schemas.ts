@@ -149,6 +149,25 @@ export type DeleteUnclaimedProfileResponse = Static<
   typeof DeleteUnclaimedProfileResponseSchema
 >;
 
+const RefreshPaymentDatesSuccessSchema = t.Object({
+  success: t.Literal(true),
+  updatedCount: t.Number(),
+  totalCount: t.Number(),
+});
+
+export type RefreshPaymentDatesSuccessResponse = Static<
+  typeof RefreshPaymentDatesSuccessSchema
+>;
+
+export const RefreshPaymentDatesResponseSchema = t.Union([
+  RefreshPaymentDatesSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type RefreshPaymentDatesResponse = Static<
+  typeof RefreshPaymentDatesResponseSchema
+>;
+
 export function toUnclaimedProfileResponse(
   document: UnclaimedProfileDocument,
 ): UnclaimedProfileSuccessResponse {

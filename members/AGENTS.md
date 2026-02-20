@@ -155,7 +155,7 @@ src/app/
 
 - Firebase emulators are **automatically connected in development mode** (`isDevMode()`)
 - Auth emulator: `http://localhost:9099`
-- Firestore emulator: `localhost:8080`
+- Firestore emulator: `localhost:8090`
 - Functions emulator: `localhost:5001`
 - Production Firebase config is hardcoded in app.config.ts
 

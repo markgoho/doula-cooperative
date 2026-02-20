@@ -54,7 +54,7 @@ if (getApps().length === 0) {
 
   if (useEmulator) {
     console.log("🔧 Using Firebase Emulators (safe mode)");
-    process.env["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8080";
+    process.env["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8090";
     process.env["FIREBASE_AUTH_EMULATOR_HOST"] = "127.0.0.1:9099";
   } else {
     console.log("⚠️  Using PRODUCTION Firebase (dangerous!)");

@@ -4,6 +4,7 @@ import type {
   ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
+  RefreshPaymentDatesSuccessResponse,
   SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
@@ -45,4 +46,8 @@ export interface UnclaimedProfileAdminService {
     emailService: EmailServiceInterface;
     logger: Logger;
   }): Promise<DeleteUnclaimedProfileSuccessResponse>;
+
+  refreshPaymentDates(options: {
+    logger: Logger;
+  }): Promise<RefreshPaymentDatesSuccessResponse>;
 }

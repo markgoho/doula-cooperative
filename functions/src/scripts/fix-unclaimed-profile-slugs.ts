@@ -28,9 +28,9 @@ function parseHugoFrontmatter(filePath: string): { email?: string } {
 async function fixUnclaimedProfileSlugs() {
   // 1. Setup Emulator / Firebase
   if (USE_EMULATOR) {
-    process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8080";
+    process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8090";
     process.env["GCLOUD_PROJECT"] = "doula-cooperative";
-    console.log("🔧 Using Firebase Firestore Emulator at localhost:8080");
+    console.log("🔧 Using Firebase Firestore Emulator at localhost:8090");
   } else {
     console.log("⚠️  Running against PRODUCTION database");
   }

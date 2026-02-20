@@ -247,6 +247,8 @@ export const ERROR_IDS = {
   API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
   API_ADMIN_CHANGE_EMAIL_FAILED: "api_admin_change_email_failed",
   API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",
+  API_ADMIN_REFRESH_PAYMENT_DATES_FAILED:
+    "api_admin_refresh_payment_dates_failed",
 
   // Admin update email (pre-invitation) errors
   ADMIN_UPDATE_EMAIL_INVALID_EMAIL: "admin_update_email_invalid_email",

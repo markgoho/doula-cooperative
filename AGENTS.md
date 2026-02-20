@@ -139,6 +139,6 @@ git pull --rebase origin trunk
 
 - Hugo: `localhost:1313`
 - Angular: `localhost:4200`
-- Firestore emulator: `localhost:8080`
+- Firestore emulator: `localhost:8090`
 - Auth emulator: `localhost:9099`
 - Functions emulator: `localhost:5001`

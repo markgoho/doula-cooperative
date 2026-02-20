@@ -12,6 +12,7 @@ import type {
   ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
+  RefreshPaymentDatesSuccessResponse,
   SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
@@ -50,6 +51,13 @@ export function createAdminTestPlugin(overrides?: {
       Promise.resolve({
         success: true,
       } as DeleteUnclaimedProfileSuccessResponse),
+    ),
+    refreshPaymentDates: mock(() =>
+      Promise.resolve({
+        success: true,
+        updatedCount: 0,
+        totalCount: 0,
+      } as RefreshPaymentDatesSuccessResponse),
     ),
     ...overrides?.unclaimedProfileAdminService,
   };

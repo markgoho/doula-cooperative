@@ -2,6 +2,7 @@ import { changeEmailAndResend } from "./change-email-and-resend.js";
 import { deleteUnclaimedProfile } from "./delete-unclaimed-profile.js";
 import { getUnclaimedProfile } from "./get-unclaimed-profile.js";
 import { listUnclaimedProfiles } from "./list-unclaimed-profiles.js";
+import { refreshPaymentDates } from "./refresh-payment-dates.js";
 import { sendInvitation } from "./send-invitation.js";
 import { updateEmail } from "./update-email.js";
 
@@ -16,6 +17,7 @@ export const UnclaimedProfileAdminService = {
   changeEmailAndResend,
   updateEmail,
   deleteUnclaimedProfile,
+  refreshPaymentDates,
 };
 
 // Re-export individual functions for direct imports
@@ -23,5 +25,6 @@ export { changeEmailAndResend } from "./change-email-and-resend.js";
 export { deleteUnclaimedProfile } from "./delete-unclaimed-profile.js";
 export { getUnclaimedProfile } from "./get-unclaimed-profile.js";
 export { listUnclaimedProfiles } from "./list-unclaimed-profiles.js";
+export { refreshPaymentDates } from "./refresh-payment-dates.js";
 export { sendInvitation } from "./send-invitation.js";
 export { updateEmail } from "./update-email.js";

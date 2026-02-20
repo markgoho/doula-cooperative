@@ -272,4 +272,18 @@ export class AdminMembersService {
       }),
     );
   }
+
+  async refreshPaymentDates(): Promise<{
+    success: boolean;
+    updatedCount: number;
+    totalCount: number;
+  }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean; updatedCount: number; totalCount: number }>(
+        '/api/admin/unclaimed-profiles/refresh-payment-dates',
+        {},
+      ),
+    );
+  }
 }
