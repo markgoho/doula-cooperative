@@ -66,7 +66,10 @@ export const adminMessagesApi = onRequest(
 
 // Admin Unclaimed Profiles API (members.doulacooperative.com)
 export const adminUnclaimedProfilesApi = onRequest(
-  { invoker: "public", secrets: [...MAILGUN_SECRETS, ...MAILERLITE_SECRETS] },
+  {
+    invoker: "public",
+    secrets: [...MAILGUN_SECRETS, ...MAILERLITE_SECRETS, ...PROFILE_SECRETS],
+  },
   async (request, response) => {
     const { handleAdminUnclaimedProfilesApi } =
       await import("./admin-unclaimed-profiles-api/handler.js");
