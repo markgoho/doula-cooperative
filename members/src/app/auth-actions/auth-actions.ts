@@ -117,33 +117,16 @@ export class AuthActions {
     try {
       await this.authService.confirmPasswordReset(code, password);
 
-      // Try to auto-sign-in and verify email
       const email = this.emailForAction();
-      if (email !== '') {
-        try {
-          await this.authService.signInWithEmail(email, password);
-          // Now authenticated - mark email as verified (best-effort)
-          try {
-            await this.membershipService.verifyEmail();
-          } catch (verifyError: unknown) {
-            console.error('Email verification failed after password reset:', {
-              error: verifyError instanceof Error ? verifyError.message : String(verifyError),
-            });
-          }
-          // Navigate directly to membership dashboard
-          this.processingState.set('success');
-          this.statusMessage.set(
-            'Password has been reset successfully. Welcome to your membership dashboard!',
-          );
-          await this.router.navigate(['/membership']);
-          return;
-        } catch (signInError: unknown) {
-          console.error('Auto-sign-in after password reset failed:', {
-            email,
-            error: signInError instanceof Error ? signInError.message : String(signInError),
-          });
-          // Fall through to sign-in page redirect
-        }
+      const signedIn = await this.attemptAutoSignIn(email, password);
+
+      if (signedIn) {
+        this.processingState.set('success');
+        this.statusMessage.set(
+          'Password has been reset successfully. Welcome to your membership dashboard!',
+        );
+        await this.router.navigate(['/membership']);
+        return;
       }
 
       // Fallback: redirect to sign-in with email prefilled
@@ -158,6 +141,40 @@ export class AuthActions {
       this.processingState.set('error');
       this.statusMessage.set(message);
     }
+  }
+
+  /**
+   * Attempt to sign in with the given email and password after a password reset.
+   * If sign-in succeeds, also attempts to mark email as verified (best-effort).
+   * If verification fails, the user still lands on the dashboard and can
+   * re-verify through the standard email verification flow.
+   * @returns true if sign-in succeeded, false otherwise
+   */
+  private async attemptAutoSignIn(email: string, password: string): Promise<boolean> {
+    if (email === '') {
+      return false;
+    }
+
+    try {
+      await this.authService.signInWithEmail(email, password);
+    } catch (signInError: unknown) {
+      console.error('Auto-sign-in after password reset failed:', {
+        email,
+        error: signInError instanceof Error ? signInError.message : String(signInError),
+      });
+      return false;
+    }
+
+    // Now authenticated -- mark email as verified (best-effort, failure is non-blocking)
+    try {
+      await this.membershipService.verifyEmail();
+    } catch (verifyError: unknown) {
+      console.error('Email verification failed after password reset:', {
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+      });
+    }
+
+    return true;
   }
 
   private async handleRecoverEmail(code: string): Promise<void> {

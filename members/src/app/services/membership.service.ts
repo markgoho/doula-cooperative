@@ -271,8 +271,8 @@ export class MembershipService {
 
   /**
    * Mark the current user's email as verified via the API.
-   * This should be called after a successful password reset + sign-in,
-   * since confirming a password reset proves the user owns the email.
+   * Currently used after password reset + sign-in, where confirming
+   * the reset code proves email ownership.
    * @throws Error with user-friendly message
    */
   async verifyEmail(): Promise<void> {
@@ -293,6 +293,9 @@ export class MembershipService {
 
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
+          case 400: {
+            throw new Error('Email is already verified.');
+          }
           case 401: {
             throw new Error('You must be signed in to verify your email.');
           }

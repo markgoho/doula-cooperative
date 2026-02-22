@@ -15,6 +15,8 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
     authToken?: string | null;
     serverError?: boolean;
     emailAlreadyVerified?: boolean;
+    /** When true, overrides auth mock with explicit email_verified: false */
+    emailVerifiedExplicit?: boolean;
   }
 
   function setup({
@@ -22,6 +24,7 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
     authToken = "valid-owner-token",
     serverError = false,
     emailAlreadyVerified = false,
+    emailVerifiedExplicit = false,
   }: SetupOptions = {}) {
     const mockMarkEmailVerified = mock((): Promise<void> => {
       if (serverError) {
@@ -30,17 +33,20 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
       return Promise.resolve();
     });
 
+    // Override auth service when we need explicit email_verified state
+    const needsAuthOverride = emailAlreadyVerified || emailVerifiedExplicit;
+
     const testApp = createMembersTestPlugin({
       verifyEmailService: {
         markEmailVerified: mockMarkEmailVerified,
       },
-      ...(emailAlreadyVerified && {
+      ...(needsAuthOverride && {
         authService: {
           verifyOwnerOrAdmin: mock(() =>
             Promise.resolve({
               uid: memberId,
               email: "test@example.com",
-              email_verified: true,
+              email_verified: emailAlreadyVerified,
             } as DecodedIdToken),
           ),
         },
@@ -102,7 +108,7 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
 
   describe("Email verification", () => {
     it("should successfully verify email for owner", async () => {
-      const { testApp, request } = setup();
+      const { testApp, request } = setup({ emailVerifiedExplicit: true });
 
       const response = await handleRequest(testApp, request);
 
