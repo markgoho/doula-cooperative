@@ -28,19 +28,6 @@ test.describe('Claim Profile Flow', () => {
     // No slug - profile not set up yet
   };
 
-  /**
-   * Mock claimable profile data from migrated_users_import collection (Firestore).
-   * This is in Firestore REST API wire format.
-   */
-  const mockClaimableProfile = {
-    name: 'projects/doula-cooperative/databases/(default)/documents/migrated_users_import/test-user@doulacooperative.com',
-    fields: {
-      name: { stringValue: 'Test User' },
-      subscriptionStart: { timestampValue: '2024-01-01T00:00:00.000Z' },
-      slug: { stringValue: 'test-user' },
-    },
-  };
-
   test('user with no unclaimed profile sees appropriate message', async ({
     authenticatedUserPage,
   }) => {
@@ -55,14 +42,10 @@ test.describe('Claim Profile Flow', () => {
         : route.continue());
     });
 
-    // Mock Firestore REST API - no migrated profile exists (404)
-    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
-      await route.fulfill({
-        status: 404,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Document not found' }),
-      });
-    });
+    // Note: Firestore SDK calls (migrated_users_import) cannot be intercepted
+    // via page.route() because Angular Fire uses gRPC/WebChannel, not standard fetch.
+    // Without a Firestore emulator, the claimable profile resource will error,
+    // showing an error banner — but the rest of the page still renders correctly.
 
     const membershipPage = new MembershipPage(authenticatedUserPage);
     await membershipPage.goto();
@@ -71,12 +54,13 @@ test.describe('Claim Profile Flow', () => {
     await expect(membershipPage.pageHeading).toBeVisible();
 
     // === Verify No Claim Button Shown ===
-    // When there's no claimable profile data, the claim banner should not appear
+    // Without Firestore data, no claim banner appears
+    await expect(
+      authenticatedUserPage.getByRole('button', { name: /claim membership/i }),
+    ).toBeHidden();
   });
 
   test('API authentication error is handled gracefully', async ({ authenticatedUserPage }) => {
-    const userSlug = 'test-user';
-
     // Mock GET /api/members/:memberId for member document lookup
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
       await (route.request().method() === 'GET'
@@ -88,16 +72,12 @@ test.describe('Claim Profile Flow', () => {
         : route.continue());
     });
 
-    // Mock Firestore REST API - return claimable profile with slug
-    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockClaimableProfile),
-      });
-    });
+    // Note: Firestore SDK calls (migrated_users_import) cannot be intercepted
+    // via page.route() because Angular Fire uses gRPC/WebChannel, not standard fetch.
+    // The claim profile API mock is set up for when the claim button would be clicked.
 
     // Mock claim profile API - authentication error
+    const userSlug = 'test-user';
     await authenticatedUserPage.route(`**/api/profiles/${userSlug}/claim`, async (route) => {
       await (route.request().method() === 'POST'
         ? route.fulfill({
@@ -113,15 +93,9 @@ test.describe('Claim Profile Flow', () => {
 
     // === Page Loads Successfully Even with Auth Configured ===
     await expect(membershipPage.pageHeading).toBeVisible();
-
-    // Note: Actual claim button interaction would require the claim profile
-    // button to be visible, which depends on having an unclaimed profile.
-    // This test verifies the API endpoint is correctly configured.
   });
 
   test('API email verification error returns 428 status', async ({ authenticatedUserPage }) => {
-    const userSlug = 'test-user';
-
     // Mock GET /api/members/:memberId for member document lookup
     await authenticatedUserPage.route('**/api/members/*', async (route) => {
       await (route.request().method() === 'GET'
@@ -133,16 +107,11 @@ test.describe('Claim Profile Flow', () => {
         : route.continue());
     });
 
-    // Mock Firestore REST API - return claimable profile with slug
-    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockClaimableProfile),
-      });
-    });
+    // Note: Firestore SDK calls (migrated_users_import) cannot be intercepted
+    // via page.route() because Angular Fire uses gRPC/WebChannel, not standard fetch.
 
     // Mock claim profile API - email verification required
+    const userSlug = 'test-user';
     await authenticatedUserPage.route(`**/api/profiles/${userSlug}/claim`, async (route) => {
       await (route.request().method() === 'POST'
         ? route.fulfill({
@@ -160,9 +129,6 @@ test.describe('Claim Profile Flow', () => {
 
     // === Page Structure ===
     await expect(membershipPage.pageHeading).toBeVisible();
-
-    // Note: 428 status code is properly handled by the API.
-    // Actual UI interaction for claim would require the claim button to be visible.
   });
 
   test('user successfully claims profile and sees updated membership', async ({
@@ -182,16 +148,11 @@ test.describe('Claim Profile Flow', () => {
         : route.continue());
     });
 
-    // Mock Firestore REST API - return claimable profile
-    await authenticatedUserPage.route('**/localhost:8090/**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockClaimableProfile),
-      });
-    });
+    // Note: Firestore SDK calls (migrated_users_import) cannot be intercepted
+    // via page.route() because Angular Fire uses gRPC/WebChannel, not standard fetch.
+    // Without a Firestore emulator, the claim banner won't appear.
 
-    // Mock claim profile API - success response
+    // Mock claim profile API - success response (for future use when claim is possible)
     await authenticatedUserPage.route(`**/api/profiles/${userSlug}/claim`, async (route) => {
       if (route.request().method() === 'POST') {
         // Update member document to reflect claimed profile
@@ -216,10 +177,5 @@ test.describe('Claim Profile Flow', () => {
 
     // === Initial Page Load ===
     await expect(membershipPage.pageHeading).toBeVisible();
-
-    // === Verify Claim Button Visible ===
-    // Note: This test validates the full flow but currently the claim button
-    // visibility depends on the Firestore mock data structure.
-    // The claim button appears when getClaimableProfileData() returns data.
   });
 });

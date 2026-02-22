@@ -80,11 +80,13 @@ test.describe('Newsletter Preference', () => {
     const newsletterCheckbox = authenticatedUserPage.getByRole('checkbox', {
       name: /not subscribed/i,
     });
-    await expect(newsletterCheckbox).toBeVisible();
+    // Checkbox is visually hidden (custom toggle switch CSS) but accessible
+    await expect(newsletterCheckbox).toBeAttached();
     await expect(newsletterCheckbox).not.toBeChecked();
 
     // === Subscribe to Newsletter ===
-    await newsletterCheckbox.click();
+    // Click the toggle label text since the checkbox input is visually hidden
+    await authenticatedUserPage.getByText('Not subscribed').click();
 
     // === Verify API Call ===
     await expect.poll(() => updateCalled).toBe(true);
@@ -151,11 +153,13 @@ test.describe('Newsletter Preference', () => {
     const newsletterCheckbox = authenticatedUserPage.getByRole('checkbox', {
       name: /subscribed/i,
     });
-    await expect(newsletterCheckbox).toBeVisible();
+    // Checkbox is visually hidden (custom toggle switch CSS) but accessible
+    await expect(newsletterCheckbox).toBeAttached();
     await expect(newsletterCheckbox).toBeChecked();
 
     // === Unsubscribe from Newsletter ===
-    await newsletterCheckbox.click();
+    // Click the toggle label text since the checkbox input is visually hidden
+    await authenticatedUserPage.getByText('Subscribed').click();
 
     // === Verify API Call ===
     await expect.poll(() => updateCalled).toBe(true);

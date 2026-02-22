@@ -60,7 +60,7 @@ export class MembershipPage {
     this.page = page;
 
     // Headings
-    this.pageHeading = page.getByRole('heading', { name: 'Membership', level: 1 });
+    this.pageHeading = page.getByRole('heading', { name: /welcome back/i, level: 1 });
     this.accountDetailsHeading = page.getByRole('heading', { name: 'Your Account Details' });
     this.newsletterHeading = page.getByRole('heading', { name: 'Newsletter Preferences' });
     this.paymentHeading = page.getByRole('heading', { name: 'Payment Information' });
