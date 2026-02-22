@@ -1,5 +1,3 @@
-<h1>Membership</h1>
-
 @if (user(); as user) {
   <!-- Authenticated User View -->
   <div class="authenticated-view">
@@ -79,116 +77,112 @@
     }
 
     <div class="welcome-section">
-      <p>Welcome back, {{ userDisplayName() }}!</p>
+      <h1 class="welcome-greeting">Welcome back, {{ userDisplayName() }}!</h1>
 
-      <!-- User Membership Information -->
       @if (userDocument(); as userDoc) {
-        <div class="membership-info-section">
-          <h3>Your Account Details</h3>
-          <div class="membership-details">
-            @if (userFullName(); as fullName) {
-              <div class="detail-item">
-                <span class="detail-label">Full Name:</span>
-                <span class="detail-value">{{ fullName }}</span>
-              </div>
-            }
-
-            @if (membershipCreated(); as createdDate) {
-              <div class="detail-item">
-                <span class="detail-label">Account Created:</span>
-                <span class="detail-value">{{ createdDate | date: 'MMMM d, yyyy' }}</span>
-              </div>
-            }
-
-            @if (subscriptionStarted(); as subscriptionDate) {
-              <div class="detail-item">
-                <span class="detail-label">Doula Cooperative Subscription:</span>
-                <span class="detail-value">{{ subscriptionDate | date: 'MMMM d, yyyy' }}</span>
-              </div>
-            }
-
-            <div class="detail-item">
-              <span class="detail-label">Email:</span>
-              <span class="detail-value">{{ userDoc.email }}</span>
-            </div>
-
-            <div class="detail-item">
-              <span class="detail-label">Email Verified:</span>
-              <span class="detail-value">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
-            </div>
-          </div>
-
-          @if (!hasClaimableProfile()) {
-            <h3>Newsletter Preferences</h3>
-            <div class="membership-details">
-              <div class="detail-item newsletter-preference">
-                <span class="detail-label">Monthly Newsletter:</span>
-                <div class="newsletter-controls">
-                  <label class="toggle-label">
-                    <input
-                      type="checkbox"
-                      [checked]="newsletterSubscribed()"
-                      (change)="onUpdateNewsletterPreference(!newsletterSubscribed())"
-                      [disabled]="newsletterUpdateInProgress()"
-                    />
-                    <span class="toggle-text">
-                      @if (newsletterSubscribed()) {
-                        Subscribed
-                      } @else {
-                        Not subscribed
-                      }
-                    </span>
-                  </label>
-                  @if (newsletterUpdateInProgress()) {
-                    <span class="update-status">Updating...</span>
-                  }
-                </div>
-                <p class="newsletter-description">
-                  Receive monthly updates about cooperative news, events, and resources for birth
-                  workers.
-                </p>
-                @if (newsletterUpdateError(); as error) {
-                  <p class="error-message">{{ error }}</p>
-                }
-              </div>
-            </div>
-          }
-
-          @if (lastPaymentDate() || nextPaymentDate() || membershipExpiresDate()) {
-            <h3>Payment Information</h3>
-            <div class="membership-details">
-              @if (lastPaymentDate(); as lastPayment) {
-                <div class="detail-item">
-                  <span class="detail-label">Last Payment:</span>
-                  <span class="detail-value">{{ lastPayment | date: 'MMMM d, yyyy' }}</span>
-                </div>
-              }
-
-              @if (nextPaymentDate(); as nextPayment) {
-                <div class="detail-item">
-                  <span class="detail-label">Next Payment:</span>
-                  <span class="detail-value">{{ nextPayment | date: 'MMMM d, yyyy' }}</span>
-                </div>
-              }
-
-              @if (membershipExpiresDate(); as expiresDate) {
-                <div class="detail-item">
-                  <span class="detail-label">Membership Expires:</span>
-                  <span class="detail-value">{{ expiresDate | date: 'MMMM d, yyyy' }}</span>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="loading-info">
-          <p>Loading membership information...</p>
-        </div>
+        @if (userDoc.membershipActive) {
+          <span class="membership-badge">Active Member</span>
+        }
       }
     </div>
 
+    @if (userDocument(); as userDoc) {
+      <div class="membership-cards">
+        <!-- Account Details Card -->
+        <section class="membership-card card-1" aria-labelledby="account-heading">
+          <h2 id="account-heading" class="section-heading">Your Account Details</h2>
+          <dl class="details-list">
+            @if (userFullName(); as fullName) {
+              <dt>Full Name</dt>
+              <dd>{{ fullName }}</dd>
+            }
+
+            @if (membershipCreated(); as createdDate) {
+              <dt>Account Created</dt>
+              <dd>{{ createdDate | date: 'MMMM d, yyyy' }}</dd>
+            }
+
+            @if (subscriptionStarted(); as subscriptionDate) {
+              <dt>Subscription Started</dt>
+              <dd>{{ subscriptionDate | date: 'MMMM d, yyyy' }}</dd>
+            }
+
+            <dt>Email</dt>
+            <dd>{{ userDoc.email }}</dd>
+
+            <dt>Email Verified</dt>
+            <dd>{{ user.emailVerified ? 'Yes' : 'No' }}</dd>
+          </dl>
+        </section>
+
+        <!-- Newsletter Preferences Card -->
+        @if (!hasClaimableProfile()) {
+          <section class="membership-card card-2" aria-labelledby="newsletter-heading">
+            <h2 id="newsletter-heading" class="section-heading">Newsletter Preferences</h2>
+            <div class="newsletter-content">
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  [checked]="newsletterSubscribed()"
+                  (change)="onUpdateNewsletterPreference(!newsletterSubscribed())"
+                  [disabled]="newsletterUpdateInProgress()"
+                />
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span class="toggle-text">
+                  @if (newsletterSubscribed()) {
+                    Subscribed
+                  } @else {
+                    Not subscribed
+                  }
+                </span>
+              </label>
+              @if (newsletterUpdateInProgress()) {
+                <span class="update-status">Updating...</span>
+              }
+              <p class="newsletter-description">
+                Receive monthly updates about cooperative news, events, and resources for birth
+                workers.
+              </p>
+              @if (newsletterUpdateError(); as error) {
+                <p class="error-message">{{ error }}</p>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Payment Information Card -->
+        @if (lastPaymentDate() || nextPaymentDate() || membershipExpiresDate()) {
+          <section class="membership-card card-3" aria-labelledby="payment-heading">
+            <h2 id="payment-heading" class="section-heading">Payment Information</h2>
+            <dl class="details-list">
+              @if (lastPaymentDate(); as lastPayment) {
+                <dt>Last Payment</dt>
+                <dd>{{ lastPayment | date: 'MMMM d, yyyy' }}</dd>
+              }
+
+              @if (nextPaymentDate(); as nextPayment) {
+                <dt>Next Payment</dt>
+                <dd>{{ nextPayment | date: 'MMMM d, yyyy' }}</dd>
+              }
+
+              @if (membershipExpiresDate(); as expiresDate) {
+                <dt>Membership Expires</dt>
+                <dd>{{ expiresDate | date: 'MMMM d, yyyy' }}</dd>
+              }
+            </dl>
+          </section>
+        }
+      </div>
+    } @else {
+      <div class="loading-info">
+        <p>Loading membership information...</p>
+      </div>
+    }
+
     <div class="membership-actions">
-      <button type="button" class="button" (click)="onSignOut()">Sign Out</button>
+      <button type="button" class="button button--secondary sign-out-button" (click)="onSignOut()">
+        Sign Out
+      </button>
     </div>
   </div>
 }

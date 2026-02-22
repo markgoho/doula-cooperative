@@ -1,21 +1,224 @@
-h1 {
-  text-align: center;
-  margin-block-end: var(--space-l);
+// ============================================
+// Membership Page Styles
+// ============================================
+
+// --- Animations ---
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+// --- Layout ---
 .authenticated-view {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  width: 100%;
+}
+
+// --- Welcome Section ---
+.welcome-section {
   text-align: center;
+  margin-block-end: var(--space-l);
+  animation: fadeSlideUp 0.5s ease-out both;
 }
 
-.membership-actions {
-  margin-top: var(--space-l);
+.welcome-greeting {
+  font-size: var(--step-3);
+  font-weight: var(--font-weight-light);
+  margin-block-end: var(--space-xs);
+  line-height: var(--line-height-tight);
 }
 
+.welcome-name {
+  font-weight: var(--font-weight-bold);
+  color: var(--teal-600);
+}
+
+.membership-badge {
+  display: inline-block;
+  background: var(--teal-500);
+  color: var(--brown-000);
+  font-size: var(--step--2);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: var(--space-3xs) var(--space-s);
+  border-radius: 999px;
+  margin-block-start: var(--space-2xs);
+}
+
+// --- Card Grid ---
+.membership-cards {
+  display: grid;
+  gap: var(--space-m);
+  width: 100%;
+}
+
+// --- Card Base ---
+.membership-card {
+  background: var(--brown-000);
+  border: 1px solid var(--brown-200);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  padding: var(--space-l);
+  animation: fadeSlideUp 0.5s ease-out both;
+
+  &.card-1 {
+    animation-delay: 0.1s;
+  }
+
+  &.card-2 {
+    animation-delay: 0.2s;
+  }
+
+  &.card-3 {
+    animation-delay: 0.3s;
+  }
+}
+
+// --- Section Headings ---
+.section-heading {
+  font-size: var(--step-1);
+  font-weight: var(--font-weight-semibold);
+  border-left: 4px solid var(--teal-500);
+  padding-left: var(--space-s);
+  margin-block-end: var(--space-m);
+
+  &::before {
+    margin-right: var(--space-2xs);
+  }
+}
+
+#account-heading::before {
+  content: '\1F464'; // 👤
+}
+
+#newsletter-heading::before {
+  content: '\2709'; // ✉
+}
+
+#payment-heading::before {
+  content: '\1F4B3'; // 💳
+}
+
+// --- Definition List Details ---
+.details-list {
+  display: grid;
+  gap: var(--space-s) var(--space-3xs);
+
+  @media (min-width: 30em) {
+    grid-template-columns: auto 1fr;
+    gap: var(--space-s);
+    align-items: baseline;
+  }
+
+  dt {
+    font-size: var(--step--2);
+    font-weight: var(--font-weight-regular);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brown-500);
+  }
+
+  dd {
+    font-size: var(--step-0);
+    font-weight: var(--font-weight-regular);
+    margin: 0;
+  }
+}
+
+// --- Newsletter Toggle Switch ---
+.newsletter-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .toggle-track {
+      background: var(--teal-500);
+
+      &::after {
+        transform: translateX(1.25rem);
+      }
+    }
+
+    &:focus-visible + .toggle-track {
+      outline: 2px solid var(--teal-500);
+      outline-offset: 2px;
+    }
+
+    &:disabled + .toggle-track {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:disabled ~ .toggle-text {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.toggle-track {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  background: var(--brown-300);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: var(--brown-000);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  }
+}
+
+.toggle-text {
+  font-size: var(--step-0);
+  font-weight: var(--font-weight-regular);
+}
+
+.newsletter-description {
+  font-size: var(--step--1);
+  color: var(--brown-450);
+  margin: 0;
+}
+
+.update-status {
+  font-size: var(--step--1);
+  color: var(--brown-450);
+}
+
+// --- Banners ---
 .claim-profile-banner {
   background: var(--brown-100);
   border: 3px solid var(--brown-400);
@@ -24,20 +227,33 @@ h1 {
   padding-block-start: var(--space-xs);
   margin-block-end: var(--space-l);
   max-width: 50ch;
+  animation: fadeSlideUp 0.5s ease-out both;
+}
+
+.claim-profile-banner p {
+  margin-block-end: var(--space-m);
+}
+
+.create-profile-banner {
+  background: var(--brown-100);
+  border: 3px solid var(--brown-400);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-l);
+  padding-block-start: var(--space-xs);
+  margin-block-end: var(--space-l);
+  max-width: 50ch;
+  text-align: center;
+  animation: fadeSlideUp 0.5s ease-out both;
 }
 
 .profile-info {
   background: var(--teal-50);
   border: 2px solid var(--teal-200);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
 }
 
 .profile-info p {
   margin: var(--space-3xs) 0;
-}
-
-.claim-profile-banner p {
-  margin-block-end: var(--space-m);
 }
 
 .email-verification-banner {
@@ -61,38 +277,34 @@ h1 {
   margin-block-end: var(--space-m);
 }
 
+// --- Messages ---
 .success-message {
   background: var(--teal-100);
   padding: var(--space-xs);
-  border-radius: var(--space-3xs);
+  border-radius: var(--border-radius-md);
   border: 1px solid var(--teal-200);
   margin-block-end: var(--space-s);
   text-align: center;
 }
 
-.membership-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-s);
+.error-message {
+  background: var(--brown-100);
+  padding: var(--space-xs);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--brown-200);
+  margin-block-end: var(--space-s);
+  text-align: center;
 }
 
-.detail-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-3xs);
+// --- Actions ---
+.membership-actions {
+  margin-top: var(--space-xl);
+  animation: fadeSlideUp 0.5s ease-out 0.4s both;
 }
 
-.detail-label {
-  font-weight: var(--font-weight-semibold);
+.sign-out-button {
   font-size: var(--step--1);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-value {
-  font-size: var(--step-0);
-  font-weight: var(--font-weight-normal);
+  padding: var(--space-3xs) var(--space-m);
 }
 
 .help-text {
@@ -100,62 +312,34 @@ h1 {
   margin-top: var(--space-s);
 }
 
-.error-message {
-  background: var(--brown-100);
-  padding: var(--space-xs);
-  border-radius: var(--space-3xs);
-  border: 1px solid var(--brown-200);
-  margin-block-end: var(--space-s);
+// --- Loading ---
+.loading-info {
   text-align: center;
+  color: var(--brown-450);
 }
 
-.newsletter-preference {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-xs);
-}
-
-.newsletter-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-m);
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  cursor: pointer;
-
-  input[type='checkbox'] {
-    cursor: pointer;
-  }
-
-  input[type='checkbox']:disabled {
-    cursor: not-allowed;
-  }
-}
-
-.toggle-text {
-  font-size: var(--step-0);
-  font-weight: var(--font-weight-normal);
-}
-
-.newsletter-description {
-  font-size: var(--step--1);
-  color: var(--text-muted, #666);
-  margin-top: var(--space-xs);
-  margin-bottom: 0;
-}
-
-.update-status {
-  font-size: var(--step--1);
-  color: var(--text-muted, #666);
-}
-
-// Responsive design
+// --- Responsive ---
 @media (max-width: 768px) {
-  .membership-container {
+  .authenticated-view {
     padding: var(--space-s);
+  }
+
+  .welcome-greeting {
+    font-size: var(--step-2);
+  }
+
+  .membership-card {
+    padding: var(--space-m);
+  }
+}
+
+// Prefer reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .welcome-section,
+  .membership-card,
+  .membership-actions,
+  .claim-profile-banner,
+  .create-profile-banner {
+    animation: none;
   }
 }
