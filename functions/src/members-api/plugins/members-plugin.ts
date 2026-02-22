@@ -3,11 +3,14 @@ import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { getMemberLogic } from "../routes/members.js";
+import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import { verifyEmailLogic } from "../routes/verify-email.js";
 import {
   GetMemberResponseSchema,
   MemberIdParameterSchema,
+  UpdateMemberNameBodySchema,
+  UpdateMemberNameResponseSchema,
   UpdateNewsletterPreferenceBodySchema,
   UpdateNewsletterPreferenceResponseSchema,
   VerifyEmailResponseSchema,
@@ -120,6 +123,34 @@ export function createMembersPlugin(services?: PartialServices) {
         {
           params: MemberIdParameterSchema,
           response: VerifyEmailResponseSchema,
+        },
+      )
+      // PATCH /:memberId/name - Update member name (owner or admin) - Served at /api/members/:memberId/name
+      .patch(
+        "/:memberId/name",
+        async ({
+          params,
+          body,
+          memberService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          updateMemberNameLogic({
+            memberId: params.memberId,
+            name: body.name,
+            memberService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: UpdateMemberNameBodySchema,
+          response: UpdateMemberNameResponseSchema,
         },
       )
   );

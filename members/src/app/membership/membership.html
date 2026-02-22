@@ -76,6 +76,43 @@
       </div>
     }
 
+    @if (showWelcomeNamePrompt()) {
+      <div class="welcome-name-prompt">
+        <h3>Welcome to the Rochester Doula Cooperative!</h3>
+        <p>
+          Thank you for joining! To get started with your membership, please enter your full name
+          below.
+        </p>
+        <form class="name-form" (ngSubmit)="onSaveName()">
+          <label for="member-name">Full Name</label>
+          <input
+            id="member-name"
+            type="text"
+            [ngModel]="nameInput()"
+            (ngModelChange)="nameInput.set($event)"
+            name="name"
+            placeholder="Enter your full name"
+            required
+            [disabled]="nameUpdateInProgress()"
+          />
+          <button
+            type="submit"
+            class="button"
+            [disabled]="nameUpdateInProgress() || nameInput().trim().length === 0"
+          >
+            @if (nameUpdateInProgress()) {
+              Saving...
+            } @else {
+              Save Name
+            }
+          </button>
+        </form>
+        @if (nameUpdateError(); as error) {
+          <p class="error-message">{{ error }}</p>
+        }
+      </div>
+    }
+
     <div class="welcome-section">
       <h1 class="welcome-greeting">Welcome back, {{ userDisplayName() }}!</h1>
 

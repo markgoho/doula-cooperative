@@ -410,3 +410,41 @@ export const VerifyEmailResponseSchema = t.Union([
 ]);
 
 export type VerifyEmailResponse = Static<typeof VerifyEmailResponseSchema>;
+
+/**
+ * Request body schema for updating member name.
+ */
+export const UpdateMemberNameBodySchema = t.Object({
+  name: t.String({
+    minLength: 1,
+    maxLength: 200,
+    description: "The member's full name",
+    error: "Name must be between 1 and 200 characters",
+  }),
+});
+
+export type UpdateMemberNameBody = Static<typeof UpdateMemberNameBodySchema>;
+
+/**
+ * Member name update success response.
+ */
+export const UpdateMemberNameSuccessSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+});
+
+export type UpdateMemberNameSuccessResponse = Static<
+  typeof UpdateMemberNameSuccessSchema
+>;
+
+/**
+ * PATCH /members/:memberId/name response schema (union of success and error).
+ */
+export const UpdateMemberNameResponseSchema = t.Union([
+  UpdateMemberNameSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateMemberNameResponse = Static<
+  typeof UpdateMemberNameResponseSchema
+>;
