@@ -305,9 +305,6 @@ export const ERROR_IDS = {
 
   // Member name update errors
   UPDATE_MEMBER_NAME_ROUTE_FAILED: "update_member_name_route_failed",
-  UPDATE_MEMBER_NAME_MEMBER_NOT_FOUND: "update_member_name_member_not_found",
-  UPDATE_MEMBER_NAME_FIRESTORE_UPDATE_ERROR:
-    "update_member_name_firestore_update_error",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

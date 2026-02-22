@@ -21,6 +21,7 @@ export interface MemberService {
    * @param name - The new name to set
    * @returns Promise resolving to updated member document
    * @throws NotFoundError if member does not exist
+   * @throws Error for Firestore operation failures
    */
   updateName(memberId: string, name: string): Promise<MemberDocument>;
 }

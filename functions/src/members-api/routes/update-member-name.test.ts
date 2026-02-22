@@ -122,6 +122,16 @@ describe("PATCH /:memberId/name (authenticated)", () => {
       expect(body.error).toBe("Missing Authorization header");
     });
 
+    it("should return 401 when authentication token is invalid", async () => {
+      const { testApp, request } = setup({ authToken: "invalid-token" });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(401);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Invalid authentication token");
+    });
+
     it("should return 403 when non-owner tries to update name", async () => {
       const { testApp, request } = setup({ authToken: "non-owner-token" });
 
@@ -227,6 +237,28 @@ describe("PATCH /:memberId/name (authenticated)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(422);
+    });
+
+    it("should accept request with name at exactly 200 characters", async () => {
+      const { testApp, request } = setup({
+        body: { name: "a".repeat(200) },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject request with whitespace-only name", async () => {
+      const { testApp, request } = setup({
+        body: { name: "   " },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(422);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Name must not be empty or whitespace-only");
     });
   });
 

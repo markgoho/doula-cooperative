@@ -263,7 +263,8 @@ export class MembershipService {
   }
 
   /**
-   * Update the member's name
+   * Update the member's name.
+   * Triggers `reloadUserDocument()` on success to refresh the cached member data.
    * @param name - The full name to set
    * @throws Error with user-friendly message
    */
@@ -307,6 +308,12 @@ export class MembershipService {
 
           case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
+          }
+
+          default: {
+            throw new Error(
+              `Unable to update your name (error ${String(error.status)}). Please try again or contact support.`,
+            );
           }
         }
       }

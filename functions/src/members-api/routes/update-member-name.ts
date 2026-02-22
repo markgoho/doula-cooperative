@@ -11,6 +11,7 @@ import type { MemberService } from "../services/member/interface.js";
 /**
  * Update member name logic (authenticated).
  * Requires authentication - users can update their own name, admins can update any member.
+ * The name is trimmed before saving. Admin users receive additional fields in the member response.
  *
  * @returns Success response with updated member data, or error object
  */
@@ -31,6 +32,12 @@ export async function updateMemberNameLogic({
   authorizationHeader: string | undefined;
   set: { status?: number | string };
 }): Promise<{ success: true; member: MemberResponse } | { error: string }> {
+  const trimmedName = name.trim();
+  if (trimmedName.length === 0) {
+    set.status = 422;
+    return { error: "Name must not be empty or whitespace-only" };
+  }
+
   try {
     const decodedToken = await authService.verifyOwnerOrAdmin(
       authorizationHeader,
@@ -44,7 +51,7 @@ export async function updateMemberNameLogic({
       isAdmin,
     });
 
-    const updatedMember = await memberService.updateName(memberId, name);
+    const updatedMember = await memberService.updateName(memberId, trimmedName);
 
     return {
       success: true,

@@ -51,13 +51,16 @@ export class Membership {
     loader: ({ params }) => this.membershipService.getClaimableProfileData(params.user),
   });
 
-  // Show create profile banner for active members without a slug who have a name
+  // Name prompt and profile creation banner are mutually exclusive:
+  // the name prompt appears first; once the member sets their name,
+  // the profile creation banner takes its place.
   protected showCreateProfileBanner = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.membershipActive && !userDocument?.slug && !!userDocument?.name;
   });
 
-  // Show welcome prompt for active members without a slug who have no name set
+  // Show welcome prompt for active members who need to set their name
+  // before they can create a profile (profile creation requires a name to generate a slug)
   protected showWelcomeNamePrompt = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.membershipActive && !userDocument?.slug && !userDocument?.name;

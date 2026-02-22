@@ -1,7 +1,4 @@
-import {
-  HttpError,
-  NotFoundError,
-} from "../../../shared-api/errors/http-error.js";
+import { NotFoundError } from "../../../shared-api/errors/http-error.js";
 import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
 import type { MemberDocument } from "../../../types/member-document.js";
 import type { MemberService as MemberServiceInterface } from "./interface.js";
@@ -44,30 +41,15 @@ export const MemberService: MemberServiceInterface = {
       throw new NotFoundError("Member not found");
     }
 
-    try {
-      await MemberFirestoreService.updateMember(memberId, { name });
-    } catch (error) {
-      if (error instanceof HttpError) {
-        throw error;
-      }
-      throw error;
+    await MemberFirestoreService.updateMember(memberId, { name });
+
+    const updatedDocument =
+      await MemberFirestoreService.getMemberByUid(memberId);
+
+    if (!updatedDocument.exists) {
+      throw new NotFoundError("Member not found after update");
     }
 
-    try {
-      const updatedDocument =
-        await MemberFirestoreService.getMemberByUid(memberId);
-
-      if (!updatedDocument.exists) {
-        throw new NotFoundError("Member not found after update");
-      }
-
-      return updatedDocument.data() as MemberDocument;
-    } catch (error) {
-      if (error instanceof HttpError) {
-        throw error;
-      }
-      // Write succeeded but re-read failed — return constructed document
-      return { ...(document.data() as MemberDocument), name };
-    }
+    return updatedDocument.data() as MemberDocument;
   },
 };

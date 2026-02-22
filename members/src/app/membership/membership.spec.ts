@@ -346,6 +346,27 @@ describe('Membership', () => {
       expect(updateMemberNameMock).toHaveBeenCalledWith('Jane Doe');
     });
 
+    it('should trim whitespace from name before sending to service', async () => {
+      const { user, updateMemberNameMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, '  Jane Doe  ');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      await user.click(saveButton);
+
+      expect(updateMemberNameMock).toHaveBeenCalledWith('Jane Doe');
+    });
+
     it('should show error message when name update fails', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentionally empty - we're just suppressing console output in tests
