@@ -270,6 +270,30 @@ export class MembershipService {
   }
 
   /**
+   * Mark the current user's email as verified via the API.
+   * This should be called after a successful password reset + sign-in,
+   * since confirming a password reset proves the user owns the email.
+   * @throws Error with user-friendly message
+   */
+  async verifyEmail(): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to verify your email.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post<{ success: boolean }>(`/api/members/${uid}/verify-email`, {}),
+      );
+    } catch (error: unknown) {
+      console.error('Failed to verify email:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // Don't throw - email verification is best-effort after password reset
+    }
+  }
+
+  /**
    * Claim an unclaimed profile for the authenticated user
    * @param slug - The slug of the profile to claim
    * @throws Error with user-friendly message

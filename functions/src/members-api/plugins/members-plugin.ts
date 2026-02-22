@@ -4,14 +4,17 @@ import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
+import { verifyEmailLogic } from "../routes/verify-email.js";
 import {
   GetMemberResponseSchema,
   MemberIdParameterSchema,
   UpdateNewsletterPreferenceBodySchema,
   UpdateNewsletterPreferenceResponseSchema,
+  VerifyEmailResponseSchema,
 } from "../schemas/member-schemas.js";
 import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
+import { VerifyEmailServiceImpl } from "../services/verify-email/verify-email-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -41,6 +44,10 @@ export function createMembersPlugin(services?: PartialServices) {
       .decorate(
         SERVICE_KEYS.NEWSLETTER_SERVICE,
         services?.newsletterService ?? NewsletterService,
+      )
+      .decorate(
+        SERVICE_KEYS.VERIFY_EMAIL_SERVICE,
+        services?.verifyEmailService ?? VerifyEmailServiceImpl,
       )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
@@ -88,6 +95,31 @@ export function createMembersPlugin(services?: PartialServices) {
           params: MemberIdParameterSchema,
           body: UpdateNewsletterPreferenceBodySchema,
           response: UpdateNewsletterPreferenceResponseSchema,
+        },
+      )
+      // POST /:memberId/verify-email - Mark email as verified (owner only) - Served at /api/members/:memberId/verify-email
+      .post(
+        "/:memberId/verify-email",
+        async ({
+          params,
+          verifyEmailService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          verifyEmailLogic({
+            memberId: params.memberId,
+            authService,
+            verifyEmailService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          response: VerifyEmailResponseSchema,
         },
       )
   );

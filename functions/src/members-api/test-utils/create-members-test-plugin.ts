@@ -9,6 +9,7 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
+import type { VerifyEmailService } from "../routes/verify-email.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
 
@@ -24,6 +25,7 @@ export function createMembersTestPlugin(overrides?: {
   newsletterService?: Partial<NewsletterService>;
   authService?: Partial<AuthService>;
   emailService?: EmailServiceInterface;
+  verifyEmailService?: Partial<VerifyEmailService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -50,11 +52,17 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.emailService,
   };
 
+  const defaultVerifyEmailService: VerifyEmailService = {
+    markEmailVerified: mock(() => Promise.resolve()),
+    ...overrides?.verifyEmailService,
+  };
+
   return createMembersPlugin({
     memberService: defaultMemberService,
     newsletterService: defaultNewsletterService,
     authService: defaultAuthService,
     emailService: defaultEmailService,
+    verifyEmailService: defaultVerifyEmailService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

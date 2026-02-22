@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, signal } fro
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 
 // Firebase Auth action modes
 type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
@@ -14,6 +15,7 @@ type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
 })
 export class AuthActions {
   private authService = inject(AuthService);
+  private membershipService = inject(MembershipService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
@@ -114,13 +116,32 @@ export class AuthActions {
     this.processingState.set('verifying');
     try {
       await this.authService.confirmPasswordReset(code, password);
+
+      // Try to auto-sign-in and verify email
+      const email = this.emailForAction();
+      if (email !== '') {
+        try {
+          await this.authService.signInWithEmail(email, password);
+          // Now authenticated - mark email as verified (best-effort)
+          await this.membershipService.verifyEmail();
+          // Navigate directly to membership dashboard
+          this.processingState.set('success');
+          this.statusMessage.set(
+            'Password has been reset successfully. Welcome to your membership dashboard!',
+          );
+          await this.router.navigate(['/membership']);
+          return;
+        } catch {
+          // Sign-in failed - fall back to redirect to sign-in page
+        }
+      }
+
+      // Fallback: redirect to sign-in with email prefilled
       this.processingState.set('success');
       this.statusMessage.set('Password has been reset successfully. You can now sign in.');
-      // Optionally redirect to sign-in with email prefilled
-      const email = this.emailForAction();
       await this.router.navigate(
         ['/sign-in'],
-        email && email !== '' ? { queryParams: { email } } : undefined,
+        email !== '' ? { queryParams: { email } } : undefined,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reset password.';

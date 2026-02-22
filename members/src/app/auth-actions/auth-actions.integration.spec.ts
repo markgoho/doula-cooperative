@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 import { AuthActions } from './auth-actions';
 
 // Mock components for routing
@@ -56,10 +57,30 @@ describe('AuthActions - Integration Tests', () => {
   });
 
   describe('resetPassword navigation flow', () => {
-    it('should navigate to sign-in page after successful password reset', async () => {
+    it('should navigate to membership page after successful password reset with auto-sign-in', async () => {
       const { user } = await setup({
         mode: 'resetPassword',
         oobCode: 'reset-code',
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newSecurePassword123');
+      await user.type(confirmPasswordInput, 'newSecurePassword123');
+      await user.click(submitButton);
+
+      expect(await screen.findByText('Membership Page')).toBeVisible();
+    });
+
+    it('should navigate to sign-in page when auto-sign-in fails after password reset', async () => {
+      const { user } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code',
+        signInShouldSucceed: false,
       });
 
       expect(await screen.findByText('Reset your password')).toBeVisible();
@@ -155,6 +176,7 @@ interface SetupIntegrationOptions {
   shouldSucceed?: boolean;
   verifyCodeShouldSucceed?: boolean;
   confirmResetShouldSucceed?: boolean;
+  signInShouldSucceed?: boolean;
   errorMessage?: string;
   restoredEmail?: string;
 }
@@ -166,6 +188,7 @@ async function setup({
   shouldSucceed = true,
   verifyCodeShouldSucceed = shouldSucceed,
   confirmResetShouldSucceed = shouldSucceed,
+  signInShouldSucceed = true,
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
 }: SetupIntegrationOptions = {}) {
@@ -201,6 +224,17 @@ async function setup({
         shouldSucceed ? Promise.resolve({ data: { email: restoredEmail } }) : createRejection(),
       ),
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+    signInWithEmail: vi
+      .fn()
+      .mockImplementation(() =>
+        signInShouldSucceed
+          ? Promise.resolve({ user: { uid: 'test-uid' } })
+          : Promise.reject(new Error('Sign in failed')),
+      ),
+  };
+
+  const mockMembershipService = {
+    verifyEmail: vi.fn().mockResolvedValue(undefined),
   };
 
   // Set up routes that match the real app structure
@@ -215,6 +249,7 @@ async function setup({
     providers: [
       provideRouter(routes, withComponentInputBinding()),
       { provide: AuthService, useValue: mockAuthService },
+      { provide: MembershipService, useValue: mockMembershipService },
     ],
   });
 
