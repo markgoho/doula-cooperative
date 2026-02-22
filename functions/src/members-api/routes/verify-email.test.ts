@@ -1,4 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
@@ -40,7 +41,7 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
               uid: memberId,
               email: "test@example.com",
               email_verified: true,
-            }),
+            } as DecodedIdToken),
           ),
         },
       }),
