@@ -135,6 +135,110 @@ async function sendMailerLiteFailureNotification({
 }
 
 /**
+ * Create HTML for welcome email failure notification.
+ */
+function createWelcomeEmailFailureEmailHtml(options: {
+  customerEmail: string;
+  customerName: string | null | undefined;
+  uid: string;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
+  errorMessage: string;
+}): string {
+  const {
+    customerEmail,
+    customerName,
+    uid,
+    subscriptionStart,
+    membershipExpiresAt,
+    errorMessage,
+  } = options;
+
+  const displayName = escapeHtml(customerName) || "Not provided";
+  const subscriptionStartDate = escapeHtml(
+    subscriptionStart.toDate().toISOString(),
+  );
+  const expirationDate = escapeHtml(membershipExpiresAt.toDate().toISOString());
+
+  return `
+    <h2>Welcome Email Failed</h2>
+    <p>A new member completed payment but the welcome email could not be sent. The member's account is active but they have no way to set their password.</p>
+
+    <h3>Member Details:</h3>
+    <ul>
+      <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+      <li><strong>Name:</strong> ${displayName}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
+      <li><strong>Subscription Start:</strong> ${subscriptionStartDate}</li>
+      <li><strong>Membership Expires:</strong> ${expirationDate}</li>
+    </ul>
+
+    <h3>Error Details:</h3>
+    <p>${escapeHtml(errorMessage)}</p>
+
+    <p><strong>Action Required:</strong> Manually send a welcome email or password reset link to this member so they can access their account.</p>
+  `;
+}
+
+interface WelcomeEmailNotificationConfig {
+  emailService: EmailServiceInterface;
+  customerEmail: string;
+  customerName: string | null | undefined;
+  userRecord: UserRecord;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
+  errorMessage: string;
+  logger: Logger;
+}
+
+/**
+ * Send notification email when welcome email fails.
+ */
+async function sendWelcomeEmailFailureNotification({
+  emailService,
+  customerEmail,
+  customerName,
+  userRecord,
+  subscriptionStart,
+  membershipExpiresAt,
+  errorMessage,
+  logger,
+}: WelcomeEmailNotificationConfig): Promise<void> {
+  try {
+    const notificationEmail: EmailMessage = {
+      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: "Action Required: Welcome Email Failed for New Member",
+      html: createWelcomeEmailFailureEmailHtml({
+        customerEmail,
+        customerName,
+        uid: userRecord.uid,
+        subscriptionStart,
+        membershipExpiresAt,
+        errorMessage,
+      }),
+    };
+
+    await emailService.sendEmail({ message: notificationEmail }, logger);
+    logger.info("Sent welcome email failure notification", {
+      uid: userRecord.uid,
+      email: customerEmail,
+    });
+  } catch (emailError) {
+    logger.error("Failed to send welcome email failure notification", {
+      error: emailError,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_WELCOME_EMAIL_NOTIFICATION_FAILED,
+      uid: userRecord.uid,
+      email: customerEmail,
+      severity: "CRITICAL",
+      actionRequired:
+        "Check Sentry alerts immediately - welcome email failed and notification failed",
+    });
+    // Don't throw - we don't want to fail the webhook because notification failed
+  }
+}
+
+/**
  * Generate welcome email HTML content.
  */
 function generateWelcomeEmailHtml(resetLink: string): string {
@@ -597,6 +701,18 @@ export async function processCheckoutCompleted(options: {
             "Check Firestore permissions and manually record email failure status",
         });
       }
+
+      // Notify admin about the failure
+      await sendWelcomeEmailFailureNotification({
+        emailService,
+        customerEmail,
+        customerName: session.customer_details?.name,
+        userRecord,
+        subscriptionStart,
+        membershipExpiresAt,
+        errorMessage,
+        logger,
+      });
     }
   }
 

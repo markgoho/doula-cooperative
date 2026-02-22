@@ -24,6 +24,8 @@ export const ERROR_IDS = {
     "stripe_webhook_mailgun_not_configured",
   STRIPE_WEBHOOK_MAILGUN_FAILED: "stripe_webhook_mailgun_failed",
   STRIPE_WEBHOOK_EMAIL_FAILED: "stripe_webhook_email_failed",
+  STRIPE_WEBHOOK_WELCOME_EMAIL_NOTIFICATION_FAILED:
+    "stripe_webhook_welcome_email_notification_failed",
   STRIPE_WEBHOOK_UNEXPECTED_ERROR: "stripe_webhook_unexpected_error",
 
   // Legacy member activation errors
