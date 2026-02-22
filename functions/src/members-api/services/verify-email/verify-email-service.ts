@@ -1,5 +1,5 @@
 import { getAuth } from "firebase-admin/auth";
-import type { VerifyEmailService } from "../../routes/verify-email.js";
+import type { VerifyEmailService } from "./interface.js";
 
 /**
  * Real implementation of VerifyEmailService using Firebase Admin SDK.

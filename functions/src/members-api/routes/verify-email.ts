@@ -2,13 +2,11 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import {
   ForbiddenError,
   HttpError,
+  ValidationError,
 } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-
-export interface VerifyEmailService {
-  markEmailVerified(uid: string): Promise<void>;
-}
+import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
 /**
  * Route logic for POST /:memberId/verify-email
@@ -16,6 +14,7 @@ export interface VerifyEmailService {
  * Marks a member's email as verified in Firebase Auth.
  * Owner-only: the authenticated user's UID must match the memberId.
  * Admin access is explicitly denied — admins should not verify emails on behalf of members.
+ * Rejects requests when the email is already verified to prevent misuse.
  */
 export async function verifyEmailLogic({
   memberId,
@@ -43,7 +42,15 @@ export async function verifyEmailLogic({
       throw new ForbiddenError("You can only verify your own email");
     }
 
+    // Reject if email is already verified — prevents misuse by already-verified users
+    if (decodedToken.email_verified === true) {
+      throw new ValidationError("Email is already verified");
+    }
+
     await verifyEmailService.markEmailVerified(memberId);
+
+    logger.info("Email marked as verified", { memberId });
+
     return { success: true };
   } catch (error: unknown) {
     if (error instanceof HttpError) {

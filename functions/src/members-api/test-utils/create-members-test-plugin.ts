@@ -9,9 +9,9 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
-import type { VerifyEmailService } from "../routes/verify-email.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
 /**
  * Creates the members plugin with default mock services for testing.

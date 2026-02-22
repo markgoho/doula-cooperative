@@ -287,9 +287,25 @@ export class MembershipService {
       );
     } catch (error: unknown) {
       console.error('Failed to verify email:', {
+        uid,
         error: error instanceof Error ? error.message : String(error),
       });
-      // Don't throw - email verification is best-effort after password reset
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to verify your email.');
+          }
+          case 403: {
+            throw new Error('You do not have permission to verify this email.');
+          }
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
+      throw new Error('Unable to verify email. Please try again.');
     }
   }
 

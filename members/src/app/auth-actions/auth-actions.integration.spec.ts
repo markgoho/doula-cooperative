@@ -96,6 +96,46 @@ describe('AuthActions - Integration Tests', () => {
       expect(await screen.findByText('Sign In Page')).toBeVisible();
     });
 
+    it('should navigate to membership even when verifyEmail fails after sign-in', async () => {
+      const { user } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code',
+        verifyEmailShouldSucceed: false,
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newSecurePassword123');
+      await user.type(confirmPasswordInput, 'newSecurePassword123');
+      await user.click(submitButton);
+
+      expect(await screen.findByText('Membership Page')).toBeVisible();
+    });
+
+    it('should navigate to sign-in when email is empty after password reset', async () => {
+      const { user } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code',
+        userEmail: '',
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newSecurePassword123');
+      await user.type(confirmPasswordInput, 'newSecurePassword123');
+      await user.click(submitButton);
+
+      expect(await screen.findByText('Sign In Page')).toBeVisible();
+    });
+
     it('should stay on auth-actions page when password reset fails', async () => {
       const { user } = await setup({
         mode: 'resetPassword',
@@ -177,8 +217,10 @@ interface SetupIntegrationOptions {
   verifyCodeShouldSucceed?: boolean;
   confirmResetShouldSucceed?: boolean;
   signInShouldSucceed?: boolean;
+  verifyEmailShouldSucceed?: boolean;
   errorMessage?: string;
   restoredEmail?: string;
+  userEmail?: string;
 }
 
 async function setup({
@@ -189,8 +231,10 @@ async function setup({
   verifyCodeShouldSucceed = shouldSucceed,
   confirmResetShouldSucceed = shouldSucceed,
   signInShouldSucceed = true,
+  verifyEmailShouldSucceed = true,
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
+  userEmail = 'user@example.com',
 }: SetupIntegrationOptions = {}) {
   // Build the route from semantic parameters
   const queryParameters = new URLSearchParams();
@@ -211,7 +255,7 @@ async function setup({
     verifyPasswordResetCode: vi
       .fn()
       .mockImplementation(() =>
-        verifyCodeShouldSucceed ? Promise.resolve('user@example.com') : createRejection(),
+        verifyCodeShouldSucceed ? Promise.resolve(userEmail) : createRejection(),
       ),
     confirmPasswordReset: vi
       .fn()
@@ -234,7 +278,13 @@ async function setup({
   };
 
   const mockMembershipService = {
-    verifyEmail: vi.fn().mockResolvedValue(undefined),
+    verifyEmail: vi
+      .fn()
+      .mockImplementation(() =>
+        verifyEmailShouldSucceed
+          ? Promise.resolve()
+          : Promise.reject(new Error('Unable to verify email. Please try again.')),
+      ),
   };
 
   // Set up routes that match the real app structure

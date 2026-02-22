@@ -123,7 +123,13 @@ export class AuthActions {
         try {
           await this.authService.signInWithEmail(email, password);
           // Now authenticated - mark email as verified (best-effort)
-          await this.membershipService.verifyEmail();
+          try {
+            await this.membershipService.verifyEmail();
+          } catch (verifyError: unknown) {
+            console.error('Email verification failed after password reset:', {
+              error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+            });
+          }
           // Navigate directly to membership dashboard
           this.processingState.set('success');
           this.statusMessage.set(
@@ -131,8 +137,12 @@ export class AuthActions {
           );
           await this.router.navigate(['/membership']);
           return;
-        } catch {
-          // Sign-in failed - fall back to redirect to sign-in page
+        } catch (signInError: unknown) {
+          console.error('Auto-sign-in after password reset failed:', {
+            email,
+            error: signInError instanceof Error ? signInError.message : String(signInError),
+          });
+          // Fall through to sign-in page redirect
         }
       }
 
@@ -141,7 +151,7 @@ export class AuthActions {
       this.statusMessage.set('Password has been reset successfully. You can now sign in.');
       await this.router.navigate(
         ['/sign-in'],
-        email !== '' ? { queryParams: { email } } : undefined,
+        email === '' ? undefined : { queryParams: { email } },
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reset password.';

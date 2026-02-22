@@ -1,9 +1,9 @@
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import type { VerifyEmailService } from "../routes/verify-email.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
 /**
  * Service keys used for dependency injection via Elysia's decorate.
