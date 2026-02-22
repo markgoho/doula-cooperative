@@ -15,8 +15,8 @@ describe('Membership', () => {
     it('should not show any content when user is not authenticated', async () => {
       await setup({ isAuthenticated: false });
 
-      expect(screen.queryByText(/Welcome back/)).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Sign Out' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Welcome back/)).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Sign Out' })).toBeNull();
     });
   });
 
@@ -231,9 +231,7 @@ describe('Membership', () => {
         },
       });
 
-      expect(
-        screen.queryByText('Welcome to the Rochester Doula Cooperative!'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
     });
 
     it('should not show welcome prompt when membership is not active', async () => {
@@ -248,9 +246,7 @@ describe('Membership', () => {
         },
       });
 
-      expect(
-        screen.queryByText('Welcome to the Rochester Doula Cooperative!'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
     });
 
     it('should not show welcome prompt when member already has a slug', async () => {
@@ -266,9 +262,7 @@ describe('Membership', () => {
         },
       });
 
-      expect(
-        screen.queryByText('Welcome to the Rochester Doula Cooperative!'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
     });
 
     it('should disable save button when name input is empty', async () => {
@@ -407,7 +401,7 @@ describe('Membership', () => {
         },
       });
 
-      expect(screen.queryByText('Create Your Doula Profile')).not.toBeInTheDocument();
+      expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
     });
   });
 
