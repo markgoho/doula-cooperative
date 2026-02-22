@@ -3,6 +3,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
 /**
  * Service keys used for dependency injection via Elysia's decorate.
@@ -14,6 +15,7 @@ export const SERVICE_KEYS = {
   EMAIL_SERVICE: "emailService",
   LOGGER: "logger",
   NEWSLETTER_SERVICE: "newsletterService",
+  VERIFY_EMAIL_SERVICE: "verifyEmailService",
 } as const;
 
 /**
@@ -27,6 +29,7 @@ export interface Services {
   [SERVICE_KEYS.EMAIL_SERVICE]: EmailServiceInterface;
   [SERVICE_KEYS.LOGGER]: Logger;
   [SERVICE_KEYS.NEWSLETTER_SERVICE]: NewsletterService;
+  [SERVICE_KEYS.VERIFY_EMAIL_SERVICE]: VerifyEmailService;
 }
 
 /**

@@ -299,6 +299,9 @@ export const ERROR_IDS = {
   API_STRIPE_WEBHOOK_ADMIN_CLAIM_FAILED:
     "api_stripe_webhook_admin_claim_failed",
   API_STRIPE_WEBHOOK_UNEXPECTED_ERROR: "api_stripe_webhook_unexpected_error",
+
+  // Email verification errors
+  VERIFY_EMAIL_ROUTE_FAILED: "verify_email_route_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

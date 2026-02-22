@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, signal } fro
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 
 // Firebase Auth action modes
 type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
@@ -14,6 +15,7 @@ type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
 })
 export class AuthActions {
   private authService = inject(AuthService);
+  private membershipService = inject(MembershipService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
@@ -114,19 +116,65 @@ export class AuthActions {
     this.processingState.set('verifying');
     try {
       await this.authService.confirmPasswordReset(code, password);
+
+      const email = this.emailForAction();
+      const signedIn = await this.attemptAutoSignIn(email, password);
+
+      if (signedIn) {
+        this.processingState.set('success');
+        this.statusMessage.set(
+          'Password has been reset successfully. Welcome to your membership dashboard!',
+        );
+        await this.router.navigate(['/membership']);
+        return;
+      }
+
+      // Fallback: redirect to sign-in with email prefilled
       this.processingState.set('success');
       this.statusMessage.set('Password has been reset successfully. You can now sign in.');
-      // Optionally redirect to sign-in with email prefilled
-      const email = this.emailForAction();
       await this.router.navigate(
         ['/sign-in'],
-        email && email !== '' ? { queryParams: { email } } : undefined,
+        email === '' ? undefined : { queryParams: { email } },
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reset password.';
       this.processingState.set('error');
       this.statusMessage.set(message);
     }
+  }
+
+  /**
+   * Attempt to sign in with the given email and password after a password reset.
+   * If sign-in succeeds, also attempts to mark email as verified (best-effort).
+   * If verification fails, the user still lands on the dashboard and can
+   * re-verify through the standard email verification flow.
+   * @returns true if sign-in succeeded, false otherwise
+   */
+  private async attemptAutoSignIn(email: string, password: string): Promise<boolean> {
+    if (email === '') {
+      return false;
+    }
+
+    try {
+      await this.authService.signInWithEmail(email, password);
+    } catch (signInError: unknown) {
+      console.error('Auto-sign-in after password reset failed:', {
+        email,
+        error: signInError instanceof Error ? signInError.message : String(signInError),
+      });
+      return false;
+    }
+
+    // Now authenticated -- mark email as verified (best-effort, failure is non-blocking)
+    try {
+      await this.membershipService.verifyEmail();
+    } catch (verifyError: unknown) {
+      console.error('Email verification failed after password reset:', {
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+      });
+    }
+
+    return true;
   }
 
   private async handleRecoverEmail(code: string): Promise<void> {

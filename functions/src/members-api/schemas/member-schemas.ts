@@ -393,3 +393,20 @@ export const UpdateNewsletterPreferenceResponseSchema = t.Union([
 export type UpdateNewsletterPreferenceResponse = Static<
   typeof UpdateNewsletterPreferenceResponseSchema
 >;
+
+/**
+ * Verify email success response.
+ */
+export const VerifyEmailSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+/**
+ * POST /members/:memberId/verify-email response schema (union of success and error).
+ */
+export const VerifyEmailResponseSchema = t.Union([
+  VerifyEmailSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type VerifyEmailResponse = Static<typeof VerifyEmailResponseSchema>;

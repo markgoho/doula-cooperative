@@ -270,6 +270,49 @@ export class MembershipService {
   }
 
   /**
+   * Mark the current user's email as verified via the API.
+   * Currently used after password reset + sign-in, where confirming
+   * the reset code proves email ownership.
+   * @throws Error with user-friendly message
+   */
+  async verifyEmail(): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to verify your email.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post<{ success: boolean }>(`/api/members/${uid}/verify-email`, {}),
+      );
+    } catch (error: unknown) {
+      console.error('Failed to verify email:', {
+        uid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 400: {
+            throw new Error('Email is already verified.');
+          }
+          case 401: {
+            throw new Error('You must be signed in to verify your email.');
+          }
+          case 403: {
+            throw new Error('You do not have permission to verify this email.');
+          }
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
+      throw new Error('Unable to verify email. Please try again.');
+    }
+  }
+
+  /**
    * Claim an unclaimed profile for the authenticated user
    * @param slug - The slug of the profile to claim
    * @throws Error with user-friendly message

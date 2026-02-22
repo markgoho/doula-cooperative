@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 import { AuthActions } from './auth-actions';
 
 type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
@@ -197,6 +200,114 @@ describe('AuthActions - Unit Tests', () => {
       expect(await screen.findByText('There was a problem')).toBeVisible();
       expect(await screen.findByText('Invalid or expired action code')).toBeVisible();
     });
+
+    it('should auto-sign-in and navigate to membership after password reset', async () => {
+      const { user, mockAuthService, mockMembershipService, navigateSpy } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code-auto',
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newPassword123');
+      await user.type(confirmPasswordInput, 'newPassword123');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockAuthService.signInWithEmail).toHaveBeenCalledWith(
+          'user@example.com',
+          'newPassword123',
+        );
+      });
+      expect(mockMembershipService.verifyEmail).toHaveBeenCalledOnce();
+      expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+    });
+
+    it('should fall back to sign-in page when auto-sign-in fails', async () => {
+      const { user, mockAuthService, navigateSpy } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code-signin-fail',
+        signInShouldSucceed: false,
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newPassword123');
+      await user.type(confirmPasswordInput, 'newPassword123');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockAuthService.confirmPasswordReset).toHaveBeenCalled();
+      });
+
+      // Should show success even though auto-sign-in failed (falls back to sign-in redirect)
+      expect(await screen.findByText('Success')).toBeVisible();
+      expect(
+        screen.getByText('Password has been reset successfully. You can now sign in.'),
+      ).toBeVisible();
+      expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
+        queryParams: { email: 'user@example.com' },
+      });
+    });
+
+    it('should skip auto-sign-in and redirect to sign-in when email is empty', async () => {
+      const { user, mockAuthService, navigateSpy } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code-no-email',
+        userEmail: '',
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newPassword123');
+      await user.type(confirmPasswordInput, 'newPassword123');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockAuthService.confirmPasswordReset).toHaveBeenCalled();
+      });
+
+      expect(mockAuthService.signInWithEmail).not.toHaveBeenCalled();
+      expect(await screen.findByText('Success')).toBeVisible();
+      expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], undefined);
+    });
+
+    it('should navigate to membership even when verifyEmail fails after sign-in', async () => {
+      const { user, mockMembershipService, navigateSpy } = await setup({
+        mode: 'resetPassword',
+        oobCode: 'reset-code-verify-fail',
+        verifyEmailShouldSucceed: false,
+      });
+
+      expect(await screen.findByText('Reset your password')).toBeVisible();
+
+      const passwordInput = screen.getByLabelText('New password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm new password');
+      const submitButton = screen.getByRole('button', { name: 'Set new password' });
+
+      await user.type(passwordInput, 'newPassword123');
+      await user.type(confirmPasswordInput, 'newPassword123');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockMembershipService.verifyEmail).toHaveBeenCalledOnce();
+      });
+
+      // Should still navigate to membership dashboard despite verifyEmail failure
+      expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+    });
   });
 
   describe('recoverEmail mode', () => {
@@ -285,6 +396,8 @@ interface SetupOptions {
   shouldSucceed?: boolean;
   verifyCodeShouldSucceed?: boolean;
   confirmResetShouldSucceed?: boolean;
+  signInShouldSucceed?: boolean;
+  verifyEmailShouldSucceed?: boolean;
   errorMessage?: string;
   restoredEmail?: string;
   userEmail?: string;
@@ -298,6 +411,8 @@ async function setup({
   shouldSucceed = true,
   verifyCodeShouldSucceed = shouldSucceed,
   confirmResetShouldSucceed = shouldSucceed,
+  signInShouldSucceed = true,
+  verifyEmailShouldSucceed = true,
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
   userEmail = 'user@example.com',
@@ -321,6 +436,13 @@ async function setup({
       .mockImplementation(() =>
         confirmResetShouldSucceed ? Promise.resolve() : createRejection(),
       ),
+    signInWithEmail: vi
+      .fn()
+      .mockImplementation(() =>
+        signInShouldSucceed
+          ? Promise.resolve({ user: { uid: 'test-uid' } })
+          : Promise.reject(new Error('Sign in failed')),
+      ),
     checkActionCode: vi
       .fn()
       .mockImplementation(() =>
@@ -329,8 +451,22 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
+  const mockMembershipService = {
+    verifyEmail: vi
+      .fn()
+      .mockImplementation(() =>
+        verifyEmailShouldSucceed
+          ? Promise.resolve()
+          : Promise.reject(new Error('Unable to verify email. Please try again.')),
+      ),
+  };
+
   await render(AuthActions, {
-    providers: [{ provide: AuthService, useValue: mockAuthService }],
+    providers: [
+      provideRouter([]),
+      { provide: AuthService, useValue: mockAuthService },
+      { provide: MembershipService, useValue: mockMembershipService },
+    ],
     inputs: {
       mode,
       oobCode,
@@ -338,7 +474,11 @@ async function setup({
       lang,
     },
   });
+
+  const router = TestBed.inject(Router);
+  const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
   const user = userEvent.setup();
 
-  return { user, mockAuthService };
+  return { user, mockAuthService, mockMembershipService, navigateSpy };
 }
