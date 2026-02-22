@@ -57,7 +57,7 @@ export class Membership {
     return userDocument?.membershipActive && !userDocument?.slug && !!userDocument?.name;
   });
 
-  // Show welcome prompt for active members who have no name set
+  // Show welcome prompt for active members without a slug who have no name set
   protected showWelcomeNamePrompt = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.membershipActive && !userDocument?.slug && !userDocument?.name;

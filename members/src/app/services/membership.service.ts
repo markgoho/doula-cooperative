@@ -293,8 +293,16 @@ export class MembershipService {
             throw new Error('You must be signed in to update your name.');
           }
 
+          case 403: {
+            throw new Error('You do not have permission to update this name.');
+          }
+
           case 404: {
             throw new Error('Member account not found. Please contact support.');
+          }
+
+          case 422: {
+            throw new Error('Invalid name. Please check your input and try again.');
           }
 
           case 504: {

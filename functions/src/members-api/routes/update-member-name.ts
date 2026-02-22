@@ -32,7 +32,6 @@ export async function updateMemberNameLogic({
   set: { status?: number | string };
 }): Promise<{ success: true; member: MemberResponse } | { error: string }> {
   try {
-    // Verify authentication and authorization
     const decodedToken = await authService.verifyOwnerOrAdmin(
       authorizationHeader,
       memberId,
@@ -45,7 +44,6 @@ export async function updateMemberNameLogic({
       isAdmin,
     });
 
-    // Update the name via service
     const updatedMember = await memberService.updateName(memberId, name);
 
     return {

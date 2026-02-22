@@ -218,6 +218,16 @@ describe("PATCH /:memberId/name (authenticated)", () => {
 
       expect(response.status).toBe(422);
     });
+
+    it("should reject request with name exceeding 200 characters", async () => {
+      const { testApp, request } = setup({
+        body: { name: "a".repeat(201) },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(422);
+    });
   });
 
   describe("Error handling", () => {

@@ -287,6 +287,25 @@ describe('Membership', () => {
       expect(saveButton).toBeDisabled();
     });
 
+    it('should keep save button disabled when name is only whitespace', async () => {
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, '   ');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      expect(saveButton).toBeDisabled();
+    });
+
     it('should enable save button when name is entered', async () => {
       const { user } = await setup({
         isAuthenticated: true,
