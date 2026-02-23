@@ -76,7 +76,7 @@ function createMailerLiteFailureEmailHtml(options: {
   `;
 }
 
-interface OptionsConfig {
+interface FailureNotificationConfig {
   emailService: EmailServiceInterface;
   customerEmail: string;
   customerName: string | null | undefined;
@@ -88,7 +88,9 @@ interface OptionsConfig {
 }
 
 /**
- * Send notification email when MailerLite subscription fails.
+ * Notify the newsletter admin when MailerLite subscription fails.
+ * Errors are caught and logged but never thrown, so notification failure
+ * does not affect the webhook response.
  */
 async function sendMailerLiteFailureNotification({
   emailService,
@@ -99,7 +101,7 @@ async function sendMailerLiteFailureNotification({
   membershipExpiresAt,
   errorMessage,
   logger,
-}: OptionsConfig): Promise<void> {
+}: FailureNotificationConfig): Promise<void> {
   try {
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
@@ -131,6 +133,101 @@ async function sendMailerLiteFailureNotification({
         "Check Sentry alerts immediately - newsletter signup failed and notification failed",
     });
     // Don't throw - we don't want to fail the webhook because email notification failed
+  }
+}
+
+/**
+ * Create HTML for welcome email failure notification.
+ */
+function createWelcomeEmailFailureEmailHtml(options: {
+  customerEmail: string;
+  customerName: string | null | undefined;
+  uid: string;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
+  errorMessage: string;
+}): string {
+  const {
+    customerEmail,
+    customerName,
+    uid,
+    subscriptionStart,
+    membershipExpiresAt,
+    errorMessage,
+  } = options;
+
+  const displayName = escapeHtml(customerName) || "Not provided";
+  const subscriptionStartDate = escapeHtml(
+    subscriptionStart.toDate().toISOString(),
+  );
+  const expirationDate = escapeHtml(membershipExpiresAt.toDate().toISOString());
+
+  return `
+    <h2>Welcome Email Failed</h2>
+    <p>A new member completed payment but the welcome email could not be sent. The member's account is active but they have no way to set their password.</p>
+
+    <h3>Member Details:</h3>
+    <ul>
+      <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+      <li><strong>Name:</strong> ${displayName}</li>
+      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
+      <li><strong>Subscription Start:</strong> ${subscriptionStartDate}</li>
+      <li><strong>Membership Expires:</strong> ${expirationDate}</li>
+    </ul>
+
+    <h3>Error Details:</h3>
+    <p>${escapeHtml(errorMessage)}</p>
+
+    <p><strong>Action Required:</strong> Manually send a welcome email or password reset link to this member so they can access their account.</p>
+  `;
+}
+
+/**
+ * Notify the admin when a welcome email fails for a new member.
+ * Errors are caught and logged but never thrown, so notification failure
+ * does not affect the webhook response.
+ */
+async function sendWelcomeEmailFailureNotification({
+  emailService,
+  customerEmail,
+  customerName,
+  userRecord,
+  subscriptionStart,
+  membershipExpiresAt,
+  errorMessage,
+  logger,
+}: FailureNotificationConfig): Promise<void> {
+  try {
+    const notificationEmail: EmailMessage = {
+      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
+      to: ADMIN_EMAIL,
+      subject: "Action Required: Welcome Email Failed for New Member",
+      html: createWelcomeEmailFailureEmailHtml({
+        customerEmail,
+        customerName,
+        uid: userRecord.uid,
+        subscriptionStart,
+        membershipExpiresAt,
+        errorMessage,
+      }),
+    };
+
+    await emailService.sendEmail({ message: notificationEmail }, logger);
+    logger.info("Sent welcome email failure notification", {
+      uid: userRecord.uid,
+      email: customerEmail,
+    });
+  } catch (emailError) {
+    logger.error("Failed to send welcome email failure notification", {
+      error: emailError,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_WELCOME_EMAIL_NOTIFICATION_FAILED,
+      uid: userRecord.uid,
+      email: customerEmail,
+      severity: "CRITICAL",
+      actionRequired:
+        "Check Sentry alerts immediately - welcome email failed and notification failed",
+    });
+    // Don't throw - we don't want to fail the webhook because notification failed
   }
 }
 
@@ -595,6 +692,20 @@ export async function processCheckoutCompleted(options: {
           severity: "CRITICAL",
           actionRequired:
             "Check Firestore permissions and manually record email failure status",
+        });
+      }
+
+      // Notify admin about the failure (production only)
+      if (!process.env["FUNCTIONS_EMULATOR"]) {
+        await sendWelcomeEmailFailureNotification({
+          emailService,
+          customerEmail,
+          customerName: session.customer_details?.name,
+          userRecord,
+          subscriptionStart,
+          membershipExpiresAt,
+          errorMessage,
+          logger,
         });
       }
     }
