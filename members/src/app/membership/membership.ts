@@ -7,13 +7,14 @@ import {
   resource,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
-  imports: [DatePipe],
+  imports: [DatePipe, FormsModule],
   templateUrl: './membership.html',
   styleUrl: './membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +30,9 @@ export class Membership {
   protected createProfileError = signal<string | undefined>(undefined);
   protected newsletterUpdateInProgress = signal(false);
   protected newsletterUpdateError = signal<string | undefined>(undefined);
+  protected nameInput = signal('');
+  protected nameUpdateInProgress = signal(false);
+  protected nameUpdateError = signal<string | undefined>(undefined);
 
   protected userDocument = this.membershipService.userDocument;
   protected userDocumentResource = this.membershipService.userDocumentResource;
@@ -47,10 +51,19 @@ export class Membership {
     loader: ({ params }) => this.membershipService.getClaimableProfileData(params.user),
   });
 
-  // Show create profile banner for active members without a slug who have a name
+  // Name prompt and profile creation banner are mutually exclusive:
+  // the name prompt appears first; once the member sets their name,
+  // the profile creation banner takes its place.
   protected showCreateProfileBanner = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.membershipActive && !userDocument?.slug && !!userDocument?.name;
+  });
+
+  // Show welcome prompt for active members who need to set their name
+  // before they can create a profile (profile creation requires a name to generate a slug)
+  protected showWelcomeNamePrompt = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.membershipActive && !userDocument?.slug && !userDocument?.name;
   });
 
   // Computed signals for formatted user data
@@ -186,6 +199,28 @@ export class Membership {
       this.createProfileError.set(errorMessage);
     } finally {
       this.createProfileInProgress.set(false);
+    }
+  }
+
+  protected async onSaveName() {
+    const name = this.nameInput().trim();
+    if (name.length === 0) {
+      return;
+    }
+
+    this.nameUpdateInProgress.set(true);
+    this.nameUpdateError.set(undefined);
+
+    try {
+      await this.membershipService.updateMemberName(name);
+      // Resource will auto-reload via reloadUserDocument() in service
+    } catch (error) {
+      console.error('Error updating name:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to save your name. Please try again.';
+      this.nameUpdateError.set(errorMessage);
+    } finally {
+      this.nameUpdateInProgress.set(false);
     }
   }
 

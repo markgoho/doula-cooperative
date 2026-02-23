@@ -15,8 +15,8 @@ describe('Membership', () => {
     it('should not show any content when user is not authenticated', async () => {
       await setup({ isAuthenticated: false });
 
-      expect(screen.queryByText(/Welcome back/)).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Sign Out' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Welcome back/)).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Sign Out' })).toBeNull();
     });
   });
 
@@ -197,6 +197,214 @@ describe('Membership', () => {
     });
   });
 
+  describe('welcome name prompt', () => {
+    it('should show welcome prompt when member is active with no name and no slug', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      expect(screen.getByText('Welcome to the Rochester Doula Cooperative!')).toBeVisible();
+      expect(
+        screen.getByText(/To get started with your membership, please enter your full name/),
+      ).toBeVisible();
+      expect(screen.getByLabelText('Full Name')).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Save Name' })).toBeVisible();
+    });
+
+    it('should not show welcome prompt when member has a name', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          name: 'Jane Doe',
+        },
+      });
+
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
+    });
+
+    it('should not show welcome prompt when membership is not active', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: false,
+        },
+      });
+
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
+    });
+
+    it('should not show welcome prompt when member already has a slug', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          slug: 'jane-doe',
+        },
+      });
+
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
+    });
+
+    it('should disable save button when name input is empty', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      expect(saveButton).toBeDisabled();
+    });
+
+    it('should keep save button disabled when name is only whitespace', async () => {
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, '   ');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      expect(saveButton).toBeDisabled();
+    });
+
+    it('should enable save button when name is entered', async () => {
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, 'Jane Doe');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      expect(saveButton).toBeEnabled();
+    });
+
+    it('should call updateMemberName when save is clicked', async () => {
+      const { user, updateMemberNameMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, 'Jane Doe');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      await user.click(saveButton);
+
+      expect(updateMemberNameMock).toHaveBeenCalledWith('Jane Doe');
+    });
+
+    it('should trim whitespace from name before sending to service', async () => {
+      const { user, updateMemberNameMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, '  Jane Doe  ');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      await user.click(saveButton);
+
+      expect(updateMemberNameMock).toHaveBeenCalledWith('Jane Doe');
+    });
+
+    it('should show error message when name update fails', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty - we're just suppressing console output in tests
+      });
+
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+        updateMemberNameShouldFail: true,
+      });
+
+      const nameInput = screen.getByLabelText('Full Name');
+      await user.type(nameInput, 'Jane Doe');
+
+      const saveButton = screen.getByRole('button', { name: 'Save Name' });
+      await user.click(saveButton);
+
+      expect(screen.getByText('Failed to save name')).toBeVisible();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should not show create profile banner when name is missing', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
+    });
+  });
+
   describe('claimable profile banner', () => {
     it('should show error message when claimable profile fails to load', async () => {
       await setup({
@@ -364,6 +572,7 @@ interface SetupOptions {
   signOutShouldFail?: boolean;
   claimProfileShouldFail?: boolean;
   claimProfileError?: Error;
+  updateMemberNameShouldFail?: boolean;
 }
 
 async function setup({
@@ -378,6 +587,7 @@ async function setup({
   signOutShouldFail = false,
   claimProfileShouldFail = false,
   claimProfileError = new Error('Claim failed'),
+  updateMemberNameShouldFail = false,
 }: SetupOptions = {}) {
   const mockUser = isAuthenticated
     ? {
@@ -415,11 +625,16 @@ async function setup({
     ? vi.fn(() => Promise.reject(claimProfileError))
     : vi.fn(() => Promise.resolve());
 
+  const updateMemberNameMock = updateMemberNameShouldFail
+    ? vi.fn().mockRejectedValue(new Error('Failed to save name'))
+    : vi.fn().mockResolvedValue(undefined);
+
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
     getClaimableProfileData: getClaimableProfileDataMock,
     reloadUserDocument: vi.fn(),
     claimProfile: claimProfileMock,
+    updateMemberName: updateMemberNameMock,
   };
 
   await render(Membership, {
@@ -442,5 +657,6 @@ async function setup({
     user,
     claimProfileMock,
     signOutMock,
+    updateMemberNameMock,
   };
 }

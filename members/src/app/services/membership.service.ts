@@ -263,6 +263,66 @@ export class MembershipService {
   }
 
   /**
+   * Update the member's name.
+   * Triggers `reloadUserDocument()` on success to refresh the cached member data.
+   * @param name - The full name to set
+   * @throws Error with user-friendly message
+   */
+  async updateMemberName(name: string): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to update your name.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.patch<{ success: boolean; member: ApiMemberResponse }>(
+          `/api/members/${uid}/name`,
+          { name },
+        ),
+      );
+      // Trigger reload of user document to reflect changes
+      this.reloadUserDocument();
+    } catch (error: unknown) {
+      console.error('Failed to update member name:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to update your name.');
+          }
+
+          case 403: {
+            throw new Error('You do not have permission to update this name.');
+          }
+
+          case 404: {
+            throw new Error('Member account not found. Please contact support.');
+          }
+
+          case 422: {
+            throw new Error('Invalid name. Please check your input and try again.');
+          }
+
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+
+          default: {
+            throw new Error(
+              `Unable to update your name (error ${String(error.status)}). Please try again or contact support.`,
+            );
+          }
+        }
+      }
+
+      throw new Error('Unable to update your name. Please try again.');
+    }
+  }
+
+  /**
    * Trigger a reload of the user document from the API
    */
   reloadUserDocument(): void {

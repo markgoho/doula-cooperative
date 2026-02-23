@@ -302,6 +302,9 @@ export const ERROR_IDS = {
 
   // Email verification errors
   VERIFY_EMAIL_ROUTE_FAILED: "verify_email_route_failed",
+
+  // Member name update errors
+  UPDATE_MEMBER_NAME_ROUTE_FAILED: "update_member_name_route_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

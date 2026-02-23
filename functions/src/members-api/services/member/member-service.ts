@@ -24,4 +24,32 @@ export const MemberService: MemberServiceInterface = {
 
     return document.data() as MemberDocument;
   },
+
+  /**
+   * Update a member's name.
+   *
+   * @param memberId - The Firestore document ID of the member
+   * @param name - The new name to set
+   * @returns Updated member document data
+   * @throws NotFoundError if member does not exist
+   * @throws Error for Firestore operation failures
+   */
+  async updateName(memberId: string, name: string): Promise<MemberDocument> {
+    const document = await MemberFirestoreService.getMemberByUid(memberId);
+
+    if (!document.exists) {
+      throw new NotFoundError("Member not found");
+    }
+
+    await MemberFirestoreService.updateMember(memberId, { name });
+
+    const updatedDocument =
+      await MemberFirestoreService.getMemberByUid(memberId);
+
+    if (!updatedDocument.exists) {
+      throw new NotFoundError("Member not found after update");
+    }
+
+    return updatedDocument.data() as MemberDocument;
+  },
 };

@@ -30,6 +30,7 @@ export function createMembersTestPlugin(overrides?: {
 }) {
   const defaultMemberService: MemberService = {
     findById: mock(() => Promise.resolve({} as MemberDocument)),
+    updateName: mock(() => Promise.resolve({} as MemberDocument)),
     ...overrides?.memberService,
   };
 
