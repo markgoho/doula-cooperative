@@ -76,7 +76,7 @@ function createMailerLiteFailureEmailHtml(options: {
   `;
 }
 
-interface OptionsConfig {
+interface FailureNotificationConfig {
   emailService: EmailServiceInterface;
   customerEmail: string;
   customerName: string | null | undefined;
@@ -88,7 +88,9 @@ interface OptionsConfig {
 }
 
 /**
- * Send notification email when MailerLite subscription fails.
+ * Notify the newsletter admin when MailerLite subscription fails.
+ * Errors are caught and logged but never thrown, so notification failure
+ * does not affect the webhook response.
  */
 async function sendMailerLiteFailureNotification({
   emailService,
@@ -99,7 +101,7 @@ async function sendMailerLiteFailureNotification({
   membershipExpiresAt,
   errorMessage,
   logger,
-}: OptionsConfig): Promise<void> {
+}: FailureNotificationConfig): Promise<void> {
   try {
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
@@ -180,19 +182,10 @@ function createWelcomeEmailFailureEmailHtml(options: {
   `;
 }
 
-interface WelcomeEmailNotificationConfig {
-  emailService: EmailServiceInterface;
-  customerEmail: string;
-  customerName: string | null | undefined;
-  userRecord: UserRecord;
-  subscriptionStart: Timestamp;
-  membershipExpiresAt: Timestamp;
-  errorMessage: string;
-  logger: Logger;
-}
-
 /**
- * Send notification email when welcome email fails.
+ * Notify the admin when a welcome email fails for a new member.
+ * Errors are caught and logged but never thrown, so notification failure
+ * does not affect the webhook response.
  */
 async function sendWelcomeEmailFailureNotification({
   emailService,
@@ -203,7 +196,7 @@ async function sendWelcomeEmailFailureNotification({
   membershipExpiresAt,
   errorMessage,
   logger,
-}: WelcomeEmailNotificationConfig): Promise<void> {
+}: FailureNotificationConfig): Promise<void> {
   try {
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
@@ -702,17 +695,19 @@ export async function processCheckoutCompleted(options: {
         });
       }
 
-      // Notify admin about the failure
-      await sendWelcomeEmailFailureNotification({
-        emailService,
-        customerEmail,
-        customerName: session.customer_details?.name,
-        userRecord,
-        subscriptionStart,
-        membershipExpiresAt,
-        errorMessage,
-        logger,
-      });
+      // Notify admin about the failure (production only)
+      if (!process.env["FUNCTIONS_EMULATOR"]) {
+        await sendWelcomeEmailFailureNotification({
+          emailService,
+          customerEmail,
+          customerName: session.customer_details?.name,
+          userRecord,
+          subscriptionStart,
+          membershipExpiresAt,
+          errorMessage,
+          logger,
+        });
+      }
     }
   }
 
