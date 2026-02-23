@@ -311,7 +311,7 @@ main h1 {
 .button:focus {
   background: var(--teal-600);
 }
-.button--secondary:focus:not(:focus-visible) {
+.button--secondary:focus:not(:focus-visible):not(:hover) {
   background-color: transparent;
 }
 .button-small {

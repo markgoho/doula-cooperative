@@ -24,13 +24,6 @@
 } @else if (profileResource.hasValue()) {
   @let profile = profileResource.value();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-    <!-- Info Message -->
-    @if (infoMessage()) {
-      <div class="form__info-message">
-        {{ infoMessage() }}
-      </div>
-    }
-
     <!-- Success Message -->
     @if (successMessage()) {
       <div class="form__success-message">
@@ -233,6 +226,11 @@
         }
       </button>
     </div>
+    @if (infoMessage()) {
+      <p class="form__info-message">
+        {{ infoMessage() }}
+      </p>
+    }
   </form>
 } @else {
   <div class="no-profile-message">
