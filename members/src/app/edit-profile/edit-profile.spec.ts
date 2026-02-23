@@ -230,7 +230,7 @@ describe('EditProfile', () => {
   });
 
   describe('cancel functionality', () => {
-    it('should reset form to original values when cancel is clicked', async () => {
+    it('should reset form to original values when cancel is clicked after changes', async () => {
       const { user } = await setup();
 
       const titleInput = screen.getByLabelText('Name *') as HTMLInputElement;
@@ -243,7 +243,7 @@ describe('EditProfile', () => {
       expect(titleInput.value).toBe('Jane Doe');
     });
 
-    it('should clear error messages when cancel is clicked', async () => {
+    it('should clear error messages when cancel is clicked after changes', async () => {
       const { user } = await setup({ updateShouldFail: true });
 
       const submitButton = screen.getByRole('button', { name: 'Save Profile' });
@@ -251,10 +251,23 @@ describe('EditProfile', () => {
 
       expect(await screen.findByText(/failed to update profile/i)).toBeVisible();
 
+      // Make a change so the form is dirty, then cancel
+      const titleInput = screen.getByLabelText('Name *');
+      await user.type(titleInput, 'x');
+
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       await user.click(cancelButton);
 
       expect(screen.queryByText(/failed to update profile/i)).not.toBeInTheDocument();
+    });
+
+    it('should show info message when cancel is clicked with no changes', async () => {
+      const { user } = await setup();
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      await user.click(cancelButton);
+
+      expect(screen.getByText('No changes to discard.')).toBeVisible();
     });
   });
 

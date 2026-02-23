@@ -30,6 +30,7 @@ export class EditProfile {
   protected loading = signal(false);
   protected errorMessage = signal('');
   protected successMessage = signal('');
+  protected infoMessage = signal('');
 
   private autoRetryCount = 0;
 
@@ -66,6 +67,7 @@ export class EditProfile {
     this.loading.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.infoMessage.set('');
 
     try {
       const profileData = extractProfileData(this.profileForm);
@@ -81,13 +83,18 @@ export class EditProfile {
     }
   }
 
-  protected onCancel() {
+  protected onCancel(): void {
+    if (!this.profileForm.dirty) {
+      this.infoMessage.set('No changes to discard.');
+      return;
+    }
     const profile = this.profile();
     if (profile) {
       initializeEditProfileForm(this.profileForm, profile);
     }
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.infoMessage.set('');
   }
 
   protected getTagUrl(tag: string): string {

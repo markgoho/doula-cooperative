@@ -311,6 +311,9 @@ main h1 {
 .button:focus {
   background: var(--teal-600);
 }
+.button--secondary:focus:not(:focus-visible) {
+  background-color: transparent;
+}
 .button-small {
   font-size: var(--step-0);
 }

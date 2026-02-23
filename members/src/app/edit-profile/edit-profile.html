@@ -24,6 +24,13 @@
 } @else if (profileResource.hasValue()) {
   @let profile = profileResource.value();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+    <!-- Info Message -->
+    @if (infoMessage()) {
+      <div class="form__info-message">
+        {{ infoMessage() }}
+      </div>
+    }
+
     <!-- Success Message -->
     @if (successMessage()) {
       <div class="form__success-message">
@@ -213,14 +220,7 @@
 
     <!-- Form Actions -->
     <div class="form-actions">
-      <button
-        type="button"
-        class="button button--secondary"
-        (click)="onCancel()"
-        [disabled]="loading()"
-      >
-        Cancel
-      </button>
+      <button type="button" class="button button--secondary" (click)="onCancel()">Cancel</button>
       <button
         type="submit"
         class="button button--primary"
