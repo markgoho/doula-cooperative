@@ -373,6 +373,10 @@ async function setup({
 
   const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
 
+  // When loading, profile() should return undefined (no data available yet)
+  // unless optimistic data is present (not simulated in these tests)
+  const profileSignalValue = profileResourceLoading ? undefined : profileValue;
+
   const resolveStatus = (): string => {
     if (profileResourceLoading) return 'loading';
     if (!hasProfile && userHasSlug) return 'error';
@@ -381,7 +385,7 @@ async function setup({
   };
 
   const mockProfileService = {
-    profile: signal(profileValue),
+    profile: signal(profileSignalValue),
     profileImageUrl: signal(
       hasProfile && userHasSlug
         ? 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile'

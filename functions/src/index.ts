@@ -79,7 +79,10 @@ export const adminUnclaimedProfilesApi = onRequest(
 
 // Profiles API (members.doulacooperative.com)
 export const profilesApi = onRequest(
-  { invoker: "public", secrets: [...PROFILE_SECRETS, ...IMAGEKIT_SECRETS] },
+  {
+    invoker: "public",
+    secrets: [...PROFILE_SECRETS, ...IMAGEKIT_SECRETS, ...MAILGUN_SECRETS],
+  },
   async (request, response) => {
     const { handleProfilesApi } = await import("./profiles-api/handler.js");
     await handleProfilesApi(request, response);

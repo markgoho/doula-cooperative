@@ -17,12 +17,8 @@
     </p>
     <p>Once your profile is created, you'll be able to edit it here.</p>
   </div>
-} @else if (profileResource.isLoading()) {
-  <div class="loading-message">
-    <p>Loading your profile...</p>
-  </div>
-} @else if (profileResource.hasValue()) {
-  @let profile = profileResource.value();
+} @else if (profile()) {
+  @let profileData = profile();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->
     @if (successMessage()) {
@@ -196,7 +192,7 @@
           [src]="profileService.profileImageUrl()"
           [alt]="
             profileService.hasCustomImage()
-              ? 'Profile image of ' + profile?.title
+              ? 'Profile image of ' + profileData?.title
               : 'Default profile placeholder'
           "
           class="profile-image-preview"
@@ -232,6 +228,10 @@
       </p>
     }
   </form>
+} @else if (profileResource.isLoading()) {
+  <div class="loading-message">
+    <p>Loading your profile...</p>
+  </div>
 } @else {
   <div class="no-profile-message">
     <h2>Profile Load Error</h2>
