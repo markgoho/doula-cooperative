@@ -25,6 +25,7 @@ describe("POST /:memberId/membership/refund", () => {
     memberNotFound?: boolean;
     noStripeData?: boolean;
     stripeApiError?: boolean;
+    refundWindowExpired?: boolean;
     refundResult?: RefundMembershipResult;
   }
 
@@ -35,6 +36,7 @@ describe("POST /:memberId/membership/refund", () => {
     memberNotFound = false,
     noStripeData = false,
     stripeApiError = false,
+    refundWindowExpired = false,
     refundResult,
   }: SetupOptions = {}) {
     const defaultMember: MemberDocument = {
@@ -65,6 +67,13 @@ describe("POST /:memberId/membership/refund", () => {
         return Promise.reject(
           new ValidationError(
             "Member does not have Stripe subscription data. Use manual deactivation instead.",
+          ),
+        );
+      }
+      if (refundWindowExpired) {
+        return Promise.reject(
+          new ValidationError(
+            "Refunds are only available within 30 days of the subscription start date.",
           ),
         );
       }
@@ -201,6 +210,16 @@ describe("POST /:memberId/membership/refund", () => {
       expect(response.status).toBe(400);
       const responseBody = (await response.json()) as { error?: string };
       expect(responseBody.error).toContain("Stripe subscription data");
+    });
+
+    it("should return 400 when refund window has expired", async () => {
+      const { testApp, request } = setup({ refundWindowExpired: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(400);
+      const responseBody = (await response.json()) as { error?: string };
+      expect(responseBody.error).toContain("30 days");
     });
 
     it("should return 500 for Stripe API errors", async () => {

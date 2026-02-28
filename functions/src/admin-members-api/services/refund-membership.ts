@@ -53,6 +53,26 @@ export async function refundMembership({
     );
   }
 
+  // Step 1b: Verify refund is within the 30-day window
+  const REFUND_WINDOW_DAYS = 30;
+  const REFUND_WINDOW_MS = REFUND_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
+  if (member.subscriptionStart !== undefined) {
+    const subscriptionStartMs = member.subscriptionStart.toMillis();
+    const elapsedMs = Date.now() - subscriptionStartMs;
+
+    if (elapsedMs > REFUND_WINDOW_MS) {
+      logger.warn("Refund attempted outside 30-day window", {
+        memberId,
+        subscriptionStart: member.subscriptionStart.toDate().toISOString(),
+        daysSinceStart: Math.floor(elapsedMs / (24 * 60 * 60 * 1000)),
+      });
+      throw new ValidationError(
+        "Refunds are only available within 30 days of the subscription start date.",
+      );
+    }
+  }
+
   const stripeApiKey = process.env["STRIPE_API_KEY"];
 
   if (!stripeApiKey) {

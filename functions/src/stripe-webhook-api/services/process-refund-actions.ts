@@ -14,6 +14,7 @@ import { updateMemberWithValidation } from "../../shared-api/utils/firestore-hel
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import { buildRefundNotificationEmail } from "./build-refund-notification-email.js";
 
 /**
  * Result of processing refund actions for a member.
@@ -22,6 +23,7 @@ export interface RefundActionsResult {
   memberDeactivated: boolean;
   profileDrafted?: boolean;
   newsletterUnsubscribed?: boolean;
+  memberNotified?: boolean;
   warning?: string;
 }
 
@@ -177,6 +179,41 @@ export async function processRefundActions({
     }
   }
 
+  // NON-CRITICAL: Send refund confirmation email to member
+  let memberNotified: boolean | undefined;
+  if (emailService !== undefined) {
+    try {
+      const memberNotificationEmail = buildRefundNotificationEmail({
+        memberEmail: member.email,
+        memberName: member.name,
+      });
+
+      await emailService.sendEmail(
+        { message: memberNotificationEmail },
+        logger,
+      );
+      logger.info("Sent refund notification email to member", {
+        memberId,
+        email: member.email,
+      });
+      memberNotified = true;
+    } catch (error) {
+      memberNotified = false;
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error("Failed to send refund notification email to member", {
+        errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_MEMBER_NOTIFICATION_FAILED,
+        memberId,
+        email: member.email,
+        error,
+        errorMessage,
+      });
+      failures.push(
+        `Member refund notification (${member.email}): ${errorMessage}`,
+      );
+    }
+  }
+
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
     try {
@@ -219,6 +256,7 @@ export async function processRefundActions({
     memberDeactivated: true,
     ...(profileDrafted !== undefined && { profileDrafted }),
     ...(newsletterUnsubscribed !== undefined && { newsletterUnsubscribed }),
+    ...(memberNotified !== undefined && { memberNotified }),
     ...(warning !== undefined && { warning }),
   };
 }

@@ -52,6 +52,16 @@ export class AdminMemberDetail {
     return (resource.value() as Member).isAdmin;
   });
 
+  protected isRefundEligible = computed(() => {
+    const resource = this.service.memberResource;
+    if (!resource.hasValue()) return false;
+    const member = resource.value() as Member;
+    if (member.subscriptionStart === undefined) return false;
+    const subscriptionStartMs = new Date(member.subscriptionStart).getTime();
+    const REFUND_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+    return Date.now() - subscriptionStartMs <= REFUND_WINDOW_MS;
+  });
+
   constructor() {
     // Initialize service with uid signal
     this.service.init(this.uid);

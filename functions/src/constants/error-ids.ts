@@ -323,6 +323,8 @@ export const ERROR_IDS = {
     "stripe_webhook_refund_notification_failed",
   STRIPE_WEBHOOK_REFUND_SUBSCRIPTION_CANCEL_FAILED:
     "stripe_webhook_refund_subscription_cancel_failed",
+  STRIPE_WEBHOOK_REFUND_MEMBER_NOTIFICATION_FAILED:
+    "stripe_webhook_refund_member_notification_failed",
 
   // Admin refund membership errors
   API_ADMIN_REFUND_MEMBERSHIP_FAILED: "api_admin_refund_membership_failed",

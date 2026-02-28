@@ -130,14 +130,18 @@
           member.membershipActive &&
           member.subscriptionStatus !== 'refunded'
         ) {
-          <button
-            type="button"
-            class="button button--danger"
-            (click)="showRefundConfirm()"
-            [disabled]="service.actionInProgress()"
-          >
-            {{ service.actionInProgress() ? 'Processing...' : 'Refund Membership' }}
-          </button>
+          @if (isRefundEligible()) {
+            <button
+              type="button"
+              class="button button--danger"
+              (click)="showRefundConfirm()"
+              [disabled]="service.actionInProgress()"
+            >
+              {{ service.actionInProgress() ? 'Processing...' : 'Refund Membership' }}
+            </button>
+          } @else {
+            <p class="info-notice">Refund window has expired (30 days from subscription start).</p>
+          }
         }
       </div>
     </div>
