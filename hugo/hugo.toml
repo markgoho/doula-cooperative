@@ -1,4 +1,5 @@
 baseURL = 'https://doulacooperative.com/'
+# Production Stripe keys enabled 2026-02-28
 languageCode = 'en-us'
 title = 'Rochester Doula Cooperative'
 enableRobotsTXT = true
