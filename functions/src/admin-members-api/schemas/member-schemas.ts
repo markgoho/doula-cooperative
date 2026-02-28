@@ -491,6 +491,11 @@ export const RefundResultSchema = t.Object({
       description: "Whether the member was unsubscribed from newsletter",
     }),
   ),
+  memberNotified: t.Optional(
+    t.Boolean({
+      description: "Whether the member was sent a refund notification email",
+    }),
+  ),
   warning: t.Optional(
     t.String({
       description: "Warning message for non-critical failures",

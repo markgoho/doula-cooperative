@@ -59,6 +59,9 @@ export async function refundMembershipLogic({
         ...(result.refundActions.newsletterUnsubscribed !== undefined && {
           newsletterUnsubscribed: result.refundActions.newsletterUnsubscribed,
         }),
+        ...(result.refundActions.memberNotified !== undefined && {
+          memberNotified: result.refundActions.memberNotified,
+        }),
         ...(result.refundActions.warning !== undefined && {
           warning: result.refundActions.warning,
         }),
