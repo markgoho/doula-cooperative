@@ -54,6 +54,10 @@
   padding: var(--space-3xs) var(--space-s);
   border-radius: 999px;
   margin-block-start: var(--space-2xs);
+
+  &--refunded {
+    background: var(--brown-400);
+  }
 }
 
 // --- Card Grid ---

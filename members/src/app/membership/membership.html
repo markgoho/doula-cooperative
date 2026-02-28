@@ -119,6 +119,8 @@
       @if (userDocument(); as userDoc) {
         @if (userDoc.membershipActive) {
           <span class="membership-badge">Active Member</span>
+        } @else if (isRefunded()) {
+          <span class="membership-badge membership-badge--refunded">Membership Refunded</span>
         }
       }
     </div>
@@ -153,7 +155,7 @@
         </section>
 
         <!-- Newsletter Preferences Card -->
-        @if (!hasClaimableProfile()) {
+        @if (!hasClaimableProfile() && !isRefunded()) {
           <section class="membership-card card-2" aria-labelledby="newsletter-heading">
             <h2 id="newsletter-heading" class="section-heading">Newsletter Preferences</h2>
             <div class="newsletter-content">

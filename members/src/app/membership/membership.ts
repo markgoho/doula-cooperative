@@ -107,6 +107,11 @@ export class Membership {
     return userDocument?.newsletterSubscribed ?? false;
   });
 
+  protected isRefunded = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.subscriptionStatus === 'refunded';
+  });
+
   // Hide newsletter preferences when there's a claimable profile (will be updated on claim)
   protected hasClaimableProfile = computed(() => {
     return this.claimableProfileResource.hasValue() && !!this.claimableProfileResource.value();
