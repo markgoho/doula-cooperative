@@ -88,10 +88,12 @@ export async function processRefundActions({
   }
 
   // CRITICAL: Update member document
+  const now = Timestamp.now();
   const refundUpdates: Partial<MemberDocument> = {
     membershipActive: false,
     subscriptionStatus: "refunded",
-    refundedAt: Timestamp.now(),
+    refundedAt: now,
+    membershipExpiresAt: now,
     ...(reason !== undefined && { refundReason: reason }),
   };
 
@@ -147,6 +149,14 @@ export async function processRefundActions({
         await removeNewsletterSubscriber({
           email: member.email,
           apiKey: mailerliteApiKey,
+        });
+        await updateMemberWithValidation({
+          memberId,
+          updates: {
+            newsletterSubscribed: false,
+            newsletterUnsubscribedAt: Timestamp.now(),
+          },
+          operation: "update member",
         });
         logger.info("Unsubscribed from newsletter after refund", {
           memberId,
