@@ -345,7 +345,7 @@ export async function processCheckoutCompleted(options: {
   }
 
   // Prefer custom field name over cardholder name (which may be a business name)
-  const customNameField = session.custom_fields?.find(
+  const customNameField = session.custom_fields.find(
     field => field.key === "firstandlastname",
   );
   const customerName =
