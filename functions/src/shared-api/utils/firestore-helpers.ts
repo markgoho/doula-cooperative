@@ -15,6 +15,7 @@ export type MemberOperation =
   | "activate membership"
   | "deactivate membership"
   | "extend membership"
+  | "refund membership"
   | "update member";
 
 /**

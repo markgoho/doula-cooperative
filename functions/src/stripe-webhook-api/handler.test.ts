@@ -108,6 +108,14 @@ describe("handleStripeWebhookApi", () => {
             isEventProcessed: mock(() => Promise.resolve(false)),
             markEventProcessed: mockMarkEventProcessed,
             processCheckoutCompleted: mockProcessCheckout,
+            processChargeRefunded: mock(() =>
+              Promise.resolve({
+                memberId: "test-member",
+                memberFound: true,
+                subscriptionCanceled: true,
+                refundActions: { memberDeactivated: true },
+              }),
+            ),
           },
           logger: mockLogger,
         },

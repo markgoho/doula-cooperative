@@ -32,6 +32,16 @@ export function createStripeWebhookTestPlugin(overrides?: {
         mailerliteSynced: true,
       }),
     ),
+    processChargeRefunded: mock(() =>
+      Promise.resolve({
+        memberId: "test-member-123",
+        memberFound: true,
+        subscriptionCanceled: true,
+        refundActions: {
+          memberDeactivated: true,
+        },
+      }),
+    ),
     ...overrides?.stripeWebhookService,
   };
 

@@ -36,7 +36,15 @@ export const membersApi = onRequest(
 
 // Admin Members APIs (members.doulacooperative.com)
 export const adminMembersApi = onRequest(
-  { invoker: "public" },
+  {
+    invoker: "public",
+    secrets: [
+      ...STRIPE_SECRETS,
+      ...PROFILE_SECRETS,
+      ...MAILERLITE_SECRETS,
+      ...MAILGUN_SECRETS,
+    ],
+  },
   async (request, response) => {
     const { handleAdminMembersApi } =
       await import("./admin-members-api/handler.js");
@@ -102,7 +110,12 @@ export const formsApi = onRequest(
 export const stripeWebhookApi = onRequest(
   {
     invoker: "public",
-    secrets: [...STRIPE_SECRETS, "MAILERLITE_API_KEY", "MAILGUN_API_KEY"],
+    secrets: [
+      ...STRIPE_SECRETS,
+      ...PROFILE_SECRETS,
+      "MAILERLITE_API_KEY",
+      "MAILGUN_API_KEY",
+    ],
   },
   async (request, response) => {
     const { handleStripeWebhookApi } =

@@ -4,6 +4,7 @@ import { deleteUser } from "./delete-user.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
 import { listMembers } from "./list-members.js";
+import { refundMembership } from "./refund-membership.js";
 import { updateClaims } from "./update-claims.js";
 import { updateMember } from "./update-member.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
@@ -22,6 +23,7 @@ export const MemberAdminService = {
   deleteUser,
   updateClaims,
   isAdmin,
+  refundMembership,
 };
 
 // Re-export individual functions for direct imports
@@ -31,6 +33,7 @@ export { deleteUser } from "./delete-user.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
 export { listMembers } from "./list-members.js";
+export { refundMembership } from "./refund-membership.js";
 export { updateClaims } from "./update-claims.js";
 export { updateMember } from "./update-member.js";
 export { verifyMemberExists } from "./verify-member-exists.js";

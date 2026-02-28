@@ -131,7 +131,68 @@ export async function handleStripeWebhookLogic(options: {
     }
   }
 
-  // Step 4: Acknowledge unhandled event types
+  // Step 4: Handle charge.refunded events
+  if (event.type === "charge.refunded") {
+    // Step 4a: Check idempotency
+    const wasMarked = await stripeWebhookService.markEventProcessed({
+      eventId: event.id,
+      eventType: event.type,
+    });
+
+    if (!wasMarked) {
+      logger.info(`Event ${event.id} already processed, skipping`, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+      return { received: true, duplicate: true };
+    }
+
+    // Step 4b: Process the refund
+    const charge = event.data.object as { customer?: string | null };
+    const stripeCustomerId =
+      typeof charge.customer === "string" ? charge.customer : undefined;
+
+    if (!stripeCustomerId) {
+      logger.warn("charge.refunded event missing customer ID", {
+        eventId: event.id,
+      });
+      return { received: true, warning: "No customer ID on charge" };
+    }
+
+    try {
+      const result = await stripeWebhookService.processChargeRefunded({
+        stripeCustomerId,
+        emailService,
+      });
+
+      return {
+        received: true,
+        ...(result.memberId !== undefined && { userId: result.memberId }),
+        ...(result.refundActions.warning !== undefined && {
+          warning: result.refundActions.warning,
+        }),
+      };
+    } catch (error) {
+      if (error instanceof HttpError) {
+        set.status = error.statusCode;
+        return { error: error.message };
+      }
+
+      logger.error("Unexpected error processing refund", {
+        error,
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+        eventId: event.id,
+        stripeCustomerId,
+      });
+      set.status = 500;
+      return {
+        error: "Internal server error",
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+      };
+    }
+  }
+
+  // Step 5: Acknowledge unhandled event types
   logger.warn(`Unhandled event type: ${event.type}`, {
     errorId: ERROR_IDS.STRIPE_WEBHOOK_UNHANDLED_EVENT,
     eventType: event.type,
