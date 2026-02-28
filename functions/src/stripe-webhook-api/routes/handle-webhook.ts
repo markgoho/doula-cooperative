@@ -148,18 +148,18 @@ export async function handleStripeWebhookLogic(options: {
     }
 
     // Step 4b: Process the refund
+    const charge = event.data.object as { customer?: string | null };
+    const stripeCustomerId =
+      typeof charge.customer === "string" ? charge.customer : undefined;
+
+    if (!stripeCustomerId) {
+      logger.warn("charge.refunded event missing customer ID", {
+        eventId: event.id,
+      });
+      return { received: true, warning: "No customer ID on charge" };
+    }
+
     try {
-      const charge = event.data.object as { customer?: string | null };
-      const stripeCustomerId =
-        typeof charge.customer === "string" ? charge.customer : undefined;
-
-      if (!stripeCustomerId) {
-        logger.warn("charge.refunded event missing customer ID", {
-          eventId: event.id,
-        });
-        return { received: true, warning: "No customer ID on charge" };
-      }
-
       const result = await stripeWebhookService.processChargeRefunded({
         stripeCustomerId,
         emailService,
@@ -182,6 +182,7 @@ export async function handleStripeWebhookLogic(options: {
         error,
         errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
         eventId: event.id,
+        stripeCustomerId,
       });
       set.status = 500;
       return {

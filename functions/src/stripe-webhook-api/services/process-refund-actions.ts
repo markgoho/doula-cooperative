@@ -106,7 +106,7 @@ export async function processRefundActions({
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
-    return { memberDeactivated: false, warning: "Failed to deactivate member" };
+    throw error;
   }
 
   const failures: string[] = [];
@@ -166,6 +166,14 @@ export async function processRefundActions({
           `Newsletter unsubscribe (${member.email}): ${errorMessage}`,
         );
       }
+    } else {
+      logger.warn(
+        "MAILERLITE_API_KEY not configured, skipping newsletter unsubscribe",
+        { memberId, email: member.email },
+      );
+      failures.push(
+        "Newsletter unsubscribe skipped: MAILERLITE_API_KEY not configured",
+      );
     }
   }
 

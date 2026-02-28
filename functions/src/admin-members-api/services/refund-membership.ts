@@ -28,8 +28,8 @@ export interface RefundMembershipResult {
  * Refund a member's Stripe payment, cancel their subscription,
  * and deactivate their membership.
  *
- * Called from the admin API. Pre-marks the resulting Stripe event
- * as processed to prevent the webhook from double-processing.
+ * Called from the admin API. The resulting Stripe charge.refunded webhook
+ * is handled idempotently by processRefundActions (skips if already refunded).
  */
 export async function refundMembership({
   memberId,
@@ -127,12 +127,25 @@ export async function refundMembership({
     }
   }
 
-  // Step 5: Cancel subscription
-  const subscriptionCanceled = await cancelStripeSubscription({
-    subscriptionId: member.stripeSubscriptionId,
-  });
+  // Step 4: Cancel subscription
+  let subscriptionCanceled = false;
+  try {
+    await cancelStripeSubscription({
+      subscriptionId: member.stripeSubscriptionId,
+    });
+    subscriptionCanceled = true;
+  } catch (error) {
+    logger.error("Failed to cancel subscription during admin refund", {
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_SUBSCRIPTION_CANCEL_FAILED,
+      memberId,
+      stripeSubscriptionId: member.stripeSubscriptionId,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
 
-  // Step 6: Process refund actions (deactivate, draft profile, unsubscribe)
+  // Step 5: Process refund actions (deactivate, draft profile, unsubscribe)
   const refundActions = await processRefundActions({
     memberId,
     member,
@@ -140,7 +153,7 @@ export async function refundMembership({
     ...(emailService !== undefined && { emailService }),
   });
 
-  // Step 7: Retrieve updated member document
+  // Step 6: Retrieve updated member document
   const updatedMember = await retrieveAndValidateMember({ memberId });
 
   return {

@@ -64,17 +64,10 @@ export async function processChargeRefunded({
   // Step 2: Cancel subscription (prevent future charges)
   let subscriptionCanceled = false;
   if (member.stripeSubscriptionId) {
-    subscriptionCanceled = await cancelStripeSubscription({
+    await cancelStripeSubscription({
       subscriptionId: member.stripeSubscriptionId,
     });
-
-    if (!subscriptionCanceled) {
-      logger.error("Failed to cancel Stripe subscription during refund", {
-        errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_SUBSCRIPTION_CANCEL_FAILED,
-        memberId: member.uid,
-        stripeSubscriptionId: member.stripeSubscriptionId,
-      });
-    }
+    subscriptionCanceled = true;
   }
 
   // Step 3: Process refund actions (deactivate, draft profile, unsubscribe)

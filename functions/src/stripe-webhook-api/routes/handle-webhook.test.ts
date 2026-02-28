@@ -460,5 +460,22 @@ describe("POST /webhook", () => {
       expect(body.error).toBe("Internal server error");
       expect(body.errorId).toBe(ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR);
     });
+
+    it("should return HttpError status when refund processing throws HttpError", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_test_789",
+        },
+        processChargeRefundedError: new HttpError("Duplicate refund", 409),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(409);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Duplicate refund");
+    });
   });
 });
