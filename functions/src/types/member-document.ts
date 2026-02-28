@@ -6,7 +6,8 @@ export type SubscriptionStatus =
   | "canceled"
   | "incomplete"
   | "trialing"
-  | "unpaid";
+  | "unpaid"
+  | "refunded";
 
 /**
  * Member document stored in Firestore.
@@ -53,6 +54,8 @@ export interface MemberDocument {
   newsletterSubscribed?: boolean;
   newsletterSubscribedAt?: Timestamp;
   newsletterUnsubscribedAt?: Timestamp;
+  refundedAt?: Timestamp;
+  refundReason?: string;
 }
 
 /**

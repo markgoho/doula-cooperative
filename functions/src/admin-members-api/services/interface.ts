@@ -1,5 +1,7 @@
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { RefundMembershipResult } from "./refund-membership.js";
 
 /**
  * Service interface for admin member management operations.
@@ -124,4 +126,18 @@ export interface MemberAdminService {
    * @returns Promise resolving to true if user has admin claim, false otherwise
    */
   isAdmin(uid: string, logger: Logger): Promise<boolean>;
+
+  /**
+   * Refund a member's Stripe payment, cancel subscription, and deactivate membership.
+   *
+   * @param options - Member ID, optional reason, and email service for notifications
+   * @returns Promise resolving to refund result with updated member and action statuses
+   * @throws NotFoundError if member does not exist
+   * @throws ValidationError if member has no Stripe data
+   */
+  refundMembership(options: {
+    memberId: string;
+    reason?: string;
+    emailService?: EmailServiceInterface;
+  }): Promise<RefundMembershipResult>;
 }

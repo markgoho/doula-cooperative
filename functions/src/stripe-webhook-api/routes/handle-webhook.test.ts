@@ -7,6 +7,7 @@ import {
   StripeSignatureError,
 } from "../../shared-api/errors/stripe-errors.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
+import type { ChargeRefundedResult } from "../services/process-charge-refunded.js";
 import { createStripeWebhookTestPlugin } from "../test-utils/create-stripe-webhook-test-plugin.js";
 import { createMockStripeEvent } from "../test-utils/stripe-mocks.js";
 
@@ -33,6 +34,8 @@ describe("POST /webhook", () => {
       warning?: string;
     };
     processCheckoutError?: Error;
+    processChargeRefundedResult?: ChargeRefundedResult;
+    processChargeRefundedError?: Error;
   }
 
   function setup({
@@ -55,6 +58,15 @@ describe("POST /webhook", () => {
       mailerliteSynced: true,
     },
     processCheckoutError,
+    processChargeRefundedResult = {
+      memberId: "test-member-123",
+      memberFound: true,
+      subscriptionCanceled: true,
+      refundActions: {
+        memberDeactivated: true,
+      },
+    },
+    processChargeRefundedError,
   }: SetupOptions = {}) {
     const mockVerifySignature = mock((): Stripe.Event => {
       if (signatureInvalid) {
@@ -80,11 +92,19 @@ describe("POST /webhook", () => {
       return Promise.resolve(processCheckoutResult);
     });
 
+    const mockProcessChargeRefunded = mock(() => {
+      if (processChargeRefundedError) {
+        return Promise.reject(processChargeRefundedError);
+      }
+      return Promise.resolve(processChargeRefundedResult);
+    });
+
     const testApp = createStripeWebhookTestPlugin({
       stripeWebhookService: {
         verifySignature: mockVerifySignature,
         markEventProcessed: mockMarkEventProcessed,
         processCheckoutCompleted: mockProcessCheckout,
+        processChargeRefunded: mockProcessChargeRefunded,
       },
     });
 
@@ -294,6 +314,151 @@ describe("POST /webhook", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as { received?: boolean };
       expect(body.received).toBe(true);
+    });
+  });
+
+  describe("charge.refunded", () => {
+    it("should successfully process a refund", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_test_789",
+        },
+        processChargeRefundedResult: {
+          memberId: "refunded-member-123",
+          memberFound: true,
+          subscriptionCanceled: true,
+          refundActions: {
+            memberDeactivated: true,
+          },
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("refunded-member-123");
+    });
+
+    it("should handle refund when member is not found", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_unknown",
+        },
+        processChargeRefundedResult: {
+          memberFound: false,
+          subscriptionCanceled: false,
+          refundActions: {
+            memberDeactivated: false,
+          },
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { received?: boolean };
+      expect(body.received).toBe(true);
+    });
+
+    it("should return duplicate:true when refund event already processed", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_test_789",
+        },
+        eventAlreadyProcessed: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        duplicate?: boolean;
+      };
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBe(true);
+    });
+
+    it("should handle missing customer ID on charge", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          // No customer field
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toBe("No customer ID on charge");
+    });
+
+    it("should include warning when non-critical refund actions fail", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_test_789",
+        },
+        processChargeRefundedResult: {
+          memberId: "refunded-member-123",
+          memberFound: true,
+          subscriptionCanceled: true,
+          refundActions: {
+            memberDeactivated: true,
+            profileDrafted: false,
+            warning: "Non-critical actions failed: Draft profile failed",
+          },
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toContain("Non-critical actions failed");
+    });
+
+    it("should return 500 for unexpected refund processing errors", async () => {
+      const { testApp, request } = setup({
+        eventType: "charge.refunded",
+        sessionData: {
+          id: "ch_test_456",
+          customer: "cus_test_789",
+        },
+        processChargeRefundedError: new Error("Database connection failed"),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as {
+        error?: string;
+        errorId?: string;
+      };
+      expect(body.error).toBe("Internal server error");
+      expect(body.errorId).toBe(ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR);
     });
   });
 });

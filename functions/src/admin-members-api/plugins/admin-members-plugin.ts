@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
+import { EmailService } from "../../shared-api/services/email/index.js";
 import { adminDerive } from "../../shared-api/utils/admin-derive.js";
 import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
@@ -11,6 +12,7 @@ import {
   extendMembershipLogic,
   getMemberLogic,
   listMembersLogic,
+  refundMembershipLogic,
   updateClaimsLogic,
   updateMemberLogic,
 } from "../routes/index.js";
@@ -24,6 +26,8 @@ import {
   GetMemberApiResponseSchema,
   ListMembersApiResponseSchema,
   MemberIdParameterSchema,
+  RefundMembershipApiResponseSchema,
+  RefundMembershipBodySchema,
   UpdateClaimsApiResponseSchema,
   UpdateClaimsBodySchema,
   UpdateMemberApiResponseSchema,
@@ -55,6 +59,10 @@ export function createAdminMembersPlugin(services?: PartialServices) {
         services?.memberAdminService ?? MemberAdminService,
       )
       .decorate(SERVICE_KEYS.AUTH_SERVICE, services?.authService ?? AuthService)
+      .decorate(
+        SERVICE_KEYS.EMAIL_SERVICE,
+        services?.emailService ?? EmailService,
+      )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
       .derive(adminDerive)
       .onBeforeHandle({ as: "local" }, adminGuard)
@@ -213,6 +221,36 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 {
                   body: ExtendMembershipBodySchema,
                   response: ExtendMembershipApiResponseSchema,
+                },
+              )
+              // POST /:memberId/membership/refund (served at /api/admin/members/:memberId/membership/refund)
+              .post(
+                "/refund",
+                async ({
+                  params,
+                  body,
+                  adminToken,
+                  memberAdminService,
+                  emailService,
+                  logger,
+                  set,
+                }) => {
+                  const typedBody = body as { reason?: string } | undefined;
+                  return refundMembershipLogic({
+                    memberId: params.memberId,
+                    ...(typedBody?.reason !== undefined && {
+                      reason: typedBody.reason,
+                    }),
+                    adminUid: getAdminUid(adminToken, logger),
+                    memberAdminService,
+                    emailService,
+                    logger,
+                    set,
+                  });
+                },
+                {
+                  body: RefundMembershipBodySchema,
+                  response: RefundMembershipApiResponseSchema,
                 },
               ),
           )

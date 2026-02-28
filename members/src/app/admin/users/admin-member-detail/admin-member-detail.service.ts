@@ -117,4 +117,35 @@ export class AdminMemberDetailService {
       this.profileUidSignal.set(member.uid);
     }
   }
+
+  /**
+   * Refund membership for the current member
+   */
+  async refundMembership(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.refundMembership(uid);
+      const warnings: string[] = [];
+
+      if (result.refundResult.warning) {
+        warnings.push(result.refundResult.warning);
+      }
+
+      const message =
+        warnings.length > 0
+          ? `Membership refunded successfully. Warning: ${warnings.join('; ')}`
+          : 'Membership refunded successfully';
+
+      this.successMessage.set(message);
+      this.memberResource.reload();
+    } catch (error) {
+      console.error('Error refunding membership:', error);
+      this.actionError.set('Failed to refund membership.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
 }

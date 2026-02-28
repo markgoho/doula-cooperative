@@ -286,4 +286,37 @@ export class AdminMembersService {
       ),
     );
   }
+
+  async refundMembership(
+    uid: string,
+    reason?: string,
+  ): Promise<{
+    success: boolean;
+    refundResult: {
+      stripeRefundCreated: boolean;
+      subscriptionCanceled: boolean;
+      memberDeactivated: boolean;
+      profileDrafted?: boolean;
+      newsletterUnsubscribed?: boolean;
+      warning?: string;
+    };
+  }> {
+    // Authorization header added automatically by authInterceptor
+    const body = {
+      ...(reason !== undefined && { reason }),
+    };
+    return firstValueFrom(
+      this.httpClient.post<{
+        success: boolean;
+        refundResult: {
+          stripeRefundCreated: boolean;
+          subscriptionCanceled: boolean;
+          memberDeactivated: boolean;
+          profileDrafted?: boolean;
+          newsletterUnsubscribed?: boolean;
+          warning?: string;
+        };
+      }>(`/api/admin/members/${uid}/membership/refund`, body),
+    );
+  }
 }

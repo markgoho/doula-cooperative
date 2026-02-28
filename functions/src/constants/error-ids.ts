@@ -307,6 +307,27 @@ export const ERROR_IDS = {
 
   // Member name update errors
   UPDATE_MEMBER_NAME_ROUTE_FAILED: "update_member_name_route_failed",
+
+  // Stripe webhook refund errors
+  STRIPE_WEBHOOK_REFUND_MEMBER_LOOKUP_FAILED:
+    "stripe_webhook_refund_member_lookup_failed",
+  STRIPE_WEBHOOK_REFUND_MEMBER_NOT_FOUND:
+    "stripe_webhook_refund_member_not_found",
+  STRIPE_WEBHOOK_REFUND_DEACTIVATION_FAILED:
+    "stripe_webhook_refund_deactivation_failed",
+  STRIPE_WEBHOOK_REFUND_DRAFT_PROFILE_FAILED:
+    "stripe_webhook_refund_draft_profile_failed",
+  STRIPE_WEBHOOK_REFUND_NEWSLETTER_FAILED:
+    "stripe_webhook_refund_newsletter_failed",
+  STRIPE_WEBHOOK_REFUND_NOTIFICATION_FAILED:
+    "stripe_webhook_refund_notification_failed",
+  STRIPE_WEBHOOK_REFUND_SUBSCRIPTION_CANCEL_FAILED:
+    "stripe_webhook_refund_subscription_cancel_failed",
+
+  // Admin refund membership errors
+  API_ADMIN_REFUND_MEMBERSHIP_FAILED: "api_admin_refund_membership_failed",
+  API_ADMIN_REFUND_STRIPE_API_FAILED: "api_admin_refund_stripe_api_failed",
+  API_ADMIN_REFUND_NO_STRIPE_DATA: "api_admin_refund_no_stripe_data",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

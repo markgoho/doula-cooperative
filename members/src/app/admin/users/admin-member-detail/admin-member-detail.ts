@@ -13,7 +13,7 @@ import type { Member } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'deactivate' | 'delete';
+type ConfirmAction = 'activate' | 'deactivate' | 'delete' | 'refund';
 
 interface DialogConfig {
   title: string;
@@ -91,6 +91,18 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
+  protected showRefundConfirm(): void {
+    this.pendingAction.set('refund');
+    this.dialogConfig.set({
+      title: 'Confirm Refund',
+      message:
+        'Are you sure you want to refund this membership? This will issue a Stripe refund, cancel the subscription, deactivate the membership, and hide the profile.',
+      confirmText: 'Refund',
+      variant: 'danger',
+    });
+    this.confirmDialog()?.showModal();
+  }
+
   protected onCancelDialog(): void {
     this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
@@ -111,6 +123,10 @@ export class AdminMemberDetail {
         }
         case 'delete': {
           await this.deleteUser();
+          break;
+        }
+        case 'refund': {
+          await this.service.refundMembership(this.uid());
           break;
         }
       }

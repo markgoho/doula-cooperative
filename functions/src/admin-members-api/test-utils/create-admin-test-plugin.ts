@@ -1,6 +1,7 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
@@ -20,6 +21,7 @@ import type { MemberAdminService } from "../services/interface.js";
 export function createAdminTestPlugin(overrides?: {
   memberAdminService?: Partial<MemberAdminService>;
   authService?: Partial<AuthService>;
+  emailService?: Partial<EmailServiceInterface>;
   logger?: Logger;
 }) {
   const defaultMemberAdminService: MemberAdminService = {
@@ -51,6 +53,16 @@ export function createAdminTestPlugin(overrides?: {
     ),
     verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
     isAdmin: mock(() => Promise.resolve(false)),
+    refundMembership: mock(() =>
+      Promise.resolve({
+        member: {} as MemberDocument,
+        stripeRefundCreated: true,
+        subscriptionCanceled: true,
+        refundActions: {
+          memberDeactivated: true,
+        },
+      }),
+    ),
     ...overrides?.memberAdminService,
   };
 
@@ -61,9 +73,15 @@ export function createAdminTestPlugin(overrides?: {
     ...overrides?.authService,
   };
 
+  const defaultEmailService: EmailServiceInterface = {
+    sendEmail: mock(() => Promise.resolve()),
+    ...overrides?.emailService,
+  };
+
   return createAdminMembersPlugin({
     memberAdminService: defaultMemberAdminService,
     authService: defaultAuthService,
+    emailService: defaultEmailService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

@@ -12,6 +12,7 @@ export const SubscriptionStatusSchema = t.Union([
   t.Literal("incomplete"),
   t.Literal("trialing"),
   t.Literal("unpaid"),
+  t.Literal("refunded"),
 ]);
 
 /**
@@ -127,6 +128,17 @@ export const MemberResponseSchema = t.Object({
       description: "Newsletter unsubscription timestamp (ISO 8601)",
     }),
   ),
+  refundedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Refund timestamp (ISO 8601)",
+    }),
+  ),
+  refundReason: t.Optional(
+    t.String({
+      description: "Reason for the refund",
+    }),
+  ),
 });
 
 /**
@@ -199,6 +211,12 @@ export function toMemberResponse(
       newsletterUnsubscribedAt: timestampToIso(
         document.newsletterUnsubscribedAt,
       ),
+    }),
+    ...(document.refundedAt !== undefined && {
+      refundedAt: timestampToIso(document.refundedAt),
+    }),
+    ...(document.refundReason !== undefined && {
+      refundReason: document.refundReason,
     }),
   };
 }
@@ -435,4 +453,72 @@ export const UpdateClaimsApiResponseSchema = t.Union([
 
 export type UpdateClaimsApiResponse = Static<
   typeof UpdateClaimsApiResponseSchema
+>;
+
+/**
+ * Request body schema for refunding membership.
+ */
+export const RefundMembershipBodySchema = t.Optional(
+  t.Object({
+    reason: t.Optional(
+      t.String({
+        description: "Reason for the refund",
+      }),
+    ),
+  }),
+);
+
+/**
+ * Refund result details schema.
+ */
+export const RefundResultSchema = t.Object({
+  stripeRefundCreated: t.Boolean({
+    description: "Whether the Stripe refund was created",
+  }),
+  subscriptionCanceled: t.Boolean({
+    description: "Whether the Stripe subscription was canceled",
+  }),
+  memberDeactivated: t.Boolean({
+    description: "Whether the member was deactivated in Firestore",
+  }),
+  profileDrafted: t.Optional(
+    t.Boolean({
+      description: "Whether the Hugo profile was set to draft",
+    }),
+  ),
+  newsletterUnsubscribed: t.Optional(
+    t.Boolean({
+      description: "Whether the member was unsubscribed from newsletter",
+    }),
+  ),
+  warning: t.Optional(
+    t.String({
+      description: "Warning message for non-critical failures",
+    }),
+  ),
+});
+
+/**
+ * Success response for refund membership.
+ */
+export const RefundMembershipResponseSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+  refundResult: RefundResultSchema,
+});
+
+export type RefundMembershipResponse = Static<
+  typeof RefundMembershipResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/membership/refund response - union of success and error.
+ */
+export const RefundMembershipApiResponseSchema = t.Union([
+  RefundMembershipResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type RefundMembershipApiResponse = Static<
+  typeof RefundMembershipApiResponseSchema
 >;

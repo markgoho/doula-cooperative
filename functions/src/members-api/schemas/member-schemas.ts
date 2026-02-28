@@ -12,6 +12,7 @@ export const SubscriptionStatusSchema = t.Union([
   t.Literal("incomplete"),
   t.Literal("trialing"),
   t.Literal("unpaid"),
+  t.Literal("refunded"),
 ]);
 
 /**
@@ -139,6 +140,17 @@ export const MemberResponseSchema = t.Object({
       description: "Newsletter unsubscription timestamp (ISO 8601)",
     }),
   ),
+  refundedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Refund timestamp (ISO 8601)",
+    }),
+  ),
+  refundReason: t.Optional(
+    t.String({
+      description: "Reason for the membership refund",
+    }),
+  ),
 });
 
 /**
@@ -217,6 +229,12 @@ export function toMemberResponse(
       newsletterUnsubscribedAt: timestampToIso(
         document.newsletterUnsubscribedAt,
       ),
+    }),
+    ...(document.refundedAt !== undefined && {
+      refundedAt: timestampToIso(document.refundedAt),
+    }),
+    ...(document.refundReason !== undefined && {
+      refundReason: document.refundReason,
     }),
   };
 }

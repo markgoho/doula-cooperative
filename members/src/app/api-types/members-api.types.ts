@@ -15,7 +15,8 @@ export type SubscriptionStatus =
   | 'canceled'
   | 'incomplete'
   | 'trialing'
-  | 'unpaid';
+  | 'unpaid'
+  | 'refunded';
 
 export type WelcomeEmailStatus = 'sent' | 'failed' | 'pending';
 
@@ -46,6 +47,8 @@ export interface ApiMemberResponse {
   newsletterSubscribed?: boolean;
   newsletterSubscribedAt?: string; // ISO 8601
   newsletterUnsubscribedAt?: string; // ISO 8601
+  refundedAt?: string; // ISO 8601
+  refundReason?: string;
 }
 
 /**

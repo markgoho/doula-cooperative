@@ -65,6 +65,16 @@
         <dd>{{ member.subscriptionStatus || '—' }}</dd>
       }
 
+      @if (member.subscriptionStatus === 'refunded') {
+        <dt>Refunded At:</dt>
+        <dd>{{ member.refundedAt ? (member.refundedAt | date: 'MMM d, yyyy h:mm a') : '—' }}</dd>
+
+        @if (member.refundReason) {
+          <dt>Refund Reason:</dt>
+          <dd>{{ member.refundReason }}</dd>
+        }
+      }
+
       <dt>Has Profile:</dt>
       <dd>
         @if (member.slug) {
@@ -112,6 +122,21 @@
             [disabled]="service.actionInProgress()"
           >
             {{ service.actionInProgress() ? 'Processing...' : 'Activate Membership' }}
+          </button>
+        }
+
+        @if (
+          member.stripeCustomerId &&
+          member.membershipActive &&
+          member.subscriptionStatus !== 'refunded'
+        ) {
+          <button
+            type="button"
+            class="button button--danger"
+            (click)="showRefundConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : 'Refund Membership' }}
           </button>
         }
       </div>
