@@ -185,7 +185,7 @@ export async function processRefundActions({
     try {
       const memberNotificationEmail = buildRefundNotificationEmail({
         memberEmail: member.email,
-        memberName: member.name,
+        ...(member.name !== undefined && { memberName: member.name }),
       });
 
       await emailService.sendEmail(
