@@ -344,6 +344,13 @@ export async function processCheckoutCompleted(options: {
     throw new StripeWebhookError("Missing customer email", 400);
   }
 
+  // Prefer custom field name over cardholder name (which may be a business name)
+  const customNameField = session.custom_fields?.find(
+    field => field.key === "firstandlastname",
+  );
+  const customerName =
+    customNameField?.text?.value ?? session.customer_details?.name;
+
   logger.info(`Processing membership for: ${customerEmail}`);
 
   let userRecord: UserRecord | undefined;
@@ -383,8 +390,8 @@ export async function processCheckoutCompleted(options: {
         email: customerEmail,
         emailVerified: false,
         password: temporaryPassword,
-        ...(session.customer_details?.name && {
-          displayName: session.customer_details.name,
+        ...(customerName && {
+          displayName: customerName,
         }),
       });
 
@@ -474,8 +481,8 @@ export async function processCheckoutCompleted(options: {
         subscriptionStatus: "active",
         subscriptionStart,
         membershipExpiresAt,
-        ...(session.customer_details?.name && {
-          name: session.customer_details.name,
+        ...(customerName && {
+          name: customerName,
         }),
       });
 
@@ -529,7 +536,6 @@ export async function processCheckoutCompleted(options: {
   // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
   if (mailerliteApiKey) {
     try {
-      const customerName = session.customer_details?.name;
       await addNewsletterSubscriber({
         email: customerEmail,
         ...(customerName && { name: customerName }),
@@ -606,7 +612,7 @@ export async function processCheckoutCompleted(options: {
         await sendMailerLiteFailureNotification({
           emailService,
           customerEmail,
-          customerName: session.customer_details?.name,
+          customerName,
           userRecord,
           subscriptionStart,
           membershipExpiresAt,
@@ -700,7 +706,7 @@ export async function processCheckoutCompleted(options: {
         await sendWelcomeEmailFailureNotification({
           emailService,
           customerEmail,
-          customerName: session.customer_details?.name,
+          customerName,
           userRecord,
           subscriptionStart,
           membershipExpiresAt,
