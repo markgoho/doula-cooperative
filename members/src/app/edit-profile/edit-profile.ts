@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MembershipService } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
@@ -32,6 +39,10 @@ export class EditProfile {
   protected successMessage = signal('');
   protected infoMessage = signal('');
 
+  protected isMembershipInactive = computed(() => {
+    const user = this.membershipService.userDocument();
+    return user !== undefined && !user.membershipActive;
+  });
   private autoRetryCount = 0;
 
   constructor() {

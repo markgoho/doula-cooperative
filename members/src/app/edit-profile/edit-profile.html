@@ -18,6 +18,16 @@
     <p>Once your profile is created, you'll be able to edit it here.</p>
   </div>
 } @else if (profile()) {
+  @if (isMembershipInactive()) {
+    <div class="inactive-membership-banner" role="status">
+      <h2>Membership Inactive</h2>
+      <p>
+        Your membership is no longer active. Your profile is hidden from the public directory until
+        your membership is reactivated.
+      </p>
+      <p>Visit the <a href="/membership">Membership page</a> to view your account details.</p>
+    </div>
+  }
   @let profileData = profile();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->
@@ -213,7 +223,7 @@
       <button
         type="submit"
         class="button button--primary"
-        [disabled]="loading() || profileForm.invalid"
+        [disabled]="loading() || profileForm.invalid || isMembershipInactive()"
       >
         @if (loading()) {
           <span>Saving...</span>

@@ -14,3 +14,24 @@
   border: 8px solid var(--teal-500);
   margin-block: var(--space-xs);
 }
+
+// Inactive Membership Banner
+.inactive-membership-banner {
+  background: var(--brown-100);
+  border: 2px solid var(--brown-300);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-m) var(--space-l);
+  margin-block-end: var(--space-l);
+
+  h2 {
+    margin-block-end: var(--space-xs);
+  }
+
+  p {
+    margin-block-end: var(--space-xs);
+
+    &:last-child {
+      margin-block-end: 0;
+    }
+  }
+}
