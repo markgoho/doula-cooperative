@@ -1,13 +1,9 @@
+import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import { describe, expect, it, vi } from 'vitest';
 import type { Message } from '../admin.types';
 import { AdminMessagesService } from '../services/admin-messages.service';
 import { AdminMessages } from './admin-messages';
-
-// Mock child component to isolate test
-vi.mock('./messages-table/messages-table', () => ({
-  MessagesTable: class MockMessagesTable {},
-}));
 
 interface SetupOptions {
   messages?: Message[];
@@ -32,7 +28,10 @@ async function setup({
   };
 
   const view = await render(AdminMessages, {
-    providers: [{ provide: AdminMessagesService, useValue: mockAdminMessagesService }],
+    providers: [
+      { provide: AdminMessagesService, useValue: mockAdminMessagesService },
+      provideRouter([]),
+    ],
   });
 
   return {
