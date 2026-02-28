@@ -217,6 +217,10 @@ export class ProfileService {
     return firstValueFrom(this.http.get<ProfileData>(`/api/profiles/${slug}`));
   }
 
+  clearOptimisticProfile(): void {
+    this.optimisticProfile.set(undefined);
+  }
+
   getTagUrl(tag: string): string {
     return tag.toLowerCase().replaceAll(/\s+/g, '-');
   }

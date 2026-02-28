@@ -49,6 +49,8 @@ export class EditProfile {
         setTimeout(() => {
           this.profileService.profileResource.reload();
         }, RETRY_DELAY_MS);
+      } else if (status === 'error' && this.autoRetryCount >= MAX_AUTO_RETRIES) {
+        this.profileService.clearOptimisticProfile();
       }
     });
   }
