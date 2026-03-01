@@ -87,6 +87,10 @@
   &.card-3 {
     animation-delay: 0.3s;
   }
+
+  &.card-4 {
+    animation-delay: 0.4s;
+  }
 }
 
 // --- Section Headings ---
@@ -112,6 +116,10 @@
 
 #payment-heading::before {
   content: '\1F4B3'; // 💳
+}
+
+#community-heading::before {
+  content: '\1F465'; // 👥
 }
 
 // --- Definition List Details ---
@@ -220,6 +228,34 @@
 .update-status {
   font-size: var(--step--1);
   color: var(--brown-450);
+}
+
+// --- Community Card ---
+.community-description {
+  font-size: var(--step-0);
+  color: var(--brown-500);
+  margin-block-end: var(--space-m);
+}
+
+.community-link {
+  display: inline-block;
+  background: var(--teal-500);
+  color: var(--brown-000);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  padding: var(--space-xs) var(--space-m);
+  border-radius: var(--border-radius-md);
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: var(--teal-600);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--teal-500);
+    outline-offset: 2px;
+  }
 }
 
 // --- Banners ---
@@ -359,7 +395,7 @@
 // --- Actions ---
 .membership-actions {
   margin-top: var(--space-xl);
-  animation: fadeSlideUp 0.5s ease-out 0.4s both;
+  animation: fadeSlideUp 0.5s ease-out 0.5s both;
 }
 
 .sign-out-button {

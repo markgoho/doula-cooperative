@@ -7,3 +7,4 @@ export * from "./mailerlite-secrets.js";
 export * from "./mailgun-secrets.js";
 export * from "./profile-secrets.js";
 export * from "./stripe.js";
+export * from "./urls.js";

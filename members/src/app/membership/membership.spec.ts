@@ -9,6 +9,7 @@ import {
   type UnclaimedProfile,
 } from '../services/membership.service';
 import { Membership } from './membership';
+import { FACEBOOK_GROUP_URL } from '../constants/urls';
 
 describe('Membership', () => {
   describe('unauthenticated state', () => {
@@ -556,6 +557,65 @@ describe('Membership', () => {
       expect(screen.getByText('Claim Your Existing Membership')).toBeVisible();
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('member community card', () => {
+    it('should show Facebook group card when membership is active', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          name: 'Jane Doe',
+        },
+      });
+
+      expect(screen.getByText('Member Community')).toBeVisible();
+      expect(
+        screen.getByText(
+          'Connect with your fellow cooperative members in our private Facebook group.',
+        ),
+      ).toBeVisible();
+      expect(screen.getByRole('link', { name: 'Join the Facebook Group' })).toBeVisible();
+    });
+
+    it('should not show Facebook group card when membership is inactive', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: false,
+          name: 'Jane Doe',
+        },
+      });
+
+      expect(screen.queryByText('Member Community')).toBeNull();
+    });
+
+    it('should have correct URL, target, and rel attributes on Facebook group link', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          name: 'Jane Doe',
+        },
+      });
+
+      const link = screen.getByRole('link', { name: 'Join the Facebook Group' });
+      expect(link).toHaveAttribute('href', FACEBOOK_GROUP_URL);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
   });
 });

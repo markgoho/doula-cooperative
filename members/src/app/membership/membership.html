@@ -211,6 +211,24 @@
             </dl>
           </section>
         }
+
+        <!-- Member Community Card -->
+        @if (userDoc.membershipActive) {
+          <section class="membership-card card-4" aria-labelledby="community-heading">
+            <h2 id="community-heading" class="section-heading">Member Community</h2>
+            <p class="community-description">
+              Connect with your fellow cooperative members in our private Facebook group.
+            </p>
+            <a
+              [href]="facebookGroupUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="community-link"
+            >
+              Join the Facebook Group
+            </a>
+          </section>
+        }
       </div>
     } @else {
       <div class="loading-info">

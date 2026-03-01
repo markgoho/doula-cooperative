@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
+import { FACEBOOK_GROUP_URL } from '../constants/urls';
 import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
@@ -23,6 +24,8 @@ export class Membership {
   private authService = inject(AuthService);
   private membershipService = inject(MembershipService);
   private router = inject(Router);
+
+  protected readonly facebookGroupUrl = FACEBOOK_GROUP_URL;
 
   protected user = this.authService.user;
   protected claimInProgress = signal(false);

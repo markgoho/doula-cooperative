@@ -6,6 +6,7 @@ import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import { ADMIN_EMAIL } from "../../constants/admin.js";
 import {
   ERROR_IDS,
+  FACEBOOK_GROUP_URL,
   MARK_EMAIL,
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
@@ -232,6 +233,76 @@ async function sendWelcomeEmailFailureNotification({
 }
 
 /**
+ * Create HTML for referral coordinator notification email.
+ */
+function createReferralCoordinatorEmailHtml(options: {
+  customerEmail: string;
+  customerName: string | null | undefined;
+}): string {
+  const { customerEmail, customerName } = options;
+  const displayName = escapeHtml(customerName) || "Not provided";
+
+  return `
+    <h2>New Member Joined the Cooperative</h2>
+    <p>A new member has completed their payment and joined the Rochester Doula Cooperative. Please watch for their Facebook group join request.</p>
+
+    <h3>Member Details:</h3>
+    <ul>
+      <li><strong>Name:</strong> ${displayName}</li>
+      <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+    </ul>
+
+    <p><strong>Action Required:</strong> The member has been asked to join the
+    <a href="${FACEBOOK_GROUP_URL}">private Facebook group</a>.
+    Please approve their request when you see it.</p>
+  `;
+}
+
+/**
+ * Notify the referrals coordinator when a new member joins.
+ * Errors are caught and logged but never thrown, so notification failure
+ * does not affect the webhook response.
+ */
+async function sendReferralCoordinatorNotification(options: {
+  emailService: EmailServiceInterface;
+  customerEmail: string;
+  customerName: string | null | undefined;
+  uid: string;
+  logger: Logger;
+}): Promise<void> {
+  const { emailService, customerEmail, customerName, uid, logger } = options;
+
+  try {
+    const notificationEmail: EmailMessage = {
+      from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
+      to: REFERRAL_EMAIL,
+      subject: "New Member Joined \u2014 Watch for Facebook Group Request",
+      html: createReferralCoordinatorEmailHtml({
+        customerEmail,
+        customerName,
+      }),
+    };
+
+    await emailService.sendEmail({ message: notificationEmail }, logger);
+    logger.info("Sent referral coordinator notification email", {
+      uid,
+      email: customerEmail,
+    });
+  } catch (emailError) {
+    logger.error("Failed to send referral coordinator notification", {
+      error: emailError,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_REFERRAL_NOTIFICATION_FAILED,
+      uid,
+      email: customerEmail,
+      severity: "CRITICAL",
+      actionRequired:
+        "Check Sentry alerts immediately - new member joined but coordinator was not notified",
+    });
+    // Don't throw - we don't want to fail the webhook because notification failed
+  }
+}
+
+/**
  * Generate welcome email HTML content.
  */
 function generateWelcomeEmailHtml(resetLink: string): string {
@@ -252,6 +323,11 @@ function generateWelcomeEmailHtml(resetLink: string): string {
       <li>Manage your profile</li>
       <li>Stay updated on cooperative events</li>
     </ul>
+
+    <p><strong>Join Our Private Facebook Group</strong></p>
+    <p>Connect with your fellow cooperative members! Visit
+    <a href="${FACEBOOK_GROUP_URL}">our Facebook group</a> and request to join.
+    Our coordinator will approve your request once she sees you in the members list.</p>
 
     <p>If you have any questions, please reach out to us at ${MARK_EMAIL}.</p>
 
@@ -290,7 +366,6 @@ async function sendWelcomeEmail(options: {
   const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: email,
-    bcc: REFERRAL_EMAIL,
     subject: "Welcome to Rochester Doula Cooperative!",
     html: generateWelcomeEmailHtml(resetLink),
   };
@@ -714,6 +789,17 @@ export async function processCheckoutCompleted(options: {
           logger,
         });
       }
+    }
+
+    // Step 5: Notify referrals coordinator about new member (non-critical)
+    if (!process.env["FUNCTIONS_EMULATOR"]) {
+      await sendReferralCoordinatorNotification({
+        emailService,
+        customerEmail,
+        customerName,
+        uid: userRecord.uid,
+        logger,
+      });
     }
   }
 
