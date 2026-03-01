@@ -14,7 +14,6 @@ export class AdminMemberDetailPage {
   // Membership Actions
   readonly activateButton: Locator;
   readonly deactivateButton: Locator;
-  readonly deleteButton: Locator;
   readonly cleanSlateDeleteButton: Locator;
 
   // Confirm Dialog
@@ -36,7 +35,6 @@ export class AdminMemberDetailPage {
     // Action buttons
     this.activateButton = page.getByRole('button', { name: /Activate Membership/ });
     this.deactivateButton = page.getByRole('button', { name: /Deactivate Membership/ });
-    this.deleteButton = page.getByRole('button', { name: /Delete User Account/ });
     this.cleanSlateDeleteButton = page.getByRole('button', { name: /Clean Slate Delete/ });
 
     // Confirm dialog
@@ -64,12 +62,6 @@ export class AdminMemberDetailPage {
     await this.deactivateButton.click();
     await this.confirmDialog.waitFor({ state: 'visible' });
     await this.confirmDialog.getByRole('button', { name: 'Deactivate' }).click();
-  }
-
-  async deleteUser(): Promise<void> {
-    await this.deleteButton.click();
-    await this.confirmDialog.waitFor({ state: 'visible' });
-    await this.confirmDialog.getByRole('button', { name: 'Delete' }).click();
   }
 
   async cleanSlateDelete(): Promise<void> {

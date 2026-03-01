@@ -223,7 +223,6 @@ export const ERROR_IDS = {
   API_MEMBER_CANCEL_MEMBERSHIP_FAILED: "api_member_cancel_membership_failed",
   API_ADMIN_CANCEL_STRIPE_FAILED: "api_admin_cancel_stripe_failed",
   API_ADMIN_EXTEND_MEMBERSHIP_FAILED: "api_admin_extend_membership_failed",
-  API_ADMIN_DELETE_USER_FAILED: "api_admin_delete_user_failed",
 
   // Admin match request management operations
   API_ADMIN_LIST_MATCH_REQUESTS_FAILED: "api_admin_list_match_requests_failed",
