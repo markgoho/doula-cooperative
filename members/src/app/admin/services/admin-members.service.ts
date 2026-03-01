@@ -224,13 +224,6 @@ export class AdminMembersService {
     }
   }
 
-  async deleteUser(uid: string): Promise<{ success: boolean }> {
-    // Authorization header added automatically by authInterceptor
-    return firstValueFrom(
-      this.httpClient.delete<{ success: boolean }>(`/api/admin/members/${uid}`),
-    );
-  }
-
   async sendInvitation(email: string): Promise<{ success: boolean; warning?: string }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(

@@ -90,26 +90,6 @@ export class AdminMemberDetailService {
   }
 
   /**
-   * Delete user account
-   */
-  async deleteUser(uid: string): Promise<void> {
-    this.actionInProgress.set(true);
-    this.successMessage.set(undefined);
-    this.actionError.set(undefined);
-
-    try {
-      await this.adminMembersService.deleteUser(uid);
-      this.successMessage.set('User deleted successfully');
-      this.actionInProgress.set(false);
-      // Note: Component should handle navigation after successful deletion
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      this.actionError.set('Failed to delete user.');
-      this.actionInProgress.set(false);
-    }
-  }
-
-  /**
    * Load profile content for the current member
    */
   loadProfile(member: Member): void {

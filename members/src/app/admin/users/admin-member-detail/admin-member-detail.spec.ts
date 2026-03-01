@@ -277,113 +277,6 @@ describe('AdminUserDetail', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('should display delete button for non-admin users', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: false });
-
-    // Act
-    await setup({ member });
-
-    // Assert
-    expect(await screen.findByRole('button', { name: 'Delete User Account' })).toBeVisible();
-    expect(screen.getByText('Danger Zone')).toBeVisible();
-  });
-
-  it('should hide delete button and show message for admin users', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: true });
-
-    // Act
-    await setup({ member });
-
-    // Assert
-    expect(await screen.findByText('Admin Account')).toBeVisible();
-    expect(
-      screen.getByText(/This user has admin privileges. Admin accounts cannot be deleted./),
-    ).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Delete User Account' })).toBeNull();
-  });
-
-  it.skip('should call deleteUser service after confirmation', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: false });
-    const { user, mockAdminMembersService } = await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Delete User Account' })).toBeVisible();
-
-    // Act - Click delete button to open dialog
-    const deleteButton = screen.getByRole('button', { name: 'Delete User Account' });
-    await user.click(deleteButton);
-
-    // Verify confirmation message
-    expect(
-      screen.getByText(/Are you sure you want to permanently delete this user account/),
-    ).toBeVisible();
-
-    // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Delete' });
-    await user.click(confirmButton);
-
-    // Assert - deleteUser service method should have been called
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Give time for async operation
-    expect(mockAdminMembersService.deleteUser).toHaveBeenCalledWith('test-uid-123');
-  });
-
-  it('should show error message when deletion fails', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: false });
-    const { user } = await setup({ member, shouldFailDelete: true });
-
-    expect(await screen.findByRole('button', { name: 'Delete User Account' })).toBeVisible();
-
-    // Act - Click delete button to open dialog
-    const deleteButton = screen.getByRole('button', { name: 'Delete User Account' });
-    await user.click(deleteButton);
-
-    // Click confirm in dialog
-    const confirmButton = screen.getByRole('button', { name: 'Delete' });
-    await user.click(confirmButton);
-
-    // Assert
-    expect(await screen.findByText('Failed to delete user.')).toBeVisible();
-  });
-
-  it('should not delete when user cancels confirmation', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: false });
-    const { user } = await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Delete User Account' })).toBeVisible();
-
-    // Act - Click delete button to open dialog
-    const deleteButton = screen.getByRole('button', { name: 'Delete User Account' });
-    await user.click(deleteButton);
-
-    // Click cancel in dialog
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-    await user.click(cancelButton);
-
-    // Assert - Error/success message should not appear
-    expect(screen.queryByText(/Failed to delete user/)).toBeNull();
-    expect(screen.queryByText('User deleted successfully')).toBeNull();
-  });
-
-  it('should show danger zone with warning for non-admin users', async () => {
-    // Arrange
-    const member = createMockMember({ isAdmin: false });
-
-    // Act
-    await setup({ member });
-
-    // Assert
-    expect(await screen.findByText('Danger Zone')).toBeVisible();
-    expect(
-      screen.getByText(
-        /This action is irreversible. Deleting this user will permanently remove their account/,
-      ),
-    ).toBeVisible();
-  });
-
   it('should display clean slate delete button for non-admin users', async () => {
     // Arrange
     const member = createMockMember({ isAdmin: false });
@@ -477,7 +370,6 @@ interface SetupOptions {
   shouldFailLoad?: boolean;
   shouldFailActivate?: boolean;
   shouldFailCancel?: boolean;
-  shouldFailDelete?: boolean;
   shouldFailCleanSlate?: boolean;
   shouldKeepLoading?: boolean;
   errorMessage?: string;
@@ -489,7 +381,6 @@ async function setup({
   shouldFailLoad = false,
   shouldFailActivate = false,
   shouldFailCancel = false,
-  shouldFailDelete = false,
   shouldFailCleanSlate = false,
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
@@ -518,9 +409,6 @@ async function setup({
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
     cancelMembership: shouldFailCancel
-      ? vi.fn().mockRejectedValue(new Error('Failed'))
-      : vi.fn().mockResolvedValue({ success: true }),
-    deleteUser: shouldFailDelete
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
     cleanSlateDelete: shouldFailCleanSlate
