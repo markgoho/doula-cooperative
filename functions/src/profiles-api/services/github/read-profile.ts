@@ -1,6 +1,5 @@
 import { logger } from "firebase-functions/v2";
 import { load } from "js-yaml";
-import { App } from "octokit";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { GITHUB_OWNER, GITHUB_REPO } from "../../../constants/github-config.js";
 import { IMAGEKIT_BASE_URL } from "../../../constants/imagekit.js";
@@ -9,6 +8,7 @@ import {
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
+import { getOctokit } from "./get-octokit.js";
 import type { ReadProfileResponse } from "./interface.js";
 
 /** Front matter fields parsed from YAML (superset of ProfileData fields). */
@@ -91,26 +91,6 @@ function parseProfileMarkdown(content: string, slug: string): ProfileData {
   data.image = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile`;
 
   return data;
-}
-
-/**
- * Get authenticated Octokit instance using GitHub App credentials.
- */
-async function getOctokit() {
-  const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-  const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-  const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
-
-  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-    throw new HttpError("GitHub configuration is missing", 500);
-  }
-
-  const app = new App({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
-  });
-
-  return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
 }
 
 /**

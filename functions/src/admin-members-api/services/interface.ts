@@ -145,7 +145,7 @@ export interface MemberAdminService {
   /**
    * Clean slate delete: remove every trace of a user across all integrated systems.
    * Removes Stripe customer/subscription, MailerLite subscriber, Hugo profile,
-   * Firestore member document, and Firebase Auth user.
+   * ImageKit profile image, Firestore member document, and Firebase Auth user.
    *
    * @param options - Member ID, requesting admin UID, and optional email service
    * @returns Promise resolving to clean slate result with status of each cleanup step

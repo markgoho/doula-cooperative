@@ -1,42 +1,28 @@
 import { logger } from "firebase-functions/v2";
-import { App } from "octokit";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
   GITHUB_REPO,
 } from "../../../constants/github-config.js";
-import { HttpError } from "../../../shared-api/errors/http-error.js";
-
-/**
- * Get authenticated Octokit instance using GitHub App credentials.
- */
-async function getOctokit() {
-  const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-  const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-  const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
-
-  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-    throw new HttpError("GitHub configuration is missing", 500);
-  }
-
-  const app = new App({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
-  });
-
-  return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
-}
+import { getOctokit } from "./get-octokit.js";
 
 /**
  * Delete a Hugo profile file via the GitHub API.
  *
  * Reads the profile file to get the SHA (required by the GitHub API),
  * then deletes it. Handles 404 gracefully (profile file may not exist).
+ * Skips in emulator mode since GitHub is an external service.
  */
 export async function deleteProfile(options: {
   slug: string;
 }): Promise<{ success: true }> {
   const { slug } = options;
+
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    logger.info("Emulator detected, skipping GitHub profile delete", { slug });
+    return { success: true };
+  }
+
   const filePath = `hugo/content/doulas/${slug}/index.md`;
 
   const octokit = await getOctokit();
@@ -47,6 +33,7 @@ export async function deleteProfile(options: {
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       path: filePath,
+      ref: GITHUB_BRANCH,
     });
 
     if (!("sha" in fileData)) {
@@ -70,14 +57,25 @@ export async function deleteProfile(options: {
     throw error;
   }
 
-  await octokit.rest.repos.deleteFile({
-    owner: GITHUB_OWNER,
-    repo: GITHUB_REPO,
-    path: filePath,
-    message: `Delete profile: ${slug}`,
-    sha,
-    branch: GITHUB_BRANCH,
-  });
+  try {
+    await octokit.rest.repos.deleteFile({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: filePath,
+      message: `Delete profile: ${slug}`,
+      sha,
+      branch: GITHUB_BRANCH,
+    });
+  } catch (error) {
+    logger.error("Failed to delete profile file from GitHub", {
+      slug,
+      filePath,
+      sha,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
 
   logger.info("Successfully deleted profile from GitHub", { slug });
 

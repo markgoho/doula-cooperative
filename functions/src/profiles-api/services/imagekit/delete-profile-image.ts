@@ -22,25 +22,34 @@ export async function deleteProfileImage(options: {
 
   const imagekit = getImageKitClient();
 
-  const results = await imagekit.assets.list({
-    searchQuery: `name="${slug}-profile"`,
-    path: `/doulas/${slug}`,
-    limit: 1,
-  });
-
-  const firstResult = results[0];
-  if (firstResult && "fileId" in firstResult) {
-    await imagekit.files.delete(firstResult.fileId);
-    logger.info("Successfully deleted profile image from ImageKit", {
-      slug,
-      fileId: firstResult.fileId,
+  try {
+    const results = await imagekit.assets.list({
+      searchQuery: `name="${slug}-profile"`,
+      path: `/doulas/${slug}`,
+      limit: 1,
     });
-    return { deleted: true };
-  }
 
-  logger.info("No ImageKit profile image found, skipping delete", {
-    slug,
-    expectedPath: `/doulas/${slug}/${slug}-profile`,
-  });
-  return { deleted: false };
+    const firstResult = results[0];
+    if (firstResult && "fileId" in firstResult) {
+      await imagekit.files.delete(firstResult.fileId);
+      logger.info("Successfully deleted profile image from ImageKit", {
+        slug,
+        fileId: firstResult.fileId,
+      });
+      return { deleted: true };
+    }
+
+    logger.info("No ImageKit profile image found, skipping delete", {
+      slug,
+      expectedPath: `/doulas/${slug}/${slug}-profile`,
+    });
+    return { deleted: false };
+  } catch (error) {
+    logger.error("Failed to delete profile image from ImageKit", {
+      slug,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
 }

@@ -1,5 +1,4 @@
 import { logger } from "firebase-functions/v2";
-import { App } from "octokit";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   GITHUB_BRANCH,
@@ -12,27 +11,8 @@ import {
 } from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
 import { serializeToMarkdown } from "../../utils/markdown-serialization.js";
+import { getOctokit } from "./get-octokit.js";
 import type { WriteProfileResponse } from "./interface.js";
-
-/**
- * Get authenticated Octokit instance using GitHub App credentials.
- */
-async function getOctokit() {
-  const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-  const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-  const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
-
-  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-    throw new HttpError("GitHub configuration is missing", 500);
-  }
-
-  const app = new App({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
-  });
-
-  return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
-}
 
 /**
  * Type guard for GitHub API errors.

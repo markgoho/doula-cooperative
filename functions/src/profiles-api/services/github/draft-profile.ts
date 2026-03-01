@@ -1,31 +1,11 @@
 import { logger } from "firebase-functions/v2";
-import { App } from "octokit";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
   GITHUB_REPO,
 } from "../../../constants/github-config.js";
 import { HttpError } from "../../../shared-api/errors/http-error.js";
-
-/**
- * Get authenticated Octokit instance using GitHub App credentials.
- */
-async function getOctokit() {
-  const GITHUB_APP_ID = process.env["GITHUB_APP_ID"];
-  const GITHUB_PRIVATE_KEY = process.env["GITHUB_PRIVATE_KEY"];
-  const GITHUB_INSTALLATION_ID = process.env["GITHUB_INSTALLATION_ID"];
-
-  if (!GITHUB_APP_ID || !GITHUB_PRIVATE_KEY || !GITHUB_INSTALLATION_ID) {
-    throw new HttpError("GitHub configuration is missing", 500);
-  }
-
-  const app = new App({
-    appId: GITHUB_APP_ID,
-    privateKey: GITHUB_PRIVATE_KEY,
-  });
-
-  return app.getInstallationOctokit(Number.parseInt(GITHUB_INSTALLATION_ID));
-}
+import { getOctokit } from "./get-octokit.js";
 
 /**
  * Set `draft: true` on an existing Hugo profile via the GitHub API.
