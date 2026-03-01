@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions/v2";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { getImageKitClient } from "../../utils/imagekit-client.js";
 
 /**
@@ -46,6 +47,7 @@ export async function deleteProfileImage(options: {
     return { deleted: false };
   } catch (error) {
     logger.error("Failed to delete profile image from ImageKit", {
+      errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_IMAGE_DELETE_FAILED,
       slug,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",

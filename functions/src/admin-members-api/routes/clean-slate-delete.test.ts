@@ -66,7 +66,7 @@ describe("POST /:memberId/clean-slate", () => {
         if (activeMembership) {
           return Promise.reject(
             new ValidationError(
-              "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
+              "Cannot clean slate delete a member with an active subscription. Refund or cancel the membership first.",
             ),
           );
         }
@@ -150,7 +150,7 @@ describe("POST /:memberId/clean-slate", () => {
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe(
-        "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
+        "Cannot clean slate delete a member with an active subscription. Refund or cancel the membership first.",
       );
     });
   });

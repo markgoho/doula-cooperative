@@ -119,7 +119,7 @@ export class AdminMemberDetail {
     this.dialogConfig.set({
       title: 'Confirm Clean Slate Delete',
       message:
-        'This will completely remove the user from ALL systems: Stripe customer, MailerLite subscriber, Hugo profile, Firestore document, and Firebase Auth. This is intended for testing cleanup. This action cannot be undone.',
+        'This will completely remove the user from ALL systems: Stripe customer, MailerLite subscriber, Hugo profile, ImageKit profile image, Firestore document, and Firebase Auth. This is intended for testing cleanup. This action cannot be undone.',
       confirmText: 'Clean Slate Delete',
       variant: 'danger',
     });

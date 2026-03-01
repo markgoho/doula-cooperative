@@ -1,4 +1,5 @@
 import { logger } from "firebase-functions/v2";
+import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
   GITHUB_BRANCH,
   GITHUB_OWNER,
@@ -68,6 +69,7 @@ export async function deleteProfile(options: {
     });
   } catch (error) {
     logger.error("Failed to delete profile file from GitHub", {
+      errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_DELETE_PROFILE_FAILED,
       slug,
       filePath,
       sha,

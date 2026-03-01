@@ -56,7 +56,7 @@ export async function cancelMembershipLogic({
     }
 
     logger.error("Failed to cancel membership", {
-      errorId: ERROR_IDS.API_ADMIN_CANCEL_MEMBERSHIP_FAILED,
+      errorId: ERROR_IDS.API_MEMBER_CANCEL_MEMBERSHIP_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,

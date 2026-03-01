@@ -220,6 +220,7 @@ export const ERROR_IDS = {
   API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED:
     "api_admin_deactivate_membership_failed",
   API_ADMIN_CANCEL_MEMBERSHIP_FAILED: "api_admin_cancel_membership_failed",
+  API_MEMBER_CANCEL_MEMBERSHIP_FAILED: "api_member_cancel_membership_failed",
   API_ADMIN_CANCEL_STRIPE_FAILED: "api_admin_cancel_stripe_failed",
   API_ADMIN_EXTEND_MEMBERSHIP_FAILED: "api_admin_extend_membership_failed",
   API_ADMIN_DELETE_USER_FAILED: "api_admin_delete_user_failed",

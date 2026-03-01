@@ -127,6 +127,7 @@ export class Membership {
     return (
       userDocument?.membershipActive &&
       userDocument?.stripeCustomerId !== undefined &&
+      userDocument?.stripeSubscriptionId !== undefined &&
       userDocument?.subscriptionStatus !== 'canceled' &&
       userDocument?.subscriptionStatus !== 'refunded'
     );

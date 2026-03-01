@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -448,6 +449,26 @@ describe('AdminUserDetail', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('should navigate to members list after successful clean slate delete', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user, mockRouter } = await setup({ member });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Click confirm in dialog
+    const cleanSlateButtons = screen.getAllByRole('button', { name: 'Clean Slate Delete' });
+    const dialogConfirmButton = cleanSlateButtons.at(-1)!;
+    await user.click(dialogConfirmButton);
+
+    // Assert
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin/members']);
+  });
 });
 
 interface SetupOptions {
@@ -521,9 +542,14 @@ async function setup({
     }),
   };
 
+  const mockRouter = {
+    navigate: vi.fn().mockResolvedValue(true),
+  };
+
   const component = await render(AdminMemberDetail, {
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
+      { provide: Router, useValue: mockRouter },
       AdminMemberDetailService, // Provide real service, it will use mocked AdminMembersService
     ],
     inputs: { uid },
@@ -537,6 +563,7 @@ async function setup({
     component,
     resolveMemberPromise: resolveMemberPromise!,
     mockAdminMembersService,
+    mockRouter,
   };
 }
 

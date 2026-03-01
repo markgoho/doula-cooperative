@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
 import {
   type Member,
@@ -12,6 +12,16 @@ import { Membership } from './membership';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
 
 describe('Membership', () => {
+  // Add dialog polyfill for jsdom
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.open = true;
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.open = false;
+    });
+  });
+
   describe('unauthenticated state', () => {
     it('should not show any content when user is not authenticated', async () => {
       await setup({ isAuthenticated: false });
@@ -560,6 +570,199 @@ describe('Membership', () => {
     });
   });
 
+  describe('cancel membership', () => {
+    it('should show cancel button for active Stripe members', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'active',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.getByRole('button', { name: 'Cancel Membership' })).toBeVisible();
+    });
+
+    it('should not show cancel button for members without Stripe subscription ID', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: 'Cancel Membership' })).toBeNull();
+    });
+
+    it('should not show cancel button for members without Stripe customer ID', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: 'Cancel Membership' })).toBeNull();
+    });
+
+    it('should not show cancel button when subscription is already canceled', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'canceled',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: 'Cancel Membership' })).toBeNull();
+    });
+
+    it('should not show cancel button when subscription is refunded', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'refunded',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: 'Cancel Membership' })).toBeNull();
+    });
+
+    it('should not show cancel button when membership is inactive', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: false,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'active',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: 'Cancel Membership' })).toBeNull();
+    });
+
+    it('should show cancellation notice when subscription status is canceled', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'canceled',
+          lastPayment: new Date(),
+        },
+      });
+
+      expect(
+        screen.getByText(
+          /Membership cancellation scheduled.*remain an active member until your current billing period ends/,
+        ),
+      ).toBeVisible();
+    });
+
+    it('should call cancelMembership when confirmed', async () => {
+      const { user, cancelMembershipMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'active',
+          lastPayment: new Date(),
+        },
+      });
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel Membership' });
+      await user.click(cancelButton);
+
+      // Confirm in dialog
+      const confirmButton = screen.getAllByRole('button', { name: 'Cancel Membership' }).at(-1)!;
+      await user.click(confirmButton);
+
+      expect(cancelMembershipMock).toHaveBeenCalledOnce();
+    });
+
+    it('should show error message when cancellation fails', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty - we're just suppressing console output in tests
+      });
+
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'active',
+          lastPayment: new Date(),
+        },
+        cancelMembershipShouldFail: true,
+      });
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel Membership' });
+      await user.click(cancelButton);
+
+      // Confirm in dialog
+      const confirmButton = screen.getAllByRole('button', { name: 'Cancel Membership' }).at(-1)!;
+      await user.click(confirmButton);
+
+      expect(screen.getByText('Failed to cancel membership')).toBeVisible();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   describe('member community card', () => {
     it('should show Facebook group card when membership is active', async () => {
       await setup({
@@ -633,6 +836,7 @@ interface SetupOptions {
   claimProfileShouldFail?: boolean;
   claimProfileError?: Error;
   updateMemberNameShouldFail?: boolean;
+  cancelMembershipShouldFail?: boolean;
 }
 
 async function setup({
@@ -648,6 +852,7 @@ async function setup({
   claimProfileShouldFail = false,
   claimProfileError = new Error('Claim failed'),
   updateMemberNameShouldFail = false,
+  cancelMembershipShouldFail = false,
 }: SetupOptions = {}) {
   const mockUser = isAuthenticated
     ? {
@@ -689,12 +894,17 @@ async function setup({
     ? vi.fn().mockRejectedValue(new Error('Failed to save name'))
     : vi.fn().mockResolvedValue(undefined);
 
+  const cancelMembershipMock = cancelMembershipShouldFail
+    ? vi.fn().mockRejectedValue(new Error('Failed to cancel membership'))
+    : vi.fn().mockResolvedValue(undefined);
+
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
     getClaimableProfileData: getClaimableProfileDataMock,
     reloadUserDocument: vi.fn(),
     claimProfile: claimProfileMock,
     updateMemberName: updateMemberNameMock,
+    cancelMembership: cancelMembershipMock,
   };
 
   await render(Membership, {
@@ -718,5 +928,6 @@ async function setup({
     claimProfileMock,
     signOutMock,
     updateMemberNameMock,
+    cancelMembershipMock,
   };
 }
