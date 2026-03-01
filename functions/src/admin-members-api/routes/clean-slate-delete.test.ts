@@ -2,6 +2,7 @@ import { describe, expect, it, mock } from "bun:test";
 import {
   ForbiddenError,
   NotFoundError,
+  ValidationError,
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { CleanSlateResult } from "../services/clean-slate-delete.js";
@@ -21,6 +22,7 @@ describe("POST /:memberId/clean-slate", () => {
     // Scenario flags
     selfDeletion?: boolean;
     deletingAdminUser?: boolean;
+    activeMembership?: boolean;
     memberNotFound?: boolean;
     cleanSlateResult?: CleanSlateResult;
   }
@@ -30,6 +32,7 @@ describe("POST /:memberId/clean-slate", () => {
     authToken = "admin-token",
     selfDeletion = false,
     deletingAdminUser = false,
+    activeMembership = false,
     memberNotFound = false,
     cleanSlateResult,
   }: SetupOptions = {}) {
@@ -57,6 +60,13 @@ describe("POST /:memberId/clean-slate", () => {
           return Promise.reject(
             new ForbiddenError(
               "Cannot delete admin users. Remove admin privileges first.",
+            ),
+          );
+        }
+        if (activeMembership) {
+          return Promise.reject(
+            new ValidationError(
+              "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
             ),
           );
         }
@@ -129,6 +139,18 @@ describe("POST /:memberId/clean-slate", () => {
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe(
         "Cannot delete admin users. Remove admin privileges first.",
+      );
+    });
+
+    it("should prevent deleting members with active subscriptions", async () => {
+      const { testApp, request } = setup({ activeMembership: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe(
+        "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
       );
     });
   });

@@ -7,7 +7,10 @@ import {
 } from "../../constants/index.js";
 import { deleteProfile } from "../../profiles-api/services/github/delete-profile.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
-import { ForbiddenError } from "../../shared-api/errors/http-error.js";
+import {
+  ForbiddenError,
+  ValidationError,
+} from "../../shared-api/errors/http-error.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
@@ -85,7 +88,7 @@ function isAuthError(error: unknown): error is FirebaseAuthError {
 
 /**
  * Clean slate delete: remove every trace of a user across all integrated systems.
- * Primarily for testing purposes — removes Stripe, MailerLite, GitHub/Hugo, Firestore, and Auth.
+ * Primarily for testing purposes — removes Stripe, MailerLite, GitHub/Hugo, ImageKit, Firestore, and Auth.
  *
  * Order:
  *   1. Read member document (verify exists)
@@ -135,6 +138,13 @@ export async function cleanSlateDelete({
   if (targetUser?.customClaims?.["admin"] === true) {
     throw new ForbiddenError(
       "Cannot delete admin users. Remove admin privileges first.",
+    );
+  }
+
+  // Step 2c: Block deletion of members with active subscriptions
+  if (member.membershipActive === true) {
+    throw new ValidationError(
+      "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
     );
   }
 
@@ -339,19 +349,60 @@ export async function cleanSlateDelete({
   }
 
   // Step 7: CRITICAL — Delete Firestore member document
-  await MemberFirestoreService.deleteMember(memberId);
+  try {
+    await MemberFirestoreService.deleteMember(memberId);
+  } catch (error) {
+    logger.error(
+      "CRITICAL: Failed to delete Firestore member document during clean slate delete",
+      {
+        errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_FAILED,
+        memberId,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        completedSteps: {
+          subscriptionCanceled,
+          stripeCustomerDeleted,
+          newsletterUnsubscribed,
+          profileDeleted,
+          profileImageDeleted,
+        },
+      },
+    );
+    throw error;
+  }
 
   // Step 8: CRITICAL — Delete Firebase Auth user
-  const authUserDeleted = true;
+  let authUserDeleted = false;
   try {
     await auth.deleteUser(memberId);
+    authUserDeleted = true;
   } catch (error) {
     if (isAuthError(error) && error.code === "auth/user-not-found") {
+      // User is already gone — desired state achieved
+      authUserDeleted = true;
       logger.warn(
         "Auth user not found during clean slate delete (already removed)",
         { memberId },
       );
     } else {
+      logger.error(
+        "CRITICAL: Failed to delete Auth user during clean slate delete",
+        {
+          errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_FAILED,
+          memberId,
+          error,
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          completedSteps: {
+            subscriptionCanceled,
+            stripeCustomerDeleted,
+            newsletterUnsubscribed,
+            profileDeleted,
+            profileImageDeleted,
+            memberDocumentDeleted: true,
+          },
+        },
+      );
       throw error;
     }
   }
