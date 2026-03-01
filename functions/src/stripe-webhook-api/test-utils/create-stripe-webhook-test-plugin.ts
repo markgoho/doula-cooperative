@@ -42,6 +42,21 @@ export function createStripeWebhookTestPlugin(overrides?: {
         },
       }),
     ),
+    processSubscriptionEnded: mock(() =>
+      Promise.resolve({
+        memberId: "test-member-123",
+        memberFound: true,
+        memberDeactivated: true,
+      }),
+    ),
+    processSubscriptionUpdated: mock(() =>
+      Promise.resolve({
+        memberId: "test-member-123",
+        memberFound: true,
+        statusUpdated: true,
+        newStatus: "active" as const,
+      }),
+    ),
     ...overrides?.stripeWebhookService,
   };
 

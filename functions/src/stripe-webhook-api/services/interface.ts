@@ -2,6 +2,8 @@ import type Stripe from "stripe";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { ChargeRefundedResult } from "./process-charge-refunded.js";
+import type { SubscriptionEndedResult } from "./process-subscription-ended.js";
+import type { SubscriptionUpdatedResult } from "./process-subscription-updated.js";
 
 /**
  * Result of processing a checkout session completion.
@@ -77,4 +79,28 @@ export interface StripeWebhookService {
     stripeCustomerId: string;
     emailService?: EmailServiceInterface;
   }): Promise<ChargeRefundedResult>;
+
+  /**
+   * Process a customer.subscription.deleted event.
+   * Finds member, deactivates membership, drafts profile, unsubscribes newsletter.
+   *
+   * @param options - Stripe customer ID and email service
+   * @returns Promise resolving to subscription ended result
+   */
+  processSubscriptionEnded(options: {
+    stripeCustomerId: string;
+    emailService?: EmailServiceInterface;
+  }): Promise<SubscriptionEndedResult>;
+
+  /**
+   * Process a customer.subscription.updated event.
+   * Reacts to status changes: active, past_due, unpaid.
+   *
+   * @param options - Stripe customer ID and subscription status
+   * @returns Promise resolving to subscription updated result
+   */
+  processSubscriptionUpdated(options: {
+    stripeCustomerId: string;
+    status: string;
+  }): Promise<SubscriptionUpdatedResult>;
 }

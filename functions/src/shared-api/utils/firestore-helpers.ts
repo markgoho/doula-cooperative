@@ -17,9 +17,11 @@ export type MemberOperation =
   | "cancel membership (legacy)"
   | "cancel membership (self-service)"
   | "deactivate membership"
+  | "deactivate subscription end"
   | "extend membership"
   | "refund membership"
-  | "update member";
+  | "update member"
+  | "update subscription status";
 
 /**
  * Common pattern for retrieving and validating a member document after an update.

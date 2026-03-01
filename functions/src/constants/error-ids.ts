@@ -330,6 +330,28 @@ export const ERROR_IDS = {
   STRIPE_WEBHOOK_REFUND_MEMBER_NOTIFICATION_FAILED:
     "stripe_webhook_refund_member_notification_failed",
 
+  // Stripe webhook subscription ended errors
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_MEMBER_LOOKUP_FAILED:
+    "stripe_webhook_subscription_ended_member_lookup_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_MEMBER_NOT_FOUND:
+    "stripe_webhook_subscription_ended_member_not_found",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_DEACTIVATION_FAILED:
+    "stripe_webhook_subscription_ended_deactivation_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_DRAFT_PROFILE_FAILED:
+    "stripe_webhook_subscription_ended_draft_profile_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NEWSLETTER_FAILED:
+    "stripe_webhook_subscription_ended_newsletter_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NOTIFICATION_FAILED:
+    "stripe_webhook_subscription_ended_notification_failed",
+
+  // Stripe webhook subscription updated errors
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_MEMBER_LOOKUP_FAILED:
+    "stripe_webhook_subscription_updated_member_lookup_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_MEMBER_NOT_FOUND:
+    "stripe_webhook_subscription_updated_member_not_found",
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_STATUS_UPDATE_FAILED:
+    "stripe_webhook_subscription_updated_status_update_failed",
+
   // Admin refund membership errors
   API_ADMIN_REFUND_MEMBERSHIP_FAILED: "api_admin_refund_membership_failed",
   API_ADMIN_REFUND_STRIPE_API_FAILED: "api_admin_refund_stripe_api_failed",
