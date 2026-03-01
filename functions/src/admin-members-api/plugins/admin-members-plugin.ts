@@ -7,7 +7,8 @@ import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   activateMembershipLogic,
-  deactivateMembershipLogic,
+  cancelMembershipLogic,
+  cleanSlateDeleteLogic,
   deleteUserLogic,
   extendMembershipLogic,
   getMemberLogic,
@@ -19,7 +20,8 @@ import {
 import {
   ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
-  DeactivateMembershipApiResponseSchema,
+  CancelMembershipApiResponseSchema,
+  CleanSlateApiResponseSchema,
   DeleteUserApiResponseSchema,
   ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
@@ -137,6 +139,29 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               response: DeleteUserApiResponseSchema,
             },
           )
+          // POST /:memberId/clean-slate - Clean slate delete (served at /api/admin/members/:memberId/clean-slate)
+          .post(
+            "/clean-slate",
+            async ({
+              params,
+              adminToken,
+              memberAdminService,
+              emailService,
+              logger,
+              set,
+            }) =>
+              cleanSlateDeleteLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                emailService,
+                logger,
+                set,
+              }),
+            {
+              response: CleanSlateApiResponseSchema,
+            },
+          )
           // Membership management routes under /:memberId/membership
           .group("/membership", app =>
             app
@@ -176,9 +201,9 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   response: ActivateMembershipApiResponseSchema,
                 },
               )
-              // POST /:memberId/membership/deactivate (served at /api/admin/members/:memberId/membership/deactivate)
+              // POST /:memberId/membership/cancel (served at /api/admin/members/:memberId/membership/cancel)
               .post(
-                "/deactivate",
+                "/cancel",
                 async ({
                   params,
                   adminToken,
@@ -186,7 +211,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   logger,
                   set,
                 }) =>
-                  deactivateMembershipLogic({
+                  cancelMembershipLogic({
                     memberId: params.memberId,
                     adminUid: getAdminUid(adminToken, logger),
                     memberAdminService,
@@ -194,7 +219,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     set,
                   }),
                 {
-                  response: DeactivateMembershipApiResponseSchema,
+                  response: CancelMembershipApiResponseSchema,
                 },
               )
               // POST /:memberId/membership/extend (served at /api/admin/members/:memberId/membership/extend)

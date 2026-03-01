@@ -3,6 +3,8 @@ import type { StripeWebhookService as StripeWebhookServiceInterface } from "./in
 import { markEventProcessed } from "./mark-event-processed.js";
 import { processChargeRefunded } from "./process-charge-refunded.js";
 import { processCheckoutCompleted } from "./process-checkout-completed.js";
+import { processSubscriptionEnded } from "./process-subscription-ended.js";
+import { processSubscriptionUpdated } from "./process-subscription-updated.js";
 import { verifySignature } from "./verify-signature.js";
 
 /**
@@ -15,6 +17,8 @@ export const StripeWebhookService: StripeWebhookServiceInterface = {
   markEventProcessed,
   processCheckoutCompleted,
   processChargeRefunded,
+  processSubscriptionEnded,
+  processSubscriptionUpdated,
 };
 
 // Re-export individual functions for direct imports
@@ -22,4 +26,6 @@ export { checkIdempotency } from "./check-idempotency.js";
 export { markEventProcessed } from "./mark-event-processed.js";
 export { processChargeRefunded } from "./process-charge-refunded.js";
 export { processCheckoutCompleted } from "./process-checkout-completed.js";
+export { processSubscriptionEnded } from "./process-subscription-ended.js";
+export { processSubscriptionUpdated } from "./process-subscription-updated.js";
 export { verifySignature } from "./verify-signature.js";

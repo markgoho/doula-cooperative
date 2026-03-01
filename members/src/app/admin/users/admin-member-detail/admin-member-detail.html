@@ -109,10 +109,10 @@
           <button
             type="button"
             class="button button--danger"
-            (click)="showDeactivateConfirm()"
+            (click)="showCancelConfirm()"
             [disabled]="service.actionInProgress()"
           >
-            {{ service.actionInProgress() ? 'Processing...' : 'Deactivate Membership' }}
+            {{ service.actionInProgress() ? 'Processing...' : 'Cancel Membership' }}
           </button>
         } @else {
           <button
@@ -164,6 +164,24 @@
             [disabled]="service.actionInProgress()"
           >
             {{ service.actionInProgress() ? 'Processing...' : 'Delete User Account' }}
+          </button>
+        </div>
+      </div>
+      <div class="actions">
+        <h3>Clean Slate Delete</h3>
+        <p class="warning">
+          ⚠️ <strong>Warning:</strong> This removes the user from ALL systems: Stripe customer,
+          MailerLite newsletter, Hugo profile, ImageKit profile image, Firestore document, and
+          Firebase Auth. Intended for testing cleanup.
+        </p>
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="button button--danger"
+            (click)="showCleanSlateConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : 'Clean Slate Delete' }}
           </button>
         </div>
       </div>

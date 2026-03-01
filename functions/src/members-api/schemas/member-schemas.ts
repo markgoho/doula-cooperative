@@ -466,3 +466,27 @@ export const UpdateMemberNameResponseSchema = t.Union([
 export type UpdateMemberNameResponse = Static<
   typeof UpdateMemberNameResponseSchema
 >;
+
+/**
+ * Cancel membership success response.
+ */
+export const CancelMembershipSuccessSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+});
+
+export type CancelMembershipSuccessResponse = Static<
+  typeof CancelMembershipSuccessSchema
+>;
+
+/**
+ * POST /members/:memberId/membership/cancel response schema (union of success and error).
+ */
+export const CancelMembershipResponseSchema = t.Union([
+  CancelMembershipSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type CancelMembershipResponse = Static<
+  typeof CancelMembershipResponseSchema
+>;

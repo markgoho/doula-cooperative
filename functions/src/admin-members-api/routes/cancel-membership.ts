@@ -3,11 +3,11 @@ import { type MemberSuccessResponse } from "../schemas/member-schemas.js";
 import { createMemberRouteHandler } from "./route-handler-factory.js";
 
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-export const deactivateMembershipLogic = createMemberRouteHandler<{}>({
-  operation: "deactivated membership",
-  errorId: ERROR_IDS.API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED,
+export const cancelMembershipLogic = createMemberRouteHandler<{}>({
+  operation: "canceled membership",
+  errorId: ERROR_IDS.API_ADMIN_CANCEL_MEMBERSHIP_FAILED,
 
-  serviceMethod: (service, memberId) => service.deactivateMembership(memberId),
+  serviceMethod: (service, memberId) => service.cancelMembership(memberId),
 
   parseParameters: parameters => parameters,
 
@@ -20,7 +20,7 @@ export const deactivateMembershipLogic = createMemberRouteHandler<{}>({
 });
 /* eslint-enable @typescript-eslint/no-empty-object-type */
 
-export type DeactivateMembershipLogic = typeof deactivateMembershipLogic;
-export type DeactivateMembershipResult = Promise<
+export type CancelMembershipLogic = typeof cancelMembershipLogic;
+export type CancelMembershipResult = Promise<
   MemberSuccessResponse | { error: string }
 >;

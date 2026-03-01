@@ -8,6 +8,8 @@ import {
 } from "../../shared-api/errors/stripe-errors.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { ChargeRefundedResult } from "../services/process-charge-refunded.js";
+import type { SubscriptionEndedResult } from "../services/process-subscription-ended.js";
+import type { SubscriptionUpdatedResult } from "../services/process-subscription-updated.js";
 import { createStripeWebhookTestPlugin } from "../test-utils/create-stripe-webhook-test-plugin.js";
 import { createMockStripeEvent } from "../test-utils/stripe-mocks.js";
 
@@ -36,6 +38,10 @@ describe("POST /webhook", () => {
     processCheckoutError?: Error;
     processChargeRefundedResult?: ChargeRefundedResult;
     processChargeRefundedError?: Error;
+    processSubscriptionEndedResult?: SubscriptionEndedResult;
+    processSubscriptionEndedError?: Error;
+    processSubscriptionUpdatedResult?: SubscriptionUpdatedResult;
+    processSubscriptionUpdatedError?: Error;
   }
 
   function setup({
@@ -67,6 +73,19 @@ describe("POST /webhook", () => {
       },
     },
     processChargeRefundedError,
+    processSubscriptionEndedResult = {
+      memberId: "test-member-123",
+      memberFound: true,
+      memberDeactivated: true,
+    },
+    processSubscriptionEndedError,
+    processSubscriptionUpdatedResult = {
+      memberId: "test-member-123",
+      memberFound: true,
+      statusUpdated: true,
+      newStatus: "active" as const,
+    },
+    processSubscriptionUpdatedError,
   }: SetupOptions = {}) {
     const mockVerifySignature = mock((): Stripe.Event => {
       if (signatureInvalid) {
@@ -99,12 +118,28 @@ describe("POST /webhook", () => {
       return Promise.resolve(processChargeRefundedResult);
     });
 
+    const mockProcessSubscriptionEnded = mock(() => {
+      if (processSubscriptionEndedError) {
+        return Promise.reject(processSubscriptionEndedError);
+      }
+      return Promise.resolve(processSubscriptionEndedResult);
+    });
+
+    const mockProcessSubscriptionUpdated = mock(() => {
+      if (processSubscriptionUpdatedError) {
+        return Promise.reject(processSubscriptionUpdatedError);
+      }
+      return Promise.resolve(processSubscriptionUpdatedResult);
+    });
+
     const testApp = createStripeWebhookTestPlugin({
       stripeWebhookService: {
         verifySignature: mockVerifySignature,
         markEventProcessed: mockMarkEventProcessed,
         processCheckoutCompleted: mockProcessCheckout,
         processChargeRefunded: mockProcessChargeRefunded,
+        processSubscriptionEnded: mockProcessSubscriptionEnded,
+        processSubscriptionUpdated: mockProcessSubscriptionUpdated,
       },
     });
 
@@ -303,9 +338,9 @@ describe("POST /webhook", () => {
   describe("Unhandled event types", () => {
     it("should acknowledge unhandled event types with received:true", async () => {
       const { testApp, request } = setup({
-        eventType: "customer.subscription.updated",
+        eventType: "payment_intent.succeeded",
         sessionData: {
-          id: "sub_123",
+          id: "pi_123",
         },
       });
 
@@ -476,6 +511,275 @@ describe("POST /webhook", () => {
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("Duplicate refund");
+    });
+  });
+
+  describe("customer.subscription.deleted", () => {
+    it("should successfully process subscription end", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          status: "canceled",
+        },
+        processSubscriptionEndedResult: {
+          memberId: "ended-member-123",
+          memberFound: true,
+          memberDeactivated: true,
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("ended-member-123");
+    });
+
+    it("should return duplicate:true when subscription end event already processed", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+        },
+        eventAlreadyProcessed: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        duplicate?: boolean;
+      };
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBe(true);
+    });
+
+    it("should handle missing customer ID on subscription", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          // No customer field
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toBe("No customer ID on subscription");
+    });
+
+    it("should include warning when non-critical actions fail", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+        },
+        processSubscriptionEndedResult: {
+          memberId: "ended-member-123",
+          memberFound: true,
+          memberDeactivated: true,
+          profileDrafted: false,
+          warning: "Non-critical actions failed: Draft profile failed",
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toContain("Non-critical actions failed");
+    });
+
+    it("should return 500 for unexpected errors", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+        },
+        processSubscriptionEndedError: new Error("Database connection failed"),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as {
+        error?: string;
+        errorId?: string;
+      };
+      expect(body.error).toBe("Internal server error");
+      expect(body.errorId).toBe(ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR);
+    });
+
+    it("should return HttpError status when processing throws HttpError", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.deleted",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+        },
+        processSubscriptionEndedError: new HttpError("Member not found", 404),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(404);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Member not found");
+    });
+  });
+
+  describe("customer.subscription.updated", () => {
+    it("should successfully process subscription status update", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          status: "active",
+        },
+        processSubscriptionUpdatedResult: {
+          memberId: "updated-member-123",
+          memberFound: true,
+          statusUpdated: true,
+          newStatus: "active" as const,
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("updated-member-123");
+    });
+
+    it("should return duplicate:true when subscription update event already processed", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          status: "past_due",
+        },
+        eventAlreadyProcessed: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        duplicate?: boolean;
+      };
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBe(true);
+    });
+
+    it("should handle missing customer ID on subscription", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          status: "active",
+          // No customer field
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toBe("No customer ID on subscription");
+    });
+
+    it("should handle missing status on subscription", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          // No status field
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.warning).toBe("No status on subscription");
+    });
+
+    it("should return 500 for unexpected errors", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          status: "active",
+        },
+        processSubscriptionUpdatedError: new Error(
+          "Database connection failed",
+        ),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as {
+        error?: string;
+        errorId?: string;
+      };
+      expect(body.error).toBe("Internal server error");
+      expect(body.errorId).toBe(ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR);
+    });
+
+    it("should return HttpError status when processing throws HttpError", async () => {
+      const { testApp, request } = setup({
+        eventType: "customer.subscription.updated",
+        sessionData: {
+          id: "sub_test_123",
+          customer: "cus_test_789",
+          status: "active",
+        },
+        processSubscriptionUpdatedError: new HttpError("Member not found", 404),
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(404);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Member not found");
     });
   });
 });

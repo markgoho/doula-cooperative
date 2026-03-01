@@ -206,6 +206,76 @@ test.describe('Admin Member Detail Page', () => {
     await expect(memberDetailPage.pageHeading).toBeVisible();
   });
 
+  test('admin performs clean slate delete on a member', async ({ authenticatedAdminPage }) => {
+    const inactiveMember: ApiMemberResponse = {
+      ...mockMember,
+      membershipActive: false,
+    };
+
+    // Mock all API endpoints
+    await authenticatedAdminPage.route('**/api/admin/**', async (route) => {
+      const url = route.request().url();
+      const method = route.request().method();
+
+      // GET single member
+      if (
+        url.includes('/api/admin/members/test-member-123') &&
+        !url.includes('/clean-slate') &&
+        method === 'GET'
+      ) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(inactiveMember),
+        });
+        return;
+      }
+
+      // POST clean-slate delete
+      if (url.includes('/api/admin/members/test-member-123/clean-slate') && method === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            deletedUid: 'test-member-123',
+            memberDocumentDeleted: true,
+            authUserDeleted: true,
+          }),
+        });
+        return;
+      }
+
+      // GET members list (for redirect after delete)
+      if (/\/api\/admin\/members(\?|$)/.test(url) && method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ members: [], total: 0 }),
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    const memberDetailPage = new AdminMemberDetailPage(authenticatedAdminPage);
+    await memberDetailPage.goto('test-member-123');
+    await memberDetailPage.waitForMemberDetails();
+
+    // === Verify Clean Slate Delete Button is Visible ===
+    await expect(memberDetailPage.cleanSlateDeleteButton).toBeVisible();
+
+    // === Perform Clean Slate Delete ===
+    await memberDetailPage.cleanSlateDelete();
+
+    // === Verify Redirect to Members List ===
+    await authenticatedAdminPage.waitForURL('**/admin/members');
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Members', level: 1 }),
+    ).toBeVisible();
+  });
+
   test('admin views member profile content', async ({ authenticatedAdminPage }) => {
     // Mock GET member endpoint
     await authenticatedAdminPage.route('**/api/admin/members/test-member-123', async (route) => {

@@ -95,13 +95,10 @@ export class AdminMembersService {
     );
   }
 
-  async deactivateMembership(uid: string): Promise<{ success: boolean }> {
+  async cancelMembership(uid: string): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
-      this.httpClient.post<{ success: boolean }>(
-        `/api/admin/members/${uid}/membership/deactivate`,
-        {},
-      ),
+      this.httpClient.post<{ success: boolean }>(`/api/admin/members/${uid}/membership/cancel`, {}),
     );
   }
 
@@ -317,6 +314,35 @@ export class AdminMembersService {
           warning?: string;
         };
       }>(`/api/admin/members/${uid}/membership/refund`, body),
+    );
+  }
+
+  async cleanSlateDelete(uid: string): Promise<{
+    success: boolean;
+    deletedUid: string;
+    subscriptionCanceled?: boolean;
+    stripeCustomerDeleted?: boolean;
+    newsletterUnsubscribed?: boolean;
+    profileDeleted?: boolean;
+    profileImageDeleted?: boolean;
+    memberDocumentDeleted: boolean;
+    authUserDeleted: boolean;
+    warning?: string;
+  }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{
+        success: boolean;
+        deletedUid: string;
+        subscriptionCanceled?: boolean;
+        stripeCustomerDeleted?: boolean;
+        newsletterUnsubscribed?: boolean;
+        profileDeleted?: boolean;
+        profileImageDeleted?: boolean;
+        memberDocumentDeleted: boolean;
+        authUserDeleted: boolean;
+        warning?: string;
+      }>(`/api/admin/members/${uid}/clean-slate`, {}),
     );
   }
 }

@@ -70,20 +70,20 @@ export class AdminMemberDetailService {
   }
 
   /**
-   * Deactivate membership for the current member
+   * Cancel membership for the current member
    */
-  async deactivateMembership(uid: string): Promise<void> {
+  async cancelMembership(uid: string): Promise<void> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
-      await this.adminMembersService.deactivateMembership(uid);
-      this.successMessage.set('Membership deactivated successfully');
+      await this.adminMembersService.cancelMembership(uid);
+      this.successMessage.set('Membership cancellation scheduled');
       this.memberResource.reload(); // Reload to get updated data
     } catch (error) {
-      console.error('Error deactivating membership:', error);
-      this.actionError.set('Failed to deactivate membership.');
+      console.error('Error canceling membership:', error);
+      this.actionError.set('Failed to cancel membership.');
     } finally {
       this.actionInProgress.set(false);
     }
@@ -145,6 +145,31 @@ export class AdminMemberDetailService {
       console.error('Error refunding membership:', error);
       this.actionError.set('Failed to refund membership.');
     } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Clean slate delete: remove every trace of a user across all integrated systems
+   */
+  async cleanSlateDelete(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.cleanSlateDelete(uid);
+
+      const message = result.warning
+        ? `User completely removed. Warning: ${result.warning}`
+        : 'User completely removed from all systems';
+
+      this.successMessage.set(message);
+      this.actionInProgress.set(false);
+      // Note: Component should handle navigation after successful deletion
+    } catch (error) {
+      console.error('Error performing clean slate delete:', error);
+      this.actionError.set('Failed to perform clean slate delete.');
       this.actionInProgress.set(false);
     }
   }

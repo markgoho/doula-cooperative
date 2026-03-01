@@ -2,11 +2,13 @@ import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
+import { cancelMembershipLogic } from "../routes/cancel-membership.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import { verifyEmailLogic } from "../routes/verify-email.js";
 import {
+  CancelMembershipResponseSchema,
   GetMemberResponseSchema,
   MemberIdParameterSchema,
   UpdateMemberNameBodySchema,
@@ -151,6 +153,24 @@ export function createMembersPlugin(services?: PartialServices) {
           params: MemberIdParameterSchema,
           body: UpdateMemberNameBodySchema,
           response: UpdateMemberNameResponseSchema,
+        },
+      )
+      // POST /:memberId/membership/cancel - Cancel membership (owner or admin) - Served at /api/members/:memberId/membership/cancel
+      .post(
+        "/:memberId/membership/cancel",
+        async ({ params, memberService, authService, logger, request, set }) =>
+          cancelMembershipLogic({
+            memberId: params.memberId,
+            memberService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          response: CancelMembershipResponseSchema,
         },
       )
   );

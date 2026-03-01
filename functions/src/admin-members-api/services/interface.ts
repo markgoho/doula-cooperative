@@ -1,6 +1,7 @@
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 
 /**
@@ -68,13 +69,17 @@ export interface MemberAdminService {
   ): Promise<MemberDocument>;
 
   /**
-   * Deactivate a membership.
+   * Cancel a membership.
+   *
+   * For Stripe members: schedules subscription cancellation at end of billing period.
+   * For legacy members: deactivates immediately.
    *
    * @param memberId - The Firestore document ID
    * @returns Promise resolving to updated member document
    * @throws NotFoundError if member does not exist
+   * @throws Error if Stripe cancellation fails
    */
-  deactivateMembership(memberId: string): Promise<MemberDocument>;
+  cancelMembership(memberId: string): Promise<MemberDocument>;
 
   /**
    * Extend a membership expiration date.
@@ -140,4 +145,20 @@ export interface MemberAdminService {
     reason?: string;
     emailService?: EmailServiceInterface;
   }): Promise<RefundMembershipResult>;
+
+  /**
+   * Clean slate delete: remove every trace of a user across all integrated systems.
+   * Removes Stripe customer/subscription, MailerLite subscriber, Hugo profile,
+   * ImageKit profile image, Firestore member document, and Firebase Auth user.
+   *
+   * @param options - Member ID, requesting admin UID, and optional email service
+   * @returns Promise resolving to clean slate result with status of each cleanup step
+   * @throws NotFoundError if member does not exist
+   * @throws ForbiddenError if trying to delete self or another admin
+   */
+  cleanSlateDelete(options: {
+    memberId: string;
+    requestingAdminUid: string;
+    emailService?: EmailServiceInterface;
+  }): Promise<CleanSlateResult>;
 }

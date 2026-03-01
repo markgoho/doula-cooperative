@@ -192,7 +192,134 @@ export async function handleStripeWebhookLogic(options: {
     }
   }
 
-  // Step 5: Acknowledge unhandled event types
+  // Step 5: Handle customer.subscription.deleted events
+  if (event.type === "customer.subscription.deleted") {
+    const wasMarked = await stripeWebhookService.markEventProcessed({
+      eventId: event.id,
+      eventType: event.type,
+    });
+
+    if (!wasMarked) {
+      logger.info(`Event ${event.id} already processed, skipping`, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+      return { received: true, duplicate: true };
+    }
+
+    const subscription = event.data.object as { customer?: string | null };
+    const stripeCustomerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : undefined;
+
+    if (!stripeCustomerId) {
+      logger.warn("customer.subscription.deleted event missing customer ID", {
+        eventId: event.id,
+      });
+      return { received: true, warning: "No customer ID on subscription" };
+    }
+
+    try {
+      const result = await stripeWebhookService.processSubscriptionEnded({
+        stripeCustomerId,
+        emailService,
+      });
+
+      return {
+        received: true,
+        ...(result.memberId !== undefined && { userId: result.memberId }),
+        ...(result.warning !== undefined && { warning: result.warning }),
+      };
+    } catch (error) {
+      if (error instanceof HttpError) {
+        set.status = error.statusCode;
+        return { error: error.message };
+      }
+
+      logger.error("Unexpected error processing subscription end", {
+        error,
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+        eventId: event.id,
+        stripeCustomerId,
+      });
+      set.status = 500;
+      return {
+        error: "Internal server error",
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+      };
+    }
+  }
+
+  // Step 6: Handle customer.subscription.updated events
+  if (event.type === "customer.subscription.updated") {
+    const wasMarked = await stripeWebhookService.markEventProcessed({
+      eventId: event.id,
+      eventType: event.type,
+    });
+
+    if (!wasMarked) {
+      logger.info(`Event ${event.id} already processed, skipping`, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+      return { received: true, duplicate: true };
+    }
+
+    const subscription = event.data.object as {
+      customer?: string | null;
+      status?: string;
+    };
+    const stripeCustomerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : undefined;
+
+    if (!stripeCustomerId) {
+      logger.warn("customer.subscription.updated event missing customer ID", {
+        eventId: event.id,
+      });
+      return { received: true, warning: "No customer ID on subscription" };
+    }
+
+    if (typeof subscription.status !== "string") {
+      logger.warn("customer.subscription.updated event missing status", {
+        eventId: event.id,
+      });
+      return { received: true, warning: "No status on subscription" };
+    }
+
+    try {
+      const result = await stripeWebhookService.processSubscriptionUpdated({
+        stripeCustomerId,
+        status: subscription.status,
+      });
+
+      return {
+        received: true,
+        ...(result.memberId !== undefined && { userId: result.memberId }),
+      };
+    } catch (error) {
+      if (error instanceof HttpError) {
+        set.status = error.statusCode;
+        return { error: error.message };
+      }
+
+      logger.error("Unexpected error processing subscription update", {
+        error,
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+        eventId: event.id,
+        stripeCustomerId,
+      });
+      set.status = 500;
+      return {
+        error: "Internal server error",
+        errorId: ERROR_IDS.API_STRIPE_WEBHOOK_UNEXPECTED_ERROR,
+      };
+    }
+  }
+
+  // Step 7: Acknowledge unhandled event types
   logger.warn(`Unhandled event type: ${event.type}`, {
     errorId: ERROR_IDS.STRIPE_WEBHOOK_UNHANDLED_EVENT,
     eventType: event.type,

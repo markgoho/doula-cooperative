@@ -24,4 +24,16 @@ export interface MemberService {
    * @throws Error for Firestore operation failures
    */
   updateName(memberId: string, name: string): Promise<MemberDocument>;
+
+  /**
+   * Cancel a membership by scheduling Stripe subscription cancellation at period end.
+   * Only available for members with Stripe subscription data.
+   *
+   * @param memberId - The Firestore document ID
+   * @returns Promise resolving to updated member document
+   * @throws NotFoundError if member does not exist
+   * @throws ValidationError if member has no Stripe data
+   * @throws Error if Stripe cancellation fails
+   */
+  cancelMembership(memberId: string): Promise<MemberDocument>;
 }

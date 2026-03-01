@@ -219,6 +219,9 @@ export const ERROR_IDS = {
   API_ADMIN_ACTIVATE_MEMBERSHIP_FAILED: "api_admin_activate_membership_failed",
   API_ADMIN_DEACTIVATE_MEMBERSHIP_FAILED:
     "api_admin_deactivate_membership_failed",
+  API_ADMIN_CANCEL_MEMBERSHIP_FAILED: "api_admin_cancel_membership_failed",
+  API_MEMBER_CANCEL_MEMBERSHIP_FAILED: "api_member_cancel_membership_failed",
+  API_ADMIN_CANCEL_STRIPE_FAILED: "api_admin_cancel_stripe_failed",
   API_ADMIN_EXTEND_MEMBERSHIP_FAILED: "api_admin_extend_membership_failed",
   API_ADMIN_DELETE_USER_FAILED: "api_admin_delete_user_failed",
 
@@ -328,10 +331,47 @@ export const ERROR_IDS = {
   STRIPE_WEBHOOK_REFUND_MEMBER_NOTIFICATION_FAILED:
     "stripe_webhook_refund_member_notification_failed",
 
+  // Stripe webhook subscription ended errors
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_MEMBER_LOOKUP_FAILED:
+    "stripe_webhook_subscription_ended_member_lookup_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_MEMBER_NOT_FOUND:
+    "stripe_webhook_subscription_ended_member_not_found",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_DEACTIVATION_FAILED:
+    "stripe_webhook_subscription_ended_deactivation_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_DRAFT_PROFILE_FAILED:
+    "stripe_webhook_subscription_ended_draft_profile_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NEWSLETTER_FAILED:
+    "stripe_webhook_subscription_ended_newsletter_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NOTIFICATION_FAILED:
+    "stripe_webhook_subscription_ended_notification_failed",
+
+  // Stripe webhook subscription updated errors
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_MEMBER_LOOKUP_FAILED:
+    "stripe_webhook_subscription_updated_member_lookup_failed",
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_MEMBER_NOT_FOUND:
+    "stripe_webhook_subscription_updated_member_not_found",
+  STRIPE_WEBHOOK_SUBSCRIPTION_UPDATED_STATUS_UPDATE_FAILED:
+    "stripe_webhook_subscription_updated_status_update_failed",
+
   // Admin refund membership errors
   API_ADMIN_REFUND_MEMBERSHIP_FAILED: "api_admin_refund_membership_failed",
   API_ADMIN_REFUND_STRIPE_API_FAILED: "api_admin_refund_stripe_api_failed",
   API_ADMIN_REFUND_NO_STRIPE_DATA: "api_admin_refund_no_stripe_data",
+
+  // Admin clean slate delete errors
+  API_ADMIN_CLEAN_SLATE_FAILED: "api_admin_clean_slate_failed",
+  API_ADMIN_CLEAN_SLATE_STRIPE_CANCEL_FAILED:
+    "api_admin_clean_slate_stripe_cancel_failed",
+  API_ADMIN_CLEAN_SLATE_STRIPE_DELETE_FAILED:
+    "api_admin_clean_slate_stripe_delete_failed",
+  API_ADMIN_CLEAN_SLATE_NEWSLETTER_FAILED:
+    "api_admin_clean_slate_newsletter_failed",
+  API_ADMIN_CLEAN_SLATE_DELETE_PROFILE_FAILED:
+    "api_admin_clean_slate_delete_profile_failed",
+  API_ADMIN_CLEAN_SLATE_IMAGE_DELETE_FAILED:
+    "api_admin_clean_slate_image_delete_failed",
+  API_ADMIN_CLEAN_SLATE_NOTIFICATION_FAILED:
+    "api_admin_clean_slate_notification_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

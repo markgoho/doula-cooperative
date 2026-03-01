@@ -420,15 +420,15 @@ export type ActivateMembershipApiResponse = Static<
 >;
 
 /**
- * POST /api/admin/members/:memberId/membership/deactivate response - union of success and error.
+ * POST /api/admin/members/:memberId/membership/cancel response - union of success and error.
  */
-export const DeactivateMembershipApiResponseSchema = t.Union([
+export const CancelMembershipApiResponseSchema = t.Union([
   MemberSuccessResponseSchema,
   ErrorResponseSchema,
 ]);
 
-export type DeactivateMembershipApiResponse = Static<
-  typeof DeactivateMembershipApiResponseSchema
+export type CancelMembershipApiResponse = Static<
+  typeof CancelMembershipApiResponseSchema
 >;
 
 /**
@@ -527,3 +527,61 @@ export const RefundMembershipApiResponseSchema = t.Union([
 export type RefundMembershipApiResponse = Static<
   typeof RefundMembershipApiResponseSchema
 >;
+
+/**
+ * Clean slate delete result schema.
+ */
+export const CleanSlateResultSchema = t.Object({
+  success: t.Literal(true),
+  deletedUid: t.String({
+    description: "UID of the deleted user",
+  }),
+  subscriptionCanceled: t.Optional(
+    t.Boolean({
+      description: "Whether the Stripe subscription was canceled",
+    }),
+  ),
+  stripeCustomerDeleted: t.Optional(
+    t.Boolean({
+      description: "Whether the Stripe customer was deleted",
+    }),
+  ),
+  newsletterUnsubscribed: t.Optional(
+    t.Boolean({
+      description: "Whether the member was unsubscribed from newsletter",
+    }),
+  ),
+  profileDeleted: t.Optional(
+    t.Boolean({
+      description: "Whether the Hugo profile was deleted from GitHub",
+    }),
+  ),
+  profileImageDeleted: t.Optional(
+    t.Boolean({
+      description: "Whether the profile image was deleted from ImageKit",
+    }),
+  ),
+  memberDocumentDeleted: t.Boolean({
+    description: "Whether the Firestore member document was deleted",
+  }),
+  authUserDeleted: t.Boolean({
+    description: "Whether the Firebase Auth user was deleted",
+  }),
+  warning: t.Optional(
+    t.String({
+      description: "Warning message for non-critical failures",
+    }),
+  ),
+});
+
+export type CleanSlateResultResponse = Static<typeof CleanSlateResultSchema>;
+
+/**
+ * POST /api/admin/members/:memberId/clean-slate response - union of success and error.
+ */
+export const CleanSlateApiResponseSchema = t.Union([
+  CleanSlateResultSchema,
+  ErrorResponseSchema,
+]);
+
+export type CleanSlateApiResponse = Static<typeof CleanSlateApiResponseSchema>;

@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -171,7 +172,7 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
   });
 
-  it('should display Deactivate button for active members', async () => {
+  it('should display Cancel Membership button for active members', async () => {
     // Arrange
     const member = createMockMember({ membershipActive: true });
 
@@ -179,7 +180,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    expect(await screen.findByRole('button', { name: 'Deactivate Membership' })).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Cancel Membership' })).toBeVisible();
   });
 
   it('should show warning for Stripe-managed subscriptions', async () => {
@@ -382,6 +383,92 @@ describe('AdminUserDetail', () => {
       ),
     ).toBeVisible();
   });
+
+  it('should display clean slate delete button for non-admin users', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+
+    // Act
+    await setup({ member });
+
+    // Assert
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+    expect(screen.getByText('Clean Slate Delete', { selector: 'h3' })).toBeVisible();
+  });
+
+  it('should hide clean slate delete button for admin users', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: true });
+
+    // Act
+    await setup({ member });
+
+    // Assert
+    expect(await screen.findByText('Admin Account')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Clean Slate Delete' })).toBeNull();
+  });
+
+  it('should show confirmation dialog when clicking clean slate delete', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user } = await setup({ member });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Assert
+    expect(screen.getByText(/This will completely remove the user from ALL systems/)).toBeVisible();
+  });
+
+  it('should show error message when clean slate delete fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user } = await setup({ member, shouldFailCleanSlate: true });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Click confirm in dialog — use getAllByRole since button text matches both the page button and dialog button
+    const cleanSlateButtons = screen.getAllByRole('button', { name: 'Clean Slate Delete' });
+    const dialogConfirmButton = cleanSlateButtons.at(-1)!;
+    await user.click(dialogConfirmButton);
+
+    // Assert
+    expect(await screen.findByText('Failed to perform clean slate delete.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should navigate to members list after successful clean slate delete', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user, mockRouter } = await setup({ member });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Click confirm in dialog
+    const cleanSlateButtons = screen.getAllByRole('button', { name: 'Clean Slate Delete' });
+    const dialogConfirmButton = cleanSlateButtons.at(-1)!;
+    await user.click(dialogConfirmButton);
+
+    // Assert
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin/members']);
+  });
 });
 
 interface SetupOptions {
@@ -389,8 +476,9 @@ interface SetupOptions {
   member?: Member;
   shouldFailLoad?: boolean;
   shouldFailActivate?: boolean;
-  shouldFailDeactivate?: boolean;
+  shouldFailCancel?: boolean;
   shouldFailDelete?: boolean;
+  shouldFailCleanSlate?: boolean;
   shouldKeepLoading?: boolean;
   errorMessage?: string;
 }
@@ -400,8 +488,9 @@ async function setup({
   member,
   shouldFailLoad = false,
   shouldFailActivate = false,
-  shouldFailDeactivate = false,
+  shouldFailCancel = false,
   shouldFailDelete = false,
+  shouldFailCleanSlate = false,
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
 }: SetupOptions = {}) {
@@ -428,12 +517,20 @@ async function setup({
     activateMembership: shouldFailActivate
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
-    deactivateMembership: shouldFailDeactivate
+    cancelMembership: shouldFailCancel
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
     deleteUser: shouldFailDelete
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
+    cleanSlateDelete: shouldFailCleanSlate
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({
+          success: true,
+          deletedUid: uid,
+          memberDocumentDeleted: true,
+          authUserDeleted: true,
+        }),
     readMemberProfile: vi.fn().mockResolvedValue({
       title: 'Test Doula',
       bio: 'Mock profile content',
@@ -445,9 +542,14 @@ async function setup({
     }),
   };
 
+  const mockRouter = {
+    navigate: vi.fn().mockResolvedValue(true),
+  };
+
   const component = await render(AdminMemberDetail, {
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
+      { provide: Router, useValue: mockRouter },
       AdminMemberDetailService, // Provide real service, it will use mocked AdminMembersService
     ],
     inputs: { uid },
@@ -461,6 +563,7 @@ async function setup({
     component,
     resolveMemberPromise: resolveMemberPromise!,
     mockAdminMembersService,
+    mockRouter,
   };
 }
 

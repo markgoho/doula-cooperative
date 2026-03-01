@@ -6,11 +6,11 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
- * Tests for POST /:memberId/membership/deactivate.
+ * Tests for POST /:memberId/membership/cancel.
  *
  * Uses createAdminTestPlugin() factory with mocked services.
  */
-describe("POST /:memberId/membership/deactivate", () => {
+describe("POST /:memberId/membership/cancel", () => {
   interface SetupOptions {
     // Request parameters
     memberId?: string;
@@ -18,18 +18,36 @@ describe("POST /:memberId/membership/deactivate", () => {
 
     // Scenario flags
     memberNotFound?: boolean;
+    hasStripeData?: boolean;
+    stripeCancelFails?: boolean;
   }
 
   function setup({
     memberId = "test-id",
     authToken = "admin-token",
     memberNotFound = false,
+    hasStripeData = false,
+    stripeCancelFails = false,
   }: SetupOptions = {}) {
     // Configure mock based on scenario
-    const mockDeactivateMembership = mock(
+    const mockCancelMembership = mock(
       (id: string): Promise<MemberDocument> => {
         if (memberNotFound || id === "non-existent-id") {
           return Promise.reject(new NotFoundError("Member not found"));
+        }
+        if (stripeCancelFails) {
+          return Promise.reject(new Error("Stripe API error"));
+        }
+        if (hasStripeData) {
+          return Promise.resolve({
+            uid: id,
+            email: "test@example.com",
+            createdAt: Timestamp.now(),
+            membershipActive: true,
+            stripeCustomerId: "cus_123",
+            stripeSubscriptionId: "sub_456",
+            subscriptionStatus: "canceled",
+          });
         }
         return Promise.resolve({
           uid: id,
@@ -42,7 +60,7 @@ describe("POST /:memberId/membership/deactivate", () => {
 
     const testApp = createAdminTestPlugin({
       memberAdminService: {
-        deactivateMembership: mockDeactivateMembership,
+        cancelMembership: mockCancelMembership,
       },
     });
 
@@ -55,7 +73,7 @@ describe("POST /:memberId/membership/deactivate", () => {
     }
 
     const request = new Request(
-      `http://localhost/${memberId}/membership/deactivate`,
+      `http://localhost/${memberId}/membership/cancel`,
       {
         method: "POST",
         headers,
@@ -74,7 +92,7 @@ describe("POST /:memberId/membership/deactivate", () => {
       expect(response.status).toBe(401);
     });
 
-    it("should return 403 when non-admin tries to deactivate", async () => {
+    it("should return 403 when non-admin tries to cancel", async () => {
       const { testApp, request } = setup({ authToken: "non-admin-token" });
 
       const response = await handleRequest(testApp, request);
@@ -83,8 +101,8 @@ describe("POST /:memberId/membership/deactivate", () => {
     });
   });
 
-  describe("Successful deactivation", () => {
-    it("should deactivate membership successfully", async () => {
+  describe("Successful cancellation (legacy member without Stripe)", () => {
+    it("should cancel membership successfully for legacy member", async () => {
       const { testApp, request } = setup();
 
       const response = await handleRequest(testApp, request);
@@ -99,6 +117,26 @@ describe("POST /:memberId/membership/deactivate", () => {
     });
   });
 
+  describe("Successful cancellation (Stripe member)", () => {
+    it("should cancel membership with Stripe subscription at period end", async () => {
+      const { testApp, request } = setup({ hasStripeData: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        member?: {
+          membershipActive?: boolean;
+          subscriptionStatus?: string;
+        };
+      };
+      expect(body.success).toBe(true);
+      expect(body.member?.membershipActive).toBe(true);
+      expect(body.member?.subscriptionStatus).toBe("canceled");
+    });
+  });
+
   describe("Error handling", () => {
     it("should return 404 for non-existent member", async () => {
       const { testApp, request } = setup({ memberId: "non-existent-id" });
@@ -106,6 +144,17 @@ describe("POST /:memberId/membership/deactivate", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(404);
+    });
+
+    it("should return 500 when Stripe cancellation fails", async () => {
+      const { testApp, request } = setup({
+        hasStripeData: true,
+        stripeCancelFails: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
     });
   });
 });
