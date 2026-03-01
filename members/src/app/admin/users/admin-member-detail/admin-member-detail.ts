@@ -13,7 +13,7 @@ import type { Member } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'deactivate' | 'delete' | 'refund' | 'cleanSlate';
+type ConfirmAction = 'activate' | 'cancel' | 'delete' | 'refund' | 'cleanSlate';
 
 interface DialogConfig {
   title: string;
@@ -78,12 +78,13 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
-  protected showDeactivateConfirm(): void {
-    this.pendingAction.set('deactivate');
+  protected showCancelConfirm(): void {
+    this.pendingAction.set('cancel');
     this.dialogConfig.set({
-      title: 'Confirm Deactivation',
-      message: 'Are you sure you want to deactivate this membership?',
-      confirmText: 'Deactivate',
+      title: 'Confirm Cancellation',
+      message:
+        'This will cancel the Stripe subscription at the end of the current billing period. The member will remain active until their membership expires. For legacy members without Stripe, membership will be deactivated immediately.',
+      confirmText: 'Cancel Membership',
       variant: 'danger',
     });
     this.confirmDialog()?.showModal();
@@ -139,8 +140,8 @@ export class AdminMemberDetail {
           await this.service.activateMembership(this.uid());
           break;
         }
-        case 'deactivate': {
-          await this.service.deactivateMembership(this.uid());
+        case 'cancel': {
+          await this.service.cancelMembership(this.uid());
           break;
         }
         case 'delete': {

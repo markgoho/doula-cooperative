@@ -323,6 +323,57 @@ export class MembershipService {
   }
 
   /**
+   * Cancel the current user's membership.
+   * Schedules Stripe subscription cancellation at end of billing period.
+   * @throws Error with user-friendly message
+   */
+  async cancelMembership(): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to cancel your membership.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post<{ success: boolean; member: ApiMemberResponse }>(
+          `/api/members/${uid}/membership/cancel`,
+          {},
+        ),
+      );
+      // Trigger reload of user document to reflect changes
+      this.reloadUserDocument();
+    } catch (error: unknown) {
+      console.error('Failed to cancel membership:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 400: {
+            throw new Error(
+              'Unable to cancel membership online. Please contact support for assistance.',
+            );
+          }
+          case 401: {
+            throw new Error('You must be signed in to cancel your membership.');
+          }
+          case 403: {
+            throw new Error('You do not have permission to cancel this membership.');
+          }
+          case 404: {
+            throw new Error('Member account not found. Please contact support.');
+          }
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
+      throw new Error('Unable to cancel membership. Please try again or contact support.');
+    }
+  }
+
+  /**
    * Trigger a reload of the user document from the API
    */
   reloadUserDocument(): void {

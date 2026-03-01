@@ -69,13 +69,17 @@ export interface MemberAdminService {
   ): Promise<MemberDocument>;
 
   /**
-   * Deactivate a membership.
+   * Cancel a membership.
+   *
+   * For Stripe members: schedules subscription cancellation at end of billing period.
+   * For legacy members: deactivates immediately.
    *
    * @param memberId - The Firestore document ID
    * @returns Promise resolving to updated member document
    * @throws NotFoundError if member does not exist
+   * @throws Error if Stripe cancellation fails
    */
-  deactivateMembership(memberId: string): Promise<MemberDocument>;
+  cancelMembership(memberId: string): Promise<MemberDocument>;
 
   /**
    * Extend a membership expiration date.

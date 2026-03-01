@@ -420,15 +420,15 @@ export type ActivateMembershipApiResponse = Static<
 >;
 
 /**
- * POST /api/admin/members/:memberId/membership/deactivate response - union of success and error.
+ * POST /api/admin/members/:memberId/membership/cancel response - union of success and error.
  */
-export const DeactivateMembershipApiResponseSchema = t.Union([
+export const CancelMembershipApiResponseSchema = t.Union([
   MemberSuccessResponseSchema,
   ErrorResponseSchema,
 ]);
 
-export type DeactivateMembershipApiResponse = Static<
-  typeof DeactivateMembershipApiResponseSchema
+export type CancelMembershipApiResponse = Static<
+  typeof CancelMembershipApiResponseSchema
 >;
 
 /**

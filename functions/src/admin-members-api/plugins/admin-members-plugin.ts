@@ -7,8 +7,8 @@ import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   activateMembershipLogic,
+  cancelMembershipLogic,
   cleanSlateDeleteLogic,
-  deactivateMembershipLogic,
   deleteUserLogic,
   extendMembershipLogic,
   getMemberLogic,
@@ -20,8 +20,8 @@ import {
 import {
   ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
+  CancelMembershipApiResponseSchema,
   CleanSlateApiResponseSchema,
-  DeactivateMembershipApiResponseSchema,
   DeleteUserApiResponseSchema,
   ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
@@ -201,9 +201,9 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   response: ActivateMembershipApiResponseSchema,
                 },
               )
-              // POST /:memberId/membership/deactivate (served at /api/admin/members/:memberId/membership/deactivate)
+              // POST /:memberId/membership/cancel (served at /api/admin/members/:memberId/membership/cancel)
               .post(
-                "/deactivate",
+                "/cancel",
                 async ({
                   params,
                   adminToken,
@@ -211,7 +211,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   logger,
                   set,
                 }) =>
-                  deactivateMembershipLogic({
+                  cancelMembershipLogic({
                     memberId: params.memberId,
                     adminUid: getAdminUid(adminToken, logger),
                     memberAdminService,
@@ -219,7 +219,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                     set,
                   }),
                 {
-                  response: DeactivateMembershipApiResponseSchema,
+                  response: CancelMembershipApiResponseSchema,
                 },
               )
               // POST /:memberId/membership/extend (served at /api/admin/members/:memberId/membership/extend)

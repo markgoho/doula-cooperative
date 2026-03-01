@@ -144,7 +144,7 @@ export async function cleanSlateDelete({
   // Step 2c: Block deletion of members with active subscriptions
   if (member.membershipActive === true) {
     throw new ValidationError(
-      "Cannot clean slate delete a member with an active subscription. Refund or deactivate the membership first.",
+      "Cannot clean slate delete a member with an active subscription. Refund or cancel the membership first.",
     );
   }
 

@@ -209,6 +209,33 @@
                 <dd>{{ expiresDate | date: 'MMMM d, yyyy' }}</dd>
               }
             </dl>
+
+            @if (isCanceled()) {
+              <p class="cancel-notice" role="status">
+                Membership cancellation scheduled. You will remain an active member until your
+                current billing period ends.
+              </p>
+            }
+
+            @if (canCancelMembership()) {
+              <div class="cancel-section">
+                <button
+                  type="button"
+                  class="button button--danger"
+                  (click)="showCancelConfirm()"
+                  [disabled]="cancelInProgress()"
+                >
+                  @if (cancelInProgress()) {
+                    Canceling...
+                  } @else {
+                    Cancel Membership
+                  }
+                </button>
+                @if (cancelError(); as error) {
+                  <p class="error-message">{{ error }}</p>
+                }
+              </div>
+            }
           </section>
         }
 
@@ -242,4 +269,14 @@
       </button>
     </div>
   </div>
+
+  <app-confirm-dialog
+    title="Cancel Membership"
+    message="Are you sure you want to cancel your membership? You will remain an active member until your current billing period ends. Your profile will be hidden and you will not be charged again."
+    confirmButtonText="Cancel Membership"
+    confirmButtonVariant="danger"
+    [disabled]="cancelInProgress()"
+    (confirmed)="onConfirmCancel()"
+    (cancelled)="onCancelDialog()"
+  />
 }

@@ -13,6 +13,9 @@ import {
  */
 export type MemberOperation =
   | "activate membership"
+  | "cancel membership (Stripe)"
+  | "cancel membership (legacy)"
+  | "cancel membership (self-service)"
   | "deactivate membership"
   | "extend membership"
   | "refund membership"

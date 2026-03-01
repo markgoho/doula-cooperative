@@ -1,6 +1,6 @@
 import { activateMembership } from "./activate-membership.js";
+import { cancelMembership } from "./cancel-membership.js";
 import { cleanSlateDelete } from "./clean-slate-delete.js";
-import { deactivateMembership } from "./deactivate-membership.js";
 import { deleteUser } from "./delete-user.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
@@ -19,7 +19,7 @@ export const MemberAdminService = {
   listMembers,
   updateMember,
   activateMembership,
-  deactivateMembership,
+  cancelMembership,
   extendMembership,
   deleteUser,
   updateClaims,
@@ -30,8 +30,8 @@ export const MemberAdminService = {
 
 // Re-export individual functions for direct imports
 export { activateMembership } from "./activate-membership.js";
+export { cancelMembership } from "./cancel-membership.js";
 export { cleanSlateDelete } from "./clean-slate-delete.js";
-export { deactivateMembership } from "./deactivate-membership.js";
 export { deleteUser } from "./delete-user.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";

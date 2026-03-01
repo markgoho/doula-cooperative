@@ -6,16 +6,18 @@ import {
   inject,
   resource,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
+import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
 import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, ConfirmDialog],
   templateUrl: './membership.html',
   styleUrl: './membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -114,6 +116,26 @@ export class Membership {
     const userDocument = this.userDocument();
     return userDocument?.subscriptionStatus === 'refunded';
   });
+
+  protected isCanceled = computed(() => {
+    const userDocument = this.userDocument();
+    return userDocument?.subscriptionStatus === 'canceled';
+  });
+
+  protected canCancelMembership = computed(() => {
+    const userDocument = this.userDocument();
+    return (
+      userDocument?.membershipActive &&
+      userDocument?.stripeCustomerId !== undefined &&
+      userDocument?.subscriptionStatus !== 'canceled' &&
+      userDocument?.subscriptionStatus !== 'refunded'
+    );
+  });
+
+  protected cancelInProgress = signal(false);
+  protected cancelError = signal<string | undefined>(undefined);
+
+  protected confirmDialog = viewChild(ConfirmDialog);
 
   // Hide newsletter preferences when there's a claimable profile (will be updated on claim)
   protected hasClaimableProfile = computed(() => {
@@ -229,6 +251,31 @@ export class Membership {
       this.nameUpdateError.set(errorMessage);
     } finally {
       this.nameUpdateInProgress.set(false);
+    }
+  }
+
+  protected showCancelConfirm(): void {
+    this.confirmDialog()?.showModal();
+  }
+
+  protected onCancelDialog(): void {
+    this.confirmDialog()?.close();
+  }
+
+  protected async onConfirmCancel(): Promise<void> {
+    this.cancelInProgress.set(true);
+    this.cancelError.set(undefined);
+
+    try {
+      await this.membershipService.cancelMembership();
+      this.confirmDialog()?.close();
+    } catch (error) {
+      console.error('Error canceling membership:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to cancel membership. Please try again.';
+      this.cancelError.set(errorMessage);
+    } finally {
+      this.cancelInProgress.set(false);
     }
   }
 

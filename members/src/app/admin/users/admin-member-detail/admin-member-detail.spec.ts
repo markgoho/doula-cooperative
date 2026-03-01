@@ -171,7 +171,7 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByRole('button', { name: 'Activate Membership' })).toBeVisible();
   });
 
-  it('should display Deactivate button for active members', async () => {
+  it('should display Cancel Membership button for active members', async () => {
     // Arrange
     const member = createMockMember({ membershipActive: true });
 
@@ -179,7 +179,7 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     // Assert
-    expect(await screen.findByRole('button', { name: 'Deactivate Membership' })).toBeVisible();
+    expect(await screen.findByRole('button', { name: 'Cancel Membership' })).toBeVisible();
   });
 
   it('should show warning for Stripe-managed subscriptions', async () => {
@@ -455,7 +455,7 @@ interface SetupOptions {
   member?: Member;
   shouldFailLoad?: boolean;
   shouldFailActivate?: boolean;
-  shouldFailDeactivate?: boolean;
+  shouldFailCancel?: boolean;
   shouldFailDelete?: boolean;
   shouldFailCleanSlate?: boolean;
   shouldKeepLoading?: boolean;
@@ -467,7 +467,7 @@ async function setup({
   member,
   shouldFailLoad = false,
   shouldFailActivate = false,
-  shouldFailDeactivate = false,
+  shouldFailCancel = false,
   shouldFailDelete = false,
   shouldFailCleanSlate = false,
   shouldKeepLoading = false,
@@ -496,7 +496,7 @@ async function setup({
     activateMembership: shouldFailActivate
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
-    deactivateMembership: shouldFailDeactivate
+    cancelMembership: shouldFailCancel
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
     deleteUser: shouldFailDelete
