@@ -116,6 +116,21 @@ describe("handleStripeWebhookApi", () => {
                 refundActions: { memberDeactivated: true },
               }),
             ),
+            processSubscriptionEnded: mock(() =>
+              Promise.resolve({
+                memberId: "test-member",
+                memberFound: true,
+                memberDeactivated: true,
+              }),
+            ),
+            processSubscriptionUpdated: mock(() =>
+              Promise.resolve({
+                memberId: "test-member",
+                memberFound: true,
+                statusUpdated: true,
+                newStatus: "active" as const,
+              }),
+            ),
           },
           logger: mockLogger,
         },
