@@ -28,7 +28,7 @@ paths: members/e2e/pages/*.page.ts
 
 ```typescript
 // ✅ GOOD - User-facing selectors
-await page.getByRole("button", { name: "Delete User" }).click();
+await page.getByRole("button", { name: "Clean Slate Delete" }).click();
 await expect(page.getByRole("alert")).toContainText("Error");
 await page.getByLabel("Email").fill("user@example.com");
 
@@ -43,7 +43,7 @@ await page.locator('[data-testid="email-input"]').fill("user@example.com");
 **Use page objects for**:
 
 - Locators that are reused across multiple tests
-- Convenience methods that encapsulate multi-step workflows (e.g., `deleteUser()`, `login()`, `fillForm()`)
+- Convenience methods that encapsulate multi-step workflows (e.g., `cleanSlateDelete()`, `login()`, `fillForm()`)
 - Navigation methods (e.g., `goto()`, `waitForPageLoad()`)
 
 **Use ad-hoc selectors directly in tests for**:
@@ -57,25 +57,27 @@ await page.locator('[data-testid="email-input"]').fill("user@example.com");
 ```typescript
 // ✅ GOOD - Reused locator in page object
 class AdminPage {
-  readonly deleteButton = page.getByRole("button", { name: "Delete" });
+  readonly cleanSlateDeleteButton = page.getByRole("button", {
+    name: "Clean Slate Delete",
+  });
 
-  async deleteUser() {
-    await this.deleteButton.click();
+  async cleanSlateDelete() {
+    await this.cleanSlateDeleteButton.click();
     await this.confirmDialog.getByRole("button", { name: "Confirm" }).click();
   }
 }
 
-test("deletes user", async ({ page }) => {
+test("performs clean slate delete", async ({ page }) => {
   const adminPage = new AdminPage(page);
-  await adminPage.deleteUser(); // Convenience method
+  await adminPage.cleanSlateDelete(); // Convenience method
 
   // ✅ GOOD - One-off assertion directly in test
-  await expect(page.getByText("User deleted successfully")).toBeVisible();
+  await expect(page.getByText("User completely removed")).toBeVisible();
 });
 
 // ❌ BAD - Don't add one-off locators to page object
 class AdminPage {
-  readonly successMessage = page.getByText("User deleted successfully"); // Only used once
+  readonly successMessage = page.getByText("User completely removed"); // Only used once
 }
 ```
 
