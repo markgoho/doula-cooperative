@@ -151,23 +151,6 @@
     <section class="subscription-card danger-zone">
       <h2>Danger Zone</h2>
       <div class="actions">
-        <h3>Delete User</h3>
-        <p class="warning">
-          ⚠️ <strong>Warning:</strong> This action is irreversible. Deleting this user will
-          permanently remove their account and all associated data.
-        </p>
-        <div class="action-buttons">
-          <button
-            type="button"
-            class="button button--danger"
-            (click)="showDeleteConfirm()"
-            [disabled]="service.actionInProgress()"
-          >
-            {{ service.actionInProgress() ? 'Processing...' : 'Delete User Account' }}
-          </button>
-        </div>
-      </div>
-      <div class="actions">
         <h3>Clean Slate Delete</h3>
         <p class="warning">
           ⚠️ <strong>Warning:</strong> This removes the user from ALL systems: Stripe customer,

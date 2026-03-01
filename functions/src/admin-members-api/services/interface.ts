@@ -96,17 +96,6 @@ export interface MemberAdminService {
   ): Promise<MemberDocument>;
 
   /**
-   * Delete a user's Auth account and trigger member document cleanup.
-   *
-   * @param memberId - The Firestore document ID / Auth UID
-   * @param requestingAdminUid - The UID of the admin making the request
-   * @returns Promise resolving when deletion is complete
-   * @throws NotFoundError if user does not exist
-   * @throws ForbiddenError if trying to delete self or another admin
-   */
-  deleteUser(memberId: string, requestingAdminUid: string): Promise<void>;
-
-  /**
    * Update custom claims for a user.
    * Claims are merged with existing claims. Set a claim to false to remove it.
    *

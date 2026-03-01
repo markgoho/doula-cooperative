@@ -533,7 +533,7 @@ protected closeDialog(): void {
 
 ```typescript
 // Open dialog
-await page.deleteButton.click();
+await page.cleanSlateDeleteButton.click();
 
 // Verify dialog is visible
 const dialog = page.locator('dialog[open]');

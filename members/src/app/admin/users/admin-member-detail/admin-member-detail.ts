@@ -13,7 +13,7 @@ import type { Member } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'cancel' | 'delete' | 'refund' | 'cleanSlate';
+type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate';
 
 interface DialogConfig {
   title: string;
@@ -90,18 +90,6 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
-  protected showDeleteConfirm(): void {
-    this.pendingAction.set('delete');
-    this.dialogConfig.set({
-      title: 'Confirm Deletion',
-      message:
-        'Are you sure you want to permanently delete this user account? This action cannot be undone.',
-      confirmText: 'Delete',
-      variant: 'danger',
-    });
-    this.confirmDialog()?.showModal();
-  }
-
   protected showRefundConfirm(): void {
     this.pendingAction.set('refund');
     this.dialogConfig.set({
@@ -144,10 +132,6 @@ export class AdminMemberDetail {
           await this.service.cancelMembership(this.uid());
           break;
         }
-        case 'delete': {
-          await this.deleteUser();
-          break;
-        }
         case 'refund': {
           await this.service.refundMembership(this.uid());
           break;
@@ -166,15 +150,6 @@ export class AdminMemberDetail {
   protected loadProfile(): void {
     if (this.service.memberResource.hasValue()) {
       this.service.loadProfile(this.service.memberResource.value() as Member);
-    }
-  }
-
-  private async deleteUser(): Promise<void> {
-    await this.service.deleteUser(this.uid());
-
-    // Navigate back to members list after successful deletion
-    if (this.service.successMessage()) {
-      await this.router.navigate(['/admin/members']);
     }
   }
 

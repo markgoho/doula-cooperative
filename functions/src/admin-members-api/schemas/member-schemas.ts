@@ -251,18 +251,6 @@ export const MemberSuccessResponseSchema = t.Object({
 export type MemberSuccessResponse = Static<typeof MemberSuccessResponseSchema>;
 
 /**
- * Delete user success response.
- */
-export const DeleteUserResponseSchema = t.Object({
-  success: t.Literal(true),
-  deletedUid: t.String({
-    description: "UID of the deleted user",
-  }),
-});
-
-export type DeleteUserResponse = Static<typeof DeleteUserResponseSchema>;
-
-/**
  * Reusable schema for memberId path parameter.
  */
 export const MemberIdParameterSchema = t.Object({
@@ -396,16 +384,6 @@ export const UpdateMemberApiResponseSchema = t.Union([
 export type UpdateMemberApiResponse = Static<
   typeof UpdateMemberApiResponseSchema
 >;
-
-/**
- * DELETE /api/admin/members/:memberId response - union of success and error.
- */
-export const DeleteUserApiResponseSchema = t.Union([
-  DeleteUserResponseSchema,
-  ErrorResponseSchema,
-]);
-
-export type DeleteUserApiResponse = Static<typeof DeleteUserApiResponseSchema>;
 
 /**
  * POST /api/admin/members/:memberId/membership/activate response - union of success and error.

@@ -9,7 +9,6 @@ import {
   activateMembershipLogic,
   cancelMembershipLogic,
   cleanSlateDeleteLogic,
-  deleteUserLogic,
   extendMembershipLogic,
   getMemberLogic,
   listMembersLogic,
@@ -22,7 +21,6 @@ import {
   ActivateMembershipBodySchema,
   CancelMembershipApiResponseSchema,
   CleanSlateApiResponseSchema,
-  DeleteUserApiResponseSchema,
   ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
   GetMemberApiResponseSchema,
@@ -122,21 +120,6 @@ export function createAdminMembersPlugin(services?: PartialServices) {
             {
               body: UpdateMemberBodySchema,
               response: UpdateMemberApiResponseSchema,
-            },
-          )
-          // DELETE /:memberId - Delete user (served at /api/admin/members/:memberId)
-          .delete(
-            "/",
-            async ({ params, adminToken, memberAdminService, logger, set }) =>
-              deleteUserLogic({
-                memberId: params.memberId,
-                adminUid: getAdminUid(adminToken, logger),
-                memberAdminService,
-                logger,
-                set,
-              }),
-            {
-              response: DeleteUserApiResponseSchema,
             },
           )
           // POST /:memberId/clean-slate - Clean slate delete (served at /api/admin/members/:memberId/clean-slate)

@@ -273,18 +273,6 @@ export const MemberSuccessResponseSchema = t.Object({
 export type MemberSuccessResponse = Static<typeof MemberSuccessResponseSchema>;
 
 /**
- * Delete user success response.
- */
-export const DeleteUserResponseSchema = t.Object({
-  success: t.Literal(true),
-  deletedUid: t.String({
-    description: "UID of the deleted user",
-  }),
-});
-
-export type DeleteUserResponse = Static<typeof DeleteUserResponseSchema>;
-
-/**
  * Reusable schema for memberId path parameter.
  */
 export const MemberIdParameterSchema = t.Object({
