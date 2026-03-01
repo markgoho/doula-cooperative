@@ -332,6 +332,21 @@ export const ERROR_IDS = {
   API_ADMIN_REFUND_MEMBERSHIP_FAILED: "api_admin_refund_membership_failed",
   API_ADMIN_REFUND_STRIPE_API_FAILED: "api_admin_refund_stripe_api_failed",
   API_ADMIN_REFUND_NO_STRIPE_DATA: "api_admin_refund_no_stripe_data",
+
+  // Admin clean slate delete errors
+  API_ADMIN_CLEAN_SLATE_FAILED: "api_admin_clean_slate_failed",
+  API_ADMIN_CLEAN_SLATE_STRIPE_CANCEL_FAILED:
+    "api_admin_clean_slate_stripe_cancel_failed",
+  API_ADMIN_CLEAN_SLATE_STRIPE_DELETE_FAILED:
+    "api_admin_clean_slate_stripe_delete_failed",
+  API_ADMIN_CLEAN_SLATE_NEWSLETTER_FAILED:
+    "api_admin_clean_slate_newsletter_failed",
+  API_ADMIN_CLEAN_SLATE_DELETE_PROFILE_FAILED:
+    "api_admin_clean_slate_delete_profile_failed",
+  API_ADMIN_CLEAN_SLATE_IMAGE_DELETE_FAILED:
+    "api_admin_clean_slate_image_delete_failed",
+  API_ADMIN_CLEAN_SLATE_NOTIFICATION_FAILED:
+    "api_admin_clean_slate_notification_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

@@ -63,6 +63,13 @@ export function createAdminTestPlugin(overrides?: {
         },
       }),
     ),
+    cleanSlateDelete: mock(() =>
+      Promise.resolve({
+        deletedUid: "test-member-id",
+        memberDocumentDeleted: true,
+        authUserDeleted: true,
+      }),
+    ),
     ...overrides?.memberAdminService,
   };
 

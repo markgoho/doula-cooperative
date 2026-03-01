@@ -382,6 +382,72 @@ describe('AdminUserDetail', () => {
       ),
     ).toBeVisible();
   });
+
+  it('should display clean slate delete button for non-admin users', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+
+    // Act
+    await setup({ member });
+
+    // Assert
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+    expect(screen.getByText('Clean Slate Delete', { selector: 'h3' })).toBeVisible();
+  });
+
+  it('should hide clean slate delete button for admin users', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: true });
+
+    // Act
+    await setup({ member });
+
+    // Assert
+    expect(await screen.findByText('Admin Account')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Clean Slate Delete' })).toBeNull();
+  });
+
+  it('should show confirmation dialog when clicking clean slate delete', async () => {
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user } = await setup({ member });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Assert
+    expect(screen.getByText(/This will completely remove the user from ALL systems/)).toBeVisible();
+  });
+
+  it('should show error message when clean slate delete fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
+    // Arrange
+    const member = createMockMember({ isAdmin: false });
+    const { user } = await setup({ member, shouldFailCleanSlate: true });
+
+    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+
+    // Act - Click clean slate delete button to open dialog
+    const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
+    await user.click(cleanSlateButton);
+
+    // Click confirm in dialog — use getAllByRole since button text matches both the page button and dialog button
+    const cleanSlateButtons = screen.getAllByRole('button', { name: 'Clean Slate Delete' });
+    const dialogConfirmButton = cleanSlateButtons.at(-1)!;
+    await user.click(dialogConfirmButton);
+
+    // Assert
+    expect(await screen.findByText('Failed to perform clean slate delete.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
 
 interface SetupOptions {
@@ -391,6 +457,7 @@ interface SetupOptions {
   shouldFailActivate?: boolean;
   shouldFailDeactivate?: boolean;
   shouldFailDelete?: boolean;
+  shouldFailCleanSlate?: boolean;
   shouldKeepLoading?: boolean;
   errorMessage?: string;
 }
@@ -402,6 +469,7 @@ async function setup({
   shouldFailActivate = false,
   shouldFailDeactivate = false,
   shouldFailDelete = false,
+  shouldFailCleanSlate = false,
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
 }: SetupOptions = {}) {
@@ -434,6 +502,14 @@ async function setup({
     deleteUser: shouldFailDelete
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({ success: true }),
+    cleanSlateDelete: shouldFailCleanSlate
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({
+          success: true,
+          deletedUid: uid,
+          memberDocumentDeleted: true,
+          authUserDeleted: true,
+        }),
     readMemberProfile: vi.fn().mockResolvedValue({
       title: 'Test Doula',
       bio: 'Mock profile content',

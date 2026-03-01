@@ -1,4 +1,5 @@
 export { activateMembershipLogic } from "./activate-membership.js";
+export { cleanSlateDeleteLogic } from "./clean-slate-delete.js";
 export { deactivateMembershipLogic } from "./deactivate-membership.js";
 export { deleteUserLogic } from "./delete-user.js";
 export { extendMembershipLogic } from "./extend-membership.js";

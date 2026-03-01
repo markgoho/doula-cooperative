@@ -7,6 +7,7 @@ import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   activateMembershipLogic,
+  cleanSlateDeleteLogic,
   deactivateMembershipLogic,
   deleteUserLogic,
   extendMembershipLogic,
@@ -19,6 +20,7 @@ import {
 import {
   ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
+  CleanSlateApiResponseSchema,
   DeactivateMembershipApiResponseSchema,
   DeleteUserApiResponseSchema,
   ExtendMembershipApiResponseSchema,
@@ -135,6 +137,29 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: DeleteUserApiResponseSchema,
+            },
+          )
+          // POST /:memberId/clean-slate - Clean slate delete (served at /api/admin/members/:memberId/clean-slate)
+          .post(
+            "/clean-slate",
+            async ({
+              params,
+              adminToken,
+              memberAdminService,
+              emailService,
+              logger,
+              set,
+            }) =>
+              cleanSlateDeleteLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                emailService,
+                logger,
+                set,
+              }),
+            {
+              response: CleanSlateApiResponseSchema,
             },
           )
           // Membership management routes under /:memberId/membership

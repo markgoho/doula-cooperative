@@ -148,4 +148,29 @@ export class AdminMemberDetailService {
       this.actionInProgress.set(false);
     }
   }
+
+  /**
+   * Clean slate delete: remove every trace of a user across all integrated systems
+   */
+  async cleanSlateDelete(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.cleanSlateDelete(uid);
+
+      const message = result.warning
+        ? `User completely removed. Warning: ${result.warning}`
+        : 'User completely removed from all systems';
+
+      this.successMessage.set(message);
+      this.actionInProgress.set(false);
+      // Note: Component should handle navigation after successful deletion
+    } catch (error) {
+      console.error('Error performing clean slate delete:', error);
+      this.actionError.set('Failed to perform clean slate delete.');
+      this.actionInProgress.set(false);
+    }
+  }
 }
