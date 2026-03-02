@@ -5,13 +5,13 @@ import {
   computed,
   input,
   type ResourceRef,
-  signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
 import type { ListUnclaimedProfilesResponse } from '../../admin.types';
+import { createTableSortState } from '../../../shared/create-table-sort-state';
+import { SortableHeader } from '../../../shared/sortable-header/sortable-header';
 
-type SortDirection = 'asc' | 'desc';
 type UnclaimedProfileSortColumn =
   | 'name'
   | 'email'
@@ -22,7 +22,7 @@ type UnclaimedProfileSortColumn =
 
 @Component({
   selector: 'app-unclaimed-profiles-table',
-  imports: [RouterLink, DatePipe, Tag],
+  imports: [RouterLink, DatePipe, Tag, SortableHeader],
   templateUrl: './unclaimed-profiles-table.html',
   styleUrl: '../admin-table-shared.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +30,16 @@ type UnclaimedProfileSortColumn =
 export class UnclaimedProfilesTable {
   profilesResource = input.required<ResourceRef<ListUnclaimedProfilesResponse | undefined>>();
 
-  protected sortColumn = signal<UnclaimedProfileSortColumn>('subscriptionStart');
-  protected sortDirection = signal<SortDirection>('desc');
+  protected sortState = createTableSortState<UnclaimedProfileSortColumn>({
+    defaultColumn: 'subscriptionStart',
+    defaultDirection: 'desc',
+  });
+  protected sortColumn = this.sortState.sortColumn;
+  protected sortDirection = this.sortState.sortDirection;
+
+  protected handleSort(column: string): void {
+    this.sortState.handleSort(column as UnclaimedProfileSortColumn);
+  }
 
   protected error = computed(() => {
     const error = this.profilesResource().error();
@@ -85,15 +93,4 @@ export class UnclaimedProfilesTable {
       return direction === 'asc' ? comparison : -comparison;
     });
   });
-
-  protected handleSort(column: UnclaimedProfileSortColumn): void {
-    if (this.sortColumn() === column) {
-      // Toggle direction if clicking the same column
-      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new column and default to ascending
-      this.sortColumn.set(column);
-      this.sortDirection.set('asc');
-    }
-  }
 }

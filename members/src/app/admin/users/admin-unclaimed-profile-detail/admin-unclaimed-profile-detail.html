@@ -3,11 +3,11 @@
 @let profileResource = service.unclaimedProfileResource;
 
 @if (service.successMessage(); as message) {
-  <div class="success-message" role="status">{{ message }}</div>
+  <app-alert-banner variant="success">{{ message }}</app-alert-banner>
 }
 
 @if (service.actionError(); as message) {
-  <div class="error" role="alert">{{ message }}</div>
+  <app-alert-banner variant="error">{{ message }}</app-alert-banner>
 }
 
 @if (profileResource.isLoading()) {
@@ -17,10 +17,10 @@
 } @else if (profileResource.value(); as profile) {
   <section class="user-info-card">
     <h2>Unclaimed Profile Information</h2>
-    <p class="info-notice">
+    <app-alert-banner variant="info">
       This profile has not yet been claimed by the member. They will need to create an account with
       this email address to claim it.
-    </p>
+    </app-alert-banner>
     <dl class="info-grid">
       <dt>Name:</dt>
       <dd>{{ profile.name }}</dd>
@@ -127,9 +127,9 @@
 
     <div class="actions">
       <h3>Invitation Actions</h3>
-      <p class="info-notice">
+      <app-alert-banner variant="info">
         Send an email invitation to this user to create an account and claim their membership.
-      </p>
+      </app-alert-banner>
 
       <div class="action-buttons">
         <button

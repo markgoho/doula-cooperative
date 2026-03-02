@@ -3,20 +3,20 @@ import {
   Component,
   computed,
   input,
-  signal,
   type ResourceRef,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
 import type { ListMessagesResponse } from '../../admin.types';
 import { getRelativeTime } from '../../match-requests/match-request.utilities';
+import { createTableSortState } from '../../../shared/create-table-sort-state';
+import { SortableHeader } from '../../../shared/sortable-header/sortable-header';
 
-type SortDirection = 'asc' | 'desc';
 type MessageSortColumn = 'name' | 'submitted';
 
 @Component({
   selector: 'app-messages-table',
-  imports: [RouterLink, Tag],
+  imports: [RouterLink, Tag, SortableHeader],
   templateUrl: './messages-table.html',
   styleUrl: './messages-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,8 +24,16 @@ type MessageSortColumn = 'name' | 'submitted';
 export class MessagesTable {
   messagesResource = input.required<ResourceRef<ListMessagesResponse | undefined>>();
 
-  protected sortColumn = signal<MessageSortColumn>('submitted');
-  protected sortDirection = signal<SortDirection>('desc');
+  protected sortState = createTableSortState<MessageSortColumn>({
+    defaultColumn: 'submitted',
+    defaultDirection: 'desc',
+  });
+  protected sortColumn = this.sortState.sortColumn;
+  protected sortDirection = this.sortState.sortDirection;
+
+  protected handleSort(column: string): void {
+    this.sortState.handleSort(column as MessageSortColumn);
+  }
 
   protected error = computed(() => {
     const error = this.messagesResource().error();
@@ -59,17 +67,6 @@ export class MessagesTable {
       return direction === 'asc' ? comparison : -comparison;
     });
   });
-
-  protected handleSort(column: MessageSortColumn): void {
-    if (this.sortColumn() === column) {
-      // Toggle direction if clicking the same column
-      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new column and default to ascending
-      this.sortColumn.set(column);
-      this.sortDirection.set('asc');
-    }
-  }
 
   protected getRelativeTime(dateString: string): string {
     return getRelativeTime(dateString);

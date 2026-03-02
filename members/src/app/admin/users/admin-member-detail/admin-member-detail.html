@@ -3,11 +3,11 @@
 @let memberResource = service.memberResource;
 
 @if (service.successMessage(); as message) {
-  <div class="success-message" role="status">{{ message }}</div>
+  <app-alert-banner variant="success">{{ message }}</app-alert-banner>
 }
 
 @if (service.actionError(); as message) {
-  <div class="error" role="alert">{{ message }}</div>
+  <app-alert-banner variant="error">{{ message }}</app-alert-banner>
 }
 
 @if (memberResource.isLoading()) {
@@ -140,7 +140,9 @@
               {{ service.actionInProgress() ? 'Processing...' : 'Refund Membership' }}
             </button>
           } @else {
-            <p class="info-notice">Refund window has expired (30 days from subscription start).</p>
+            <app-alert-banner variant="info"
+              >Refund window has expired (30 days from subscription start).</app-alert-banner
+            >
           }
         }
       </div>
@@ -189,10 +191,10 @@
   } @else {
     <section class="subscription-card">
       <h2>Admin Account</h2>
-      <p class="info-notice">
+      <app-alert-banner variant="info">
         This user has admin privileges. Admin accounts cannot be deleted. To delete this account,
         first remove their admin privileges.
-      </p>
+      </app-alert-banner>
     </section>
   }
 

@@ -19,32 +19,32 @@
   </div>
 } @else if (profile()) {
   @if (isMembershipInactive()) {
-    <div class="inactive-membership-banner" role="status">
+    <app-alert-banner variant="warning">
       <h2>Membership Inactive</h2>
       <p>
         Your membership is no longer active. Your profile is hidden from the public directory until
         your membership is reactivated.
       </p>
       <p>Visit the <a href="/membership">Membership page</a> to view your account details.</p>
-    </div>
+    </app-alert-banner>
   }
   @let profileData = profile();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->
     @if (successMessage()) {
-      <div class="form__success-message">
+      <app-alert-banner variant="success">
         <p>{{ successMessage() }}</p>
         <p class="message-note">
           You'll receive an email when your update is published to your public profile.
         </p>
-      </div>
+      </app-alert-banner>
     }
 
     <!-- Error Message -->
     @if (errorMessage()) {
-      <div class="form__error-message">
+      <app-alert-banner variant="error">
         {{ errorMessage() }}
-      </div>
+      </app-alert-banner>
     }
 
     <!-- Title Field -->

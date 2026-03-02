@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { AlertBanner } from '../shared/alert-banner/alert-banner';
 
 @Component({
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, AlertBanner],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

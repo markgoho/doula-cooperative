@@ -2,13 +2,13 @@
   <!-- Authenticated User View -->
   <div class="authenticated-view">
     @if (claimableProfileResource.error()) {
-      <div class="error-banner">
+      <app-alert-banner variant="error">
         <h3>Unable to Load Profile Information</h3>
         <p>
           We encountered an error while loading your profile information. Please try refreshing the
           page.
         </p>
-      </div>
+      </app-alert-banner>
     } @else {
       @let claimableProfileData = claimableProfileResource.value();
       @if (claimableProfileData; as profileData) {

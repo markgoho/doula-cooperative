@@ -3,6 +3,7 @@ import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angul
 import { Router } from '@angular/router';
 import { MembershipService } from '../services/membership.service';
 import { ProfileService } from '../services/profile.service';
+import { AlertBanner } from '../shared/alert-banner/alert-banner';
 import { createProfileFormGroup, PROFILE_TAGS } from '../shared/profile-form/profile-form-config';
 import {
   extractProfileData,
@@ -11,7 +12,7 @@ import {
 } from '../shared/profile-form/profile-form-utilities';
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AlertBanner],
   templateUrl: './create-profile.html',
   styleUrls: ['../shared/profile-form/profile-form-styles.scss', './create-profile.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

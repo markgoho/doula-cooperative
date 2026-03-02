@@ -33,16 +33,6 @@
       font-size: var(--step--2);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-
-      &.sortable {
-        cursor: pointer;
-        user-select: none;
-        transition: background 0.2s;
-
-        &:hover {
-          background: var(--brown-200);
-        }
-      }
     }
   }
 
@@ -111,11 +101,6 @@
   color: var(--brown-450);
   padding: var(--space-l);
   font-style: italic;
-}
-
-.sort-indicator {
-  margin-inline-start: var(--space-3xs);
-  color: var(--teal-500);
 }
 
 // View link (eye icon)

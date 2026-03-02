@@ -8,29 +8,37 @@
     <table class="members-table">
       <thead>
         <tr>
-          <th class="sortable" (click)="handleSort('name')">
+          <th
+            app-sortable-header="name"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Name
-            @if (sortColumn() === 'name') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable" (click)="handleSort('email')">
+          <th
+            app-sortable-header="email"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Email
-            @if (sortColumn() === 'email') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable" (click)="handleSort('membership')">
+          <th
+            app-sortable-header="membership"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Membership
-            @if (sortColumn() === 'membership') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable" (click)="handleSort('created')">
+          <th
+            app-sortable-header="created"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Created
-            @if (sortColumn() === 'created') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
           <th>Actions</th>
         </tr>

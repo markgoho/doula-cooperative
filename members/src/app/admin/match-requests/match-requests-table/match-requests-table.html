@@ -9,25 +9,31 @@
       <thead>
         <tr>
           <th>Status</th>
-          <th class="sortable" (click)="handleSort('name')">
+          <th
+            app-sortable-header="name"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Name
-            @if (sortColumn() === 'name') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
           <th>Contact</th>
-          <th class="sortable" (click)="handleSort('dueDate')">
+          <th
+            app-sortable-header="dueDate"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Due Date
-            @if (sortColumn() === 'dueDate') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
           <th>Services</th>
-          <th class="sortable" (click)="handleSort('submitted')">
+          <th
+            app-sortable-header="submitted"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Submitted
-            @if (sortColumn() === 'submitted') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
           <th>Actions</th>
         </tr>
