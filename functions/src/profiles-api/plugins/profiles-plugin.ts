@@ -37,9 +37,9 @@ import {
 } from "../schemas/profile-schemas.js";
 import { AuthUpdateService } from "../services/auth-update/index.js";
 import { ClaimProfileFirestoreService } from "../services/firestore/index.js";
-import { ProfileGitHubService } from "../services/github/index.js";
 import { ProfileMemberService } from "../services/member/index.js";
 import type { ProfileMemberService as ProfileMemberServiceType } from "../services/member/interface.js";
+import { ProfileStoreService } from "../services/profile-store/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -115,8 +115,8 @@ export function createProfilesPlugin(services?: PartialServices) {
   return (
     new Elysia({ name: "profiles" })
       .decorate(
-        SERVICE_KEYS.PROFILE_GITHUB_SERVICE,
-        services?.profileGitHubService ?? ProfileGitHubService,
+        SERVICE_KEYS.PROFILE_STORE_SERVICE,
+        services?.profileStoreService ?? ProfileStoreService,
       )
       .decorate(
         SERVICE_KEYS.PROFILE_MEMBER_SERVICE,
@@ -141,11 +141,10 @@ export function createProfilesPlugin(services?: PartialServices) {
       // GET /:slug - Read profile by slug (no auth)
       .get(
         "/:slug",
-        async ({ params, profileGitHubService, profileMemberService, logger, set }) =>
+        async ({ params, profileStoreService, logger, set }) =>
           readProfileBySlugLogic({
             slug: params.slug,
-            profileGitHubService,
-            profileMemberService,
+            profileStoreService,
             logger,
             set,
           }),
@@ -198,7 +197,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           params,
           body,
           userToken,
-          profileGitHubService,
+          profileStoreService,
           profileMemberService,
           logger,
           set,
@@ -213,7 +212,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           return writeProfileLogic({
             uid: getUserUid(userToken, logger),
             data: body,
-            profileGitHubService,
+            profileStoreService,
             profileMemberService,
             logger,
             set,
@@ -233,7 +232,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           params,
           body,
           userToken,
-          profileGitHubService,
+          profileStoreService,
           profileMemberService,
           emailService,
           logger,
@@ -249,7 +248,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           return createProfileLogic({
             uid: getUserUid(userToken, logger),
             data: body,
-            profileGitHubService,
+            profileStoreService,
             profileMemberService,
             emailService,
             logger,

@@ -12,8 +12,8 @@ import type {
   CreateProfileResponse,
   ProfileData,
 } from "../schemas/profile-schemas.js";
-import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
+import type { ProfileStoreService } from "../services/profile-store/interface.js";
 
 function createNewProfileNotificationHtml({
   memberName,
@@ -70,7 +70,7 @@ async function sendNewProfileNotification({
 export async function createProfileLogic({
   uid,
   data,
-  profileGitHubService,
+  profileStoreService,
   profileMemberService,
   emailService,
   logger,
@@ -78,7 +78,7 @@ export async function createProfileLogic({
 }: {
   uid: string;
   data: ProfileData;
-  profileGitHubService: ProfileGitHubService;
+  profileStoreService: ProfileStoreService;
   profileMemberService: ProfileMemberService;
   emailService: EmailServiceInterface;
   logger: Logger;
@@ -94,16 +94,17 @@ export async function createProfileLogic({
       );
     }
 
-    await profileGitHubService.createProfile({ slug, data });
+    await profileStoreService.createProfile({ slug, data, ownerUid: uid });
     await profileMemberService.setProfileCreatedAt(uid);
 
-    // Cache profile data in Firestore for instant reads.
-    // Non-critical: if this fails, the next read will lazily backfill from GitHub.
+    // Trigger Hugo rebuild (non-critical)
     try {
-      await profileMemberService.saveProfileContent(uid, data, slug);
+      const { triggerHugoRebuild } = await import(
+        "../services/profile-store/trigger-rebuild.js"
+      );
+      await triggerHugoRebuild({ slug, action: "created profile" });
     } catch (error: unknown) {
-      logger.error("Failed to cache profile in Firestore after create", {
-        errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      logger.error("Failed to trigger Hugo rebuild after create", {
         uid,
         slug,
         error,

@@ -5,7 +5,6 @@ import {
   type MemberDocument,
 } from "../../../collections/index.js";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { buildProfileImageUrl } from "../../../constants/imagekit.js";
 import {
   ConflictError,
   ForbiddenError,
@@ -13,7 +12,6 @@ import {
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
 import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
-import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type {
   ProfileMemberService as ProfileMemberServiceInterface,
   SetSlugResponse,
@@ -191,59 +189,6 @@ async function getMemberBySlug(
 }
 
 /**
- * Save profile content to the member document for instant reads.
- * Overwrites the image field with a deterministic ImageKit URL based on slug.
- */
-async function saveProfileContent(
-  uid: string,
-  data: ProfileData,
-  slug: string,
-): Promise<void> {
-  const profileWithImage: ProfileData = {
-    ...data,
-    image: buildProfileImageUrl(slug),
-  };
-
-  try {
-    await MemberFirestoreService.updateMember(uid, {
-      profile: profileWithImage,
-    });
-
-    logger.info("Saved profile content to Firestore", { uid, slug });
-  } catch (error) {
-    logger.error("Failed to save profile content to Firestore", {
-      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
-      uid,
-      slug,
-      error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-    });
-    throw error;
-  }
-}
-
-/**
- * Clear cached profile data from the member document.
- */
-async function clearProfileCache(uid: string): Promise<void> {
-  try {
-    await MemberFirestoreService.updateMember(uid, {
-      profile: FieldValue.delete(),
-    });
-
-    logger.info("Cleared profile cache from Firestore", { uid });
-  } catch (error) {
-    logger.error("Failed to clear profile cache from Firestore", {
-      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
-      uid,
-      error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-    });
-    throw error;
-  }
-}
-
-/**
  * Member service for profile-related operations.
  */
 export const ProfileMemberService: ProfileMemberServiceInterface = {
@@ -253,8 +198,6 @@ export const ProfileMemberService: ProfileMemberServiceInterface = {
   setSlug,
   setProfileCreatedAt,
   getMemberBySlug,
-  saveProfileContent,
-  clearProfileCache,
 };
 
 export type { SetSlugResponse, SlugAvailabilityResponse } from "./interface.js";

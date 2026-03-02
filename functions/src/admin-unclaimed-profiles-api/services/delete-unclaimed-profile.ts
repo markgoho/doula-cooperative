@@ -5,7 +5,8 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
-import { draftProfile } from "../../profiles-api/services/github/index.js";
+import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
+import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import {
   HttpError,
   NotFoundError,
@@ -252,6 +253,20 @@ export async function deleteUnclaimedProfile(options: {
         await draftProfile({ slug });
         logger.info("Set Hugo profile to draft", { email, slug });
         profileDrafted = true;
+
+        // NON-CRITICAL: Trigger Hugo rebuild after drafting
+        try {
+          await triggerHugoRebuild({ slug, action: "unclaimed profile deleted" });
+        } catch (rebuildError: unknown) {
+          const rebuildErrorMessage =
+            rebuildError instanceof Error ? rebuildError.message : "Unknown error";
+          logger.error("Failed to trigger Hugo rebuild after unclaimed profile draft", {
+            email,
+            slug,
+            error: rebuildError,
+            errorMessage: rebuildErrorMessage,
+          });
+        }
       } catch (draftError) {
         profileDrafted = false;
         const draftErrorMessage =

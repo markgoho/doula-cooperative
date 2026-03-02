@@ -1,61 +1,26 @@
-import type { MemberDocument } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import type { ProfileData } from "../schemas/profile-schemas.js";
 import type {
-  ProfileGitHubService,
+  ProfileStoreService,
   ReadProfileResponse,
-} from "../services/github/interface.js";
-import type { ProfileMemberService } from "../services/member/interface.js";
+} from "../services/profile-store/interface.js";
 
 export async function readProfileBySlugLogic({
   slug,
-  profileGitHubService,
-  profileMemberService,
+  profileStoreService,
   logger,
   set,
 }: {
   slug: string;
-  profileGitHubService: ProfileGitHubService;
-  profileMemberService: ProfileMemberService;
+  profileStoreService: ProfileStoreService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ReadProfileResponse | { error: string }> {
   try {
-    // Try reading from Firestore cache first (avoids GitHub API latency)
-    let member: MemberDocument | undefined;
-    try {
-      member = await profileMemberService.getMemberBySlug(slug);
-    } catch (error: unknown) {
-      logger.error("Firestore cache lookup failed, falling back to GitHub", {
-        errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
-        slug,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+    const profileData = await profileStoreService.readProfile({ slug });
 
-    if (member?.profile) {
-      logger.info("Read profile from Firestore cache", { slug });
-      return member.profile;
-    }
-
-    // Fallback: read from GitHub and lazily backfill Firestore
-    const profileData = await profileGitHubService.readProfile({ slug });
-
-    logger.info("Read profile from GitHub (Firestore cache miss)", { slug });
-
-    // Lazily write to Firestore for next time (non-critical)
-    if (member?.uid) {
-      lazyBackfillFirestore({
-        uid: member.uid,
-        data: profileData,
-        slug,
-        profileMemberService,
-        logger,
-      });
-    }
+    logger.info("Read profile from Firestore", { slug });
 
     return profileData;
   } catch (error: unknown) {
@@ -68,32 +33,4 @@ export async function readProfileBySlugLogic({
       context: { slug },
     });
   }
-}
-
-/**
- * Backfill Firestore with profile data from GitHub.
- * Fire-and-forget — does not block the response.
- */
-function lazyBackfillFirestore({
-  uid,
-  data,
-  slug,
-  profileMemberService,
-  logger,
-}: {
-  uid: string;
-  data: ProfileData;
-  slug: string;
-  profileMemberService: ProfileMemberService;
-  logger: Logger;
-}): void {
-  profileMemberService.saveProfileContent(uid, data, slug).catch((error: unknown) => {
-    logger.error("Failed to lazily backfill profile in Firestore", {
-      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
-      uid,
-      slug,
-      error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-    });
-  });
 }

@@ -5,7 +5,6 @@ import {
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
-import type { WriteProfileResponse } from "../services/github/interface.js";
 import type { CreateProfileSuccessResponse } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
@@ -42,9 +41,8 @@ describe("POST /:slug (create profile)", () => {
     membershipNotActive?: boolean;
     memberHasNoSlug?: boolean;
     profileAlreadyExists?: boolean;
-    githubError?: boolean;
+    storeError?: boolean;
     emailError?: boolean;
-    cacheWriteError?: boolean;
   }
 
   function setup({
@@ -55,9 +53,8 @@ describe("POST /:slug (create profile)", () => {
     membershipNotActive = false,
     memberHasNoSlug = false,
     profileAlreadyExists = false,
-    githubError = false,
+    storeError = false,
     emailError = false,
-    cacheWriteError = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario flags
     const mockVerifyMembership = mock(() => {
@@ -79,16 +76,16 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockCreateProfile = mock((): Promise<WriteProfileResponse> => {
+    const mockCreateProfile = mock(() => {
       if (profileAlreadyExists) {
         return Promise.reject(
           new ConflictError("Profile already exists for this slug."),
         );
       }
-      if (githubError) {
-        return Promise.reject(new Error("GitHub API rate limit exceeded"));
+      if (storeError) {
+        return Promise.reject(new Error("Firestore write failed"));
       }
-      return Promise.resolve({ success: true });
+      return Promise.resolve({ success: true as const });
     });
 
     const mockSendEmail = mock(() => {
@@ -98,19 +95,11 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve();
     });
 
-    const mockSaveProfileContent = mock(() => {
-      if (cacheWriteError) {
-        return Promise.reject(new Error("Firestore unavailable"));
-      }
-      return Promise.resolve();
-    });
-
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
-        saveProfileContent: mockSaveProfileContent,
       },
-      profileGitHubService: {
+      profileStoreService: {
         createProfile: mockCreateProfile,
       },
       emailService: {
@@ -258,8 +247,8 @@ describe("POST /:slug (create profile)", () => {
   });
 
   describe("Error handling", () => {
-    it("should return 500 when GitHub service throws unexpected error", async () => {
-      const { testApp, request } = setup({ githubError: true });
+    it("should return 500 when store service throws unexpected error", async () => {
+      const { testApp, request } = setup({ storeError: true });
 
       const response = await handleRequest(testApp, request);
 
@@ -267,21 +256,7 @@ describe("POST /:slug (create profile)", () => {
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
       // Should NOT expose internal error details
-      expect(body.error).not.toContain("rate limit");
-    });
-
-    it("should return 201 when Firestore cache write fails", async () => {
-      const { testApp, request } = setup({ cacheWriteError: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(201);
-      const body = (await response.json()) as {
-        success?: boolean;
-        profile?: Record<string, unknown>;
-      };
-      expect(body.success).toBe(true);
-      expect(body.profile).toBeDefined();
+      expect(body.error).not.toContain("Firestore write failed");
     });
   });
 

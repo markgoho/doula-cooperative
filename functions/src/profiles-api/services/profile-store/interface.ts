@@ -8,17 +8,21 @@ export interface WriteProfileResponse {
   success: true;
 }
 
-export interface ProfileGitHubService {
+export interface ProfileStoreService {
   readProfile(options: { slug: string }): Promise<ReadProfileResponse>;
 
   writeProfile(options: {
     slug: string;
     data: ProfileData;
-    existingSha: string;
   }): Promise<WriteProfileResponse>;
 
   createProfile(options: {
     slug: string;
     data: ProfileData;
+    ownerUid?: string;
   }): Promise<WriteProfileResponse>;
+
+  draftProfile(options: { slug: string }): Promise<WriteProfileResponse>;
+
+  deleteProfile(options: { slug: string }): Promise<WriteProfileResponse>;
 }

@@ -5,7 +5,8 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
-import { deleteProfile } from "../../profiles-api/services/github/delete-profile.js";
+import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
+import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
 import {
   ForbiddenError,
@@ -272,6 +273,20 @@ export async function cleanSlateDelete({
         slug: member.slug,
       });
       profileDeleted = true;
+
+      // NON-CRITICAL: Trigger Hugo rebuild after profile deletion
+      try {
+        await triggerHugoRebuild({ slug: member.slug, action: "clean slate delete" });
+      } catch (rebuildError: unknown) {
+        const rebuildErrorMessage =
+          rebuildError instanceof Error ? rebuildError.message : "Unknown error";
+        logger.error("Failed to trigger Hugo rebuild after clean slate delete", {
+          memberId,
+          slug: member.slug,
+          error: rebuildError,
+          errorMessage: rebuildErrorMessage,
+        });
+      }
     } catch (error) {
       profileDeleted = false;
       const errorMessage =

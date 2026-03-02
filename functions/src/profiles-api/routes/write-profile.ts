@@ -8,7 +8,7 @@ export const writeProfileLogic =
     errorId: ERROR_IDS.API_PROFILE_WRITE_FAILED,
     slugNotFoundMessage:
       "Profile not found. User may need to claim their existing membership first.",
-    gitHubOperation: (service, slug, data) =>
-      service.writeProfile({ slug, data, existingSha: "" }),
+    storeOperation: (service, slug, data) =>
+      service.writeProfile({ slug, data }),
     buildSuccessResponse: (data) => ({ success: true, profile: data }),
   });
