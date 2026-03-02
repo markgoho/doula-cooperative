@@ -91,4 +91,12 @@ export interface ProfileMemberService {
     data: ProfileData,
     slug: string,
   ): Promise<void>;
+
+  /**
+   * Clear cached profile data from the member document.
+   * Used when membership ends (refund or subscription cancellation).
+   *
+   * @param uid - Firebase Auth user ID
+   */
+  clearProfileCache(uid: string): Promise<void>;
 }

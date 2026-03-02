@@ -1,4 +1,4 @@
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
   ERROR_IDS,
@@ -6,11 +6,11 @@ import {
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/github/draft-profile.js";
+import { ProfileMemberService } from "../../profiles-api/services/member/index.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
-import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
@@ -142,15 +142,11 @@ export async function processRefundActions({
 
     // NON-CRITICAL: Clear cached profile data from Firestore
     try {
-      await MemberFirestoreService.updateMember(memberId, {
-        profile: FieldValue.delete(),
-      });
-    } catch (error) {
-      logger.warn("Failed to clear profile cache during refund", {
-        memberId,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      });
+      await ProfileMemberService.clearProfileCache(memberId);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      failures.push(`Clear profile cache: ${errorMessage}`);
     }
   }
 

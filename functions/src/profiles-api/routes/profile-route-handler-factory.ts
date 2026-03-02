@@ -28,8 +28,9 @@ export interface ProfileRouteHandlerConfig<TResponse> {
 }
 
 /**
- * Generic route handler factory for profile operations.
- * Reduces duplication between create and write profile routes.
+ * Generic route handler factory for profile write operations.
+ * Used by writeProfileLogic to reduce boilerplate for the standard
+ * membership-verify / slug-check / GitHub-op / cache-write flow.
  *
  * Common flow:
  * 1. Verify active membership

@@ -28,7 +28,8 @@ export async function readProfileBySlugLogic({
     try {
       member = await profileMemberService.getMemberBySlug(slug);
     } catch (error: unknown) {
-      logger.warn("Firestore cache lookup failed, falling back to GitHub", {
+      logger.error("Firestore cache lookup failed, falling back to GitHub", {
+        errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
         slug,
         error,
         errorMessage: error instanceof Error ? error.message : "Unknown error",
@@ -57,7 +58,7 @@ export async function readProfileBySlugLogic({
     }
 
     return profileData;
-  } catch (error) {
+  } catch (error: unknown) {
     return handleRouteError({
       error,
       operation: "read profile by slug",

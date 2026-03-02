@@ -99,6 +99,7 @@ export function createProfilesTestPlugin(overrides?: {
     setProfileCreatedAt: mock(() => Promise.resolve()),
     getMemberBySlug: mock(() => Promise.resolve({ ...mockMemberDocument })),
     saveProfileContent: mock(() => Promise.resolve()),
+    clearProfileCache: mock(() => Promise.resolve()),
     ...overrides?.profileMemberService,
   };
 

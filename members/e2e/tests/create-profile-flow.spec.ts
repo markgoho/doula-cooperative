@@ -56,11 +56,9 @@ async function fillAndSubmitCreateForm(page: import('@playwright/test').Page) {
 }
 
 test.describe('Create Profile → Edit Profile Flow', () => {
-  test('auto-retries and loads profile when GET initially returns 404', async ({
+  test('loads profile form using data returned from POST response', async ({
     authenticatedUserPage,
   }) => {
-    let getProfileCount = 0;
-
     await mockMembersRoute(authenticatedUserPage);
 
     await authenticatedUserPage.route('**/api/profiles/test-user', async (route) => {
@@ -69,23 +67,14 @@ test.describe('Create Profile → Edit Profile Flow', () => {
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
+          body: JSON.stringify({ success: true, profile: mockProfileData }),
         });
       } else if (method === 'GET') {
-        getProfileCount++;
-        await route.fulfill(
-          getProfileCount <= 2
-            ? {
-                status: 404,
-                contentType: 'application/json',
-                body: JSON.stringify({ error: 'Profile not found' }),
-              }
-            : {
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(mockProfileData),
-              },
-        );
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(mockProfileData),
+        });
       } else {
         await route.continue();
       }
@@ -94,7 +83,7 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     // === Create profile and navigate to edit ===
     await fillAndSubmitCreateForm(authenticatedUserPage);
 
-    // === Auto-retry should eventually load the profile form ===
+    // === Profile form should load with data from POST response ===
     const editProfilePage = new EditProfilePage(authenticatedUserPage);
     await editProfilePage.waitForProfileForm();
     await expect(editProfilePage.titleInput).toHaveValue('Test User');
@@ -110,7 +99,7 @@ test.describe('Create Profile → Edit Profile Flow', () => {
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
+          body: JSON.stringify({ success: true, profile: mockProfileData }),
         });
       } else if (method === 'GET') {
         await route.fulfill({
@@ -133,45 +122,4 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     await expect(authenticatedUserPage.getByText('Profile Load Error')).not.toBeVisible();
   });
 
-  test('shows sync-pending banner when all auto-retries are exhausted after create', async ({
-    authenticatedUserPage,
-  }) => {
-    await mockMembersRoute(authenticatedUserPage);
-
-    // === GET always returns 404 ===
-    await authenticatedUserPage.route('**/api/profiles/test-user', async (route) => {
-      const method = route.request().method();
-      if (method === 'POST') {
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        });
-      } else if (method === 'GET') {
-        await route.fulfill({
-          status: 404,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Profile not found' }),
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    // === Create profile and navigate to edit ===
-    await fillAndSubmitCreateForm(authenticatedUserPage);
-
-    // === After retries exhaust, form should remain visible with optimistic data ===
-    const editProfilePage = new EditProfilePage(authenticatedUserPage);
-    await editProfilePage.waitForProfileForm();
-    await expect(editProfilePage.titleInput).toHaveValue('Test User');
-
-    // === Sync-pending info banner should appear ===
-    await expect(
-      authenticatedUserPage.getByText(/will appear on the public site shortly/i),
-    ).toBeVisible({ timeout: 15_000 });
-
-    // === Error UI should NOT be shown ===
-    await expect(authenticatedUserPage.getByText('Profile Load Error')).not.toBeVisible();
-  });
 });

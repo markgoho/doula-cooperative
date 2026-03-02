@@ -150,6 +150,7 @@ async function setProfileCreatedAt(uid: string): Promise<void> {
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
+    throw error;
   }
 }
 
@@ -203,11 +204,43 @@ async function saveProfileContent(
     image: buildProfileImageUrl(slug),
   };
 
-  await MemberFirestoreService.updateMember(uid, {
-    profile: profileWithImage,
-  });
+  try {
+    await MemberFirestoreService.updateMember(uid, {
+      profile: profileWithImage,
+    });
 
-  logger.info("Saved profile content to Firestore", { uid, slug });
+    logger.info("Saved profile content to Firestore", { uid, slug });
+  } catch (error) {
+    logger.error("Failed to save profile content to Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      uid,
+      slug,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}
+
+/**
+ * Clear cached profile data from the member document.
+ */
+async function clearProfileCache(uid: string): Promise<void> {
+  try {
+    await MemberFirestoreService.updateMember(uid, {
+      profile: FieldValue.delete(),
+    });
+
+    logger.info("Cleared profile cache from Firestore", { uid });
+  } catch (error) {
+    logger.error("Failed to clear profile cache from Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      uid,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
 }
 
 /**
@@ -221,9 +254,7 @@ export const ProfileMemberService: ProfileMemberServiceInterface = {
   setProfileCreatedAt,
   getMemberBySlug,
   saveProfileContent,
+  clearProfileCache,
 };
 
 export type { SetSlugResponse, SlugAvailabilityResponse } from "./interface.js";
-
-// Note: ProfileMemberService type is exported from ./interface.js directly
-// The const ProfileMemberService above implements that interface

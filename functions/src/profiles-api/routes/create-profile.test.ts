@@ -6,6 +6,7 @@ import {
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { WriteProfileResponse } from "../services/github/interface.js";
+import type { CreateProfileSuccessResponse } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -237,10 +238,7 @@ describe("POST /:slug (create profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(201);
-      const body = (await response.json()) as {
-        success?: boolean;
-        profile?: Record<string, unknown>;
-      };
+      const body = (await response.json()) as CreateProfileSuccessResponse;
       expect(body.profile).toBeDefined();
       expect(body.profile?.title).toBe("New Doula");
       expect(body.profile?.bio).toBe(
