@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MembershipService } from '../services/membership.service';
-import { ProfileService } from '../services/profile.service';
+import { CreateProfileService } from '../services/create-profile.service';
 import { AlertBanner } from '../shared/alert-banner/alert-banner';
 import { createProfileFormGroup, PROFILE_TAGS } from '../shared/profile-form/profile-form-config';
 import {
@@ -18,7 +18,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateProfile {
-  private profileService = inject(ProfileService);
+  private createProfileService = inject(CreateProfileService);
   private membershipService = inject(MembershipService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -54,7 +54,7 @@ export class CreateProfile {
 
     try {
       const profileData = extractProfileData(this.profileForm);
-      await this.profileService.createProfileContent(profileData);
+      await this.createProfileService.createProfileContent(profileData);
       this.successMessage.set('Profile created successfully!');
 
       // Navigate to edit mode after successful creation

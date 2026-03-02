@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MembershipService, type Member } from '../services/membership.service';
-import { ProfileService } from '../services/profile.service';
+import { CreateProfileService } from '../services/create-profile.service';
 import { CreateProfile } from './create-profile';
 
 describe('CreateProfile', () => {
@@ -118,7 +118,7 @@ describe('CreateProfile', () => {
 
   describe('form submission', () => {
     it('should call createProfileContent with correct data', async () => {
-      const { user, mockProfileService } = await setup();
+      const { user, mockCreateProfileService } = await setup();
 
       const bioInput = screen.getByLabelText('Bio *');
       await user.type(bioInput, 'My bio');
@@ -130,7 +130,7 @@ describe('CreateProfile', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockProfileService.createProfileContent).toHaveBeenCalledWith(
+        expect(mockCreateProfileService.createProfileContent).toHaveBeenCalledWith(
           expect.objectContaining({
             title: 'Test User',
             bio: 'My bio',
@@ -291,7 +291,7 @@ async function setup({
     userDocument: signal(mockMember),
   };
 
-  const mockProfileService = {
+  const mockCreateProfileService = {
     createProfileContent: vi.fn().mockImplementation(async () => {
       if (delayCreate) {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -309,8 +309,8 @@ async function setup({
   const result = await render(CreateProfile, {
     providers: [
       {
-        provide: ProfileService,
-        useValue: mockProfileService,
+        provide: CreateProfileService,
+        useValue: mockCreateProfileService,
       },
       {
         provide: MembershipService,
@@ -326,5 +326,5 @@ async function setup({
   // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
-  return { ...result, user, mockProfileService, mockMembershipService, mockRouter };
+  return { ...result, user, mockCreateProfileService, mockMembershipService, mockRouter };
 }

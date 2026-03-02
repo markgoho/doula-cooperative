@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { type ProfileData } from '../types/profile-data';
+import { CreateProfileService } from './create-profile.service';
 import { MembershipService } from './membership.service';
 
 const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
@@ -20,6 +21,7 @@ function buildImageKitDisplayUrl(slug: string, width: number, height: number): s
 export class ProfileService {
   private http = inject(HttpClient);
   private membershipService = inject(MembershipService);
+  private createProfileService = inject(CreateProfileService);
 
   /**
    * Whether the image actually exists on ImageKit (server-side check via HEAD request).
@@ -28,12 +30,6 @@ export class ProfileService {
   private readonly imageExistsOnServer = signal<boolean | undefined>(undefined);
 
   private readonly imageCacheBust = signal(Date.now());
-
-  /**
-   * Optimistic profile data set after successful creation.
-   * Used to render the edit form immediately without waiting for GitHub API.
-   */
-  private readonly optimisticProfile = signal<ProfileData | undefined>(undefined);
 
   constructor() {
     // Clean up any leftover optimistic state from the old implementation
@@ -46,7 +42,7 @@ export class ProfileService {
     // Clear optimistic data once the resource successfully loads from the server
     effect(() => {
       if (this.profileResource.hasValue()) {
-        this.optimisticProfile.set(undefined);
+        this.createProfileService.clearOptimisticProfile();
       }
     });
 
@@ -79,7 +75,7 @@ export class ProfileService {
   /** Profile data — prefers optimistic data after creation, falls back to server data. */
   readonly profile = computed((): ProfileData | undefined => {
     return (
-      this.optimisticProfile() ??
+      this.createProfileService.optimisticProfile() ??
       (this.profileResource.hasValue() ? this.profileResource.value() : undefined)
     );
   });
@@ -120,7 +116,7 @@ export class ProfileService {
 
       // Set optimistic data so the form shows submitted values even if
       // the reload 404s due to GitHub eventual consistency.
-      this.optimisticProfile.set(data);
+      this.createProfileService.optimisticProfile.set(data);
       this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile update failed:', {
@@ -159,59 +155,6 @@ export class ProfileService {
       }
 
       throw new Error('Failed to update profile. Please try again.');
-    }
-  }
-
-  async createProfileContent(data: ProfileData): Promise<void> {
-    const slug = this.membershipService.userDocument()?.slug;
-    if (!slug) {
-      throw new Error('User slug not found. Please refresh the page.');
-    }
-
-    try {
-      await firstValueFrom(this.http.post<{ success: boolean }>(`/api/profiles/${slug}`, data));
-
-      // Store submitted data as optimistic profile so the edit page can render
-      // immediately without waiting for GitHub API eventual consistency.
-      this.optimisticProfile.set(data);
-    } catch (error: unknown) {
-      console.error('Profile creation failed:', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      if (error instanceof HttpErrorResponse) {
-        switch (error.status) {
-          case 401: {
-            throw new Error('You must be signed in to create a profile.');
-          }
-
-          case 403: {
-            if (error.error?.error?.includes('slug')) {
-              throw new Error(
-                'You must set up your profile slug first. Please return to the membership page.',
-              );
-            }
-            if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to create a profile.');
-            }
-            throw new Error('You do not have permission to create a profile.');
-          }
-
-          case 409: {
-            throw new Error('Profile already exists. Try refreshing the page.');
-          }
-
-          case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.');
-          }
-
-          case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
-          }
-        }
-      }
-
-      throw new Error('Failed to create profile. Please try again or contact support.');
     }
   }
 
