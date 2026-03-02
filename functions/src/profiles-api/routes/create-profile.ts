@@ -97,6 +97,20 @@ export async function createProfileLogic({
     await profileGitHubService.createProfile({ slug, data });
     await profileMemberService.setProfileCreatedAt(uid);
 
+    // Cache profile data in Firestore for instant reads.
+    // Non-critical: if this fails, the next read will lazily backfill from GitHub.
+    try {
+      await profileMemberService.saveProfileContent(uid, data, slug);
+    } catch (error: unknown) {
+      logger.error("Failed to cache profile in Firestore after create", {
+        errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+        uid,
+        slug,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+
     logger.info("Successfully created profile", { uid, slug });
     set.status = 201;
 
@@ -107,7 +121,7 @@ export async function createProfileLogic({
       logger,
     });
 
-    return { success: true };
+    return { success: true, profile: data };
   } catch (error) {
     const errorResponse = handleRouteError({
       error,

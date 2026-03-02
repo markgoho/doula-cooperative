@@ -98,6 +98,7 @@ export function createProfilesTestPlugin(overrides?: {
     setSlug: mock(() => Promise.resolve({ slug: "test-user" })),
     setProfileCreatedAt: mock(() => Promise.resolve()),
     getMemberBySlug: mock(() => Promise.resolve({ ...mockMemberDocument })),
+    saveProfileContent: mock(() => Promise.resolve()),
     ...overrides?.profileMemberService,
   };
 

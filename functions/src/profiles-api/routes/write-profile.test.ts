@@ -203,8 +203,28 @@ describe("PUT /:slug (update profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { success?: boolean };
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
       expect(body.success).toBe(true);
+    });
+
+    it("should return profile data in response", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
+      expect(body.profile).toBeDefined();
+      expect(body.profile?.title).toBe("Test Doula");
+      expect(body.profile?.bio).toBe(
+        "This is a valid bio for the test doula profile.",
+      );
     });
 
     it("should return 409 when GitHub conflict occurs", async () => {

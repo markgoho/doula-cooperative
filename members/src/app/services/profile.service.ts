@@ -14,6 +14,11 @@ function buildImageKitDisplayUrl(slug: string, width: number, height: number): s
   return `${IMAGEKIT_BASE_URL}/tr:w-${width},h-${height},fo-face,z-0.5,di-default-profile.png/doulas/${slug}/${slug}-profile`;
 }
 
+interface ProfileResponse {
+  success: boolean;
+  profile?: ProfileData;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,12 +34,6 @@ export class ProfileService {
 
   private readonly imageCacheBust = signal(Date.now());
 
-  /**
-   * Optimistic profile data set after successful creation.
-   * Used to render the edit form immediately without waiting for GitHub API.
-   */
-  private readonly optimisticProfile = signal<ProfileData | undefined>(undefined);
-
   constructor() {
     // Clean up any leftover optimistic state from the old implementation
     try {
@@ -42,13 +41,6 @@ export class ProfileService {
     } catch {
       // Ignore localStorage errors
     }
-
-    // Clear optimistic data once the resource successfully loads from the server
-    effect(() => {
-      if (this.profileResource.hasValue()) {
-        this.optimisticProfile.set(undefined);
-      }
-    });
 
     // When profile loads, check if the image actually exists on ImageKit.
     // This detects "no custom image" even though the backend always sets profile.image.
@@ -76,12 +68,9 @@ export class ProfileService {
     },
   });
 
-  /** Profile data — prefers optimistic data after creation, falls back to server data. */
+  /** Profile data from the resource. */
   readonly profile = computed((): ProfileData | undefined => {
-    return (
-      this.optimisticProfile() ??
-      (this.profileResource.hasValue() ? this.profileResource.value() : undefined)
-    );
+    return this.profileResource.hasValue() ? this.profileResource.value() : undefined;
   });
 
   /**
@@ -116,11 +105,9 @@ export class ProfileService {
     }
 
     try {
-      await firstValueFrom(this.http.put<{ success: boolean }>(`/api/profiles/${slug}`, data));
+      await firstValueFrom(this.http.put<ProfileResponse>(`/api/profiles/${slug}`, data));
 
-      // Set optimistic data so the form shows submitted values even if
-      // the reload 404s due to GitHub eventual consistency.
-      this.optimisticProfile.set(data);
+      // Reload the resource — Firestore reads are instant now
       this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile update failed:', {
@@ -169,11 +156,10 @@ export class ProfileService {
     }
 
     try {
-      await firstValueFrom(this.http.post<{ success: boolean }>(`/api/profiles/${slug}`, data));
+      await firstValueFrom(this.http.post<ProfileResponse>(`/api/profiles/${slug}`, data));
 
-      // Store submitted data as optimistic profile so the edit page can render
-      // immediately without waiting for GitHub API eventual consistency.
-      this.optimisticProfile.set(data);
+      // Reload the resource — Firestore reads are instant now
+      this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile creation failed:', {
         error: error instanceof Error ? error.message : String(error),

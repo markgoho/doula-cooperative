@@ -214,8 +214,28 @@ describe("POST /:slug (create profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(201);
-      const body = (await response.json()) as { success?: boolean };
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
       expect(body.success).toBe(true);
+    });
+
+    it("should return profile data in response", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(201);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
+      expect(body.profile).toBeDefined();
+      expect(body.profile?.title).toBe("New Doula");
+      expect(body.profile?.bio).toBe(
+        "This is a valid bio for a new doula profile.",
+      );
     });
 
     it("should return 409 when profile already exists", async () => {

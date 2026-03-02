@@ -1,4 +1,5 @@
 import type { MemberDocument } from "../../../collections/index.js";
+import type { ProfileData } from "../../schemas/profile-schemas.js";
 
 /**
  * Response from checking slug availability.
@@ -75,4 +76,17 @@ export interface ProfileMemberService {
    * @returns Promise with member document or undefined if not found
    */
   getMemberBySlug(slug: string): Promise<MemberDocument | undefined>;
+
+  /**
+   * Save profile content to the member document for instant reads.
+   *
+   * @param uid - Firebase Auth user ID
+   * @param data - Profile data to cache
+   * @param slug - Profile slug (used to compute deterministic image URL)
+   */
+  saveProfileContent(
+    uid: string,
+    data: ProfileData,
+    slug: string,
+  ): Promise<void>;
 }

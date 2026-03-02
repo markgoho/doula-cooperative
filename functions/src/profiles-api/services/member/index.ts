@@ -12,6 +12,7 @@ import {
   NotFoundError,
 } from "../../../shared-api/errors/http-error.js";
 import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
+import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type {
   ProfileMemberService as ProfileMemberServiceInterface,
   SetSlugResponse,
@@ -188,6 +189,37 @@ async function getMemberBySlug(
 }
 
 /**
+ * Save profile content to the member document for instant reads.
+ */
+async function saveProfileContent(
+  uid: string,
+  data: ProfileData,
+  slug: string,
+): Promise<void> {
+  try {
+    const profileWithImage: ProfileData = {
+      ...data,
+      image: `https://ik.imagekit.io/doulacoop/doulas/${slug}/${slug}-profile`,
+    };
+
+    await MemberFirestoreService.updateMember(uid, {
+      profile: profileWithImage,
+    });
+
+    logger.info("Saved profile content to Firestore", { uid, slug });
+  } catch (error) {
+    logger.error("Failed to save profile content to Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      uid,
+      slug,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}
+
+/**
  * Member service for profile-related operations.
  */
 export const ProfileMemberService: ProfileMemberServiceInterface = {
@@ -197,6 +229,7 @@ export const ProfileMemberService: ProfileMemberServiceInterface = {
   setSlug,
   setProfileCreatedAt,
   getMemberBySlug,
+  saveProfileContent,
 };
 
 export type { SetSlugResponse, SlugAvailabilityResponse } from "./interface.js";

@@ -10,5 +10,5 @@ export const writeProfileLogic =
       "Profile not found. User may need to claim their existing membership first.",
     gitHubOperation: (service, slug, data) =>
       service.writeProfile({ slug, data, existingSha: "" }),
-    buildSuccessResponse: () => ({ success: true }),
+    buildSuccessResponse: (data) => ({ success: true, profile: data }),
   });

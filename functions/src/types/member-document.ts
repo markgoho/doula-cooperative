@@ -1,4 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
+import type { ProfileData } from "../profiles-api/schemas/profile-schemas.js";
 
 export type SubscriptionStatus =
   | "active"
@@ -56,6 +57,8 @@ export interface MemberDocument {
   newsletterUnsubscribedAt?: Timestamp;
   refundedAt?: Timestamp;
   refundReason?: string;
+  /** Cached profile data for instant reads by the members app. */
+  profile?: ProfileData;
 }
 
 /**

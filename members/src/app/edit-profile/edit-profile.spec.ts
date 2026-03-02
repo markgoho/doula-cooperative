@@ -1,5 +1,4 @@
-import { type WritableSignal, signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -59,71 +58,6 @@ describe('EditProfile', () => {
       await user.click(retryButton);
 
       expect(mockProfileService.profileResource.reload).toHaveBeenCalled();
-    });
-  });
-
-  describe('sync pending state', () => {
-    it('should not show sync-pending banner when profile loads normally', async () => {
-      await setup();
-
-      expect(screen.queryByText(/will appear on the public site shortly/i)).not.toBeInTheDocument();
-    });
-
-    it('should show sync-pending banner when retries exhaust with optimistic data', async () => {
-      const { mockProfileService } = await setup({
-        resourceStatus: 'error',
-        hasOptimisticData: true,
-      });
-
-      // Simulate fast retries exhausting by cycling through loading → error transitions.
-      // First error fires in constructor (autoRetryCount → 1).
-      // Each cycle increments the counter until sync-pending kicks in.
-      for (let index = 0; index < 3; index++) {
-        mockProfileService.profileResource.status.set('loading');
-        TestBed.flushEffects();
-        mockProfileService.profileResource.status.set('error');
-        TestBed.flushEffects();
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/will appear on the public site shortly/i)).toBeVisible();
-      });
-    });
-
-    it('should hide sync-pending banner when resource eventually resolves', async () => {
-      const { mockProfileService } = await setup({
-        resourceStatus: 'error',
-        hasOptimisticData: true,
-      });
-
-      // Exhaust auto-retries to trigger sync-pending
-      for (let index = 0; index < 3; index++) {
-        mockProfileService.profileResource.status.set('loading');
-        TestBed.flushEffects();
-        mockProfileService.profileResource.status.set('error');
-        TestBed.flushEffects();
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/will appear on the public site shortly/i)).toBeVisible();
-      });
-
-      // Resource finally resolves
-      mockProfileService.profileResource.status.set('resolved');
-      TestBed.flushEffects();
-
-      await waitFor(() => {
-        expect(
-          screen.queryByText(/will appear on the public site shortly/i),
-        ).not.toBeInTheDocument();
-      });
-    });
-
-    it('should show error UI when retries exhaust without optimistic data', async () => {
-      await setup({ hasProfile: false });
-
-      expect(screen.getByText('Profile Load Error')).toBeVisible();
-      expect(screen.queryByText(/will appear on the public site shortly/i)).not.toBeInTheDocument();
     });
   });
 
@@ -383,8 +317,6 @@ interface SetupOptions {
   userDocumentLoading?: boolean;
   userHasSlug?: boolean;
   profileResourceLoading?: boolean;
-  resourceStatus?: 'idle' | 'loading' | 'error' | 'resolved';
-  hasOptimisticData?: boolean;
 }
 
 async function setup({
@@ -397,8 +329,6 @@ async function setup({
   userDocumentLoading = false,
   userHasSlug = true,
   profileResourceLoading = false,
-  resourceStatus,
-  hasOptimisticData = false,
 }: SetupOptions = {}) {
   const defaultProfile: ProfileData = {
     title: 'Jane Doe',
@@ -444,27 +374,17 @@ async function setup({
   const profileValue = hasProfile ? (profileData ?? defaultProfile) : undefined;
 
   // When loading, profile() should return undefined (no data available yet)
-  // unless optimistic data is present (not simulated in these tests)
   const profileSignalValue = profileResourceLoading ? undefined : profileValue;
 
-  // When hasOptimisticData is true, simulate a profile signal that has data
-  // even though the resource is in error state (optimistic data from create/update)
-  const resolvedProfileSignal = hasOptimisticData
-    ? (profileData ?? defaultProfile)
-    : profileSignalValue;
-
   const resolveStatus = (): string => {
-    if (resourceStatus) return resourceStatus;
     if (profileResourceLoading) return 'loading';
     if (!hasProfile && userHasSlug) return 'error';
     if (profileValue !== undefined) return 'resolved';
     return 'idle';
   };
 
-  const statusSignal: WritableSignal<string> = signal(resolveStatus());
-
   const mockProfileService = {
-    profile: signal(resolvedProfileSignal),
+    profile: signal(profileSignalValue),
     profileImageUrl: signal(
       hasProfile && userHasSlug
         ? 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile'
@@ -476,7 +396,7 @@ async function setup({
       hasValue: vi.fn(() => !profileResourceLoading && profileValue !== undefined),
       value: vi.fn(() => profileValue),
       error: vi.fn(() => (!hasProfile && userHasSlug ? new Error('Profile not found') : undefined)),
-      status: statusSignal,
+      status: signal(resolveStatus()),
       reload: vi.fn(),
     },
     getTagUrl: vi.fn((tag: string) => `/doulas/tag/${tag.toLowerCase().replaceAll(/\s+/g, '-')}`),

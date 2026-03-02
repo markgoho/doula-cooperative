@@ -1,4 +1,5 @@
 import type { ErrorId } from "../../constants/error-ids.js";
+import { ERROR_IDS } from "../../constants/error-ids.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
@@ -23,7 +24,7 @@ export interface ProfileRouteHandlerConfig<TResponse> {
     profileMemberService: ProfileMemberService,
     uid: string,
   ) => Promise<unknown>;
-  buildSuccessResponse: () => TResponse;
+  buildSuccessResponse: (data: ProfileData) => TResponse;
 }
 
 /**
@@ -34,9 +35,10 @@ export interface ProfileRouteHandlerConfig<TResponse> {
  * 1. Verify active membership
  * 2. Check for slug presence
  * 3. Execute GitHub operation
- * 4. Execute post-GitHub operation (optional)
- * 5. Log success
- * 6. Handle errors
+ * 4. Cache profile data in Firestore
+ * 5. Execute post-GitHub operation (optional)
+ * 6. Log success
+ * 7. Handle errors
  */
 export function createProfileRouteHandler<TResponse>(
   config: ProfileRouteHandlerConfig<TResponse>,
@@ -66,6 +68,21 @@ export function createProfileRouteHandler<TResponse>(
 
       await config.gitHubOperation(profileGitHubService, slug, data);
 
+      // Cache profile data in Firestore for instant reads.
+      // Non-critical: if this fails, the next read will lazily backfill from GitHub.
+      try {
+        await profileMemberService.saveProfileContent(uid, data, slug);
+      } catch (error: unknown) {
+        logger.error("Failed to cache profile in Firestore after write", {
+          errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+          uid,
+          slug,
+          error,
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+
       if (config.afterGitHubOperation) {
         await config.afterGitHubOperation(profileMemberService, uid);
       }
@@ -76,7 +93,7 @@ export function createProfileRouteHandler<TResponse>(
         set.status = config.successStatus;
       }
 
-      return config.buildSuccessResponse();
+      return config.buildSuccessResponse(data);
     } catch (error) {
       const errorResponse = handleRouteError({
         error,
