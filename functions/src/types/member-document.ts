@@ -57,7 +57,7 @@ export interface MemberDocument {
   newsletterUnsubscribedAt?: Timestamp;
   refundedAt?: Timestamp;
   refundReason?: string;
-  /** Cached profile data for instant reads by the members app. */
+  /** Cached profile data to avoid GitHub API round-trip on reads. */
   profile?: ProfileData;
 }
 

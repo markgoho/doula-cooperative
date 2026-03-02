@@ -43,6 +43,7 @@ describe("POST /:slug (create profile)", () => {
     profileAlreadyExists?: boolean;
     githubError?: boolean;
     emailError?: boolean;
+    cacheWriteError?: boolean;
   }
 
   function setup({
@@ -55,6 +56,7 @@ describe("POST /:slug (create profile)", () => {
     profileAlreadyExists = false,
     githubError = false,
     emailError = false,
+    cacheWriteError = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario flags
     const mockVerifyMembership = mock(() => {
@@ -95,9 +97,17 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve();
     });
 
+    const mockSaveProfileContent = mock(() => {
+      if (cacheWriteError) {
+        return Promise.reject(new Error("Firestore unavailable"));
+      }
+      return Promise.resolve();
+    });
+
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
+        saveProfileContent: mockSaveProfileContent,
       },
       profileGitHubService: {
         createProfile: mockCreateProfile,
@@ -260,6 +270,20 @@ describe("POST /:slug (create profile)", () => {
       expect(body.error).toBeDefined();
       // Should NOT expose internal error details
       expect(body.error).not.toContain("rate limit");
+    });
+
+    it("should return 201 when Firestore cache write fails", async () => {
+      const { testApp, request } = setup({ cacheWriteError: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(201);
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
+      expect(body.success).toBe(true);
+      expect(body.profile).toBeDefined();
     });
   });
 

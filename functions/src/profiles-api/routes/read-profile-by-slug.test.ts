@@ -24,6 +24,7 @@ describe("GET /:slug (read profile by slug)", () => {
     noImage?: boolean;
     firestoreCacheHit?: boolean;
     firestoreMemberNotFound?: boolean;
+    firestoreError?: boolean;
   }
 
   function setup({
@@ -33,6 +34,7 @@ describe("GET /:slug (read profile by slug)", () => {
     noImage = false,
     firestoreCacheHit = true,
     firestoreMemberNotFound = false,
+    firestoreError = false,
   }: SetupOptions = {}) {
     const profileWithImage: ProfileData = {
       ...mockProfileData,
@@ -42,6 +44,9 @@ describe("GET /:slug (read profile by slug)", () => {
 
     const mockGetMemberBySlug = mock(
       (): Promise<MemberDocument | undefined> => {
+        if (firestoreError) {
+          return Promise.reject(new Error("Firestore unavailable"));
+        }
         if (firestoreMemberNotFound) {
           return Promise.resolve(undefined);
         }
@@ -175,6 +180,19 @@ describe("GET /:slug (read profile by slug)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
+      expect(mockReadProfile).toHaveBeenCalled();
+    });
+
+    it("should fall back to GitHub when Firestore throws an error", async () => {
+      const { testApp, request, mockReadProfile } = setup({
+        firestoreError: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as ProfileData;
+      expect(body.title).toBe("Test Doula");
       expect(mockReadProfile).toHaveBeenCalled();
     });
   });

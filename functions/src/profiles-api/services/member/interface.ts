@@ -79,6 +79,8 @@ export interface ProfileMemberService {
 
   /**
    * Save profile content to the member document for instant reads.
+   * Overwrites the image field with a deterministic ImageKit URL based on slug,
+   * regardless of the image value in the input data.
    *
    * @param uid - Firebase Auth user ID
    * @param data - Profile data to cache

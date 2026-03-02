@@ -35,7 +35,7 @@ export interface ProfileRouteHandlerConfig<TResponse> {
  * 1. Verify active membership
  * 2. Check for slug presence
  * 3. Execute GitHub operation
- * 4. Cache profile data in Firestore
+ * 4. Cache profile data in Firestore (non-critical, swallows errors)
  * 5. Execute post-GitHub operation (optional)
  * 6. Log success
  * 7. Handle errors

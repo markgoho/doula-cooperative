@@ -15,7 +15,7 @@ function buildImageKitDisplayUrl(slug: string, width: number, height: number): s
 }
 
 interface ProfileResponse {
-  success: boolean;
+  success: true;
   profile?: ProfileData;
 }
 
@@ -105,10 +105,16 @@ export class ProfileService {
     }
 
     try {
-      await firstValueFrom(this.http.put<ProfileResponse>(`/api/profiles/${slug}`, data));
+      const response = await firstValueFrom(
+        this.http.put<ProfileResponse>(`/api/profiles/${slug}`, data),
+      );
 
-      // Reload the resource — Firestore reads are instant now
-      this.profileResource.reload();
+      // Use response data directly to avoid extra Firestore round-trip
+      if (response.profile) {
+        this.profileResource.set(response.profile);
+      } else {
+        this.profileResource.reload();
+      }
     } catch (error: unknown) {
       console.error('Profile update failed:', {
         error: error instanceof Error ? error.message : String(error),
@@ -156,10 +162,16 @@ export class ProfileService {
     }
 
     try {
-      await firstValueFrom(this.http.post<ProfileResponse>(`/api/profiles/${slug}`, data));
+      const response = await firstValueFrom(
+        this.http.post<ProfileResponse>(`/api/profiles/${slug}`, data),
+      );
 
-      // Reload the resource — Firestore reads are instant now
-      this.profileResource.reload();
+      // Use response data directly to avoid extra Firestore round-trip
+      if (response.profile) {
+        this.profileResource.set(response.profile);
+      } else {
+        this.profileResource.reload();
+      }
     } catch (error: unknown) {
       console.error('Profile creation failed:', {
         error: error instanceof Error ? error.message : String(error),

@@ -1,3 +1,4 @@
+import type { MemberDocument } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
@@ -22,8 +23,17 @@ export async function readProfileBySlugLogic({
   set: { status?: number | string };
 }): Promise<ReadProfileResponse | { error: string }> {
   try {
-    // Try reading from Firestore first (instant, consistent)
-    const member = await profileMemberService.getMemberBySlug(slug);
+    // Try reading from Firestore cache first (avoids GitHub API latency)
+    let member: MemberDocument | undefined;
+    try {
+      member = await profileMemberService.getMemberBySlug(slug);
+    } catch (error: unknown) {
+      logger.warn("Firestore cache lookup failed, falling back to GitHub", {
+        slug,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
 
     if (member?.profile) {
       logger.info("Read profile from Firestore cache", { slug });
