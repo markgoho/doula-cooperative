@@ -76,7 +76,7 @@ function lazyBackfillFirestore({
   profileMemberService: ProfileMemberService;
   logger: Logger;
 }): void {
-  profileMemberService.saveProfileContent(uid, data, slug).catch((error) => {
+  profileMemberService.saveProfileContent(uid, data, slug).catch((error: unknown) => {
     logger.error("Failed to lazily backfill profile in Firestore", {
       errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
       uid,
