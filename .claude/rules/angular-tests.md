@@ -1,0 +1,6 @@
+- never use `fixture.detectChanges()` directly in unit tests
+- use `TestBed.flushEffects()` from `@angular/core/testing` to flush pending effects after changing signal values from tests
+- when testing behavior driven by `effect()` that reacts to signal changes, cycle the signal through intermediate values (e.g., `'loading'` → `'error'`) and call `TestBed.flushEffects()` after each `.set()` to ensure effects re-trigger
+- use `waitFor` from `@testing-library/angular` after flushing effects to assert DOM updates
+- the `setup()` function's return value includes `fixture` from `render()` — prefer `TestBed.flushEffects()` over `fixture.detectChanges()` for flushing effects
+- when testing components with writable mock signals, type them as `WritableSignal<T>` so tests can call `.set()` to simulate state transitions
