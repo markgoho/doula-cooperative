@@ -2,7 +2,6 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import {
   ForbiddenError,
   HttpError,
-  ValidationError,
 } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
@@ -16,7 +15,7 @@ import type { VerifyEmailService } from "../services/verify-email/interface.js";
  * Uses verifyOwnerOrAdmin for initial auth (consistent with other member routes),
  * then explicitly rejects non-owner tokens to restrict this security-sensitive
  * action to the account holder only.
- * Idempotency guard: rejects requests when the email is already verified.
+ * Idempotent: returns success if the email is already verified.
  */
 export async function verifyEmailLogic({
   memberId,
@@ -44,9 +43,10 @@ export async function verifyEmailLogic({
       throw new ForbiddenError("You can only verify your own email");
     }
 
-    // Idempotency guard: only allow verification for users whose email is not yet verified
+    // Idempotent: if already verified, return success without re-verifying
     if (decodedToken.email_verified === true) {
-      throw new ValidationError("Email is already verified");
+      logger.info("Email already verified, returning success", { memberId });
+      return { success: true };
     }
 
     await verifyEmailService.markEmailVerified(memberId);
