@@ -61,6 +61,14 @@ describe('EditProfile', () => {
     });
   });
 
+  describe('sync pending state', () => {
+    it('should not show sync-pending banner when profile loads normally', async () => {
+      await setup();
+
+      expect(screen.queryByText(/will appear on the public site shortly/i)).not.toBeInTheDocument();
+    });
+  });
+
   describe('form initialization', () => {
     it('should populate form with profile data', async () => {
       await setup();

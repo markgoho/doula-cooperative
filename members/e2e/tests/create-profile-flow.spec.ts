@@ -133,7 +133,7 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     await expect(authenticatedUserPage.getByText('Profile Load Error')).not.toBeVisible();
   });
 
-  test('shows retry button when all auto-retries are exhausted', async ({
+  test('shows sync-pending banner when all auto-retries are exhausted after create', async ({
     authenticatedUserPage,
   }) => {
     await mockMembersRoute(authenticatedUserPage);
@@ -161,12 +161,17 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     // === Create profile and navigate to edit ===
     await fillAndSubmitCreateForm(authenticatedUserPage);
 
-    // === Wait for all auto-retries to exhaust (3 retries × 2s each + buffer) ===
-    await expect(authenticatedUserPage.getByText('Profile Load Error')).toBeVisible({
-      timeout: 15_000,
-    });
+    // === After retries exhaust, form should remain visible with optimistic data ===
+    const editProfilePage = new EditProfilePage(authenticatedUserPage);
+    await editProfilePage.waitForProfileForm();
+    await expect(editProfilePage.titleInput).toHaveValue('Test User');
 
-    // === Retry button should be visible ===
-    await expect(authenticatedUserPage.getByRole('button', { name: /Retry/i })).toBeVisible();
+    // === Sync-pending info banner should appear ===
+    await expect(
+      authenticatedUserPage.getByText(/will appear on the public site shortly/i),
+    ).toBeVisible({ timeout: 15_000 });
+
+    // === Error UI should NOT be shown ===
+    await expect(authenticatedUserPage.getByText('Profile Load Error')).not.toBeVisible();
   });
 });
