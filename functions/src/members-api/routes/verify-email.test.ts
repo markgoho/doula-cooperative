@@ -117,14 +117,14 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
       expect(body.success).toBe(true);
     });
 
-    it("should return 400 when email is already verified", async () => {
+    it("should return success when email is already verified (idempotent)", async () => {
       const { testApp, request } = setup({ emailAlreadyVerified: true });
 
       const response = await handleRequest(testApp, request);
 
-      expect(response.status).toBe(400);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toBe("Email is already verified");
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success: boolean };
+      expect(body.success).toBe(true);
     });
   });
 
