@@ -78,7 +78,7 @@ describe('EditProfile', () => {
       // Simulate fast retries exhausting by cycling through loading → error transitions.
       // First error fires in constructor (autoRetryCount → 1).
       // Each cycle increments the counter until sync-pending kicks in.
-      for (let i = 0; i < 3; i++) {
+      for (let index = 0; index < 3; index++) {
         mockProfileService.profileResource.status.set('loading');
         TestBed.flushEffects();
         mockProfileService.profileResource.status.set('error');
@@ -97,7 +97,7 @@ describe('EditProfile', () => {
       });
 
       // Exhaust auto-retries to trigger sync-pending
-      for (let i = 0; i < 3; i++) {
+      for (let index = 0; index < 3; index++) {
         mockProfileService.profileResource.status.set('loading');
         TestBed.flushEffects();
         mockProfileService.profileResource.status.set('error');
