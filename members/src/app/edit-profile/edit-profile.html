@@ -28,6 +28,11 @@
       <p>Visit the <a href="/membership">Membership page</a> to view your account details.</p>
     </app-alert-banner>
   }
+  @if (syncPending()) {
+    <app-alert-banner variant="info">
+      Your profile changes are saved and will appear on the public site shortly.
+    </app-alert-banner>
+  }
   @let profileData = profile();
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->

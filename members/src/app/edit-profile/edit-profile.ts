@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   signal,
@@ -19,6 +20,8 @@ import {
 
 const MAX_AUTO_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
+const SLOW_RETRY_DELAY_MS = 15_000;
+const MAX_SLOW_RETRIES = 10;
 
 @Component({
   imports: [ReactiveFormsModule, AlertBanner],
@@ -30,6 +33,7 @@ export class EditProfile {
   readonly profileService = inject(ProfileService);
   readonly membershipService = inject(MembershipService);
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
 
   protected profile = this.profileService.profile;
   protected availableTags = PROFILE_TAGS;
@@ -39,14 +43,22 @@ export class EditProfile {
   protected errorMessage = signal('');
   protected successMessage = signal('');
   protected infoMessage = signal('');
+  protected syncPending = signal(false);
 
   protected isMembershipInactive = computed(() => {
     const user = this.membershipService.userDocument();
     return user !== undefined && !user.membershipActive;
   });
   private autoRetryCount = 0;
+  private slowRetryCount = 0;
+  private slowRetryTimer: ReturnType<typeof setTimeout> | undefined;
+  private fastRetryTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.clearTimers();
+    });
+
     effect(() => {
       const profile = this.profile();
       if (profile && !this.profileForm.dirty) {
@@ -54,17 +66,59 @@ export class EditProfile {
       }
     });
 
+    // Handle resource status transitions for retry logic and sync-pending state
     effect(() => {
       const status = this.profileService.profileResource.status();
-      if (status === 'error' && this.autoRetryCount < MAX_AUTO_RETRIES) {
-        this.autoRetryCount++;
-        setTimeout(() => {
-          this.profileService.profileResource.reload();
-        }, RETRY_DELAY_MS);
-      } else if (status === 'error' && this.autoRetryCount >= MAX_AUTO_RETRIES) {
-        this.profileService.clearOptimisticProfile();
+
+      if (status === 'resolved') {
+        this.syncPending.set(false);
+        this.autoRetryCount = 0;
+        this.slowRetryCount = 0;
+        this.clearTimers();
+      } else if (status === 'error') {
+        if (this.autoRetryCount < MAX_AUTO_RETRIES) {
+          this.autoRetryCount++;
+          this.fastRetryTimer = setTimeout(() => {
+            this.profileService.profileResource.reload();
+          }, RETRY_DELAY_MS);
+        } else if (this.profile() !== undefined) {
+          // Optimistic data exists — the user just created/updated their profile.
+          // Show sync-pending banner and continue slow background retries.
+          this.syncPending.set(true);
+          this.scheduleSlowRetry();
+        }
+        // If no optimistic data, fall through to the error UI (genuine failure).
       }
     });
+  }
+
+  private scheduleSlowRetry(): void {
+    if (this.slowRetryCount >= MAX_SLOW_RETRIES) {
+      this.syncPending.set(false);
+      this.infoMessage.set(
+        'Your changes were saved but may take longer than usual to sync. Try refreshing in a few minutes.',
+      );
+      return;
+    }
+
+    if (this.slowRetryTimer !== undefined) {
+      clearTimeout(this.slowRetryTimer);
+    }
+    this.slowRetryTimer = setTimeout(() => {
+      this.slowRetryCount++;
+      this.profileService.profileResource.reload();
+    }, SLOW_RETRY_DELAY_MS);
+  }
+
+  private clearTimers(): void {
+    if (this.slowRetryTimer !== undefined) {
+      clearTimeout(this.slowRetryTimer);
+      this.slowRetryTimer = undefined;
+    }
+    if (this.fastRetryTimer !== undefined) {
+      clearTimeout(this.fastRetryTimer);
+      this.fastRetryTimer = undefined;
+    }
   }
 
   protected retryLoadProfile(): void {

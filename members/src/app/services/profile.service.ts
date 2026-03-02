@@ -118,7 +118,9 @@ export class ProfileService {
     try {
       await firstValueFrom(this.http.put<{ success: boolean }>(`/api/profiles/${slug}`, data));
 
-      // Only reload on success
+      // Set optimistic data so the form shows submitted values even if
+      // the reload 404s due to GitHub eventual consistency.
+      this.optimisticProfile.set(data);
       this.profileResource.reload();
     } catch (error: unknown) {
       console.error('Profile update failed:', {
@@ -215,10 +217,6 @@ export class ProfileService {
 
   private async fetchProfileFromServer(slug: string): Promise<ProfileData> {
     return firstValueFrom(this.http.get<ProfileData>(`/api/profiles/${slug}`));
-  }
-
-  clearOptimisticProfile(): void {
-    this.optimisticProfile.set(undefined);
   }
 
   getTagUrl(tag: string): string {
