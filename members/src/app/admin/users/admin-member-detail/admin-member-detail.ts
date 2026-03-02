@@ -11,6 +11,7 @@ import {
 import { Router } from '@angular/router';
 import type { Member } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
 type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate';
@@ -23,7 +24,7 @@ interface DialogConfig {
 }
 
 @Component({
-  imports: [DatePipe, ConfirmDialog],
+  imports: [DatePipe, ConfirmDialog, AlertBanner],
   templateUrl: './admin-member-detail.html',
   styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

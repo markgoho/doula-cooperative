@@ -4,7 +4,6 @@ import {
   Component,
   computed,
   input,
-  signal,
   type ResourceRef,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -17,13 +16,14 @@ import {
   parseDueDate,
   type DueDate,
 } from '../match-request.utilities';
+import { createTableSortState } from '../../../shared/create-table-sort-state';
+import { SortableHeader } from '../../../shared/sortable-header/sortable-header';
 
-type SortDirection = 'asc' | 'desc';
 type MatchRequestSortColumn = 'name' | 'dueDate' | 'submitted';
 
 @Component({
   selector: 'app-match-requests-table',
-  imports: [RouterLink, Tag],
+  imports: [RouterLink, Tag, SortableHeader],
   templateUrl: './match-requests-table.html',
   styleUrl: './match-requests-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,8 +31,13 @@ type MatchRequestSortColumn = 'name' | 'dueDate' | 'submitted';
 export class MatchRequestsTable {
   requestsResource = input.required<ResourceRef<ListMatchRequestsResponse | undefined>>();
 
-  protected sortColumn = signal<MatchRequestSortColumn>('submitted');
-  protected sortDirection = signal<SortDirection>('desc');
+  protected sortState = createTableSortState<MatchRequestSortColumn>({
+    defaultColumn: 'submitted',
+    defaultDirection: 'desc',
+  });
+  protected sortColumn = this.sortState.sortColumn;
+  protected sortDirection = this.sortState.sortDirection;
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.requestsResource().error();
@@ -61,7 +66,7 @@ export class MatchRequestsTable {
           const aValid = isValidDueDate(a.estimatedDueDate);
           const bValid = isValidDueDate(b.estimatedDueDate);
 
-          // Put invalid dates at the end
+          // Invalid dates sort after valid dates (before direction flip)
           if (aValid && bValid) {
             const aDate = parseDueDate(a.estimatedDueDate);
             const bDate = parseDueDate(b.estimatedDueDate);
@@ -84,17 +89,6 @@ export class MatchRequestsTable {
       return direction === 'asc' ? comparison : -comparison;
     });
   });
-
-  protected handleSort(column: MatchRequestSortColumn): void {
-    if (this.sortColumn() === column) {
-      // Toggle direction if clicking the same column
-      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new column and default to ascending
-      this.sortColumn.set(column);
-      this.sortDirection.set('asc');
-    }
-  }
 
   protected formatDueDate(dueDate: DueDate): string {
     if (!isValidDueDate(dueDate)) {

@@ -22,10 +22,10 @@
 
   <!-- Success/Error Messages -->
   @if (service.successMessage(); as successMsg) {
-    <div class="success-message">{{ successMsg }}</div>
+    <app-alert-banner variant="success">{{ successMsg }}</app-alert-banner>
   }
   @if (service.actionError(); as error) {
-    <div class="error-message">{{ error }}</div>
+    <app-alert-banner variant="error">{{ error }}</app-alert-banner>
   }
 
   <!-- Contact Details -->

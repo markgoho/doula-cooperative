@@ -19,27 +19,6 @@
   }
 }
 
-// Success/Error Messages
-.success-message {
-  background: var(--teal-300);
-  color: var(--brown-700);
-  padding: var(--space-s);
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-semibold);
-  text-align: center;
-  margin-block-end: var(--space-m);
-}
-
-.error-message {
-  background: #fdecea;
-  color: var(--color-error, #d93025);
-  padding: var(--space-s);
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-semibold);
-  text-align: center;
-  margin-block-end: var(--space-m);
-}
-
 // Info cards
 .info-card {
   background: var(--brown-000);

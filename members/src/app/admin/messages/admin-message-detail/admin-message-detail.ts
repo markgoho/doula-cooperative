@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { Tag } from '../../../tag/tag';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMessageDetailService } from './admin-message-detail.service';
 
 type ConfirmAction = 'mark-processed' | 'mark-pending';
@@ -22,7 +23,7 @@ interface DialogConfig {
 }
 
 @Component({
-  imports: [DatePipe, Tag, ConfirmDialog],
+  imports: [DatePipe, Tag, ConfirmDialog, AlertBanner],
   templateUrl: './admin-message-detail.html',
   styleUrl: './admin-message-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

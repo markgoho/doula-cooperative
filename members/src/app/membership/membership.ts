@@ -13,11 +13,12 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
+import { AlertBanner } from '../shared/alert-banner/alert-banner';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
 import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
-  imports: [DatePipe, FormsModule, ConfirmDialog],
+  imports: [DatePipe, FormsModule, ConfirmDialog, AlertBanner],
   templateUrl: './membership.html',
   styleUrl: './membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

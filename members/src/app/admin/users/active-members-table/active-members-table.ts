@@ -5,18 +5,18 @@ import {
   computed,
   input,
   type ResourceRef,
-  signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
 import type { ListMembersResponse } from '../../admin.types';
+import { createTableSortState } from '../../../shared/create-table-sort-state';
+import { SortableHeader } from '../../../shared/sortable-header/sortable-header';
 
-type SortDirection = 'asc' | 'desc';
 type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
 
 @Component({
   selector: 'app-active-members-table',
-  imports: [RouterLink, DatePipe, Tag],
+  imports: [RouterLink, DatePipe, Tag, SortableHeader],
   templateUrl: './active-members-table.html',
   styleUrl: '../admin-table-shared.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,8 +24,13 @@ type MemberSortColumn = 'name' | 'email' | 'membership' | 'created';
 export class ActiveMembersTable {
   membersResource = input.required<ResourceRef<ListMembersResponse | undefined>>();
 
-  protected sortColumn = signal<MemberSortColumn>('created');
-  protected sortDirection = signal<SortDirection>('desc');
+  protected sortState = createTableSortState<MemberSortColumn>({
+    defaultColumn: 'created',
+    defaultDirection: 'desc',
+  });
+  protected sortColumn = this.sortState.sortColumn;
+  protected sortDirection = this.sortState.sortDirection;
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.membersResource().error();
@@ -70,15 +75,4 @@ export class ActiveMembersTable {
       return direction === 'asc' ? comparison : -comparison;
     });
   });
-
-  protected handleSort(column: MemberSortColumn): void {
-    if (this.sortColumn() === column) {
-      // Toggle direction if clicking the same column
-      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new column and default to ascending
-      this.sortColumn.set(column);
-      this.sortDirection.set('asc');
-    }
-  }
 }

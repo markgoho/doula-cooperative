@@ -17,16 +17,16 @@
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
     <!-- Success Message -->
     @if (successMessage()) {
-      <div class="form__success-message">
+      <app-alert-banner variant="success">
         {{ successMessage() }}
-      </div>
+      </app-alert-banner>
     }
 
     <!-- Error Message -->
     @if (errorMessage()) {
-      <div class="form__error-message">
+      <app-alert-banner variant="error">
         {{ errorMessage() }}
-      </div>
+      </app-alert-banner>
     }
 
     <!-- Title Field -->

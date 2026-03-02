@@ -11,41 +11,56 @@
     <table class="members-table">
       <thead>
         <tr>
-          <th class="sortable" (click)="handleSort('name')">
+          <th
+            app-sortable-header="name"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Name
-            @if (sortColumn() === 'name') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable" (click)="handleSort('email')">
+          <th
+            app-sortable-header="email"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Email
-            @if (sortColumn() === 'email') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable" (click)="handleSort('hasProfile')">
+          <th
+            app-sortable-header="hasProfile"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Has Profile
-            @if (sortColumn() === 'hasProfile') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable date-cell" (click)="handleSort('subscriptionStart')">
+          <th
+            class="date-cell"
+            app-sortable-header="subscriptionStart"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Subscription Start
-            @if (sortColumn() === 'subscriptionStart') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable date-cell" (click)="handleSort('lastPayment')">
+          <th
+            class="date-cell"
+            app-sortable-header="lastPayment"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Last Payment
-            @if (sortColumn() === 'lastPayment') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
-          <th class="sortable date-cell" (click)="handleSort('nextPayment')">
+          <th
+            class="date-cell"
+            app-sortable-header="nextPayment"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
             Next Payment
-            @if (sortColumn() === 'nextPayment') {
-              <span class="sort-indicator">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
-            }
           </th>
           <th>Actions</th>
         </tr>

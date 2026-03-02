@@ -11,10 +11,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 @Component({
-  imports: [DatePipe, FormsModule, ConfirmDialog],
+  imports: [DatePipe, FormsModule, ConfirmDialog, AlertBanner],
   templateUrl: './admin-unclaimed-profile-detail.html',
   styleUrl: './admin-unclaimed-profile-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

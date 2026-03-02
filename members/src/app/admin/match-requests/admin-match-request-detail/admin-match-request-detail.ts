@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Tag } from '../../../tag/tag';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { SERVICE_LABELS_LONG } from '../match-request.constants';
 import { isValidDueDate, parseDueDate, type DueDate } from '../match-request.utilities';
 import { AdminMatchRequestDetailService } from './admin-match-request-detail.service';
@@ -25,7 +26,7 @@ interface DialogConfig {
 }
 
 @Component({
-  imports: [DatePipe, Tag, ConfirmDialog],
+  imports: [DatePipe, Tag, ConfirmDialog, AlertBanner],
   templateUrl: './admin-match-request-detail.html',
   styleUrl: './admin-match-request-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
