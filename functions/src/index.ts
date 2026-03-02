@@ -41,6 +41,7 @@ export const adminMembersApi = onRequest(
     secrets: [
       ...STRIPE_SECRETS,
       ...PROFILE_SECRETS,
+      ...IMAGEKIT_SECRETS,
       ...MAILERLITE_SECRETS,
       ...MAILGUN_SECRETS,
     ],
