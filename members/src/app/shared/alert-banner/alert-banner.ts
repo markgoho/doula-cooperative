@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-type AlertVariant = 'success' | 'error' | 'warning' | 'info';
+export type AlertVariant = 'success' | 'error' | 'warning' | 'info';
 
 @Component({
   selector: 'app-alert-banner',

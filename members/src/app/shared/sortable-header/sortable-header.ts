@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-
-type SortDirection = 'asc' | 'desc';
+import type { SortDirection } from '../create-table-sort-state';
 
 @Component({
   selector: 'th[app-sortable-header]',
@@ -13,6 +12,8 @@ type SortDirection = 'asc' | 'desc';
   host: {
     class: 'sortable',
     '(click)': 'sort.emit(column())',
+    '[attr.aria-sort]':
+      "isActive() ? (direction() === 'asc' ? 'ascending' : 'descending') : 'none'",
   },
 })
 export class SortableHeader {

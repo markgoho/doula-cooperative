@@ -36,10 +36,7 @@ export class UnclaimedProfilesTable {
   });
   protected sortColumn = this.sortState.sortColumn;
   protected sortDirection = this.sortState.sortDirection;
-
-  protected handleSort(column: string): void {
-    this.sortState.handleSort(column as UnclaimedProfileSortColumn);
-  }
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.profilesResource().error();

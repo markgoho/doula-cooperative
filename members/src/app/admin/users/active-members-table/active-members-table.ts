@@ -30,10 +30,7 @@ export class ActiveMembersTable {
   });
   protected sortColumn = this.sortState.sortColumn;
   protected sortDirection = this.sortState.sortDirection;
-
-  protected handleSort(column: string): void {
-    this.sortState.handleSort(column as MemberSortColumn);
-  }
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.membersResource().error();

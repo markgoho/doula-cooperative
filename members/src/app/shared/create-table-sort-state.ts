@@ -1,11 +1,11 @@
-import { signal, type WritableSignal } from '@angular/core';
+import { type Signal, signal } from '@angular/core';
 
-type SortDirection = 'asc' | 'desc';
+export type SortDirection = 'asc' | 'desc';
 
-interface TableSortState<TColumn extends string> {
-  sortColumn: WritableSignal<TColumn>;
-  sortDirection: WritableSignal<SortDirection>;
-  handleSort: (column: TColumn) => void;
+export interface TableSortState<TColumn extends string> {
+  sortColumn: Signal<TColumn>;
+  sortDirection: Signal<SortDirection>;
+  handleSort: (column: string) => void;
 }
 
 export function createTableSortState<TColumn extends string>(options: {
@@ -15,14 +15,14 @@ export function createTableSortState<TColumn extends string>(options: {
   const sortColumn = signal<TColumn>(options.defaultColumn);
   const sortDirection = signal<SortDirection>(options.defaultDirection);
 
-  const handleSort = (column: TColumn): void => {
+  function handleSort(column: string): void {
     if (sortColumn() === column) {
       sortDirection.set(sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      sortColumn.set(column);
+      sortColumn.set(column as TColumn);
       sortDirection.set('asc');
     }
-  };
+  }
 
   return { sortColumn, sortDirection, handleSort };
 }

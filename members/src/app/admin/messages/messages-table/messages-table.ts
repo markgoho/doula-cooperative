@@ -30,10 +30,7 @@ export class MessagesTable {
   });
   protected sortColumn = this.sortState.sortColumn;
   protected sortDirection = this.sortState.sortDirection;
-
-  protected handleSort(column: string): void {
-    this.sortState.handleSort(column as MessageSortColumn);
-  }
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.messagesResource().error();

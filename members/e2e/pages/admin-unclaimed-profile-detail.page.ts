@@ -67,7 +67,7 @@ export class AdminUnclaimedProfileDetailPage {
     // Status messages
     this.loadingText = page.getByText('Loading details...');
     this.errorMessage = page.getByRole('alert');
-    this.successMessage = page.getByRole('status');
+    this.successMessage = page.locator('app-alert-banner.success');
   }
 
   async goto(email: string): Promise<void> {

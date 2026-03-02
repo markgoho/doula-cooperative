@@ -37,10 +37,7 @@ export class MatchRequestsTable {
   });
   protected sortColumn = this.sortState.sortColumn;
   protected sortDirection = this.sortState.sortDirection;
-
-  protected handleSort(column: string): void {
-    this.sortState.handleSort(column as MatchRequestSortColumn);
-  }
+  protected handleSort = this.sortState.handleSort;
 
   protected error = computed(() => {
     const error = this.requestsResource().error();
@@ -69,7 +66,7 @@ export class MatchRequestsTable {
           const aValid = isValidDueDate(a.estimatedDueDate);
           const bValid = isValidDueDate(b.estimatedDueDate);
 
-          // Put invalid dates at the end
+          // Invalid dates sort after valid dates (before direction flip)
           if (aValid && bValid) {
             const aDate = parseDueDate(a.estimatedDueDate);
             const bDate = parseDueDate(b.estimatedDueDate);

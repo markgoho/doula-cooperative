@@ -13,7 +13,7 @@
 }
 
 :host(.error) {
-  background: #fdecea;
+  background: color-mix(in oklch, var(--color-error, #d93025) 10%, white);
   color: var(--color-error, #d93025);
   font-weight: var(--font-weight-semibold);
   text-align: center;
