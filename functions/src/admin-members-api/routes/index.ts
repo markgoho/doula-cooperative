@@ -5,5 +5,6 @@ export { extendMembershipLogic } from "./extend-membership.js";
 export { getMemberLogic } from "./get-member.js";
 export { listMembersLogic } from "./list-members.js";
 export { refundMembershipLogic } from "./refund-membership.js";
+export { toggleProfileDraftLogic } from "./toggle-profile-draft.js";
 export { updateClaimsLogic } from "./update-claims.js";
 export { updateMemberLogic } from "./update-member.js";

@@ -69,6 +69,13 @@ export function createAdminTestPlugin(overrides?: {
         authUserDeleted: true,
       }),
     ),
+    toggleProfileDraft: mock(() =>
+      Promise.resolve({
+        slug: "test-slug",
+        draft: false,
+        hugoRebuildTriggered: true,
+      }),
+    ),
     ...overrides?.memberAdminService,
   };
 

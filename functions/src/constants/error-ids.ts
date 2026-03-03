@@ -85,19 +85,11 @@ export const ERROR_IDS = {
   ADMIN_CHANGE_EMAIL_RESEND_FAILED: "admin_change_email_resend_failed",
 
   // Write profile errors
-  WRITE_PROFILE_GITHUB_RATE_LIMIT: "write_profile_github_rate_limit",
-  WRITE_PROFILE_GITHUB_NOT_FOUND: "write_profile_github_not_found",
-  WRITE_PROFILE_GITHUB_CONFLICT: "write_profile_github_conflict",
-  WRITE_PROFILE_GITHUB_GENERIC: "write_profile_github_generic",
   WRITE_PROFILE_METADATA_PARSE_FAILED: "write_profile_metadata_parse_failed",
   WRITE_PROFILE_PROCESSING_ERROR: "write_profile_processing_error",
 
   // Create profile errors
-  CREATE_PROFILE_GITHUB_RATE_LIMIT: "create_profile_github_rate_limit",
-  CREATE_PROFILE_GITHUB_CONFLICT: "create_profile_github_conflict",
-  CREATE_PROFILE_GITHUB_GENERIC: "create_profile_github_generic",
   CREATE_PROFILE_PROCESSING_ERROR: "create_profile_processing_error",
-  CREATE_PROFILE_GITHUB_AUTH_FAILED: "create_profile_github_auth_failed",
   CREATE_PROFILE_FIRESTORE_READ_ERROR: "create_profile_firestore_read_error",
   CREATE_PROFILE_FIRESTORE_UPDATE_ERROR:
     "create_profile_firestore_update_error",
@@ -176,9 +168,6 @@ export const ERROR_IDS = {
     "upload_profile_image_processing_failed",
   UPLOAD_PROFILE_IMAGE_AVIF_GENERATION_FAILED:
     "upload_profile_image_avif_generation_failed",
-  UPLOAD_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
-    "upload_profile_image_github_rate_limit",
-  UPLOAD_PROFILE_IMAGE_GITHUB_FAILED: "upload_profile_image_github_failed",
   UPLOAD_PROFILE_IMAGE_BATCH_OPERATION_FAILED:
     "upload_profile_image_batch_operation_failed",
   UPLOAD_PROFILE_IMAGE_FILE_CHECK_FAILED:
@@ -192,9 +181,6 @@ export const ERROR_IDS = {
   DELETE_PROFILE_IMAGE_FAILED: "delete_profile_image_failed",
   DELETE_PROFILE_IMAGE_FIRESTORE_READ_ERROR:
     "delete_profile_image_firestore_read_error",
-  DELETE_PROFILE_IMAGE_GITHUB_RATE_LIMIT:
-    "delete_profile_image_github_rate_limit",
-  DELETE_PROFILE_IMAGE_GITHUB_FAILED: "delete_profile_image_github_failed",
 
   // Elysia API errors
   API_HANDLER_FAILED: "api_handler_failed",
@@ -210,7 +196,6 @@ export const ERROR_IDS = {
   API_AUTH_TOKEN_WRONG_PROJECT: "api_auth_token_wrong_project",
   API_AUTH_VERIFICATION_FAILED: "api_auth_verification_failed",
   API_HEADERS_ALREADY_SENT: "api_headers_already_sent",
-  API_GITHUB_CONFIG_MISSING: "api_github_config_missing",
 
   // Admin member management operations
   API_ADMIN_GET_MEMBER_FAILED: "api_admin_get_member_failed",
@@ -287,7 +272,6 @@ export const ERROR_IDS = {
   API_PROFILE_SLUG_CHECK_FAILED: "api_profile_slug_check_failed",
   API_PROFILE_SLUG_SET_FAILED: "api_profile_slug_set_failed",
   API_PROFILE_CLAIM_FAILED: "api_profile_claim_failed",
-  API_GITHUB_READ_FAILED: "api_github_read_failed",
   API_HUGO_REBUILD_FAILED: "api_hugo_rebuild_failed",
 
   // Elysia API Stripe webhook errors
@@ -372,6 +356,9 @@ export const ERROR_IDS = {
     "api_admin_clean_slate_image_delete_failed",
   API_ADMIN_CLEAN_SLATE_NOTIFICATION_FAILED:
     "api_admin_clean_slate_notification_failed",
+
+  // Admin toggle profile draft errors
+  API_ADMIN_TOGGLE_DRAFT_FAILED: "api_admin_toggle_draft_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

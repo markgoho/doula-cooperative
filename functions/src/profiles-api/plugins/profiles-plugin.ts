@@ -6,6 +6,7 @@ import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { getUserUid } from "../../shared-api/utils/get-user-uid.js";
+import { optionalUserDerive } from "../../shared-api/utils/optional-user-derive.js";
 import { userDerive } from "../../shared-api/utils/user-derive.js";
 import { userGuard } from "../../shared-api/utils/user-guard.js";
 import {
@@ -136,15 +137,20 @@ export function createProfilesPlugin(services?: PartialServices) {
         services?.authUpdateService ?? AuthUpdateService,
       )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+
+      // Optional auth for all routes — gives userToken (may be undefined) to public routes
+      .derive(optionalUserDerive)
+
       // PUBLIC ROUTES (before auth guards)
 
-      // GET /:slug - Read profile by slug (no auth)
+      // GET /:slug - Read profile by slug (optional auth for draft access control)
       .get(
         "/:slug",
-        async ({ params, profileStoreService, logger, set }) =>
+        async ({ params, profileStoreService, userToken, logger, set }) =>
           readProfileBySlugLogic({
             slug: params.slug,
             profileStoreService,
+            userToken,
             logger,
             set,
           }),

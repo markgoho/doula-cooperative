@@ -215,6 +215,26 @@
         <div class="profile-preview">
           <h3>Profile Content</h3>
 
+          <dl class="info-grid">
+            <dt>Status:</dt>
+            <dd>
+              <span [class]="'status-badge ' + (isProfileDraft() ? 'inactive' : 'active')">
+                {{ isProfileDraft() ? 'Draft (Unpublished)' : 'Published' }}
+              </span>
+            </dd>
+          </dl>
+
+          <div class="action-buttons">
+            <button
+              type="button"
+              [class]="'button ' + (isProfileDraft() ? '' : 'button--danger')"
+              (click)="showToggleDraftConfirm()"
+              [disabled]="service.actionInProgress()"
+            >
+              {{ service.actionInProgress() ? 'Processing...' : (isProfileDraft() ? 'Publish Profile' : 'Unpublish Profile') }}
+            </button>
+          </div>
+
           @if (profile.image) {
             <div class="profile-image">
               <img [src]="profile.image" [alt]="member.name || 'Profile image'" />

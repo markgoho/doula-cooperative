@@ -42,6 +42,7 @@ export async function readProfile(options: {
       ...(data.pronouns && { pronouns: data.pronouns }),
       ...(data.tags && { tags: data.tags }),
       ...(data.contact && { contact: data.contact }),
+      ...(data.ownerUid && { ownerUid: data.ownerUid }),
       image: buildProfileImageUrl(slug),
     };
   } catch (error) {

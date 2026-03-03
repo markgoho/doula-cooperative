@@ -2,6 +2,7 @@ import type { ProfileData } from "../../schemas/profile-schemas.js";
 
 export interface ReadProfileResponse extends ProfileData {
   image?: string;
+  ownerUid?: string;
 }
 
 export interface WriteProfileResponse {
