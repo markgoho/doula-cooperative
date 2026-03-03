@@ -14,8 +14,13 @@
 
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { dump } from "js-yaml";
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 
 const PROFILES_COLLECTION = "profiles";
@@ -69,7 +74,59 @@ function stripUrlProtocol(url: string): string {
   return url.replace(/^https?:\/\//, "");
 }
 
-function serializeProfileToMarkdown(slug: string, profile: ProfileDocument): string {
+/**
+ * Quote a YAML scalar value if it contains characters that would
+ * break block-style YAML parsing (colons, hash signs, etc.).
+ */
+function yamlScalar(value: string | boolean | number): string {
+  if (typeof value !== "string") {
+    return String(value);
+  }
+  if (/[:#\[\]{}|>&*!]/.test(value) || value === "") {
+    return `"${value.replaceAll('"', '\\"')}"`;
+  }
+  return value;
+}
+
+/**
+ * Serialize a HugoFrontMatter object to block-style YAML.
+ * Handles the known frontmatter shape: scalar fields, one string array (tags),
+ * and one shallow object (contact). No general-purpose YAML library needed.
+ */
+function serializeFrontMatter(frontMatter: HugoFrontMatter): string {
+  const lines: string[] = [];
+
+  for (const [key, value] of Object.entries(frontMatter)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      lines.push(`${key}:`);
+      for (const item of value) {
+        lines.push(`  - ${yamlScalar(item)}`);
+      }
+    } else if (typeof value === "object") {
+      lines.push(`${key}:`);
+      for (const [nestedKey, nestedValue] of Object.entries(
+        value as Record<string, string>,
+      )) {
+        if (nestedValue !== undefined) {
+          lines.push(`  ${nestedKey}: ${yamlScalar(nestedValue)}`);
+        }
+      }
+    } else {
+      lines.push(`${key}: ${yamlScalar(value)}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function serializeProfileToMarkdown(
+  slug: string,
+  profile: ProfileDocument,
+): string {
   const frontMatter: HugoFrontMatter = {
     title: profile.title,
     type: "doulas",
@@ -120,16 +177,7 @@ function serializeProfileToMarkdown(slug: string, profile: ProfileDocument): str
     }
   }
 
-  let yamlFrontMatter = dump(frontMatter, {
-    lineWidth: -1,
-    noRefs: true,
-  }).trim();
-
-  // js-yaml quotes date-like strings; Hugo expects unquoted YYYY-MM-DD for `date`
-  if (frontMatter.date) {
-    yamlFrontMatter = yamlFrontMatter.replace(/^date: '(.+)'$/m, "date: $1");
-  }
-
+  const yamlFrontMatter = serializeFrontMatter(frontMatter);
   const bio = profile.bio?.trim() ?? "";
 
   return `---\n${yamlFrontMatter}\n---\n\n${bio}\n`;
@@ -146,8 +194,9 @@ function initFirebase(): void {
       credential: cert(serviceAccountPath),
     });
   } else {
-    // Use Application Default Credentials (works in CI with gcloud auth)
-    initializeApp();
+    initializeApp({
+      projectId: "doula-cooperative",
+    });
   }
 }
 
@@ -238,7 +287,7 @@ async function syncProfiles(): Promise<void> {
   if (errors.length > 0) {
     console.error(
       `\n${errors.length} profile(s) failed to sync:`,
-      errors.map((e) => `  ${e.slug}: ${e.error}`).join("\n"),
+      errors.map(e => `  ${e.slug}: ${e.error}`).join("\n"),
     );
     process.exit(1);
   }

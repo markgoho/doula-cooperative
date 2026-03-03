@@ -14,9 +14,9 @@
  *   - Write access to Firestore `profiles` collection
  */
 
+import { YAML } from "bun";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { load } from "js-yaml";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -76,7 +76,7 @@ function parseMarkdownProfile(
     return undefined;
   }
 
-  const frontMatter = load(match[1]) as HugoFrontMatter;
+  const frontMatter = YAML.parse(match[1]) as HugoFrontMatter;
   const bio = (match[2] ?? "").trim();
 
   return { frontMatter, bio };
@@ -93,7 +93,9 @@ function initFirebase(): void {
       credential: cert(serviceAccountPath),
     });
   } else {
-    initializeApp();
+    initializeApp({
+      projectId: "doula-cooperative",
+    });
   }
 }
 
@@ -128,7 +130,7 @@ async function migrateProfiles(): Promise<void> {
 
   const entries = readdirSync(HUGO_DOULAS_DIR, { withFileTypes: true });
   const profileDirs = entries.filter(
-    (entry) => entry.isDirectory() && !SKIP_ENTRIES.has(entry.name),
+    entry => entry.isDirectory() && !SKIP_ENTRIES.has(entry.name),
   );
 
   console.log(`Found ${profileDirs.length} profile directories`);
@@ -196,9 +198,7 @@ async function migrateProfiles(): Promise<void> {
         .doc(slug)
         .set(profileDoc, { merge: true });
 
-      console.log(
-        `  Migrated ${slug} (owner: ${ownerUid ?? "none"})`,
-      );
+      console.log(`  Migrated ${slug} (owner: ${ownerUid ?? "none"})`);
       migratedCount++;
     } catch (error: unknown) {
       const errorMessage =
