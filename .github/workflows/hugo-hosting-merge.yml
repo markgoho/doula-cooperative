@@ -24,9 +24,10 @@ jobs:
       - name: Install dependencies
         run: bun install
       - name: Sync profiles from Firestore
-        run: bun scripts/sync-profiles-to-hugo.ts
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_PATH }}
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}' > /tmp/sa-key.json
+          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json bun scripts/sync-profiles-to-hugo.ts
+          rm /tmp/sa-key.json
       - name: Build Hugo site
         run: bun run build
         env:
