@@ -53,7 +53,7 @@ export async function readProfileBySlugLogic({
 }: {
   slug: string;
   profileStoreService: ProfileStoreService;
-  userToken?: DecodedIdToken;
+  userToken: DecodedIdToken | undefined;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<ReadProfileSuccessResponse | { error: string }> {
