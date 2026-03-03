@@ -8,7 +8,7 @@
  *   bun scripts/sync-profiles-to-hugo.ts
  *
  * Requires:
- *   - GOOGLE_APPLICATION_CREDENTIALS or Application Default Credentials
+ *   - FIREBASE_SERVICE_ACCOUNT env var (JSON string) or Application Default Credentials
  *   - Write access to hugo/content/doulas/
  */
 
@@ -24,7 +24,6 @@ import {
 import { join, resolve } from "node:path";
 
 const PROFILES_COLLECTION = "profiles";
-const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/doulacoop";
 
 const HUGO_DOULAS_DIR = resolve(
   import.meta.dirname ?? ".",
@@ -216,7 +215,7 @@ async function syncProfiles(): Promise<void> {
     console.error(
       "ABORTING: Firestore returned 0 profiles. " +
         "This would delete all existing profile directories. " +
-        "Check GOOGLE_APPLICATION_CREDENTIALS and Firestore project configuration.",
+        "Check FIREBASE_SERVICE_ACCOUNT and Firestore project configuration.",
     );
     process.exit(1);
   }

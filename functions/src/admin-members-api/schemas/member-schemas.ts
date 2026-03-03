@@ -531,7 +531,7 @@ export const CleanSlateResultSchema = t.Object({
   ),
   profileDeleted: t.Optional(
     t.Boolean({
-      description: "Whether the Hugo profile was deleted from GitHub",
+      description: "Whether the profile document was deleted from Firestore",
     }),
   ),
   profileImageDeleted: t.Optional(

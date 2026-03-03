@@ -9,7 +9,7 @@
  *   bun scripts/migrate-profiles-to-firestore.ts
  *
  * Requires:
- *   - GOOGLE_APPLICATION_CREDENTIALS or Application Default Credentials
+ *   - FIREBASE_SERVICE_ACCOUNT env var (JSON string) or Application Default Credentials
  *   - Read access to hugo/content/doulas/
  *   - Write access to Firestore `profiles` collection
  */

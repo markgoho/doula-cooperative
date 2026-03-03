@@ -41,11 +41,11 @@ export async function createProfile(options: {
       draft: true,
       createdAt: now,
       updatedAt: now,
-      ...(data.credentials && { credentials: data.credentials }),
-      ...(data.pronouns && { pronouns: data.pronouns }),
-      ...(data.tags && { tags: data.tags }),
-      ...(data.contact && { contact: data.contact }),
-      ...(ownerUid && { ownerUid }),
+      ...(data.credentials !== undefined && { credentials: data.credentials }),
+      ...(data.pronouns !== undefined && { pronouns: data.pronouns }),
+      ...(data.tags !== undefined && { tags: data.tags }),
+      ...(data.contact !== undefined && { contact: data.contact }),
+      ...(ownerUid !== undefined && { ownerUid }),
     };
 
     // create() is atomic — throws ALREADY_EXISTS if the document exists

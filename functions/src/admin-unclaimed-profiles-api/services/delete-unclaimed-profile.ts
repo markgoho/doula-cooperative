@@ -104,8 +104,8 @@ function createDraftFailureEmailHtml({
   errorMessage: string;
 }): string {
   return `
-    <h2>Hugo Profile Draft Failed</h2>
-    <p>An admin deleted an unclaimed profile, but setting the Hugo profile to draft failed.</p>
+    <h2>Profile Draft Failed</h2>
+    <p>An admin deleted an unclaimed profile, but setting the Firestore profile to draft failed.</p>
 
     <h3>Profile Details:</h3>
     <ul>
@@ -116,7 +116,7 @@ function createDraftFailureEmailHtml({
     <h3>Error Details:</h3>
     <p>${escapeHtml(errorMessage)}</p>
 
-    <p><strong>Action Required:</strong> Manually set <code>draft: true</code> in the Hugo profile at <code>hugo/content/doulas/${escapeHtml(slug)}/index.md</code>.</p>
+    <p><strong>Action Required:</strong> Manually set <code>draft: true</code> on the Firestore document at <code>profiles/${escapeHtml(slug)}</code>.</p>
   `;
 }
 
@@ -141,7 +141,7 @@ async function sendDraftFailureNotification({
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
       subject:
-        "Hugo Profile Draft Failed During Profile Deletion - Action Required",
+        "Profile Draft Failed During Profile Deletion - Action Required",
       html: createDraftFailureEmailHtml({
         email,
         slug,
@@ -164,7 +164,7 @@ async function sendDraftFailureNotification({
         slug,
         error: emailError,
         severity: "CRITICAL",
-        context: "Hugo profile draft failed AND notification email failed",
+        context: "Profile draft failed AND notification email failed",
         originalError: errorMessage,
       },
     );
@@ -177,7 +177,7 @@ async function sendDraftFailureNotification({
  * before claiming their account.
  *
  * Also unsubscribes the email from the MailerLite newsletter (best-effort).
- * If the profile has a slug, sets the Hugo profile to draft (best-effort).
+ * If the profile has a slug, sets the profile to draft in Firestore (best-effort).
  */
 export async function deleteUnclaimedProfile(options: {
   email: string;
@@ -240,7 +240,7 @@ export async function deleteUnclaimedProfile(options: {
       });
     }
 
-    // Best-effort: Set Hugo profile to draft if the profile has a slug
+    // Best-effort: Set profile to draft in Firestore if the profile has a slug
     const documentData = document.data();
     const slug =
       documentData !== undefined && typeof documentData["slug"] === "string"
@@ -251,7 +251,7 @@ export async function deleteUnclaimedProfile(options: {
     if (slug !== undefined && slug.length > 0) {
       try {
         await draftProfile({ slug });
-        logger.info("Set Hugo profile to draft", { email, slug });
+        logger.info("Set profile to draft", { email, slug });
         profileDrafted = true;
 
         // NON-CRITICAL: Trigger Hugo rebuild after drafting
@@ -273,14 +273,14 @@ export async function deleteUnclaimedProfile(options: {
           draftError instanceof Error ? draftError.message : "Unknown error";
 
         logger.error(
-          "Failed to set Hugo profile to draft during profile deletion",
+          "Failed to set profile to draft during profile deletion",
           {
             errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
             email,
             slug,
             error: draftError,
             errorMessage: draftErrorMessage,
-            actionRequired: "Manually set draft: true in the Hugo profile",
+            actionRequired: "Manually set draft: true on the Firestore profiles document",
           },
         );
 

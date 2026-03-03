@@ -58,7 +58,10 @@ export async function toggleProfileDraft(options: {
     const newDraft = !currentDraft;
 
     // 2. Update draft status
-    await profileReference.update({ draft: newDraft });
+    await profileReference.update({
+      draft: newDraft,
+      updatedAt: new Date().toISOString(),
+    });
 
     // 3. Trigger Hugo rebuild
     let hugoRebuildTriggered = false;
