@@ -161,25 +161,45 @@ async function syncProfiles(): Promise<void> {
   const snapshot = await firestore.collection(PROFILES_COLLECTION).get();
   console.log(`Found ${snapshot.size} profiles in Firestore`);
 
+  // Safety check: abort if Firestore returns 0 profiles.
+  // This prevents wiping all Hugo profile directories due to
+  // misconfigured credentials, wrong project, or transient Firestore outage.
+  if (snapshot.empty) {
+    console.error(
+      "ABORTING: Firestore returned 0 profiles. " +
+        "This would delete all existing profile directories. " +
+        "Check GOOGLE_APPLICATION_CREDENTIALS and Firestore project configuration.",
+    );
+    process.exit(1);
+  }
+
   const firestoreSlugs = new Set<string>();
+  const errors: Array<{ slug: string; error: string }> = [];
 
   // Write each profile to Hugo content
   for (const document of snapshot.docs) {
     const slug = document.id;
     firestoreSlugs.add(slug);
 
-    const profile = document.data() as ProfileDocument;
-    const profileDir = join(HUGO_DOULAS_DIR, slug);
-    const profilePath = join(profileDir, "index.md");
+    try {
+      const profile = document.data() as ProfileDocument;
+      const profileDir = join(HUGO_DOULAS_DIR, slug);
+      const profilePath = join(profileDir, "index.md");
 
-    // Ensure directory exists
-    if (!existsSync(profileDir)) {
-      mkdirSync(profileDir, { recursive: true });
+      // Ensure directory exists
+      if (!existsSync(profileDir)) {
+        mkdirSync(profileDir, { recursive: true });
+      }
+
+      const markdown = serializeProfileToMarkdown(slug, profile);
+      writeFileSync(profilePath, markdown, "utf8");
+      console.log(`  Wrote ${slug}/index.md`);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.error(`  ERROR writing ${slug}: ${errorMessage}`);
+      errors.push({ slug, error: errorMessage });
     }
-
-    const markdown = serializeProfileToMarkdown(slug, profile);
-    writeFileSync(profilePath, markdown, "utf8");
-    console.log(`  Wrote ${slug}/index.md`);
   }
 
   // Delete profile directories that no longer exist in Firestore
@@ -214,6 +234,14 @@ async function syncProfiles(): Promise<void> {
   console.log(
     `Sync complete: ${snapshot.size} profiles written, ${deletedCount} stale directories removed`,
   );
+
+  if (errors.length > 0) {
+    console.error(
+      `\n${errors.length} profile(s) failed to sync:`,
+      errors.map((e) => `  ${e.slug}: ${e.error}`).join("\n"),
+    );
+    process.exit(1);
+  }
 }
 
 syncProfiles().catch((error: unknown) => {

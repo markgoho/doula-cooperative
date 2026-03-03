@@ -42,7 +42,7 @@ export async function triggerHugoRebuild(options: {
     });
   } catch (error) {
     logger.error("Failed to trigger Hugo rebuild", {
-      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
       slug,
       action,
       error,

@@ -224,7 +224,7 @@ describe("PUT /:slug (update profile)", () => {
       );
     });
 
-    it("should return 409 when GitHub conflict occurs", async () => {
+    it("should return 409 when profile conflict occurs", async () => {
       const { testApp, request } = setup({ conflictError: true });
 
       const response = await handleRequest(testApp, request);

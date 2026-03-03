@@ -35,6 +35,7 @@ export class ProfileService {
   private readonly imageCacheBust = signal(Date.now());
 
   constructor() {
+    // TODO(2026-06-01): Remove this localStorage cleanup once all users have loaded the app at least once.
     // Clean up any leftover optimistic state from the old implementation
     try {
       localStorage.removeItem('optimisticProfileImage');

@@ -89,7 +89,7 @@ function isAuthError(error: unknown): error is FirebaseAuthError {
 
 /**
  * Clean slate delete: remove every trace of a user across all integrated systems.
- * Primarily for testing purposes — removes Stripe, MailerLite, GitHub/Hugo, ImageKit, Firestore, and Auth.
+ * Primarily for testing purposes — removes Stripe, MailerLite, Firestore profile, ImageKit, Firestore member, and Auth.
  *
  * Order:
  *   1. Read member document (verify exists)

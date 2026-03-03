@@ -247,7 +247,7 @@ export type SetSlugResponse = Static<typeof SetSlugResponseSchema>;
  */
 const WriteProfileSuccessSchema = t.Object({
   success: t.Literal(true),
-  profile: t.Optional(ProfileDataBodySchema),
+  profile: ProfileDataBodySchema,
 });
 
 export type WriteProfileSuccessResponse = Static<
@@ -267,7 +267,7 @@ export type WriteProfileResponse = Static<typeof WriteProfileResponseSchema>;
  */
 const CreateProfileSuccessSchema = t.Object({
   success: t.Literal(true),
-  profile: t.Optional(ProfileDataBodySchema),
+  profile: ProfileDataBodySchema,
 });
 
 export type CreateProfileSuccessResponse = Static<

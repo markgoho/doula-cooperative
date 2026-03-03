@@ -13,7 +13,6 @@ export const ProfileStoreService: ProfileStoreServiceInterface = {
   deleteProfile,
 };
 
-export { triggerHugoRebuild } from "./trigger-rebuild.js";
 export type {
   ProfileStoreService as ProfileStoreServiceType,
   ReadProfileResponse,

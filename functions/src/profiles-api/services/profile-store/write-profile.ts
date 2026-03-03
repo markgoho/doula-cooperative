@@ -10,8 +10,16 @@ import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { WriteProfileResponse } from "./interface.js";
 
 /**
+ * Firestore gRPC status code for NOT_FOUND.
+ * Thrown by update() when the document does not exist.
+ */
+const NOT_FOUND_CODE = 5;
+
+/**
  * Update an existing profile in the Firestore profiles collection.
  * Sets updatedAt to current time.
+ * Uses Firestore update() which natively throws NOT_FOUND if the document is missing,
+ * avoiding an extra read.
  */
 export async function writeProfile(options: {
   slug: string;
@@ -24,11 +32,6 @@ export async function writeProfile(options: {
     const documentReference = firestore
       .collection(PROFILES_COLLECTION)
       .doc(slug);
-
-    const existing = await documentReference.get();
-    if (!existing.exists) {
-      throw new NotFoundError("Profile not found");
-    }
 
     const updates: Partial<ProfileDocument> = {
       title: data.title,
@@ -61,6 +64,10 @@ export async function writeProfile(options: {
       throw error;
     }
 
+    if (isFirestoreNotFoundError(error)) {
+      throw new NotFoundError("Profile not found");
+    }
+
     logger.error("Failed to write profile to Firestore", {
       errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
       slug,
@@ -69,4 +76,16 @@ export async function writeProfile(options: {
     });
     throw new HttpError("Failed to update profile", 500);
   }
+}
+
+/**
+ * Checks if a Firestore error is a NOT_FOUND error (gRPC code 5).
+ */
+function isFirestoreNotFoundError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: unknown }).code === NOT_FOUND_CODE
+  );
 }

@@ -288,6 +288,7 @@ export const ERROR_IDS = {
   API_PROFILE_SLUG_SET_FAILED: "api_profile_slug_set_failed",
   API_PROFILE_CLAIM_FAILED: "api_profile_claim_failed",
   API_GITHUB_READ_FAILED: "api_github_read_failed",
+  API_HUGO_REBUILD_FAILED: "api_hugo_rebuild_failed",
 
   // Elysia API Stripe webhook errors
   API_STRIPE_WEBHOOK_MISSING_SIGNATURE: "api_stripe_webhook_missing_signature",

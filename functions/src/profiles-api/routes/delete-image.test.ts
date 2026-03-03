@@ -15,7 +15,6 @@ process.env["IMAGEKIT_PRIVATE_KEY"] = "test-private-key";
  * Uses createProfilesTestPlugin() factory with mocked services.
  *
  * Tests verify ImageKit search + deletion and error handling.
- * GitHub front matter update is a soft failure — not tested at unit level.
  */
 describe("DELETE /:slug/image (delete profile image)", () => {
   interface SetupOptions {
