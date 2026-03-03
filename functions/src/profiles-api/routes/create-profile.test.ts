@@ -88,12 +88,14 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve({ success: true as const });
     });
 
-    const mockSendEmail = mock(() => {
-      if (emailError) {
-        return Promise.reject(new Error("Mailgun API error"));
-      }
-      return Promise.resolve();
-    });
+    const mockSendEmail = mock(
+      (_parameters: { message: { html: string } }, _logger: unknown) => {
+        if (emailError) {
+          return Promise.reject(new Error("Mailgun API error"));
+        }
+        return Promise.resolve();
+      },
+    );
 
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
