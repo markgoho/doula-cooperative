@@ -14,7 +14,8 @@ import type {
 function toPublicProfile(
   profile: ReadProfileResponse,
 ): ReadProfileSuccessResponse {
-  const { ownerUid: _, ...publicProfile } = profile;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { ownerUid, ...publicProfile } = profile;
   return publicProfile;
 }
 

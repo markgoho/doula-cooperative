@@ -36,7 +36,7 @@ export async function toggleProfileDraftLogic({
       success: true,
       slug: result.slug,
       draft: result.draft,
-      ...(result.hugoRebuildTriggered === false && {
+      ...(!result.hugoRebuildTriggered && {
         warning: "Profile draft status updated but Hugo rebuild failed.",
       }),
     };

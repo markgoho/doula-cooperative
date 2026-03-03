@@ -65,7 +65,7 @@ export class AdminMemberDetail {
 
   protected isProfileDraft = computed(() => {
     const profile = this.service.profileResource.value();
-    if (!profile) return undefined;
+    if (!profile) return;
     return profile.draft;
   });
 

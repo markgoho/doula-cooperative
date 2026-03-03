@@ -46,19 +46,19 @@ export async function toggleProfileDraft(options: {
 
   try {
     const firestore = getFirestore();
-    const profileRef = firestore.collection(PROFILES_COLLECTION).doc(slug);
-    const profileDoc = await profileRef.get();
+    const profileReference = firestore.collection(PROFILES_COLLECTION).doc(slug);
+    const profileDocument = await profileReference.get();
 
-    if (!profileDoc.exists) {
+    if (!profileDocument.exists) {
       throw new NotFoundError(`Profile not found for slug: ${slug}`);
     }
 
-    const profileData = profileDoc.data() as ProfileDocument;
+    const profileData = profileDocument.data() as ProfileDocument;
     const currentDraft = profileData.draft ?? false;
     const newDraft = !currentDraft;
 
     // 2. Update draft status
-    await profileRef.update({ draft: newDraft });
+    await profileReference.update({ draft: newDraft });
 
     // 3. Trigger Hugo rebuild
     let hugoRebuildTriggered = false;
