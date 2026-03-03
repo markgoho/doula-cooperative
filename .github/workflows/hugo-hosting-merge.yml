@@ -25,9 +25,11 @@ jobs:
         run: bun install
       - name: Sync profiles from Firestore
         run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}' > /tmp/sa-key.json
+          printenv FIREBASE_SA_KEY > /tmp/sa-key.json
           GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json bun scripts/sync-profiles-to-hugo.ts
           rm /tmp/sa-key.json
+        env:
+          FIREBASE_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
       - name: Build Hugo site
         run: bun run build
         env:
