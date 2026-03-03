@@ -218,8 +218,8 @@ describe("PUT /:slug (update profile)", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as WriteProfileSuccessResponse;
       expect(body.profile).toBeDefined();
-      expect(body.profile?.title).toBe("Test Doula");
-      expect(body.profile?.bio).toBe(
+      expect(body.profile.title).toBe("Test Doula");
+      expect(body.profile.bio).toBe(
         "This is a valid bio for the test doula profile.",
       );
     });

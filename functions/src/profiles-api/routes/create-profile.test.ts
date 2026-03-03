@@ -229,8 +229,8 @@ describe("POST /:slug (create profile)", () => {
       expect(response.status).toBe(201);
       const body = (await response.json()) as CreateProfileSuccessResponse;
       expect(body.profile).toBeDefined();
-      expect(body.profile?.title).toBe("New Doula");
-      expect(body.profile?.bio).toBe(
+      expect(body.profile.title).toBe("New Doula");
+      expect(body.profile.bio).toBe(
         "This is a valid bio for a new doula profile.",
       );
     });
