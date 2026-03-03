@@ -188,11 +188,10 @@ function initFirebase(): void {
     return;
   }
 
-  const serviceAccountPath = process.env["GOOGLE_APPLICATION_CREDENTIALS"];
-  if (serviceAccountPath) {
-    initializeApp({
-      credential: cert(serviceAccountPath),
-    });
+  const serviceAccountJson = process.env["FIREBASE_SERVICE_ACCOUNT"];
+  if (serviceAccountJson) {
+    const serviceAccount = JSON.parse(serviceAccountJson);
+    initializeApp({ credential: cert(serviceAccount) });
   } else {
     initializeApp({
       projectId: "doula-cooperative",

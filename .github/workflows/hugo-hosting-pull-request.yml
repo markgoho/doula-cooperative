@@ -30,12 +30,9 @@ jobs:
         run: bun install
 
       - name: Sync profiles from Firestore
-        run: |
-          printenv FIREBASE_SA_KEY > /tmp/sa-key.json
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json bun scripts/sync-profiles-to-hugo.ts
-          rm /tmp/sa-key.json
+        run: bun scripts/sync-profiles-to-hugo.ts
         env:
-          FIREBASE_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
 
       - name: Build Hugo site with test Stripe configuration
         run: bun run build
