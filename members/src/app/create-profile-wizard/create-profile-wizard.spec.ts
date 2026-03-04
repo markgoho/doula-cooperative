@@ -42,8 +42,8 @@ describe('CreateProfileWizard', () => {
     });
   });
 
-  it('should initialize wizard from member document', async () => {
-    const { mockWizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
+  it('should pre-fill personal info from member document', async () => {
+    const { wizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
 
     const member: Member = {
       uid: 'test-uid',
@@ -58,8 +58,130 @@ describe('CreateProfileWizard', () => {
     TestBed.flushEffects();
 
     await waitFor(() => {
-      expect(mockWizardService.initializeFromMember).toHaveBeenCalled();
+      expect(wizardService.personalInfo().title).toBe('Test User');
     });
+  });
+
+  it('should pre-fill email from member document', async () => {
+    const { wizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
+
+    const member: Member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    };
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(wizardService.contactInfo().email).toBe('test@example.com');
+    });
+  });
+
+  it('should pre-fill resolved slug from member document', async () => {
+    const { wizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
+
+    const member: Member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    };
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(wizardService.resolvedSlug()).toBe('test-user');
+    });
+  });
+
+  it('should only initialize once from member document', async () => {
+    const { wizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
+
+    const member: Member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    };
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(wizardService.personalInfo().title).toBe('Test User');
+    });
+
+    // Manually change the title after initialization
+    wizardService.personalInfo.set({ title: 'Changed', pronouns: '', credentials: '' });
+
+    // Re-set member document to trigger the effect again
+    mockMembershipService.userDocument.set({ ...member, name: 'Another Name' });
+    TestBed.flushEffects();
+
+    // Title should still be the manually changed value, not re-initialized
+    expect(wizardService.personalInfo().title).toBe('Changed');
+  });
+
+  it('should handle member without name', async () => {
+    const { wizardService, mockMembershipService } = await setup({ userDocumentLoading: true });
+
+    const member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    } as Member;
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(wizardService.initialized()).toBe(true);
+    });
+
+    expect(wizardService.personalInfo().title).toBe('');
+  });
+
+  it('should reset wizard state on destroy', async () => {
+    const { wizardService, fixture } = await setup();
+
+    // Populate wizard state
+    wizardService.personalInfo.set({ title: 'Jane', pronouns: 'she/her', credentials: 'CD' });
+    wizardService.selectedTags.set(['Birth Doula']);
+    wizardService.bio.set('Bio text');
+    wizardService.contactInfo.set({
+      businessName: 'Biz',
+      phone: '555',
+      email: 'e@e.com',
+      website: 'w.com',
+    });
+    wizardService.completeStep('personal');
+    wizardService.profileCreated.set(true);
+    wizardService.resolvedSlug.set('jane');
+
+    // Destroy the component
+    fixture.destroy();
+
+    // Verify all state is reset
+    expect(wizardService.personalInfo().title).toBe('');
+    expect(wizardService.selectedTags()).toEqual([]);
+    expect(wizardService.bio()).toBe('');
+    expect(wizardService.contactInfo().email).toBe('');
+    expect(wizardService.completedSteps().size).toBe(0);
+    expect(wizardService.profileCreated()).toBe(false);
+    expect(wizardService.resolvedSlug()).toBe('');
+    expect(wizardService.initialized()).toBe(false);
   });
 });
 
@@ -85,22 +207,15 @@ async function setup({ userDocumentLoading = false }: SetupOptions = {}) {
     hasProfile: signal(false),
   };
 
-  const mockWizardService = {
-    initializeFromMember: vi.fn(),
-    completedSteps: signal(new Set()),
-    currentStepIndex: signal(0),
-    initialized: signal(false),
-  };
-
   const result = await render(CreateProfileWizard, {
-    providers: [
-      provideRouter([]),
-      { provide: MembershipService, useValue: mockMembershipService },
-      { provide: CreateProfileWizardService, useValue: mockWizardService },
-    ],
+    providers: [provideRouter([]), { provide: MembershipService, useValue: mockMembershipService }],
   });
 
   const router = TestBed.inject(Router);
+  const wizardService = TestBed.inject(CreateProfileWizardService);
 
-  return { ...result, router, mockWizardService, mockMembershipService };
+  // Reset wizard service state for clean test isolation
+  wizardService.reset();
+
+  return { ...result, router, wizardService, mockMembershipService };
 }

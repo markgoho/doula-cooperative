@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
@@ -35,15 +35,15 @@ describe('ContactStep', () => {
   });
 
   it('should call createProfileContent and navigate to image step on Next', async () => {
-    const { user, mockRouter, mockProfileService, mockWizardService } = await setup();
+    const { user, mockRouter, mockProfileService, wizardService } = await setup();
 
     const nextButton = screen.getByRole('button', { name: 'Next' });
     await user.click(nextButton);
 
     await waitFor(() => {
       expect(mockProfileService.createProfileContent).toHaveBeenCalled();
-      expect(mockWizardService.profileCreated.set).toHaveBeenCalledWith(true);
-      expect(mockWizardService.completeStep).toHaveBeenCalledWith('contact');
+      expect(wizardService.profileCreated()).toBe(true);
+      expect(wizardService.completedSteps().has('contact')).toBe(true);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile/create/image']);
     });
   });
@@ -78,6 +78,126 @@ describe('ContactStep', () => {
 
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile/create/bio']);
   });
+
+  it('should include required fields in profile data sent to API', async () => {
+    const { user, mockProfileService } = await setup({
+      personalInfo: { title: 'Jane Doe', pronouns: '', credentials: '' },
+      bio: 'My bio',
+    });
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+    });
+
+    const profileData = mockProfileService.createProfileContent.mock.calls[0]![0];
+    expect(profileData.title).toBe('Jane Doe');
+    expect(profileData.bio).toBe('My bio');
+  });
+
+  it('should include optional fields when set in profile data sent to API', async () => {
+    const { user, mockProfileService } = await setup({
+      personalInfo: {
+        title: 'Jane Doe',
+        pronouns: 'she/her',
+        credentials: 'CD(DONA)',
+      },
+      tags: ['Birth Doula'],
+      bio: 'My bio',
+    });
+
+    // Fill in contact form fields
+    const businessNameInput = screen.getByLabelText('Business Name');
+    const phoneInput = screen.getByLabelText('Phone');
+    const emailInput = screen.getByLabelText('Email');
+    const websiteInput = screen.getByLabelText('Website');
+
+    await user.type(businessNameInput, 'My Business');
+    await user.type(phoneInput, '555-1234');
+    await user.type(emailInput, 'jane@example.com');
+    await user.type(websiteInput, 'jane.com');
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+    });
+
+    const profileData = mockProfileService.createProfileContent.mock.calls[0]![0];
+    expect(profileData.pronouns).toBe('she/her');
+    expect(profileData.credentials).toBe('CD(DONA)');
+    expect(profileData.tags).toEqual(['Birth Doula']);
+    expect(profileData.contact).toEqual({
+      business_name: 'My Business',
+      phone: '555-1234',
+      email: 'jane@example.com',
+      website: 'jane.com',
+    });
+  });
+
+  it('should omit empty optional fields from profile data', async () => {
+    const { user, mockProfileService } = await setup({
+      personalInfo: { title: 'Jane Doe', pronouns: '', credentials: '' },
+      bio: 'My bio',
+    });
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+    });
+
+    const profileData = mockProfileService.createProfileContent.mock.calls[0]![0];
+    expect(profileData.pronouns).toBeUndefined();
+    expect(profileData.credentials).toBeUndefined();
+    expect(profileData.tags).toBeUndefined();
+    expect(profileData.contact).toBeUndefined();
+  });
+
+  it('should omit contact when all contact fields are empty', async () => {
+    const { user, mockProfileService } = await setup({
+      personalInfo: { title: 'Jane', pronouns: '', credentials: '' },
+      bio: 'Bio',
+    });
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+    });
+
+    const profileData = mockProfileService.createProfileContent.mock.calls[0]![0];
+    expect(profileData.contact).toBeUndefined();
+  });
+
+  it('should mark contact step as completed after creation', async () => {
+    const { user, wizardService } = await setup();
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(wizardService.completedSteps().has('contact')).toBe(true);
+    });
+  });
+
+  it('should set profileCreated to true after creation', async () => {
+    const { user, wizardService } = await setup();
+
+    expect(wizardService.profileCreated()).toBe(false);
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(wizardService.profileCreated()).toBe(true);
+    });
+  });
 });
 
 interface SetupOptions {
@@ -87,22 +207,25 @@ interface SetupOptions {
     email: string;
     website: string;
   };
+  personalInfo?: {
+    title: string;
+    pronouns: string;
+    credentials: string;
+  };
+  tags?: string[];
+  bio?: string;
   createShouldFail?: boolean;
   delayCreate?: boolean;
 }
 
 async function setup({
   contactInfo = { businessName: '', phone: '', email: '', website: '' },
+  personalInfo,
+  tags,
+  bio,
   createShouldFail = false,
   delayCreate = false,
 }: SetupOptions = {}) {
-  const mockWizardService = {
-    contactInfo: Object.assign(signal(contactInfo), { set: vi.fn() }),
-    buildProfileData: vi.fn().mockReturnValue({ title: 'Test', bio: 'Bio' }),
-    profileCreated: Object.assign(signal(false), { set: vi.fn() }),
-    completeStep: vi.fn(),
-  };
-
   const mockProfileService = {
     createProfileContent: vi.fn().mockImplementation(async () => {
       if (delayCreate) {
@@ -112,6 +235,7 @@ async function setup({
         throw new Error('Profile creation error');
       }
     }),
+    updateProfile: vi.fn().mockResolvedValue(undefined),
   };
 
   const mockRouter = {
@@ -120,13 +244,29 @@ async function setup({
 
   const result = await render(ContactStep, {
     providers: [
-      { provide: CreateProfileWizardService, useValue: mockWizardService },
       { provide: ProfileService, useValue: mockProfileService },
       { provide: Router, useValue: mockRouter },
     ],
+    configureTestBed: (testBed) => {
+      // Pre-populate wizard service BEFORE the component is created
+      // so the form reads correct initial values from the constructor
+      const wizardService = testBed.inject(CreateProfileWizardService);
+      wizardService.reset();
+      wizardService.contactInfo.set(contactInfo);
+      if (personalInfo) {
+        wizardService.personalInfo.set(personalInfo);
+      }
+      if (tags) {
+        wizardService.selectedTags.set(tags);
+      }
+      if (bio) {
+        wizardService.bio.set(bio);
+      }
+    },
   });
 
+  const wizardService = TestBed.inject(CreateProfileWizardService);
   const user = userEvent.setup();
 
-  return { ...result, user, mockRouter, mockWizardService, mockProfileService };
+  return { ...result, user, mockRouter, wizardService, mockProfileService };
 }
