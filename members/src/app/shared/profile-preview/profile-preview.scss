@@ -1,0 +1,181 @@
+// Profile preview styles matching the Hugo doula profile layout.
+
+.profile-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: var(--space-m);
+}
+
+.title-header,
+.bio-header,
+.contact-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+}
+
+.profile-title {
+  font-size: var(--step-4);
+  margin: 0;
+  text-align: left;
+}
+
+.credentials {
+  font-size: var(--step--1);
+  font-weight: 300;
+  font-variation-settings: 'slnt' -12;
+  margin: 0;
+}
+
+.pronouns {
+  font-size: var(--step--1);
+  color: var(--brown-450);
+  margin: 0;
+}
+
+.headshot {
+  padding-block-end: var(--space-l);
+}
+
+.headshot__image {
+  margin-block-end: var(--space-s);
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  border-radius: 7px;
+  border: 8px solid var(--teal-500);
+}
+
+.headshot__placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 7px;
+  border: 8px solid var(--teal-500);
+  background-color: var(--brown-100);
+  display: grid;
+  place-items: center;
+  margin-block-end: var(--space-s);
+}
+
+.placeholder-icon {
+  font-size: 5rem;
+  opacity: 0.4;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.tag {
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: 20px;
+  width: max-content;
+  background-color: var(--brown-300);
+  color: var(--brown-500);
+  font-weight: 900;
+  font-size: var(--step--1);
+}
+
+.tags-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.bio-text {
+  max-width: 60ch;
+  white-space: pre-wrap;
+}
+
+.contact-info {
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.contact-info svg {
+  height: var(--space-m);
+  width: var(--space-m);
+  flex-shrink: 0;
+}
+
+.contact-info ul {
+  list-style: none;
+  margin-block-start: var(--space-s);
+  margin-block-end: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  align-items: start;
+
+  li {
+    display: flex;
+    gap: var(--space-2xs);
+    align-items: center;
+  }
+}
+
+.edit-link {
+  background: none;
+  border: none;
+  color: var(--teal-500);
+  cursor: pointer;
+  font-size: var(--step--1);
+  text-decoration: underline;
+  padding: 0;
+
+  &:hover {
+    color: var(--teal-600, var(--brown-500));
+  }
+
+  &--photo {
+    display: block;
+    margin-block-start: var(--space-2xs);
+    text-align: center;
+    width: 100%;
+  }
+}
+
+@container profileform (min-width: 35em) {
+  .profile-container {
+    column-gap: var(--space-s);
+    grid-template-columns: minmax(300px, 1fr) 1fr;
+    grid-template-rows: max-content min-content 1fr;
+    grid-template-areas:
+      'headshot title'
+      'headshot bio'
+      'headshot contact-info';
+  }
+
+  .headshot {
+    position: sticky;
+    top: var(--space-s);
+    grid-area: headshot;
+    padding-block-end: 0;
+  }
+
+  .contact-info {
+    grid-area: contact-info;
+  }
+
+  .title-section {
+    grid-area: title;
+  }
+
+  .bio {
+    grid-area: bio;
+  }
+}

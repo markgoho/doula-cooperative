@@ -1,0 +1,16 @@
+<h1>Create Your Doula Profile</h1>
+
+@let user = userDocument();
+
+@if (!user) {
+  <div class="loading-message">
+    <p>Loading...</p>
+  </div>
+} @else {
+  <app-step-indicator
+    [currentStep]="currentStep()"
+    [completedSteps]="wizardService.completedSteps()"
+  />
+
+  <router-outlet />
+}

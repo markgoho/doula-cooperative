@@ -1,0 +1,23 @@
+.step-content {
+  max-width: 60rem;
+}
+
+.step-description {
+  color: var(--brown-450);
+  margin-block-end: var(--space-l);
+}
+
+.preview-wrapper {
+  margin-block: var(--space-l);
+  padding: var(--space-l);
+  border: 1px solid var(--brown-200);
+  border-radius: var(--border-radius-md);
+  background-color: var(--brown-000, #fff);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-s);
+  justify-content: flex-end;
+  margin-block-start: var(--space-l);
+}

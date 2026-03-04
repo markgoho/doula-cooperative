@@ -1,0 +1,30 @@
+<section class="step-content">
+  <h2>Preview Your Profile</h2>
+  <p class="step-description">
+    Here's how your profile will appear on our public doula directory. Click "Edit" next to any
+    section to make changes.
+  </p>
+
+  <app-alert-banner variant="success">
+    Your profile has been created! Review it below and click "Finish" when you're happy with it.
+  </app-alert-banner>
+
+  <div class="preview-wrapper">
+    @let data = profileData();
+    <app-profile-preview
+      [title]="data.title"
+      [credentials]="data.credentials"
+      [pronouns]="data.pronouns"
+      [tags]="data.tags"
+      [bio]="data.bio"
+      [contact]="data.contact"
+      [imageUrl]="imageUrl()"
+      [showEditLinks]="true"
+      (editSection)="onEditSection($event)"
+    />
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="button button--primary" (click)="onFinish()">Finish</button>
+  </div>
+</section>

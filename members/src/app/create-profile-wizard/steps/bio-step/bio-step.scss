@@ -1,0 +1,10 @@
+@use '../../../shared/profile-form/profile-form-styles';
+
+.step-content {
+  max-width: 50rem;
+}
+
+.step-description {
+  color: var(--brown-450);
+  margin-block-end: var(--space-l);
+}

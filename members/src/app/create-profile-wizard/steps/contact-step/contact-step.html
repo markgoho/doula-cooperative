@@ -1,0 +1,87 @@
+<section class="step-content">
+  <h2>Contact Information</h2>
+  <p class="step-description">How can families reach you? All fields are optional.</p>
+
+  @if (errorMessage()) {
+    <app-alert-banner variant="error">
+      {{ errorMessage() }}
+    </app-alert-banner>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
+    <fieldset class="form-fieldset">
+      <legend class="form__legend">Contact Details</legend>
+
+      <div class="form-group">
+        <label for="businessName" class="form__label">Business Name</label>
+        <input
+          id="businessName"
+          type="text"
+          formControlName="businessName"
+          placeholder="Your business name"
+          class="form__input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="form__label">Phone</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          placeholder="585-123-4567"
+          class="form__input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form__label">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="your@email.com"
+          class="form__input"
+          [class.error]="emailControl.invalid && emailControl.touched"
+        />
+        @if (emailControl.invalid && emailControl.touched) {
+          <div class="form__error-message">
+            @if (emailControl.errors?.['email']) {
+              <span>Please enter a valid email address</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="website" class="form__label">Website</label>
+        <input
+          id="website"
+          type="text"
+          formControlName="website"
+          placeholder="yourwebsite.com or https://yourwebsite.com"
+          class="form__input"
+        />
+        <p class="form__help-text">You can include https:// or just enter the domain</p>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button
+        type="button"
+        class="button button--secondary"
+        (click)="onBack()"
+        [disabled]="loading()"
+      >
+        Back
+      </button>
+      <button type="submit" class="button button--primary" [disabled]="loading() || form.invalid">
+        @if (loading()) {
+          <span>Creating profile...</span>
+        } @else {
+          <span>Next</span>
+        }
+      </button>
+    </div>
+  </form>
+</section>
