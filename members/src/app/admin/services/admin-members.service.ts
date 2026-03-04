@@ -122,38 +122,35 @@ export class AdminMembersService {
     image?: string;
     slug: string;
   }> {
-    // 1. Get member to find their slug (admin-members-api already has getMember)
-    const member = await this.getMember(uid);
-
-    if (!member.slug) {
-      throw new Error('Member does not have a profile slug');
-    }
-
-    // 2. Read profile content using public endpoint
-    const profile = await firstValueFrom(
+    // Use dedicated admin endpoint that reads directly from Firestore,
+    // bypassing the public endpoint's draft access control
+    const result = await firstValueFrom(
       this.httpClient.get<{
-        title: string;
-        bio: string;
-        credentials?: string;
-        pronouns?: string;
-        tags?: string[];
-        contact?: Contact;
-        draft?: boolean;
-        image?: string;
-      }>(`/api/profiles/${member.slug}`),
+        success: boolean;
+        slug: string;
+        profile: {
+          title: string;
+          bio: string;
+          credentials?: string;
+          pronouns?: string;
+          tags?: string[];
+          contact?: Contact;
+          draft?: boolean;
+          image?: string;
+        };
+      }>(`/api/admin/members/${uid}/profile`),
     );
 
-    // Return structured profile data (not stringified)
     return {
-      title: profile.title,
-      bio: profile.bio,
-      ...(profile.credentials !== undefined && { credentials: profile.credentials }),
-      ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
-      ...(profile.tags !== undefined && { tags: profile.tags }),
-      ...(profile.contact !== undefined && { contact: profile.contact }),
-      ...(profile.draft !== undefined && { draft: profile.draft }),
-      slug: member.slug,
-      ...(profile.image !== undefined && { image: profile.image }),
+      title: result.profile.title,
+      bio: result.profile.bio,
+      ...(result.profile.credentials !== undefined && { credentials: result.profile.credentials }),
+      ...(result.profile.pronouns !== undefined && { pronouns: result.profile.pronouns }),
+      ...(result.profile.tags !== undefined && { tags: result.profile.tags }),
+      ...(result.profile.contact !== undefined && { contact: result.profile.contact }),
+      ...(result.profile.draft !== undefined && { draft: result.profile.draft }),
+      ...(result.profile.image !== undefined && { image: result.profile.image }),
+      slug: result.slug,
     };
   }
 

@@ -4,6 +4,7 @@ export { cleanSlateDeleteLogic } from "./clean-slate-delete.js";
 export { extendMembershipLogic } from "./extend-membership.js";
 export { getMemberLogic } from "./get-member.js";
 export { listMembersLogic } from "./list-members.js";
+export { readProfileLogic } from "./read-profile.js";
 export { refundMembershipLogic } from "./refund-membership.js";
 export { toggleProfileDraftLogic } from "./toggle-profile-draft.js";
 export { updateClaimsLogic } from "./update-claims.js";

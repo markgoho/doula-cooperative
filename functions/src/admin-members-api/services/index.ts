@@ -4,6 +4,7 @@ import { cleanSlateDelete } from "./clean-slate-delete.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
 import { listMembers } from "./list-members.js";
+import { readProfile } from "./read-profile.js";
 import { refundMembership } from "./refund-membership.js";
 import { toggleProfileDraft } from "./toggle-profile-draft.js";
 import { updateClaims } from "./update-claims.js";
@@ -26,6 +27,7 @@ export const MemberAdminService = {
   refundMembership,
   cleanSlateDelete,
   toggleProfileDraft,
+  readProfile,
 };
 
 // Re-export individual functions for direct imports
@@ -35,6 +37,7 @@ export { cleanSlateDelete } from "./clean-slate-delete.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
 export { listMembers } from "./list-members.js";
+export { readProfile } from "./read-profile.js";
 export { refundMembership } from "./refund-membership.js";
 export { toggleProfileDraft } from "./toggle-profile-draft.js";
 export { updateClaims } from "./update-claims.js";

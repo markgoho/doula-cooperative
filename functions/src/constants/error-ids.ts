@@ -359,6 +359,9 @@ export const ERROR_IDS = {
 
   // Admin toggle profile draft errors
   API_ADMIN_TOGGLE_DRAFT_FAILED: "api_admin_toggle_draft_failed",
+
+  // Admin read profile errors
+  API_ADMIN_READ_PROFILE_FAILED: "api_admin_read_profile_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

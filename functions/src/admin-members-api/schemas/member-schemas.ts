@@ -597,3 +597,61 @@ export const ToggleProfileDraftApiResponseSchema = t.Union([
 export type ToggleProfileDraftApiResponse = Static<
   typeof ToggleProfileDraftApiResponseSchema
 >;
+
+/**
+ * Profile content schema for admin read profile response.
+ * Includes all ProfileData fields plus metadata.
+ */
+export const ProfileContentSchema = t.Object({
+  title: t.String(),
+  bio: t.String(),
+  credentials: t.Optional(t.String()),
+  pronouns: t.Optional(t.String()),
+  tags: t.Optional(t.Array(t.String())),
+  contact: t.Optional(
+    t.Object({
+      phone: t.Optional(t.String()),
+      email: t.Optional(t.String()),
+      website: t.Optional(t.String()),
+      business_name: t.Optional(t.String()),
+    }),
+  ),
+  draft: t.Optional(t.Boolean()),
+  image: t.Optional(t.String()),
+  createdAt: t.String({
+    description: "ISO 8601 timestamp when the profile was first created",
+  }),
+  updatedAt: t.String({
+    description: "ISO 8601 timestamp when the profile was last updated",
+  }),
+  ownerUid: t.Optional(
+    t.String({
+      description: "Firebase Auth UID of the profile owner",
+    }),
+  ),
+});
+
+/**
+ * Success response for reading a member's profile.
+ */
+export const ReadProfileResponseSchema = t.Object({
+  success: t.Literal(true),
+  slug: t.String({
+    description: "The profile slug",
+  }),
+  profile: ProfileContentSchema,
+});
+
+export type ReadProfileResponse = Static<typeof ReadProfileResponseSchema>;
+
+/**
+ * GET /api/admin/members/:memberId/profile response - union of success and error.
+ */
+export const ReadProfileApiResponseSchema = t.Union([
+  ReadProfileResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ReadProfileApiResponse = Static<
+  typeof ReadProfileApiResponseSchema
+>;

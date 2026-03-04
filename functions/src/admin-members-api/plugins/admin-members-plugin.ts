@@ -12,6 +12,7 @@ import {
   extendMembershipLogic,
   getMemberLogic,
   listMembersLogic,
+  readProfileLogic,
   refundMembershipLogic,
   toggleProfileDraftLogic,
   updateClaimsLogic,
@@ -27,6 +28,7 @@ import {
   GetMemberApiResponseSchema,
   ListMembersApiResponseSchema,
   MemberIdParameterSchema,
+  ReadProfileApiResponseSchema,
   RefundMembershipApiResponseSchema,
   RefundMembershipBodySchema,
   ToggleProfileDraftApiResponseSchema,
@@ -150,13 +152,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
           // POST /:memberId/profile/toggle-draft - Toggle profile draft status (served at /api/admin/members/:memberId/profile/toggle-draft)
           .post(
             "/profile/toggle-draft",
-            async ({
-              params,
-              adminToken,
-              memberAdminService,
-              logger,
-              set,
-            }) =>
+            async ({ params, adminToken, memberAdminService, logger, set }) =>
               toggleProfileDraftLogic({
                 memberId: params.memberId,
                 adminUid: getAdminUid(adminToken, logger),
@@ -166,6 +162,21 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: ToggleProfileDraftApiResponseSchema,
+            },
+          )
+          // GET /:memberId/profile - Read member profile (served at /api/admin/members/:memberId/profile)
+          .get(
+            "/profile",
+            async ({ params, adminToken, memberAdminService, logger, set }) =>
+              readProfileLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              }),
+            {
+              response: ReadProfileApiResponseSchema,
             },
           )
           // Membership management routes under /:memberId/membership

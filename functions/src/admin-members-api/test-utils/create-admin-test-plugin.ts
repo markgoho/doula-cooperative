@@ -1,5 +1,6 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
+import type { ProfileDocument } from "../../collections/index.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
@@ -74,6 +75,18 @@ export function createAdminTestPlugin(overrides?: {
         slug: "test-slug",
         draft: false,
         hugoRebuildTriggered: true,
+      }),
+    ),
+    readProfile: mock(() =>
+      Promise.resolve({
+        slug: "test-slug",
+        profile: {
+          title: "Test Doula",
+          bio: "Test bio content",
+          draft: false,
+          createdAt: "2024-01-01T00:00:00.000Z",
+          updatedAt: "2024-01-01T00:00:00.000Z",
+        } as ProfileDocument,
       }),
     ),
     ...overrides?.memberAdminService,

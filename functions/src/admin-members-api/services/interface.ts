@@ -2,6 +2,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
+import type { ReadProfileResult } from "./read-profile.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";
 
@@ -164,4 +165,15 @@ export interface MemberAdminService {
   toggleProfileDraft(options: {
     memberId: string;
   }): Promise<ToggleProfileDraftResult>;
+
+  /**
+   * Read a member's profile directly from Firestore.
+   * Bypasses the public endpoint's draft access control so admins can always view profiles.
+   *
+   * @param options - Object containing the member ID
+   * @returns Promise resolving to the slug and profile data
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ValidationError if member has no slug
+   */
+  readProfile(options: { memberId: string }): Promise<ReadProfileResult>;
 }
