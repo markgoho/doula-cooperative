@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -20,6 +27,7 @@ export class CreateProfileWizard {
   protected readonly wizardService = inject(CreateProfileWizardService);
   private readonly membershipService = inject(MembershipService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly userDocument = this.membershipService.userDocument;
 
@@ -41,6 +49,9 @@ export class CreateProfileWizard {
   });
 
   constructor() {
+    // Reset wizard state when leaving the wizard
+    this.destroyRef.onDestroy(() => this.wizardService.reset());
+
     // Redirect to /profile if user already has a profile
     effect(() => {
       const user = this.userDocument();

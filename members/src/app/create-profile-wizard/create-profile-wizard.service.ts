@@ -45,11 +45,8 @@ export class CreateProfileWizardService {
   /** The current step index (0-based). */
   readonly currentStepIndex = computed(() => {
     const completed = this.completedSteps();
-    for (let i = 0; i < WIZARD_STEPS.length; i++) {
-      const step = WIZARD_STEPS[i] as WizardStep;
-      if (!completed.has(step)) return i;
-    }
-    return WIZARD_STEPS.length - 1;
+    const index = WIZARD_STEPS.findIndex((step) => !completed.has(step));
+    return index === -1 ? WIZARD_STEPS.length - 1 : index;
   });
 
   /**
@@ -129,10 +126,8 @@ export class CreateProfileWizardService {
     const completed = this.completedSteps();
 
     // Check all prior steps are completed
-    for (let i = 0; i < stepIndex; i++) {
-      const priorStep = WIZARD_STEPS[i] as WizardStep;
-      if (!completed.has(priorStep)) return false;
-    }
+    const priorSteps = WIZARD_STEPS.slice(0, stepIndex);
+    if (priorSteps.some((priorStep) => !completed.has(priorStep))) return false;
 
     // Steps 5+ require profile to be created
     if (stepIndex >= 4 && !this.profileCreated()) return false;

@@ -92,11 +92,13 @@ export class PersonalInfoStep {
 
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       const name = control.value?.trim();
+      // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
       if (!name) return of(null);
 
       const slug = generateSlug(name);
       if (slug === currentSlug) {
         this.resolvedSlug.set(slug);
+        // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
         return of(null);
       }
 
@@ -106,6 +108,7 @@ export class PersonalInfoStep {
         ),
         map((resolved) => {
           this.resolvedSlug.set(resolved);
+          // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
           return null;
         }),
         catchError(() => of({ slugCheckFailed: true })),
