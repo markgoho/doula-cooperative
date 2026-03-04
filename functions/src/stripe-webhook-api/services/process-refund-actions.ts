@@ -5,7 +5,8 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
-import { draftProfile } from "../../profiles-api/services/github/draft-profile.js";
+import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
+import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
@@ -125,6 +126,20 @@ export async function processRefundActions({
         slug: member.slug,
       });
       profileDrafted = true;
+
+      // NON-CRITICAL: Trigger Hugo rebuild after drafting
+      try {
+        await triggerHugoRebuild({ slug: member.slug, action: "refund" });
+      } catch (rebuildError: unknown) {
+        const rebuildErrorMessage =
+          rebuildError instanceof Error ? rebuildError.message : "Unknown error";
+        logger.error("Failed to trigger Hugo rebuild after refund draft", {
+          memberId,
+          slug: member.slug,
+          error: rebuildError,
+          errorMessage: rebuildErrorMessage,
+        });
+      }
     } catch (error) {
       profileDrafted = false;
       const errorMessage =

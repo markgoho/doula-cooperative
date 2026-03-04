@@ -13,6 +13,7 @@ import {
   getMemberLogic,
   listMembersLogic,
   refundMembershipLogic,
+  toggleProfileDraftLogic,
   updateClaimsLogic,
   updateMemberLogic,
 } from "../routes/index.js";
@@ -28,6 +29,7 @@ import {
   MemberIdParameterSchema,
   RefundMembershipApiResponseSchema,
   RefundMembershipBodySchema,
+  ToggleProfileDraftApiResponseSchema,
   UpdateClaimsApiResponseSchema,
   UpdateClaimsBodySchema,
   UpdateMemberApiResponseSchema,
@@ -143,6 +145,27 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: CleanSlateApiResponseSchema,
+            },
+          )
+          // POST /:memberId/profile/toggle-draft - Toggle profile draft status (served at /api/admin/members/:memberId/profile/toggle-draft)
+          .post(
+            "/profile/toggle-draft",
+            async ({
+              params,
+              adminToken,
+              memberAdminService,
+              logger,
+              set,
+            }) =>
+              toggleProfileDraftLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              }),
+            {
+              response: ToggleProfileDraftApiResponseSchema,
             },
           )
           // Membership management routes under /:memberId/membership

@@ -118,6 +118,7 @@ export class AdminMembersService {
     pronouns?: string;
     tags?: string[];
     contact?: Contact;
+    draft?: boolean;
     image?: string;
     slug: string;
   }> {
@@ -137,6 +138,7 @@ export class AdminMembersService {
         pronouns?: string;
         tags?: string[];
         contact?: Contact;
+        draft?: boolean;
         image?: string;
       }>(`/api/profiles/${member.slug}`),
     );
@@ -149,6 +151,7 @@ export class AdminMembersService {
       ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
       ...(profile.tags !== undefined && { tags: profile.tags }),
       ...(profile.contact !== undefined && { contact: profile.contact }),
+      ...(profile.draft !== undefined && { draft: profile.draft }),
       slug: member.slug,
       ...(profile.image !== undefined && { image: profile.image }),
     };
@@ -336,6 +339,23 @@ export class AdminMembersService {
         authUserDeleted: boolean;
         warning?: string;
       }>(`/api/admin/members/${uid}/clean-slate`, {}),
+    );
+  }
+
+  async toggleProfileDraft(uid: string): Promise<{
+    success: boolean;
+    slug: string;
+    draft: boolean;
+    warning?: string;
+  }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{
+        success: boolean;
+        slug: string;
+        draft: boolean;
+        warning?: string;
+      }>(`/api/admin/members/${uid}/profile/toggle-draft`, {}),
     );
   }
 }

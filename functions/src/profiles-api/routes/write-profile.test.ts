@@ -5,7 +5,7 @@ import {
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
-import type { WriteProfileResponse } from "../services/github/interface.js";
+import type { WriteProfileSuccessResponse } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -71,21 +71,21 @@ describe("PUT /:slug (update profile)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockWriteProfile = mock((): Promise<WriteProfileResponse> => {
+    const mockWriteProfile = mock(() => {
       if (conflictError) {
         return Promise.reject(new ConflictError("Profile was modified"));
       }
       if (serverError) {
-        return Promise.reject(new Error("GitHub API rate limit exceeded"));
+        return Promise.reject(new Error("Firestore write failed"));
       }
-      return Promise.resolve({ success: true });
+      return Promise.resolve({ success: true as const });
     });
 
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
       },
-      profileGitHubService: {
+      profileStoreService: {
         writeProfile: mockWriteProfile,
       },
     });
@@ -203,11 +203,28 @@ describe("PUT /:slug (update profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { success?: boolean };
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
       expect(body.success).toBe(true);
     });
 
-    it("should return 409 when GitHub conflict occurs", async () => {
+    it("should return profile data in response", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as WriteProfileSuccessResponse;
+      expect(body.profile).toBeDefined();
+      expect(body.profile.title).toBe("Test Doula");
+      expect(body.profile.bio).toBe(
+        "This is a valid bio for the test doula profile.",
+      );
+    });
+
+    it("should return 409 when profile conflict occurs", async () => {
       const { testApp, request } = setup({ conflictError: true });
 
       const response = await handleRequest(testApp, request);
@@ -217,7 +234,7 @@ describe("PUT /:slug (update profile)", () => {
   });
 
   describe("Error handling", () => {
-    it("should return 500 when GitHub service throws unexpected error", async () => {
+    it("should return 500 when store service throws unexpected error", async () => {
       const { testApp, request } = setup({ serverError: true });
 
       const response = await handleRequest(testApp, request);
@@ -226,7 +243,7 @@ describe("PUT /:slug (update profile)", () => {
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
       // Should NOT expose internal error details
-      expect(body.error).not.toContain("rate limit");
+      expect(body.error).not.toContain("Firestore write failed");
     });
   });
 });

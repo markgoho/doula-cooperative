@@ -14,7 +14,7 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate';
+type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate' | 'toggleDraft';
 
 interface DialogConfig {
   title: string;
@@ -61,6 +61,12 @@ export class AdminMemberDetail {
     const subscriptionStartMs = new Date(member.subscriptionStart).getTime();
     const REFUND_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
     return Date.now() - subscriptionStartMs <= REFUND_WINDOW_MS;
+  });
+
+  protected isProfileDraft = computed(() => {
+    const profile = this.service.profileResource.value();
+    if (!profile) return;
+    return profile.draft;
   });
 
   constructor() {
@@ -115,6 +121,20 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
+  protected showToggleDraftConfirm(): void {
+    const isDraft = this.isProfileDraft();
+    this.pendingAction.set('toggleDraft');
+    this.dialogConfig.set({
+      title: isDraft ? 'Confirm Publish' : 'Confirm Unpublish',
+      message: isDraft
+        ? 'This will publish the profile, making it visible on the public website after the next site build.'
+        : 'This will unpublish the profile, hiding it from the public website after the next site build.',
+      confirmText: isDraft ? 'Publish' : 'Unpublish',
+      variant: isDraft ? 'primary' : 'danger',
+    });
+    this.confirmDialog()?.showModal();
+  }
+
   protected onCancelDialog(): void {
     this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
@@ -139,6 +159,10 @@ export class AdminMemberDetail {
         }
         case 'cleanSlate': {
           await this.cleanSlateDelete();
+          break;
+        }
+        case 'toggleDraft': {
+          await this.service.toggleProfileDraft(this.uid());
           break;
         }
       }

@@ -3,8 +3,8 @@ import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
-import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
+import type { ProfileStoreService } from "../services/profile-store/interface.js";
 
 /**
  * Configuration for profile route handler factory.
@@ -14,29 +14,31 @@ export interface ProfileRouteHandlerConfig<TResponse> {
   errorId: ErrorId;
   slugNotFoundMessage: string;
   successStatus?: number;
-  gitHubOperation: (
-    service: ProfileGitHubService,
+  storeOperation: (
+    service: ProfileStoreService,
     slug: string,
     data: ProfileData,
   ) => Promise<unknown>;
-  afterGitHubOperation?: (
+  afterStoreOperation?: (
     profileMemberService: ProfileMemberService,
     uid: string,
   ) => Promise<unknown>;
-  buildSuccessResponse: () => TResponse;
+  buildSuccessResponse: (data: ProfileData) => TResponse;
 }
 
 /**
- * Generic route handler factory for profile operations.
- * Reduces duplication between create and write profile routes.
+ * Generic route handler factory for profile write operations.
+ * Used by writeProfileLogic to reduce boilerplate for the standard
+ * membership-verify / slug-check / Firestore-op / trigger-rebuild flow.
  *
  * Common flow:
  * 1. Verify active membership
  * 2. Check for slug presence
- * 3. Execute GitHub operation
- * 4. Execute post-GitHub operation (optional)
- * 5. Log success
- * 6. Handle errors
+ * 3. Execute Firestore operation
+ * 4. Trigger Hugo rebuild (non-critical)
+ * 5. Execute post-store operation (optional)
+ * 6. Log success
+ * 7. Handle errors
  */
 export function createProfileRouteHandler<TResponse>(
   config: ProfileRouteHandlerConfig<TResponse>,
@@ -44,14 +46,14 @@ export function createProfileRouteHandler<TResponse>(
   return async ({
     uid,
     data,
-    profileGitHubService,
+    profileStoreService,
     profileMemberService,
     logger,
     set,
   }: {
     uid: string;
     data: ProfileData;
-    profileGitHubService: ProfileGitHubService;
+    profileStoreService: ProfileStoreService;
     profileMemberService: ProfileMemberService;
     logger: Logger;
     set: { status?: number | string };
@@ -64,10 +66,26 @@ export function createProfileRouteHandler<TResponse>(
         throw new ForbiddenError(config.slugNotFoundMessage);
       }
 
-      await config.gitHubOperation(profileGitHubService, slug, data);
+      await config.storeOperation(profileStoreService, slug, data);
 
-      if (config.afterGitHubOperation) {
-        await config.afterGitHubOperation(profileMemberService, uid);
+      // Trigger Hugo rebuild (non-critical)
+      try {
+        const { triggerHugoRebuild } = await import(
+          "../services/profile-store/trigger-rebuild.js"
+        );
+        await triggerHugoRebuild({ slug, action: config.operation });
+      } catch (error: unknown) {
+        logger.error("Failed to trigger Hugo rebuild after write", {
+          uid,
+          slug,
+          error,
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+
+      if (config.afterStoreOperation) {
+        await config.afterStoreOperation(profileMemberService, uid);
       }
 
       logger.info(`Successfully ${config.operation}`, { uid, slug });
@@ -76,7 +94,7 @@ export function createProfileRouteHandler<TResponse>(
         set.status = config.successStatus;
       }
 
-      return config.buildSuccessResponse();
+      return config.buildSuccessResponse(data);
     } catch (error) {
       const errorResponse = handleRouteError({
         error,

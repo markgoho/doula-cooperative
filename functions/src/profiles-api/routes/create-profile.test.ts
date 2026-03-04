@@ -5,7 +5,7 @@ import {
   NotFoundError,
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
-import type { WriteProfileResponse } from "../services/github/interface.js";
+import type { CreateProfileSuccessResponse } from "../schemas/profile-schemas.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,
@@ -41,7 +41,7 @@ describe("POST /:slug (create profile)", () => {
     membershipNotActive?: boolean;
     memberHasNoSlug?: boolean;
     profileAlreadyExists?: boolean;
-    githubError?: boolean;
+    storeError?: boolean;
     emailError?: boolean;
   }
 
@@ -53,7 +53,7 @@ describe("POST /:slug (create profile)", () => {
     membershipNotActive = false,
     memberHasNoSlug = false,
     profileAlreadyExists = false,
-    githubError = false,
+    storeError = false,
     emailError = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario flags
@@ -76,16 +76,16 @@ describe("POST /:slug (create profile)", () => {
       return Promise.resolve(mockMemberDocument);
     });
 
-    const mockCreateProfile = mock((): Promise<WriteProfileResponse> => {
+    const mockCreateProfile = mock(() => {
       if (profileAlreadyExists) {
         return Promise.reject(
           new ConflictError("Profile already exists for this slug."),
         );
       }
-      if (githubError) {
-        return Promise.reject(new Error("GitHub API rate limit exceeded"));
+      if (storeError) {
+        return Promise.reject(new Error("Firestore write failed"));
       }
-      return Promise.resolve({ success: true });
+      return Promise.resolve({ success: true as const });
     });
 
     const mockSendEmail = mock(() => {
@@ -99,7 +99,7 @@ describe("POST /:slug (create profile)", () => {
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
       },
-      profileGitHubService: {
+      profileStoreService: {
         createProfile: mockCreateProfile,
       },
       emailService: {
@@ -214,8 +214,25 @@ describe("POST /:slug (create profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(201);
-      const body = (await response.json()) as { success?: boolean };
+      const body = (await response.json()) as {
+        success?: boolean;
+        profile?: Record<string, unknown>;
+      };
       expect(body.success).toBe(true);
+    });
+
+    it("should return profile data in response", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(201);
+      const body = (await response.json()) as CreateProfileSuccessResponse;
+      expect(body.profile).toBeDefined();
+      expect(body.profile.title).toBe("New Doula");
+      expect(body.profile.bio).toBe(
+        "This is a valid bio for a new doula profile.",
+      );
     });
 
     it("should return 409 when profile already exists", async () => {
@@ -230,8 +247,8 @@ describe("POST /:slug (create profile)", () => {
   });
 
   describe("Error handling", () => {
-    it("should return 500 when GitHub service throws unexpected error", async () => {
-      const { testApp, request } = setup({ githubError: true });
+    it("should return 500 when store service throws unexpected error", async () => {
+      const { testApp, request } = setup({ storeError: true });
 
       const response = await handleRequest(testApp, request);
 
@@ -239,7 +256,7 @@ describe("POST /:slug (create profile)", () => {
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBeDefined();
       // Should NOT expose internal error details
-      expect(body.error).not.toContain("rate limit");
+      expect(body.error).not.toContain("Firestore write failed");
     });
   });
 
@@ -251,6 +268,14 @@ describe("POST /:slug (create profile)", () => {
 
       expect(response.status).toBe(201);
       expect(mockSendEmail).toHaveBeenCalledTimes(1);
+
+      // Verify the email includes the admin dashboard link
+      const emailArgument = mockSendEmail.mock
+        .calls[0] as unknown as [{ message: { html: string } }];
+      expect(emailArgument[0].message.html).toContain(
+        "members.doulacooperative.com/admin/members/",
+      );
+      expect(emailArgument[0].message.html).toContain("Review in Admin Dashboard");
     });
 
     it("should return 201 even when notification email fails", async () => {

@@ -1,6 +1,6 @@
 export { healthRoute } from "./health.js";
 
-export type { ReadProfileResponse } from "../services/github/interface.js";
+export type { ReadProfileResponse } from "../services/profile-store/interface.js";
 export { readProfileBySlugLogic } from "./read-profile-by-slug.js";
 
 export type { WriteProfileResponse } from "../schemas/profile-schemas.js";

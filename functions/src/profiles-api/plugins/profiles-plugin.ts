@@ -6,6 +6,7 @@ import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { getUserUid } from "../../shared-api/utils/get-user-uid.js";
+import { optionalUserDerive } from "../../shared-api/utils/optional-user-derive.js";
 import { userDerive } from "../../shared-api/utils/user-derive.js";
 import { userGuard } from "../../shared-api/utils/user-guard.js";
 import {
@@ -37,9 +38,9 @@ import {
 } from "../schemas/profile-schemas.js";
 import { AuthUpdateService } from "../services/auth-update/index.js";
 import { ClaimProfileFirestoreService } from "../services/firestore/index.js";
-import { ProfileGitHubService } from "../services/github/index.js";
 import { ProfileMemberService } from "../services/member/index.js";
 import type { ProfileMemberService as ProfileMemberServiceType } from "../services/member/interface.js";
+import { ProfileStoreService } from "../services/profile-store/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
 /**
@@ -115,8 +116,8 @@ export function createProfilesPlugin(services?: PartialServices) {
   return (
     new Elysia({ name: "profiles" })
       .decorate(
-        SERVICE_KEYS.PROFILE_GITHUB_SERVICE,
-        services?.profileGitHubService ?? ProfileGitHubService,
+        SERVICE_KEYS.PROFILE_STORE_SERVICE,
+        services?.profileStoreService ?? ProfileStoreService,
       )
       .decorate(
         SERVICE_KEYS.PROFILE_MEMBER_SERVICE,
@@ -136,15 +137,20 @@ export function createProfilesPlugin(services?: PartialServices) {
         services?.authUpdateService ?? AuthUpdateService,
       )
       .decorate(SERVICE_KEYS.LOGGER, services?.logger ?? firebaseLogger)
+
+      // Optional auth for all routes — gives userToken (may be undefined) to public routes
+      .derive(optionalUserDerive)
+
       // PUBLIC ROUTES (before auth guards)
 
-      // GET /:slug - Read profile by slug (no auth)
+      // GET /:slug - Read profile by slug (optional auth for draft access control)
       .get(
         "/:slug",
-        async ({ params, profileGitHubService, logger, set }) =>
+        async ({ params, profileStoreService, userToken, logger, set }) =>
           readProfileBySlugLogic({
             slug: params.slug,
-            profileGitHubService,
+            profileStoreService,
+            userToken,
             logger,
             set,
           }),
@@ -197,7 +203,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           params,
           body,
           userToken,
-          profileGitHubService,
+          profileStoreService,
           profileMemberService,
           logger,
           set,
@@ -212,7 +218,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           return writeProfileLogic({
             uid: getUserUid(userToken, logger),
             data: body,
-            profileGitHubService,
+            profileStoreService,
             profileMemberService,
             logger,
             set,
@@ -232,7 +238,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           params,
           body,
           userToken,
-          profileGitHubService,
+          profileStoreService,
           profileMemberService,
           emailService,
           logger,
@@ -248,7 +254,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           return createProfileLogic({
             uid: getUserUid(userToken, logger),
             data: body,
-            profileGitHubService,
+            profileStoreService,
             profileMemberService,
             emailService,
             logger,

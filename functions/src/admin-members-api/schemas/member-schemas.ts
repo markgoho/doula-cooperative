@@ -531,7 +531,7 @@ export const CleanSlateResultSchema = t.Object({
   ),
   profileDeleted: t.Optional(
     t.Boolean({
-      description: "Whether the Hugo profile was deleted from GitHub",
+      description: "Whether the profile document was deleted from Firestore",
     }),
   ),
   profileImageDeleted: t.Optional(
@@ -563,3 +563,37 @@ export const CleanSlateApiResponseSchema = t.Union([
 ]);
 
 export type CleanSlateApiResponse = Static<typeof CleanSlateApiResponseSchema>;
+
+/**
+ * Success response for toggling profile draft status.
+ */
+export const ToggleProfileDraftResponseSchema = t.Object({
+  success: t.Literal(true),
+  slug: t.String({
+    description: "The profile slug that was toggled",
+  }),
+  draft: t.Boolean({
+    description: "The new draft status of the profile",
+  }),
+  warning: t.Optional(
+    t.String({
+      description: "Warning message if Hugo rebuild failed",
+    }),
+  ),
+});
+
+export type ToggleProfileDraftResponse = Static<
+  typeof ToggleProfileDraftResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/profile/toggle-draft response - union of success and error.
+ */
+export const ToggleProfileDraftApiResponseSchema = t.Union([
+  ToggleProfileDraftResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ToggleProfileDraftApiResponse = Static<
+  typeof ToggleProfileDraftApiResponseSchema
+>;

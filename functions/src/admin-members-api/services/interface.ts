@@ -3,6 +3,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
+import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";
 
 /**
  * Service interface for admin member management operations.
@@ -150,4 +151,17 @@ export interface MemberAdminService {
     requestingAdminUid: string;
     emailService?: EmailServiceInterface;
   }): Promise<CleanSlateResult>;
+
+  /**
+   * Toggle the draft status of a member's profile.
+   * Reads the current profile, flips `draft`, writes it back, and triggers a Hugo rebuild.
+   *
+   * @param options - Object containing the member ID
+   * @returns Promise resolving to the slug, new draft status, and Hugo rebuild status
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ValidationError if member has no slug
+   */
+  toggleProfileDraft(options: {
+    memberId: string;
+  }): Promise<ToggleProfileDraftResult>;
 }

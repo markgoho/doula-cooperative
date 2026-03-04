@@ -148,6 +148,7 @@ async function setProfileCreatedAt(uid: string): Promise<void> {
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
+    throw error;
   }
 }
 
@@ -200,6 +201,3 @@ export const ProfileMemberService: ProfileMemberServiceInterface = {
 };
 
 export type { SetSlugResponse, SlugAvailabilityResponse } from "./interface.js";
-
-// Note: ProfileMemberService type is exported from ./interface.js directly
-// The const ProfileMemberService above implements that interface

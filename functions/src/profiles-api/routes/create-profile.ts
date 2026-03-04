@@ -1,5 +1,5 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
+import { MARK_EMAIL, NO_REPLY_EMAIL, MEMBERS_APP_URL } from "../../constants/index.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import type {
   EmailMessage,
@@ -12,17 +12,20 @@ import type {
   CreateProfileResponse,
   ProfileData,
 } from "../schemas/profile-schemas.js";
-import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
+import type { ProfileStoreService } from "../services/profile-store/interface.js";
 
 function createNewProfileNotificationHtml({
   memberName,
   slug,
+  uid,
 }: {
   memberName: string;
   slug: string;
+  uid: string;
 }): string {
   const profileUrl = `https://doulacooperative.com/doulas/${escapeHtml(slug)}/`;
+  const adminUrl = `${MEMBERS_APP_URL}/admin/members/${escapeHtml(uid)}`;
   return `
     <h2>New Doula Profile Created</h2>
     <p>A new member has created their doula profile and it needs to be reviewed before publishing.</p>
@@ -31,6 +34,7 @@ function createNewProfileNotificationHtml({
       <li><strong>Name:</strong> ${escapeHtml(memberName)}</li>
       <li><strong>Profile Slug:</strong> ${escapeHtml(slug)}</li>
       <li><strong>Profile URL (once published):</strong> <a href="${profileUrl}">${profileUrl}</a></li>
+      <li><strong>Admin Review:</strong> <a href="${adminUrl}">Review in Admin Dashboard</a></li>
     </ul>
     <p>The profile is currently set to <strong>draft: true</strong> and will not appear on the public site until you set it to <code>draft: false</code>.</p>
   `;
@@ -39,11 +43,13 @@ function createNewProfileNotificationHtml({
 async function sendNewProfileNotification({
   memberName,
   slug,
+  uid,
   emailService,
   logger,
 }: {
   memberName: string;
   slug: string;
+  uid: string;
   emailService: EmailServiceInterface;
   logger: Logger;
 }): Promise<void> {
@@ -52,7 +58,7 @@ async function sendNewProfileNotification({
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: MARK_EMAIL,
       subject: `New Profile Needs Review: ${memberName}`,
-      html: createNewProfileNotificationHtml({ memberName, slug }),
+      html: createNewProfileNotificationHtml({ memberName, slug, uid }),
     };
     await emailService.sendEmail({ message: notificationEmail }, logger);
     logger.info("Sent new profile notification email", { slug, memberName });
@@ -70,7 +76,7 @@ async function sendNewProfileNotification({
 export async function createProfileLogic({
   uid,
   data,
-  profileGitHubService,
+  profileStoreService,
   profileMemberService,
   emailService,
   logger,
@@ -78,7 +84,7 @@ export async function createProfileLogic({
 }: {
   uid: string;
   data: ProfileData;
-  profileGitHubService: ProfileGitHubService;
+  profileStoreService: ProfileStoreService;
   profileMemberService: ProfileMemberService;
   emailService: EmailServiceInterface;
   logger: Logger;
@@ -94,8 +100,23 @@ export async function createProfileLogic({
       );
     }
 
-    await profileGitHubService.createProfile({ slug, data });
+    await profileStoreService.createProfile({ slug, data, ownerUid: uid });
     await profileMemberService.setProfileCreatedAt(uid);
+
+    // Trigger Hugo rebuild (non-critical)
+    try {
+      const { triggerHugoRebuild } = await import(
+        "../services/profile-store/trigger-rebuild.js"
+      );
+      await triggerHugoRebuild({ slug, action: "created profile" });
+    } catch (error: unknown) {
+      logger.error("Failed to trigger Hugo rebuild after create", {
+        uid,
+        slug,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
 
     logger.info("Successfully created profile", { uid, slug });
     set.status = 201;
@@ -103,11 +124,12 @@ export async function createProfileLogic({
     await sendNewProfileNotification({
       memberName: data.title,
       slug,
+      uid,
       emailService,
       logger,
     });
 
-    return { success: true };
+    return { success: true, profile: data };
   } catch (error) {
     const errorResponse = handleRouteError({
       error,

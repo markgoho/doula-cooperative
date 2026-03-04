@@ -153,4 +153,30 @@ export class AdminMemberDetailService {
       this.actionInProgress.set(false);
     }
   }
+
+  /**
+   * Toggle profile draft status (publish/unpublish) for the current member
+   */
+  async toggleProfileDraft(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.toggleProfileDraft(uid);
+
+      const statusText = result.draft ? 'unpublished (draft)' : 'published';
+      const message = result.warning
+        ? `Profile ${statusText}. Warning: ${result.warning}`
+        : `Profile ${statusText} successfully`;
+
+      this.successMessage.set(message);
+      this.profileResource.reload();
+    } catch (error) {
+      console.error('Error toggling profile draft:', error);
+      this.actionError.set('Failed to toggle profile draft status.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
 }

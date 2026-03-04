@@ -348,7 +348,7 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ isAdmin: false });
     const { user, mockRouter } = await setup({ member });
 
-    expect(await screen.findByRole('button', { name: 'Clean Slate Delete' })).toBeVisible();
+    expect(await screen.findByText('Clean Slate Delete', { selector: 'h3' })).toBeVisible();
 
     // Act - Click clean slate delete button to open dialog
     const cleanSlateButton = screen.getByRole('button', { name: 'Clean Slate Delete' });
@@ -362,6 +362,102 @@ describe('AdminUserDetail', () => {
     // Assert
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin/members']);
   });
+
+  it('should display Publish Profile button when profile is draft', async () => {
+    // Arrange
+    const member = createMockMember({ slug: 'test-slug' });
+    const { user } = await setup({ member, profileDraft: true });
+
+    // Load the profile first
+    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
+    await user.click(viewProfileButton);
+
+    // Assert
+    expect(await screen.findByText('Draft (Unpublished)')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Publish Profile' })).toBeVisible();
+  });
+
+  it('should display Unpublish Profile button when profile is published', async () => {
+    // Arrange
+    const member = createMockMember({ slug: 'test-slug' });
+    const { user } = await setup({ member, profileDraft: false });
+
+    // Load the profile first
+    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
+    await user.click(viewProfileButton);
+
+    // Assert
+    expect(await screen.findByText('Published')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Unpublish Profile' })).toBeVisible();
+  });
+
+  it('should show confirmation dialog when clicking Publish Profile', async () => {
+    // Arrange
+    const member = createMockMember({ slug: 'test-slug' });
+    const { user } = await setup({ member, profileDraft: true });
+
+    // Load the profile first
+    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
+    await user.click(viewProfileButton);
+
+    // Act - Click publish button to open dialog
+    const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
+    await user.click(publishButton);
+
+    // Assert
+    expect(
+      screen.getByText(/This will publish the profile, making it visible on the public website/),
+    ).toBeVisible();
+  });
+
+  it('should show success message after toggling draft status', async () => {
+    // Arrange
+    const member = createMockMember({ slug: 'test-slug' });
+    const { user } = await setup({ member, profileDraft: true });
+
+    // Load the profile first
+    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
+    await user.click(viewProfileButton);
+
+    // Act - Click publish button to open dialog
+    const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
+    await user.click(publishButton);
+
+    // Click confirm in dialog
+    const confirmButton = screen.getByRole('button', { name: 'Publish' });
+    await user.click(confirmButton);
+
+    // Assert
+    expect(await screen.findByText('Profile published successfully')).toBeVisible();
+  });
+
+  it('should show error message when toggle draft fails', async () => {
+    // Suppress console.error during this test
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
+    // Arrange
+    const member = createMockMember({ slug: 'test-slug' });
+    const { user } = await setup({ member, profileDraft: true, shouldFailToggleDraft: true });
+
+    // Load the profile first
+    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
+    await user.click(viewProfileButton);
+
+    // Act - Click publish button to open dialog
+    const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
+    await user.click(publishButton);
+
+    // Click confirm in dialog
+    const confirmButton = screen.getByRole('button', { name: 'Publish' });
+    await user.click(confirmButton);
+
+    // Assert
+    expect(await screen.findByText('Failed to toggle profile draft status.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
 
 interface SetupOptions {
@@ -371,8 +467,10 @@ interface SetupOptions {
   shouldFailActivate?: boolean;
   shouldFailCancel?: boolean;
   shouldFailCleanSlate?: boolean;
+  shouldFailToggleDraft?: boolean;
   shouldKeepLoading?: boolean;
   errorMessage?: string;
+  profileDraft?: boolean;
 }
 
 async function setup({
@@ -382,8 +480,10 @@ async function setup({
   shouldFailActivate = false,
   shouldFailCancel = false,
   shouldFailCleanSlate = false,
+  shouldFailToggleDraft = false,
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
+  profileDraft = true,
 }: SetupOptions = {}) {
   const defaultMember = createMockMember({ uid });
   const memberToUse = member ?? defaultMember;
@@ -427,7 +527,15 @@ async function setup({
       tags: ['birth-doula'],
       image: 'https://example.com/image.jpg',
       slug: 'test-slug',
+      draft: profileDraft,
     }),
+    toggleProfileDraft: shouldFailToggleDraft
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({
+          success: true,
+          slug: 'test-slug',
+          draft: !profileDraft,
+        }),
   };
 
   const mockRouter = {

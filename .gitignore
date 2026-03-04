@@ -36,6 +36,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Hugo
 public
 hugo/resources
+# Profile directories are generated at build time from Firestore (sync-profiles-to-hugo.ts)
+hugo/content/doulas/*/
 
 # Firebase
 *-debug.log

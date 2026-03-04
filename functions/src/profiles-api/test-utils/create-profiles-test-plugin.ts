@@ -10,8 +10,8 @@ import { createProfilesPlugin } from "../plugins/profiles-plugin.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { AuthUpdateService } from "../services/auth-update/interface.js";
 import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
-import type { ProfileGitHubService } from "../services/github/interface.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
+import type { ProfileStoreService } from "../services/profile-store/interface.js";
 
 /**
  * Default mock member document for testing.
@@ -69,14 +69,14 @@ function createMockDocumentSnapshot(
  * @returns Configured profiles plugin with mocked services
  */
 export function createProfilesTestPlugin(overrides?: {
-  profileGitHubService?: Partial<ProfileGitHubService>;
+  profileStoreService?: Partial<ProfileStoreService>;
   profileMemberService?: Partial<ProfileMemberService>;
   authService?: Partial<AuthService>;
   emailService?: Partial<EmailServiceInterface>;
   claimProfileFirestoreService?: Partial<ClaimProfileFirestoreService>;
   authUpdateService?: Partial<AuthUpdateService>;
 }) {
-  const defaultProfileGitHubService: ProfileGitHubService = {
+  const defaultProfileStoreService: ProfileStoreService = {
     readProfile: mock(() =>
       Promise.resolve({
         ...mockProfileData,
@@ -86,7 +86,9 @@ export function createProfilesTestPlugin(overrides?: {
     ),
     writeProfile: mock(() => Promise.resolve({ success: true as const })),
     createProfile: mock(() => Promise.resolve({ success: true as const })),
-    ...overrides?.profileGitHubService,
+    draftProfile: mock(() => Promise.resolve({ success: true as const })),
+    deleteProfile: mock(() => Promise.resolve({ success: true as const })),
+    ...overrides?.profileStoreService,
   };
 
   const defaultProfileMemberService: ProfileMemberService = {
@@ -146,7 +148,7 @@ export function createProfilesTestPlugin(overrides?: {
   };
 
   return createProfilesPlugin({
-    profileGitHubService: defaultProfileGitHubService,
+    profileStoreService: defaultProfileStoreService,
     profileMemberService: defaultProfileMemberService,
     authService: defaultAuthService,
     emailService: defaultEmailService,

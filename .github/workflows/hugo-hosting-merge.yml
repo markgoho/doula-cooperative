@@ -9,6 +9,8 @@ on:
     paths:
       - "hugo/**"
       - "firebase.json"
+  repository_dispatch:
+    types: [profile-update]
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
@@ -21,6 +23,10 @@ jobs:
           fetch-depth: 2
       - name: Install dependencies
         run: bun install
+      - name: Sync profiles from Firestore
+        run: bun scripts/sync-profiles-to-hugo.ts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
       - name: Build Hugo site
         run: bun run build
         env:
@@ -36,36 +42,3 @@ jobs:
           channelId: live
           projectId: doula-cooperative
           target: main-site
-      - name: Notify Profile Updates
-        if: success()
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          COMMIT_SHA=$(git rev-parse HEAD)
-
-          # Get changed profile files (both index.md and profile images)
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | \
-            grep -E "hugo/content/doulas/[^/]+/(.*-profile.*\.(jpg|jpeg|png|webp|avif)|index\.md)$" \
-            2>/dev/null || echo "")
-
-          if [ -z "$CHANGED_FILES" ]; then
-            FILE_COUNT=0
-          else
-            FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
-          fi
-
-          # Extract slug if single file (from either index.md or image path)
-          if [ "$FILE_COUNT" -eq 1 ]; then
-            # Try extracting from index.md path first
-            SLUG=$(echo "$CHANGED_FILES" | sed -n 's|hugo/content/doulas/\([^/]*\)/index.md|\1|p')
-            # If empty, try extracting from image path
-            if [ -z "$SLUG" ]; then
-              SLUG=$(echo "$CHANGED_FILES" | sed -n 's|hugo/content/doulas/\([^/]*\)/.*|\1|p')
-            fi
-          else
-            SLUG=""
-          fi
-
-          curl -X POST https://doulacooperative.com/api/profile-deployment-webhook \
-            -H "Content-Type: application/json" \
-            -d "{\"commitMessage\":\"$COMMIT_MSG\",\"commitSha\":\"$COMMIT_SHA\",\"slug\":\"$SLUG\",\"secret\":\"${{ secrets.DEPLOY_WEBHOOK_SECRET }}\"}"
-        continue-on-error: true
