@@ -39,16 +39,12 @@ export interface ProfileMemberService {
   verifyActiveMembership(uid: string): Promise<MemberDocument>;
 
   /**
-   * Check if a slug is available (not already in use).
+   * Check if a slug is available (not already in use as a profile document ID).
    *
    * @param slug - The slug to check
-   * @param excludeUid - Optional user ID to exclude (for the user's own slug)
    * @returns Promise with availability status
    */
-  checkSlugAvailable(
-    slug: string,
-    excludeUid?: string,
-  ): Promise<SlugAvailabilityResponse>;
+  checkSlugAvailable(slug: string): Promise<SlugAvailabilityResponse>;
 
   /**
    * Set the profile slug for a user.

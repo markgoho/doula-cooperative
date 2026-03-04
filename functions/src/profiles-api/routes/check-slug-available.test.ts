@@ -33,9 +33,11 @@ describe("GET /slugs/check (check slug availability)", () => {
       },
     });
 
-    const request = new Request(`http://localhost/slugs/check?slug=${slug}`);
+    const request = new Request(
+      `http://localhost/slugs/check?slug=${slug}`,
+    );
 
-    return { testApp, request };
+    return { testApp, request, mockCheckSlug };
   }
 
   describe("Public access", () => {

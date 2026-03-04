@@ -9,6 +9,8 @@ import type {
 /**
  * Route logic for checking slug availability.
  * GET /api/profiles/slugs/check?slug=jane-doe
+ *
+ * Checks the profiles collection for a document with the given slug as its ID.
  */
 export async function checkSlugAvailableLogic({
   slug,

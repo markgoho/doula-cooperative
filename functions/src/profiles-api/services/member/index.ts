@@ -1,8 +1,9 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
+import type { MemberDocument } from "../../../collections/index.js";
 import {
   MEMBERS_COLLECTION,
-  type MemberDocument,
+  PROFILES_COLLECTION,
 } from "../../../collections/index.js";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import {
@@ -63,29 +64,19 @@ async function verifyActiveMembership(uid: string): Promise<MemberDocument> {
 }
 
 /**
- * Check if a slug is available (not already in use).
+ * Check if a slug is available (no profile document exists with that ID).
  */
 async function checkSlugAvailable(
   slug: string,
-  excludeUid?: string,
 ): Promise<SlugAvailabilityResponse> {
   try {
     const database = getFirestore();
-    const query = database
-      .collection(MEMBERS_COLLECTION)
-      .where("slug", "==", slug);
+    const document = await database
+      .collection(PROFILES_COLLECTION)
+      .doc(slug)
+      .get();
 
-    const snapshot = await query.get();
-
-    // If excludeUid provided, filter out that user's document
-    if (excludeUid !== undefined && !snapshot.empty) {
-      const otherUsersWithSlug = snapshot.docs.filter(
-        document => document.id !== excludeUid,
-      );
-      return { available: otherUsersWithSlug.length === 0 };
-    }
-
-    return { available: snapshot.empty };
+    return { available: !document.exists };
   } catch (error) {
     logger.error("Failed to check slug availability", {
       errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
@@ -106,8 +97,8 @@ async function setSlug(options: {
 }): Promise<SetSlugResponse> {
   const { uid, slug } = options;
 
-  // Check if slug is available (excluding current user)
-  const { available } = await checkSlugAvailable(slug, uid);
+  // Check if slug is available
+  const { available } = await checkSlugAvailable(slug);
   if (!available) {
     throw new ConflictError(
       "This slug is already taken. Please choose another.",

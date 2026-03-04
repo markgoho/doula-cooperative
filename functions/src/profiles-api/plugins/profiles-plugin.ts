@@ -159,7 +159,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           response: ReadProfileResponseSchema,
         },
       )
-      // GET /slugs/check - Check if slug is available (no auth)
+      // GET /slugs/check - Check if slug is available
       .get(
         "/slugs/check",
         async ({ query, profileMemberService, logger, set }) =>
