@@ -153,6 +153,42 @@ describe('CreateProfileWizard', () => {
     expect(wizardService.personalInfo().title).toBe('');
   });
 
+  it('should not redirect to /profile when profile was just created during wizard flow', async () => {
+    const { wizardService, mockMembershipService, router } = await setup({
+      userDocumentLoading: true,
+    });
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    // Simulate member loading without profileCreatedAt (new user starting wizard)
+    const member: Member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    };
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    // Simulate the contact step completing: profile was created during this wizard session
+    wizardService.profileCreated.set(true);
+    wizardService.completeStep('contact');
+    TestBed.flushEffects();
+
+    // Simulate reloadUserDocument() updating the member with profileCreatedAt
+    // This is what profileService.createProfileContent() does after saving
+    mockMembershipService.userDocument.set({
+      ...member,
+      profileCreatedAt: new Date(),
+    });
+    TestBed.flushEffects();
+
+    // Should NOT redirect — the user needs to finish the image and preview steps
+    expect(navigateSpy).not.toHaveBeenCalledWith(['/profile']);
+  });
+
   it('should reset wizard state on destroy', async () => {
     const { wizardService, fixture } = await setup();
 

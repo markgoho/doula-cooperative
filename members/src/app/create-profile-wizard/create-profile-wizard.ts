@@ -52,10 +52,11 @@ export class CreateProfileWizard {
     // Reset wizard state when leaving the wizard
     this.destroyRef.onDestroy(() => this.wizardService.reset());
 
-    // Redirect to /profile if user already has a profile
+    // Redirect to /profile if user already has a profile (before entering the wizard)
+    // Skip redirect if the profile was just created during this wizard session
     effect(() => {
       const user = this.userDocument();
-      if (user?.profileCreatedAt) {
+      if (user?.profileCreatedAt && !this.wizardService.profileCreated()) {
         void this.router.navigate(['/profile']);
       }
     });
