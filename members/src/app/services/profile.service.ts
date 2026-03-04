@@ -190,6 +190,9 @@ export class ProfileService {
       } else {
         this.profileResource.reload();
       }
+
+      // Reload user document so profileCreatedAt is reflected in the header button
+      this.membershipService.reloadUserDocument();
     } catch (error: unknown) {
       console.error('Profile creation failed:', {
         error: error instanceof Error ? error.message : String(error),
