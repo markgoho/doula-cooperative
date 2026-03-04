@@ -3,11 +3,6 @@
   container: profileform / inline-size;
 }
 
-router-outlet + * {
-  display: block;
-  width: 100%;
-}
-
 .loading-message {
   text-align: center;
   padding: var(--space-xl);
