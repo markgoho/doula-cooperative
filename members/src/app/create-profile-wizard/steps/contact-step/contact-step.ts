@@ -32,6 +32,8 @@ export class ContactStep {
   }
 
   protected async onNext(): Promise<void> {
+    if (this.loading()) return;
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

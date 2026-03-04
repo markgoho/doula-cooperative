@@ -109,7 +109,7 @@
                 fill="var(--teal-500)"
               />
             </svg>
-            <a href="https://{{ contact()!.website }}" target="_blank" rel="noopener noreferrer">{{
+            <a [href]="websiteUrl()" target="_blank" rel="noopener noreferrer">{{
               contact()!.website
             }}</a>
           </li>

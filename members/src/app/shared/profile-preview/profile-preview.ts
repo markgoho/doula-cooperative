@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-profile-preview',
@@ -22,4 +22,11 @@ export class ProfilePreview {
   readonly showEditLinks = input(false);
 
   readonly editSection = output<string>();
+
+  /** Normalize website URL — prepend https:// only if no protocol is present. */
+  protected readonly websiteUrl = computed(() => {
+    const site = this.contact()?.website;
+    if (!site) return '';
+    return site.startsWith('http') ? site : `https://${site}`;
+  });
 }

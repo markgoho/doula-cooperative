@@ -111,7 +111,10 @@ export class PersonalInfoStep {
           // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
           return null;
         }),
-        catchError(() => of({ slugCheckFailed: true })),
+        catchError((error: unknown) => {
+          console.error('Slug availability check failed:', error);
+          return of({ slugCheckFailed: true });
+        }),
       );
     };
   }

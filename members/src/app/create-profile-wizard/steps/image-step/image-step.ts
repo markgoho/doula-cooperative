@@ -97,8 +97,7 @@ export class ImageStep {
   }
 
   protected onSkip(): void {
-    this.wizardService.completeStep('image');
-    void this.router.navigate(['/profile/create/preview']);
+    this.onNext();
   }
 
   protected onBack(): void {

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileService } from '../../../services/profile.service';
 import { CreateProfileWizardService } from '../../create-profile-wizard.service';
+import { type ContactInfo, type PersonalInfo } from '../../wizard-types';
 import { ContactStep } from './contact-step';
 
 describe('ContactStep', () => {
@@ -201,17 +202,8 @@ describe('ContactStep', () => {
 });
 
 interface SetupOptions {
-  contactInfo?: {
-    businessName: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
-  personalInfo?: {
-    title: string;
-    pronouns: string;
-    credentials: string;
-  };
+  contactInfo?: ContactInfo;
+  personalInfo?: PersonalInfo;
   tags?: string[];
   bio?: string;
   createShouldFail?: boolean;

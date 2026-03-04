@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileService } from '../../../services/profile.service';
 import { CreateProfileWizardService } from '../../create-profile-wizard.service';
+import { type ContactInfo, type PersonalInfo } from '../../wizard-types';
 import { PreviewStep } from './preview-step';
 
 describe('PreviewStep', () => {
@@ -51,15 +52,18 @@ describe('PreviewStep', () => {
 
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
 
-    // Verify all wizard state is reset after Finish
-    expect(wizardService.personalInfo().title).toBe('');
-    expect(wizardService.selectedTags()).toEqual([]);
-    expect(wizardService.bio()).toBe('');
-    expect(wizardService.contactInfo().email).toBe('');
-    expect(wizardService.completedSteps().size).toBe(0);
-    expect(wizardService.profileCreated()).toBe(false);
-    expect(wizardService.resolvedSlug()).toBe('');
-    expect(wizardService.initialized()).toBe(false);
+    // Wait for async navigation to resolve before checking reset
+    await vi.waitFor(() => {
+      // Verify all wizard state is reset after Finish
+      expect(wizardService.personalInfo().title).toBe('');
+      expect(wizardService.selectedTags()).toEqual([]);
+      expect(wizardService.bio()).toBe('');
+      expect(wizardService.contactInfo().email).toBe('');
+      expect(wizardService.completedSteps().size).toBe(0);
+      expect(wizardService.profileCreated()).toBe(false);
+      expect(wizardService.resolvedSlug()).toBe('');
+      expect(wizardService.initialized()).toBe(false);
+    });
   });
 
   it('should display assembled profile data from real service', async () => {
@@ -87,15 +91,10 @@ describe('PreviewStep', () => {
 });
 
 interface SetupOptions {
-  personalInfo?: { title: string; pronouns: string; credentials: string };
+  personalInfo?: PersonalInfo;
   tags?: string[];
   bio?: string;
-  contactInfo?: {
-    businessName: string;
-    phone: string;
-    email: string;
-    website: string;
-  };
+  contactInfo?: ContactInfo;
 }
 
 async function setup({

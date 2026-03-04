@@ -1,9 +1,9 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { type Member } from '../services/membership.service';
 import { type ProfileData } from '../types/profile-data';
+import { type ContactInfo, type PersonalInfo, type WizardStep, WIZARD_STEPS } from './wizard-types';
 
-export const WIZARD_STEPS = ['personal', 'tags', 'bio', 'contact', 'image', 'preview'] as const;
-export type WizardStep = (typeof WIZARD_STEPS)[number];
+export { type WizardStep, WIZARD_STEPS } from './wizard-types';
 
 /**
  * Holds all wizard state as signals so data survives route navigation between steps.
@@ -13,29 +13,25 @@ export type WizardStep = (typeof WIZARD_STEPS)[number];
   providedIn: 'root',
 })
 export class CreateProfileWizardService {
-  // Step 1: Personal Info
-  readonly personalInfo = signal<{
-    title: string;
-    pronouns: string;
-    credentials: string;
-  }>({ title: '', pronouns: '', credentials: '' });
+  // Personal info fields
+  readonly personalInfo = signal<PersonalInfo>({ title: '', pronouns: '', credentials: '' });
 
-  // Step 2: Tags
+  // Service tags
   readonly selectedTags = signal<string[]>([]);
 
-  // Step 3: Bio
+  // Bio content
   readonly bio = signal('');
 
-  // Step 4: Contact
-  readonly contactInfo = signal<{
-    businessName: string;
-    phone: string;
-    email: string;
-    website: string;
-  }>({ businessName: '', phone: '', email: '', website: '' });
+  // Contact details
+  readonly contactInfo = signal<ContactInfo>({
+    businessName: '',
+    phone: '',
+    email: '',
+    website: '',
+  });
 
-  // Navigation tracking
-  readonly completedSteps = signal<Set<WizardStep>>(new Set());
+  // Wizard lifecycle and navigation state
+  readonly completedSteps = signal<ReadonlySet<WizardStep>>(new Set());
   readonly profileCreated = signal(false);
   readonly resolvedSlug = signal('');
 
@@ -117,7 +113,7 @@ export class CreateProfileWizardService {
   /**
    * Check if a step can be navigated to.
    * All steps before the target must be completed.
-   * Steps 5 (image) and 6 (preview) require profileCreated to be true.
+   * The image and preview steps additionally require profileCreated to be true.
    */
   canNavigateToStep(step: WizardStep): boolean {
     const stepIndex = WIZARD_STEPS.indexOf(step);
@@ -129,8 +125,9 @@ export class CreateProfileWizardService {
     const priorSteps = WIZARD_STEPS.slice(0, stepIndex);
     if (priorSteps.some((priorStep) => !completed.has(priorStep))) return false;
 
-    // Steps 5+ require profile to be created
-    if (stepIndex >= 4 && !this.profileCreated()) return false;
+    // Image and preview steps require profile to be created first
+    const imageStepIndex = WIZARD_STEPS.indexOf('image');
+    if (stepIndex >= imageStepIndex && !this.profileCreated()) return false;
 
     return true;
   }

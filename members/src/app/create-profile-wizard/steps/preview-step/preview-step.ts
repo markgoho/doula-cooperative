@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router } from '@angular/router';
 import { ProfileService } from '../../../services/profile.service';
 import { ProfilePreview } from '../../../shared/profile-preview/profile-preview';
-import { CreateProfileWizardService } from '../../create-profile-wizard.service';
+import { CreateProfileWizardService, type WizardStep } from '../../create-profile-wizard.service';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 
-const STEP_ROUTE_MAP: Record<string, string> = {
+const STEP_ROUTE_MAP: Partial<Record<WizardStep, string>> = {
   personal: '/profile/create/personal',
   tags: '/profile/create/tags',
   bio: '/profile/create/bio',
@@ -31,14 +31,18 @@ export class PreviewStep {
   protected readonly imageUrl = this.profileService.profileImageUrl;
 
   protected onEditSection(section: string): void {
-    const route = STEP_ROUTE_MAP[section];
-    if (route) {
-      void this.router.navigate([route]);
+    const route = STEP_ROUTE_MAP[section as WizardStep];
+    if (!route) {
+      console.error(`Unknown edit section: "${section}"`);
+      return;
     }
+    void this.router.navigate([route]);
   }
 
-  protected onFinish(): void {
-    this.wizardService.reset();
-    void this.router.navigate(['/profile']);
+  protected async onFinish(): Promise<void> {
+    const navigated = await this.router.navigate(['/profile']);
+    if (navigated) {
+      this.wizardService.reset();
+    }
   }
 }

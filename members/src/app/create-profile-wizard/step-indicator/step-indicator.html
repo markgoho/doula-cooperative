@@ -1,6 +1,6 @@
 <nav aria-label="Profile creation progress">
   <ol class="step-list">
-    @for (step of steps; track step.key) {
+    @for (step of steps; track step.key; let i = $index) {
       <li
         class="step"
         [class.step--completed]="isCompleted(step.key)"
@@ -13,14 +13,14 @@
               @if (isCompleted(step.key) && !isCurrent(step.key)) {
                 <span aria-hidden="true">&#10003;</span>
               } @else {
-                {{ steps.indexOf(step) + 1 }}
+                {{ i + 1 }}
               }
             </span>
             <span class="step__label">{{ step.label }}</span>
           </a>
         } @else {
           <span class="step__link step__link--disabled" aria-disabled="true">
-            <span class="step__number">{{ steps.indexOf(step) + 1 }}</span>
+            <span class="step__number">{{ i + 1 }}</span>
             <span class="step__label">{{ step.label }}</span>
           </span>
         }

@@ -26,7 +26,7 @@ const STEP_DISPLAYS: StepDisplay[] = [
 })
 export class StepIndicator {
   readonly currentStep = input.required<WizardStep>();
-  readonly completedSteps = input.required<Set<WizardStep>>();
+  readonly completedSteps = input.required<ReadonlySet<WizardStep>>();
 
   protected readonly steps = STEP_DISPLAYS;
 
