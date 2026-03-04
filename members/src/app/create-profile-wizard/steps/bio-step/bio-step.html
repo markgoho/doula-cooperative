@@ -1,38 +1,36 @@
-<section class="step-content">
-  <h2>About You</h2>
-  <p class="step-description">
-    Write a bio that tells families about your experience and approach to doula work.
-  </p>
+<h2>About You</h2>
+<p class="step-description">
+  Write a bio that tells families about your experience and approach to doula work.
+</p>
 
-  @if (errorMessage()) {
-    <app-alert-banner variant="error">
-      {{ errorMessage() }}
-    </app-alert-banner>
-  }
+@if (errorMessage()) {
+  <app-alert-banner variant="error">
+    {{ errorMessage() }}
+  </app-alert-banner>
+}
 
-  <form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
-    <div class="form-group">
-      <label for="bio" class="form__label">Bio *</label>
-      <textarea
-        id="bio"
-        formControlName="bio"
-        placeholder="Tell us about yourself, your experience, and your approach to doula work..."
-        class="form__textarea"
-        rows="12"
-        [class.error]="bioControl.invalid && bioControl.touched"
-      ></textarea>
-      @if (bioControl.invalid && bioControl.touched) {
-        <div class="form__error-message">
-          @if (bioControl.errors?.['required']) {
-            <span>Bio is required</span>
-          }
-        </div>
-      }
-    </div>
+<form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
+  <div class="form-group">
+    <label for="bio" class="form__label">Bio *</label>
+    <textarea
+      id="bio"
+      formControlName="bio"
+      placeholder="Tell us about yourself, your experience, and your approach to doula work..."
+      class="form__textarea"
+      rows="12"
+      [class.error]="bioControl.invalid && bioControl.touched"
+    ></textarea>
+    @if (bioControl.invalid && bioControl.touched) {
+      <div class="form__error-message">
+        @if (bioControl.errors?.['required']) {
+          <span>Bio is required</span>
+        }
+      </div>
+    }
+  </div>
 
-    <div class="form-actions">
-      <button type="button" class="button button--secondary" (click)="onBack()">Back</button>
-      <button type="submit" class="button button--primary" [disabled]="form.invalid">Next</button>
-    </div>
-  </form>
-</section>
+  <div class="form-actions">
+    <button type="button" class="button button--secondary" (click)="onBack()">Back</button>
+    <button type="submit" class="button button--primary" [disabled]="form.invalid">Next</button>
+  </div>
+</form>

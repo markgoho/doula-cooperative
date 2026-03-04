@@ -16,6 +16,13 @@ export function wizardStepGuard(step: WizardStep): CanActivateFn {
     }
 
     const firstIncomplete = wizardService.getFirstIncompleteStep();
+
+    // Avoid redirect loop: if the first incomplete step also can't be navigated to
+    // (e.g., image/preview require profileCreated), fall back to the last navigable step
+    if (!wizardService.canNavigateToStep(firstIncomplete)) {
+      return router.createUrlTree(['/profile/create', 'contact']);
+    }
+
     return router.createUrlTree(['/profile/create', firstIncomplete]);
   };
 }

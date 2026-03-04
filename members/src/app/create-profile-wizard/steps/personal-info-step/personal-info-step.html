@@ -1,79 +1,73 @@
-<section class="step-content">
-  <h2>Personal Information</h2>
-  <p class="step-description">This is how you'll appear in our public doula directory.</p>
+<h2>Personal Information</h2>
+<p class="step-description">This is how you'll appear in our public doula directory.</p>
 
-  @if (errorMessage()) {
-    <app-alert-banner variant="error">
-      {{ errorMessage() }}
-    </app-alert-banner>
-  }
+@if (errorMessage()) {
+  <app-alert-banner variant="error">
+    {{ errorMessage() }}
+  </app-alert-banner>
+}
 
-  <form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
-    <!-- Name -->
-    <div class="form-group">
-      <label for="title" class="form__label">Name *</label>
-      <input
-        id="title"
-        type="text"
-        formControlName="title"
-        placeholder="Enter your full name"
-        class="form__input"
-        [class.error]="titleControl.invalid && titleControl.touched"
-      />
-      @if (titleControl.invalid && titleControl.touched) {
-        <div class="form__error-message">
-          @if (titleControl.errors?.['required']) {
-            <span>Name is required</span>
-          }
-          @if (titleControl.errors?.['slugCheckFailed']) {
-            <span>Unable to check availability. Please try again.</span>
-          }
-        </div>
-      }
-      @if (titleControl.pending) {
-        <p class="form__help-text slug-checking">Checking availability...</p>
-      }
-      @if (titleControl.valid && resolvedSlug()) {
-        <p class="form__help-text slug-preview">
-          &#10003; Your profile URL: doulacooperative.com/doulas/{{ resolvedSlug() }}
-        </p>
-      }
-    </div>
+<form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
+  <!-- Name -->
+  <div class="form-group">
+    <label for="title" class="form__label">Name *</label>
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+      placeholder="Enter your full name"
+      class="form__input"
+      [class.error]="titleControl.invalid && titleControl.touched"
+    />
+    @if (titleControl.invalid && titleControl.touched) {
+      <div class="form__error-message">
+        @if (titleControl.errors?.['required']) {
+          <span>Name is required</span>
+        }
+        @if (titleControl.errors?.['slugCheckFailed']) {
+          <span>Unable to check availability. Please try again.</span>
+        }
+      </div>
+    }
+    @if (titleControl.pending) {
+      <p class="form__help-text slug-checking">Checking availability...</p>
+    }
+    @if (titleControl.valid && resolvedSlug()) {
+      <p class="form__help-text slug-preview">
+        &#10003; Your profile URL: doulacooperative.com/doulas/{{ resolvedSlug() }}
+      </p>
+    }
+  </div>
 
-    <!-- Pronouns -->
-    <div class="form-group">
-      <label for="pronouns" class="form__label">Pronouns (optional)</label>
-      <input
-        id="pronouns"
-        type="text"
-        formControlName="pronouns"
-        placeholder="e.g., she/her, he/him, they/them"
-        class="form__input"
-      />
-    </div>
+  <!-- Pronouns -->
+  <div class="form-group">
+    <label for="pronouns" class="form__label">Pronouns (optional)</label>
+    <input
+      id="pronouns"
+      type="text"
+      formControlName="pronouns"
+      placeholder="e.g., she/her, he/him, they/them"
+      class="form__input"
+    />
+  </div>
 
-    <!-- Credentials -->
-    <div class="form-group">
-      <label for="credentials" class="form__label">Credentials (optional)</label>
-      <input
-        id="credentials"
-        type="text"
-        formControlName="credentials"
-        placeholder="e.g., CD(DONA), CLC, IBCLC"
-        class="form__input"
-      />
-    </div>
+  <!-- Credentials -->
+  <div class="form-group">
+    <label for="credentials" class="form__label">Credentials (optional)</label>
+    <input
+      id="credentials"
+      type="text"
+      formControlName="credentials"
+      placeholder="e.g., CD(DONA), CLC, IBCLC"
+      class="form__input"
+    />
+  </div>
 
-    <!-- Navigation -->
-    <div class="form-actions">
-      <button type="button" class="button button--secondary" (click)="onCancel()">Cancel</button>
-      <button
-        type="submit"
-        class="button button--primary"
-        [disabled]="form.invalid || form.pending"
-      >
-        Next
-      </button>
-    </div>
-  </form>
-</section>
+  <!-- Navigation -->
+  <div class="form-actions">
+    <button type="button" class="button button--secondary" (click)="onCancel()">Cancel</button>
+    <button type="submit" class="button button--primary" [disabled]="form.invalid || form.pending">
+      Next
+    </button>
+  </div>
+</form>
