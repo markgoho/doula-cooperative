@@ -14,6 +14,10 @@ export interface ProfileRouteHandlerConfig<TResponse> {
   errorId: ErrorId;
   slugNotFoundMessage: string;
   successStatus?: number;
+  /** Build the commitMessage for the deployment webhook notification email.
+   *  When provided, the slug is passed so the message can include the doula name.
+   *  Example: (slug) => `Update profile for ${slug}` */
+  buildCommitMessage?: (slug: string) => string;
   storeOperation: (
     service: ProfileStoreService,
     slug: string,
@@ -79,7 +83,12 @@ export function createProfileRouteHandler<TResponse>(
         } else {
           const { triggerHugoRebuild } =
             await import("../services/profile-store/trigger-rebuild.js");
-          await triggerHugoRebuild({ slug, action: config.operation });
+          const commitMessage = config.buildCommitMessage?.(slug);
+          await triggerHugoRebuild({
+            slug,
+            action: config.operation,
+            ...(commitMessage && { commitMessage }),
+          });
         }
       } catch (error: unknown) {
         logger.error("Failed to trigger Hugo rebuild after write", {

@@ -39,10 +39,6 @@
         {
           "source": "/api/profile-webhook{,/**}",
           "function": "profileWebhookApi"
-        },
-        {
-          "source": "/api/profile-deployment-webhook",
-          "function": "profileDeploymentWebhook"
         }
       ],
       "headers": [
