@@ -23,6 +23,8 @@ export class EditProfileImage {
   protected readonly successMessage = signal<string | undefined>(undefined);
 
   constructor() {
+    this.profileService.loadProfile();
+
     // Cleanup preview URL when it changes or component is destroyed
     effect((onCleanup) => {
       const url = this.previewUrl();

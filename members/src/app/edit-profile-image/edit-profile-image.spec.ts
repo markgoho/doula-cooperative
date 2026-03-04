@@ -280,6 +280,7 @@ async function setup({ profileData, uploadError, deleteError }: SetupOptions = {
   const hasCustomImage = profileData?.image !== undefined;
 
   const mockProfileService = {
+    loadProfile: vi.fn(),
     profileResource: {
       isLoading: signal(false),
       hasValue: signal(profileData !== undefined),

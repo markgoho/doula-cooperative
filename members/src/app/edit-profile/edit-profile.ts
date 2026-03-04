@@ -43,6 +43,8 @@ export class EditProfile {
   });
 
   constructor() {
+    this.profileService.loadProfile();
+
     effect(() => {
       const profile = this.profile();
       if (profile && !this.profileForm.dirty) {

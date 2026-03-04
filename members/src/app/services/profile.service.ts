@@ -34,6 +34,13 @@ export class ProfileService {
 
   private readonly imageCacheBust = signal(Date.now());
 
+  /**
+   * Whether profile loading has been requested.
+   * Pages that need the profile (edit-profile, edit-profile-image) call loadProfile().
+   * Pages that don't (create-profile) skip calling it, avoiding a spurious 404.
+   */
+  private readonly loadRequested = signal(false);
+
   constructor() {
     // TODO(2026-06-01): Remove this localStorage cleanup once all users have loaded the app at least once.
     // Clean up any leftover optimistic state from the old implementation
@@ -57,9 +64,19 @@ export class ProfileService {
     });
   }
 
-  // Resource automatically loads profile based on membership status
+  /**
+   * Request profile loading. Call this from components that need the profile data.
+   * The resource won't fetch until this is called, preventing spurious 404s
+   * on pages like /profile/create where the profile doesn't exist yet.
+   */
+  loadProfile(): void {
+    this.loadRequested.set(true);
+  }
+
+  // Resource loads profile only after loadProfile() is called
   readonly profileResource = resource({
     params: () => {
+      if (!this.loadRequested()) return undefined;
       const user = this.membershipService.userDocument();
       // Only load if user has active membership and a slug
       return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
@@ -215,7 +232,27 @@ export class ProfileService {
   }
 
   private async fetchProfileFromServer(slug: string): Promise<ProfileData> {
-    return firstValueFrom(this.http.get<ProfileData>(`/api/profiles/${slug}`));
+    try {
+      return await firstValueFrom(this.http.get<ProfileData>(`/api/profiles/${slug}`));
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        console.error('Profile not found (404):', {
+          slug,
+          status: error.status,
+          errorBody: error.error,
+          hint: 'If the profile exists but is draft, this may be a draft access control issue. Check that the auth token is being sent and that ownerUid matches.',
+        });
+      } else {
+        console.error('Profile fetch failed:', {
+          slug,
+          error:
+            error instanceof HttpErrorResponse
+              ? { status: error.status, body: error.error }
+              : String(error),
+        });
+      }
+      throw error;
+    }
   }
 
   getTagUrl(tag: string): string {

@@ -385,6 +385,7 @@ async function setup({
 
   const mockProfileService = {
     profile: signal(profileSignalValue),
+    loadProfile: vi.fn(),
     profileImageUrl: signal(
       hasProfile && userHasSlug
         ? 'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile'

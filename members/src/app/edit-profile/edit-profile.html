@@ -18,6 +18,12 @@
     <p>Once your profile is created, you'll be able to edit it here.</p>
   </div>
 } @else if (profile()) {
+  @if (profile()?.draft === true && !isMembershipInactive()) {
+    <app-alert-banner variant="info">
+      <strong>Profile in Draft Mode</strong> — Your profile is not yet visible on the public doula
+      directory. An administrator will review and publish your profile.
+    </app-alert-banner>
+  }
   @if (isMembershipInactive()) {
     <app-alert-banner variant="warning">
       <h2>Membership Inactive</h2>

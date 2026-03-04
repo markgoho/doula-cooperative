@@ -66,6 +66,9 @@ export async function readProfileBySlugLogic({
         logger.info("Draft profile access denied", {
           slug,
           hasAuth: Boolean(userToken),
+          requestingUid: userToken?.uid,
+          profileOwnerUid: profileData.ownerUid,
+          isAdmin: userToken?.["admin"] === true,
         });
         set.status = 404;
         return { error: "Profile not found" };
