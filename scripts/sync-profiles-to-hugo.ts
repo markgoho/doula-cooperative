@@ -21,12 +21,12 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { join, resolve } from "node:path";
+import path from "node:path";
 
 const PROFILES_COLLECTION = "profiles";
 
-const HUGO_DOULAS_DIR = resolve(
-  import.meta.dirname ?? ".",
+const HUGO_DOULAS_DIR = path.resolve(
+  import.meta.dirname,
   "../hugo/content/doulas",
 );
 
@@ -81,8 +81,8 @@ function yamlScalar(value: string | boolean | number): string {
   if (typeof value !== "string") {
     return String(value);
   }
-  if (/[:#\[\]{}|>&*!]/.test(value) || value === "") {
-    return `"${value.replaceAll('"', '\\"')}"`;
+  if (/[:#[\]{}|>&*!]/.test(value) || value === "") {
+    return `"${value.replaceAll('"', String.raw`\"`)}"`;
   }
   return value;
 }
@@ -95,7 +95,10 @@ function yamlScalar(value: string | boolean | number): string {
 function serializeFrontMatter(frontMatter: HugoFrontMatter): string {
   const lines: string[] = [];
 
-  for (const [key, value] of Object.entries(frontMatter)) {
+  for (const [key, value] of Object.entries(frontMatter) as [
+    string,
+    string | number | boolean | string[] | Contact | undefined,
+  ][]) {
     if (value === undefined) {
       continue;
     }
@@ -110,9 +113,7 @@ function serializeFrontMatter(frontMatter: HugoFrontMatter): string {
       for (const [nestedKey, nestedValue] of Object.entries(
         value as Record<string, string>,
       )) {
-        if (nestedValue !== undefined) {
-          lines.push(`  ${nestedKey}: ${yamlScalar(nestedValue)}`);
-        }
+        lines.push(`  ${nestedKey}: ${yamlScalar(nestedValue)}`);
       }
     } else {
       lines.push(`${key}: ${yamlScalar(value)}`);
@@ -177,7 +178,7 @@ function serializeProfileToMarkdown(
   }
 
   const yamlFrontMatter = serializeFrontMatter(frontMatter);
-  const bio = profile.bio?.trim() ?? "";
+  const bio = profile.bio.trim();
 
   return `---\n${yamlFrontMatter}\n---\n\n${bio}\n`;
 }
@@ -189,7 +190,9 @@ function initFirebase(): void {
 
   const serviceAccountJson = process.env["FIREBASE_SERVICE_ACCOUNT"];
   if (serviceAccountJson) {
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    const serviceAccount = JSON.parse(
+      serviceAccountJson,
+    ) as import("firebase-admin").ServiceAccount;
     initializeApp({ credential: cert(serviceAccount) });
   } else {
     initializeApp({
@@ -212,16 +215,15 @@ async function syncProfiles(): Promise<void> {
   // This prevents wiping all Hugo profile directories due to
   // misconfigured credentials, wrong project, or transient Firestore outage.
   if (snapshot.empty) {
-    console.error(
+    throw new Error(
       "ABORTING: Firestore returned 0 profiles. " +
         "This would delete all existing profile directories. " +
         "Check FIREBASE_SERVICE_ACCOUNT and Firestore project configuration.",
     );
-    process.exit(1);
   }
 
   const firestoreSlugs = new Set<string>();
-  const errors: Array<{ slug: string; error: string }> = [];
+  const errors: { slug: string; error: string }[] = [];
 
   // Write each profile to Hugo content
   for (const document of snapshot.docs) {
@@ -230,12 +232,12 @@ async function syncProfiles(): Promise<void> {
 
     try {
       const profile = document.data() as ProfileDocument;
-      const profileDir = join(HUGO_DOULAS_DIR, slug);
-      const profilePath = join(profileDir, "index.md");
+      const profileDirectory = path.join(HUGO_DOULAS_DIR, slug);
+      const profilePath = path.join(profileDirectory, "index.md");
 
       // Ensure directory exists
-      if (!existsSync(profileDir)) {
-        mkdirSync(profileDir, { recursive: true });
+      if (!existsSync(profileDirectory)) {
+        mkdirSync(profileDirectory, { recursive: true });
       }
 
       const markdown = serializeProfileToMarkdown(slug, profile);
@@ -271,8 +273,8 @@ async function syncProfiles(): Promise<void> {
 
     // Delete if not in Firestore
     if (!firestoreSlugs.has(entry.name)) {
-      const dirPath = join(HUGO_DOULAS_DIR, entry.name);
-      rmSync(dirPath, { recursive: true, force: true });
+      const directoryPath = path.join(HUGO_DOULAS_DIR, entry.name);
+      rmSync(directoryPath, { recursive: true, force: true });
       console.log(`  Deleted ${entry.name}/ (not in Firestore)`);
       deletedCount++;
     }
@@ -283,15 +285,11 @@ async function syncProfiles(): Promise<void> {
   );
 
   if (errors.length > 0) {
-    console.error(
-      `\n${errors.length} profile(s) failed to sync:`,
-      errors.map(e => `  ${e.slug}: ${e.error}`).join("\n"),
+    throw new Error(
+      `${errors.length} profile(s) failed to sync:\n` +
+        errors.map(entry => `  ${entry.slug}: ${entry.error}`).join("\n"),
     );
-    process.exit(1);
   }
 }
 
-syncProfiles().catch((error: unknown) => {
-  console.error("Failed to sync profiles:", error);
-  process.exit(1);
-});
+await syncProfiles();

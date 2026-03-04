@@ -18,13 +18,13 @@ import { YAML } from "bun";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import path from "node:path";
 
 const PROFILES_COLLECTION = "profiles";
 const MEMBERS_COLLECTION = "members";
 
-const HUGO_DOULAS_DIR = resolve(
-  import.meta.dirname ?? ".",
+const HUGO_DOULAS_DIR = path.resolve(
+  import.meta.dirname,
   "../hugo/content/doulas",
 );
 
@@ -89,7 +89,9 @@ function initFirebase(): void {
 
   const serviceAccountJson = process.env["FIREBASE_SERVICE_ACCOUNT"];
   if (serviceAccountJson) {
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    const serviceAccount = JSON.parse(
+      serviceAccountJson,
+    ) as import("firebase-admin").ServiceAccount;
     initializeApp({ credential: cert(serviceAccount) });
   } else {
     initializeApp({
@@ -120,27 +122,26 @@ async function migrateProfiles(): Promise<void> {
   console.log("Migrating Hugo profiles to Firestore...");
 
   if (!existsSync(HUGO_DOULAS_DIR)) {
-    console.error(`Hugo doulas directory not found: ${HUGO_DOULAS_DIR}`);
-    process.exit(1);
+    throw new Error(`Hugo doulas directory not found: ${HUGO_DOULAS_DIR}`);
   }
 
   initFirebase();
   const firestore = getFirestore();
 
   const entries = readdirSync(HUGO_DOULAS_DIR, { withFileTypes: true });
-  const profileDirs = entries.filter(
+  const profileDirectories = entries.filter(
     entry => entry.isDirectory() && !SKIP_ENTRIES.has(entry.name),
   );
 
-  console.log(`Found ${profileDirs.length} profile directories`);
+  console.log(`Found ${profileDirectories.length} profile directories`);
 
   let migratedCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
 
-  for (const dir of profileDirs) {
-    const slug = dir.name;
-    const indexPath = join(HUGO_DOULAS_DIR, slug, "index.md");
+  for (const directory of profileDirectories) {
+    const slug = directory.name;
+    const indexPath = path.join(HUGO_DOULAS_DIR, slug, "index.md");
 
     if (!existsSync(indexPath)) {
       console.log(`  Skipping ${slug}/ (no index.md)`);
@@ -167,7 +168,7 @@ async function migrateProfiles(): Promise<void> {
       const ownerUid = await lookupOwnerUid(firestore, slug);
 
       const now = new Date().toISOString();
-      const profileDoc: ProfileDocument = {
+      const profileDocument: ProfileDocument = {
         title: frontMatter.title,
         bio,
         draft: frontMatter.draft ?? true,
@@ -176,26 +177,26 @@ async function migrateProfiles(): Promise<void> {
       };
 
       if (frontMatter.credentials) {
-        profileDoc.credentials = frontMatter.credentials;
+        profileDocument.credentials = frontMatter.credentials;
       }
       if (frontMatter.pronouns) {
-        profileDoc.pronouns = frontMatter.pronouns;
+        profileDocument.pronouns = frontMatter.pronouns;
       }
       if (frontMatter.tags && frontMatter.tags.length > 0) {
-        profileDoc.tags = frontMatter.tags;
+        profileDocument.tags = frontMatter.tags;
       }
       if (frontMatter.contact) {
-        profileDoc.contact = frontMatter.contact;
+        profileDocument.contact = frontMatter.contact;
       }
       if (ownerUid) {
-        profileDoc.ownerUid = ownerUid;
+        profileDocument.ownerUid = ownerUid;
       }
 
       // Use set with merge for idempotency
       await firestore
         .collection(PROFILES_COLLECTION)
         .doc(slug)
-        .set(profileDoc, { merge: true });
+        .set(profileDocument, { merge: true });
 
       console.log(`  Migrated ${slug} (owner: ${ownerUid ?? "none"})`);
       migratedCount++;
@@ -212,11 +213,8 @@ async function migrateProfiles(): Promise<void> {
   );
 
   if (errorCount > 0) {
-    process.exit(1);
+    throw new Error(`${errorCount} profile(s) failed to migrate`);
   }
 }
 
-migrateProfiles().catch((error: unknown) => {
-  console.error("Migration failed:", error);
-  process.exit(1);
-});
+await migrateProfiles();
