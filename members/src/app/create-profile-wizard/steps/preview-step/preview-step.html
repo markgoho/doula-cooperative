@@ -9,14 +9,8 @@
 </app-alert-banner>
 
 <div class="preview-wrapper">
-  @let data = profileData();
   <app-profile-preview
-    [title]="data.title"
-    [credentials]="data.credentials"
-    [pronouns]="data.pronouns"
-    [tags]="data.tags"
-    [bio]="data.bio"
-    [contact]="data.contact"
+    [profile]="profileData()"
     [imageUrl]="imageUrl()"
     [showEditLinks]="true"
     (editSection)="onEditSection($event)"

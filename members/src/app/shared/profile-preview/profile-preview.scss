@@ -1,6 +1,6 @@
 // Profile preview styles matching the Hugo doula profile layout.
 
-.profile-container {
+:host {
   display: grid;
   grid-template-columns: 1fr;
   align-content: start;
@@ -150,7 +150,7 @@
 }
 
 @container profileform (min-width: 35em) {
-  .profile-container {
+  :host {
     column-gap: var(--space-s);
     grid-template-columns: minmax(300px, 1fr) 1fr;
     grid-template-rows: max-content min-content 1fr;

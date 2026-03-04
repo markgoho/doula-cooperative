@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { type ProfileData } from '../../types/profile-data';
 import { ProfilePreview } from './profile-preview';
 
 describe('ProfilePreview', () => {
@@ -11,19 +12,21 @@ describe('ProfilePreview', () => {
   });
 
   it('should render credentials when provided', async () => {
-    await setup({ credentials: 'CD(DONA)' });
+    await setup({ profile: { title: 'Jane Doe', bio: 'Bio text.', credentials: 'CD(DONA)' } });
 
     expect(screen.getByText('CD(DONA)')).toBeVisible();
   });
 
   it('should render pronouns when provided', async () => {
-    await setup({ pronouns: 'she/her' });
+    await setup({ profile: { title: 'Jane Doe', bio: 'Bio text.', pronouns: 'she/her' } });
 
     expect(screen.getByText('she/her')).toBeVisible();
   });
 
   it('should render tags as pills', async () => {
-    await setup({ tags: ['Birth Doula', 'Postpartum Doula'] });
+    await setup({
+      profile: { title: 'Jane Doe', bio: 'Bio text.', tags: ['Birth Doula', 'Postpartum Doula'] },
+    });
 
     expect(screen.getByText('Birth Doula')).toBeVisible();
     expect(screen.getByText('Postpartum Doula')).toBeVisible();
@@ -37,10 +40,14 @@ describe('ProfilePreview', () => {
 
   it('should render contact information', async () => {
     await setup({
-      contact: {
-        phone: '555-1234',
-        email: 'jane@example.com',
-        website: 'janedoula.com',
+      profile: {
+        title: 'Jane Doe',
+        bio: 'Bio text.',
+        contact: {
+          phone: '555-1234',
+          email: 'jane@example.com',
+          website: 'janedoula.com',
+        },
       },
     });
 
@@ -51,7 +58,11 @@ describe('ProfilePreview', () => {
 
   it('should render business name as contact header', async () => {
     await setup({
-      contact: { business_name: 'Jane Doula Services' },
+      profile: {
+        title: 'Jane Doe',
+        bio: 'Bio text.',
+        contact: { business_name: 'Jane Doula Services' },
+      },
     });
 
     expect(screen.getByText('Jane Doula Services')).toBeVisible();
@@ -90,37 +101,21 @@ describe('ProfilePreview', () => {
 });
 
 interface SetupOptions {
-  credentials?: string;
-  pronouns?: string;
-  tags?: string[];
-  contact?: {
-    business_name?: string;
-    phone?: string;
-    email?: string;
-    website?: string;
-  };
+  profile?: ProfileData;
   imageUrl?: string;
   showEditLinks?: boolean;
   onEditSection?: (section: string) => void;
 }
 
 async function setup({
-  credentials,
-  pronouns,
-  tags,
-  contact,
+  profile = { title: 'Jane Doe', bio: 'I am a professional doula.' },
   imageUrl,
   showEditLinks = false,
   onEditSection,
 }: SetupOptions = {}) {
   return render(ProfilePreview, {
     inputs: {
-      title: 'Jane Doe',
-      bio: 'I am a professional doula.',
-      ...(credentials !== undefined && { credentials }),
-      ...(pronouns !== undefined && { pronouns }),
-      ...(tags !== undefined && { tags }),
-      ...(contact !== undefined && { contact }),
+      profile,
       ...(imageUrl !== undefined && { imageUrl }),
       showEditLinks,
     },

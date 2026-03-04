@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { type ProfileData } from '../../types/profile-data';
 
 @Component({
   selector: 'app-profile-preview',
@@ -7,17 +8,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePreview {
-  readonly title = input.required<string>();
-  readonly credentials = input<string>();
-  readonly pronouns = input<string>();
-  readonly tags = input<string[]>();
-  readonly bio = input.required<string>();
-  readonly contact = input<{
-    business_name?: string;
-    phone?: string;
-    email?: string;
-    website?: string;
-  }>();
+  readonly profile = input.required<ProfileData>();
   readonly imageUrl = input<string>();
   readonly showEditLinks = input(false);
 
@@ -25,7 +16,7 @@ export class ProfilePreview {
 
   /** Normalize website URL — prepend https:// only if no protocol is present. */
   protected readonly websiteUrl = computed(() => {
-    const site = this.contact()?.website;
+    const site = this.profile().contact?.website;
     if (!site) return '';
     return site.startsWith('http') ? site : `https://${site}`;
   });

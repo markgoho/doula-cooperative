@@ -1,152 +1,152 @@
-<div class="profile-container">
-  <section class="title-section">
-    <div class="title-header">
-      <h2 class="profile-title">{{ title() }}</h2>
-      @if (showEditLinks()) {
-        <button
-          type="button"
-          class="edit-link"
-          (click)="editSection.emit('personal')"
-          aria-label="Edit personal info"
-        >
-          Edit
-        </button>
-      }
-    </div>
-
-    @if (credentials()) {
-      <p class="credentials">{{ credentials() }}</p>
-    }
-
-    @if (pronouns()) {
-      <p class="pronouns">{{ pronouns() }}</p>
-    }
-  </section>
-
-  <section class="headshot">
-    @if (imageUrl()) {
-      <img [src]="imageUrl()" [alt]="'Headshot of ' + title()" class="headshot__image" />
-    } @else {
-      <div class="headshot__placeholder" aria-label="No photo uploaded">
-        <span class="placeholder-icon" aria-hidden="true">&#128100;</span>
-      </div>
-    }
-
+<section class="title-section">
+  <div class="title-header">
+    <h2 class="profile-title">{{ profile().title }}</h2>
     @if (showEditLinks()) {
       <button
         type="button"
-        class="edit-link edit-link--photo"
-        (click)="editSection.emit('image')"
-        aria-label="Edit photo"
+        class="edit-link"
+        (click)="editSection.emit('personal')"
+        aria-label="Edit personal info"
       >
-        Edit Photo
+        Edit
       </button>
     }
+  </div>
 
-    @if (tags()?.length) {
-      <div class="tags-section">
-        @if (showEditLinks()) {
-          <button
-            type="button"
-            class="edit-link"
-            (click)="editSection.emit('tags')"
-            aria-label="Edit services"
-          >
-            Edit
-          </button>
-        }
-        <ul class="tag-group">
-          @for (tag of tags(); track tag) {
-            <li class="tag">{{ tag }}</li>
-          }
-        </ul>
-      </div>
-    }
-  </section>
+  @if (profile().credentials) {
+    <p class="credentials">{{ profile().credentials }}</p>
+  }
 
-  <section class="bio">
-    <div class="bio-header">
+  @if (profile().pronouns) {
+    <p class="pronouns">{{ profile().pronouns }}</p>
+  }
+</section>
+
+<section class="headshot">
+  @if (imageUrl()) {
+    <img [src]="imageUrl()" [alt]="'Headshot of ' + profile().title" class="headshot__image" />
+  } @else {
+    <div class="headshot__placeholder" aria-label="No photo uploaded">
+      <span class="placeholder-icon" aria-hidden="true">&#128100;</span>
+    </div>
+  }
+
+  @if (showEditLinks()) {
+    <button
+      type="button"
+      class="edit-link edit-link--photo"
+      (click)="editSection.emit('image')"
+      aria-label="Edit photo"
+    >
+      Edit Photo
+    </button>
+  }
+
+  @if (profile().tags?.length) {
+    <div class="tags-section">
       @if (showEditLinks()) {
         <button
           type="button"
           class="edit-link"
-          (click)="editSection.emit('bio')"
-          aria-label="Edit bio"
+          (click)="editSection.emit('tags')"
+          aria-label="Edit services"
+        >
+          Edit
+        </button>
+      }
+      <ul class="tag-group">
+        @for (tag of profile().tags; track tag) {
+          <li class="tag">{{ tag }}</li>
+        }
+      </ul>
+    </div>
+  }
+</section>
+
+<section class="bio">
+  <div class="bio-header">
+    @if (showEditLinks()) {
+      <button
+        type="button"
+        class="edit-link"
+        (click)="editSection.emit('bio')"
+        aria-label="Edit bio"
+      >
+        Edit
+      </button>
+    }
+  </div>
+  <p class="bio-text">{{ profile().bio }}</p>
+</section>
+
+@if (profile().contact) {
+  <section class="contact-info">
+    <div class="contact-header">
+      <h3>{{ profile().contact?.business_name || 'Contact Information' }}</h3>
+      @if (showEditLinks()) {
+        <button
+          type="button"
+          class="edit-link"
+          (click)="editSection.emit('contact')"
+          aria-label="Edit contact info"
         >
           Edit
         </button>
       }
     </div>
-    <p class="bio-text">{{ bio() }}</p>
-  </section>
-
-  @if (contact()) {
-    <section class="contact-info">
-      <div class="contact-header">
-        <h3>{{ contact()?.business_name || 'Contact Information' }}</h3>
-        @if (showEditLinks()) {
-          <button
-            type="button"
-            class="edit-link"
-            (click)="editSection.emit('contact')"
-            aria-label="Edit contact info"
+    <ul>
+      @if (profile().contact?.website) {
+        <li>
+          <svg
+            viewBox="0 0 33 33"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
           >
-            Edit
-          </button>
-        }
-      </div>
-      <ul>
-        @if (contact()?.website) {
-          <li>
-            <svg
-              viewBox="0 0 33 33"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M16.2578 3.40137C13.6867 3.40137 11.1732 4.1638 9.03541 5.59226C6.89757 7.02072 5.23132 9.05104 4.24738 11.4265C3.26345 13.8019 3.006 16.4158 3.50761 18.9375C4.00922 21.4593 5.24735 23.7757 7.06543 25.5938C8.88351 27.4118 11.1999 28.65 13.7216 29.1516C16.2434 29.6532 18.8573 29.3957 21.2327 28.4118C23.6081 27.4279 25.6385 25.7616 27.0669 23.6238C28.4954 21.4859 29.2578 18.9725 29.2578 16.4014C29.2538 12.9548 27.8829 9.65048 25.4458 7.21336C23.0087 4.77625 19.7044 3.40534 16.2578 3.40137ZM26.0528 11.4014H21.5966C21.0354 9.3425 20.0896 7.40846 18.8091 5.70137C20.3562 6.07303 21.8047 6.77484 23.0552 7.75869C24.3057 8.74254 25.3287 9.98516 26.0541 11.4014H26.0528ZM27.2578 16.4014C27.2587 17.4158 27.1186 18.4255 26.8416 19.4014H22.0278C22.3345 17.4131 22.3345 15.3896 22.0278 13.4014H26.8416C27.1186 14.3773 27.2587 15.3869 27.2578 16.4014ZM16.2578 5.77637C17.7552 7.37952 18.8668 9.30341 19.5078 11.4014H13.0078C13.6482 9.30313 14.7598 7.3791 16.2578 5.77637ZM13.0078 21.4014H19.5078C18.8675 23.4996 17.7558 25.4236 16.2578 27.0264C14.7604 25.4232 13.6488 23.4993 13.0078 21.4014ZM12.5203 19.4014C12.177 17.4161 12.177 15.3866 12.5203 13.4014H20.0053C20.3486 15.3866 20.3486 17.4161 20.0053 19.4014H12.5203ZM18.8141 27.1014C20.0946 25.3943 21.0404 23.4602 21.6016 21.4014H26.0591C25.3332 22.8181 24.3094 24.0611 23.058 25.045C21.8066 26.0288 20.3571 26.7304 18.8091 27.1014H18.8141Z"
-                fill="var(--teal-500)"
-              />
-            </svg>
-            <a [href]="websiteUrl()" target="_blank" rel="noopener noreferrer">{{
-              contact()!.website
-            }}</a>
-          </li>
-        }
-        @if (contact()?.phone) {
-          <li>
-            <svg
-              viewBox="0 0 33 33"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M29.2428 22.3928C29.0199 24.0866 28.1881 25.6413 26.9027 26.7666C25.6173 27.8919 23.9662 28.5109 22.2578 28.5078C12.3328 28.5078 4.25782 20.4328 4.25782 10.5078C4.25476 8.79942 4.87368 7.14833 5.99899 5.86292C7.1243 4.57751 8.67904 3.74569 10.3728 3.5228C10.8011 3.4705 11.2349 3.55813 11.6093 3.7726C11.9837 3.98707 12.2787 4.31688 12.4503 4.7128L15.0903 10.6066V10.6216C15.2217 10.9246 15.2759 11.2555 15.2482 11.5846C15.2205 11.9138 15.1117 12.231 14.9316 12.5078C14.9091 12.5416 14.8853 12.5728 14.8603 12.6041L12.2578 15.6891C13.1941 17.5916 15.1841 19.5641 17.1116 20.5028L20.1541 17.9141C20.184 17.8889 20.2153 17.8656 20.2478 17.8441C20.5244 17.6596 20.8427 17.5469 21.1738 17.5164C21.5049 17.4858 21.8384 17.5383 22.1441 17.6691L22.1603 17.6766L28.0491 20.3153C28.4457 20.4863 28.7763 20.781 28.9915 21.1555C29.2067 21.53 29.2948 21.9641 29.2428 22.3928Z"
-                fill="var(--teal-500)"
-              />
-            </svg>
-            <a href="tel:{{ contact()!.phone }}">{{ contact()!.phone }}</a>
-          </li>
-        }
-        @if (contact()?.email) {
-          <li>
-            <svg
-              viewBox="0 0 33 33"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M28.2578 6.61377H4.25781C3.9926 6.61377 3.73824 6.71913 3.55071 6.90666C3.36317 7.0942 3.25781 7.34855 3.25781 7.61377V24.6138C3.25781 25.1442 3.46853 25.6529 3.8436 26.028C4.21867 26.4031 4.72738 26.6138 5.25781 26.6138H27.2578C27.7882 26.6138 28.297 26.4031 28.672 26.028C29.0471 25.6529 29.2578 25.1442 29.2578 24.6138V7.61377C29.2578 7.34855 29.1525 7.0942 28.9649 6.90666C28.7774 6.71913 28.523 6.61377 28.2578 6.61377ZM12.5966 16.6138L5.25781 23.34V9.88752L12.5966 16.6138ZM14.0766 17.97L15.5766 19.3513C15.7611 19.5206 16.0024 19.6146 16.2528 19.6146C16.5033 19.6146 16.7446 19.5206 16.9291 19.3513L18.4291 17.97L25.6791 24.6138H6.82906L14.0766 17.97ZM19.9191 16.6138L27.2578 9.88627V23.3413L19.9191 16.6138Z"
-                fill="var(--teal-500)"
-              />
-            </svg>
-            <a target="_blank" href="mailto:{{ contact()!.email }}">{{ contact()!.email }}</a>
-          </li>
-        }
-      </ul>
-    </section>
-  }
-</div>
+            <path
+              d="M16.2578 3.40137C13.6867 3.40137 11.1732 4.1638 9.03541 5.59226C6.89757 7.02072 5.23132 9.05104 4.24738 11.4265C3.26345 13.8019 3.006 16.4158 3.50761 18.9375C4.00922 21.4593 5.24735 23.7757 7.06543 25.5938C8.88351 27.4118 11.1999 28.65 13.7216 29.1516C16.2434 29.6532 18.8573 29.3957 21.2327 28.4118C23.6081 27.4279 25.6385 25.7616 27.0669 23.6238C28.4954 21.4859 29.2578 18.9725 29.2578 16.4014C29.2538 12.9548 27.8829 9.65048 25.4458 7.21336C23.0087 4.77625 19.7044 3.40534 16.2578 3.40137ZM26.0528 11.4014H21.5966C21.0354 9.3425 20.0896 7.40846 18.8091 5.70137C20.3562 6.07303 21.8047 6.77484 23.0552 7.75869C24.3057 8.74254 25.3287 9.98516 26.0541 11.4014H26.0528ZM27.2578 16.4014C27.2587 17.4158 27.1186 18.4255 26.8416 19.4014H22.0278C22.3345 17.4131 22.3345 15.3896 22.0278 13.4014H26.8416C27.1186 14.3773 27.2587 15.3869 27.2578 16.4014ZM16.2578 5.77637C17.7552 7.37952 18.8668 9.30341 19.5078 11.4014H13.0078C13.6482 9.30313 14.7598 7.3791 16.2578 5.77637ZM13.0078 21.4014H19.5078C18.8675 23.4996 17.7558 25.4236 16.2578 27.0264C14.7604 25.4232 13.6488 23.4993 13.0078 21.4014ZM12.5203 19.4014C12.177 17.4161 12.177 15.3866 12.5203 13.4014H20.0053C20.3486 15.3866 20.3486 17.4161 20.0053 19.4014H12.5203ZM18.8141 27.1014C20.0946 25.3943 21.0404 23.4602 21.6016 21.4014H26.0591C25.3332 22.8181 24.3094 24.0611 23.058 25.045C21.8066 26.0288 20.3571 26.7304 18.8091 27.1014H18.8141Z"
+              fill="var(--teal-500)"
+            />
+          </svg>
+          <a [href]="websiteUrl()" target="_blank" rel="noopener noreferrer">{{
+            profile().contact!.website
+          }}</a>
+        </li>
+      }
+      @if (profile().contact?.phone) {
+        <li>
+          <svg
+            viewBox="0 0 33 33"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M29.2428 22.3928C29.0199 24.0866 28.1881 25.6413 26.9027 26.7666C25.6173 27.8919 23.9662 28.5109 22.2578 28.5078C12.3328 28.5078 4.25782 20.4328 4.25782 10.5078C4.25476 8.79942 4.87368 7.14833 5.99899 5.86292C7.1243 4.57751 8.67904 3.74569 10.3728 3.5228C10.8011 3.4705 11.2349 3.55813 11.6093 3.7726C11.9837 3.98707 12.2787 4.31688 12.4503 4.7128L15.0903 10.6066V10.6216C15.2217 10.9246 15.2759 11.2555 15.2482 11.5846C15.2205 11.9138 15.1117 12.231 14.9316 12.5078C14.9091 12.5416 14.8853 12.5728 14.8603 12.6041L12.2578 15.6891C13.1941 17.5916 15.1841 19.5641 17.1116 20.5028L20.1541 17.9141C20.184 17.8889 20.2153 17.8656 20.2478 17.8441C20.5244 17.6596 20.8427 17.5469 21.1738 17.5164C21.5049 17.4858 21.8384 17.5383 22.1441 17.6691L22.1603 17.6766L28.0491 20.3153C28.4457 20.4863 28.7763 20.781 28.9915 21.1555C29.2067 21.53 29.2948 21.9641 29.2428 22.3928Z"
+              fill="var(--teal-500)"
+            />
+          </svg>
+          <a href="tel:{{ profile().contact!.phone }}">{{ profile().contact!.phone }}</a>
+        </li>
+      }
+      @if (profile().contact?.email) {
+        <li>
+          <svg
+            viewBox="0 0 33 33"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M28.2578 6.61377H4.25781C3.9926 6.61377 3.73824 6.71913 3.55071 6.90666C3.36317 7.0942 3.25781 7.34855 3.25781 7.61377V24.6138C3.25781 25.1442 3.46853 25.6529 3.8436 26.028C4.21867 26.4031 4.72738 26.6138 5.25781 26.6138H27.2578C27.7882 26.6138 28.297 26.4031 28.672 26.028C29.0471 25.6529 29.2578 25.1442 29.2578 24.6138V7.61377C29.2578 7.34855 29.1525 7.0942 28.9649 6.90666C28.7774 6.71913 28.523 6.61377 28.2578 6.61377ZM12.5966 16.6138L5.25781 23.34V9.88752L12.5966 16.6138ZM14.0766 17.97L15.5766 19.3513C15.7611 19.5206 16.0024 19.6146 16.2528 19.6146C16.5033 19.6146 16.7446 19.5206 16.9291 19.3513L18.4291 17.97L25.6791 24.6138H6.82906L14.0766 17.97ZM19.9191 16.6138L27.2578 9.88627V23.3413L19.9191 16.6138Z"
+              fill="var(--teal-500)"
+            />
+          </svg>
+          <a target="_blank" href="mailto:{{ profile().contact!.email }}">{{
+            profile().contact!.email
+          }}</a>
+        </li>
+      }
+    </ul>
+  </section>
+}
