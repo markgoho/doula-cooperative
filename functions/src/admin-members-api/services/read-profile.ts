@@ -5,6 +5,7 @@ import {
   type ProfileDocument,
 } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
+import { buildProfileImageUrl } from "../../constants/imagekit.js";
 import {
   HttpError,
   NotFoundError,
@@ -54,6 +55,7 @@ export async function readProfile(options: {
     }
 
     const profile = profileDocument.data() as ProfileDocument;
+    profile.image = buildProfileImageUrl(slug);
 
     logger.info("Read member profile", { memberId, slug });
 
