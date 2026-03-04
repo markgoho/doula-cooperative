@@ -76,7 +76,7 @@ export class ProfileService {
   // Resource loads profile only after loadProfile() is called
   readonly profileResource = resource({
     params: () => {
-      if (!this.loadRequested()) return undefined;
+      if (!this.loadRequested()) return;
       const user = this.membershipService.userDocument();
       // Only load if user has active membership and a slug
       return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
