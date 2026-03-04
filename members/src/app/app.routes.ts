@@ -1,6 +1,7 @@
 import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
 import { type Routes } from '@angular/router';
 import { redirectNonAdminToMembership } from './guards/admin.guard';
+import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 
 // Guards for different authentication states
 const redirectUnauthorizedToSignIn = () => redirectUnauthorizedTo(['sign-in']);
@@ -17,8 +18,53 @@ export const routes: Routes = [
   },
   {
     path: 'profile/create',
-    loadComponent: () => import('./create-profile/create-profile').then((m) => m.CreateProfile),
     ...canActivate(redirectUnauthorizedToSignIn),
+    loadComponent: () =>
+      import('./create-profile-wizard/create-profile-wizard').then((m) => m.CreateProfileWizard),
+    children: [
+      { path: '', redirectTo: 'personal', pathMatch: 'full' },
+      {
+        path: 'personal',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/personal-info-step/personal-info-step').then(
+            (m) => m.PersonalInfoStep,
+          ),
+      },
+      {
+        path: 'tags',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/tags-step/tags-step').then((m) => m.TagsStep),
+        canActivate: [wizardStepGuard('tags')],
+      },
+      {
+        path: 'bio',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/bio-step/bio-step').then((m) => m.BioStep),
+        canActivate: [wizardStepGuard('bio')],
+      },
+      {
+        path: 'contact',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/contact-step/contact-step').then(
+            (m) => m.ContactStep,
+          ),
+        canActivate: [wizardStepGuard('contact')],
+      },
+      {
+        path: 'image',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/image-step/image-step').then((m) => m.ImageStep),
+        canActivate: [wizardStepGuard('image')],
+      },
+      {
+        path: 'preview',
+        loadComponent: () =>
+          import('./create-profile-wizard/steps/preview-step/preview-step').then(
+            (m) => m.PreviewStep,
+          ),
+        canActivate: [wizardStepGuard('preview')],
+      },
+    ],
   },
   {
     path: 'profile',

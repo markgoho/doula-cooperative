@@ -1,0 +1,29 @@
+<h2>Services &amp; Specialties</h2>
+<p class="step-description">Select all the services and specialties that describe your practice.</p>
+
+@if (errorMessage()) {
+  <app-alert-banner variant="error">
+    {{ errorMessage() }}
+  </app-alert-banner>
+}
+
+<div role="group" aria-label="Professional categories">
+  <div class="tags-container">
+    @for (tag of availableTags; track tag) {
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          class="checkbox-input"
+          [checked]="isSelected(tag)"
+          (change)="toggleTag(tag)"
+        />
+        <span class="checkbox-text">{{ tag }}</span>
+      </label>
+    }
+  </div>
+</div>
+
+<div class="form-actions">
+  <button type="button" class="button button--secondary" (click)="onBack()">Back</button>
+  <button type="button" class="button button--primary" (click)="onNext()">Next</button>
+</div>

@@ -1,0 +1,11 @@
+@use '../../../shared/profile-form/profile-form-styles';
+
+:host {
+  display: block;
+  max-width: 40rem;
+}
+
+.step-description {
+  color: var(--brown-450);
+  margin-block-end: var(--space-l);
+}

@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  container: profileform / inline-size;
+}
+
+.loading-message {
+  text-align: center;
+  padding: var(--space-xl);
+}

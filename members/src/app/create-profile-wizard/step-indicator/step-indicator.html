@@ -1,0 +1,30 @@
+<nav aria-label="Profile creation progress">
+  <ol class="step-list">
+    @for (step of steps; track step.key; let i = $index) {
+      <li
+        class="step"
+        [class.step--completed]="isCompleted(step.key)"
+        [class.step--current]="isCurrent(step.key)"
+        [attr.aria-current]="isCurrent(step.key) ? 'step' : null"
+      >
+        @if (isAccessible(step.key)) {
+          <a [routerLink]="['/profile/create', step.route]" class="step__link">
+            <span class="step__number">
+              @if (isCompleted(step.key) && !isCurrent(step.key)) {
+                <span aria-hidden="true">&#10003;</span>
+              } @else {
+                {{ i + 1 }}
+              }
+            </span>
+            <span class="step__label">{{ step.label }}</span>
+          </a>
+        } @else {
+          <span class="step__link step__link--disabled" aria-disabled="true">
+            <span class="step__number">{{ i + 1 }}</span>
+            <span class="step__label">{{ step.label }}</span>
+          </span>
+        }
+      </li>
+    }
+  </ol>
+</nav>
