@@ -1,5 +1,9 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { MARK_EMAIL, NO_REPLY_EMAIL, MEMBERS_APP_URL } from "../../constants/index.js";
+import {
+  MARK_EMAIL,
+  MEMBERS_APP_URL,
+  NO_REPLY_EMAIL,
+} from "../../constants/index.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import type {
   EmailMessage,
@@ -103,20 +107,11 @@ export async function createProfileLogic({
     await profileStoreService.createProfile({ slug, data, ownerUid: uid });
     await profileMemberService.setProfileCreatedAt(uid);
 
-    // Trigger Hugo rebuild (non-critical)
-    try {
-      const { triggerHugoRebuild } = await import(
-        "../services/profile-store/trigger-rebuild.js"
-      );
-      await triggerHugoRebuild({ slug, action: "created profile" });
-    } catch (error: unknown) {
-      logger.error("Failed to trigger Hugo rebuild after create", {
-        uid,
-        slug,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+    // New profiles are always draft — skip Hugo rebuild
+    logger.info("Skipping Hugo rebuild for draft profile", {
+      slug,
+      action: "created profile",
+    });
 
     logger.info("Successfully created profile", { uid, slug });
     set.status = 201;

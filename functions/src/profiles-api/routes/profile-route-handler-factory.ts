@@ -68,12 +68,19 @@ export function createProfileRouteHandler<TResponse>(
 
       await config.storeOperation(profileStoreService, slug, data);
 
-      // Trigger Hugo rebuild (non-critical)
+      // Trigger Hugo rebuild only for published profiles (non-critical)
       try {
-        const { triggerHugoRebuild } = await import(
-          "../services/profile-store/trigger-rebuild.js"
-        );
-        await triggerHugoRebuild({ slug, action: config.operation });
+        const profile = await profileStoreService.readProfile({ slug });
+        if (profile.draft) {
+          logger.info("Skipping Hugo rebuild for draft profile", {
+            slug,
+            action: config.operation,
+          });
+        } else {
+          const { triggerHugoRebuild } =
+            await import("../services/profile-store/trigger-rebuild.js");
+          await triggerHugoRebuild({ slug, action: config.operation });
+        }
       } catch (error: unknown) {
         logger.error("Failed to trigger Hugo rebuild after write", {
           uid,
