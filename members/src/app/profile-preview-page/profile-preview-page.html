@@ -1,0 +1,27 @@
+<nav>
+  <a routerLink="/profile">Back to Edit Profile</a>
+</nav>
+
+<h1>Profile Preview</h1>
+
+@let user = membershipService.userDocument();
+
+@if (!user) {
+  <p>Loading your profile...</p>
+} @else if (!user.slug) {
+  <app-alert-banner variant="warning">
+    <h2>Profile Setup Required</h2>
+    <p>You don't have a doula profile set up yet.</p>
+    <p>Visit the <a href="/membership">Membership page</a> for more information.</p>
+  </app-alert-banner>
+} @else if (profile()) {
+  <app-profile-preview [profile]="profile()!" [imageUrl]="profileImageUrl()" />
+} @else if (profileResource.isLoading()) {
+  <p>Loading your profile...</p>
+} @else {
+  <app-alert-banner variant="error">
+    <h2>Profile Load Error</h2>
+    <p>We encountered an issue loading your profile.</p>
+    <button class="button button--primary" (click)="retryLoadProfile()">Retry</button>
+  </app-alert-banner>
+}

@@ -67,6 +67,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'profile/preview',
+    loadComponent: () =>
+      import('./profile-preview-page/profile-preview-page').then((m) => m.ProfilePreviewPage),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
     ...canActivate(redirectUnauthorizedToSignIn),
