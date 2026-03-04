@@ -138,26 +138,36 @@ test.describe('Admin Member Detail Page', () => {
   });
 
   test('admin views member profile content', async ({ authenticatedAdminPage }) => {
-    // Mock GET member endpoint
-    await authenticatedAdminPage.route('**/api/admin/members/test-member-123', async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockMember),
-          })
-        : route.continue());
-    });
+    // Mock admin API endpoints
+    await authenticatedAdminPage.route('**/api/admin/**', async (route) => {
+      const url = route.request().url();
+      const method = route.request().method();
 
-    // Mock GET profile by slug endpoint (public endpoint)
-    await authenticatedAdminPage.route('**/api/profiles/test-member', async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfileData),
-          })
-        : route.continue());
+      // GET member profile (new admin endpoint)
+      if (url.includes('/api/admin/members/test-member-123/profile') && method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            slug: 'test-member',
+            profile: mockProfileData,
+          }),
+        });
+        return;
+      }
+
+      // GET single member
+      if (url.includes('/api/admin/members/test-member-123') && method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(mockMember),
+        });
+        return;
+      }
+
+      await route.continue();
     });
 
     const memberDetailPage = new AdminMemberDetailPage(authenticatedAdminPage);
