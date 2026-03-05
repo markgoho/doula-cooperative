@@ -1,12 +1,6 @@
 <h2>Contact Information</h2>
 <p class="step-description">How can families reach you? All fields are optional.</p>
 
-@if (errorMessage()) {
-  <app-alert-banner variant="error">
-    {{ errorMessage() }}
-  </app-alert-banner>
-}
-
 <form [formGroup]="form" (ngSubmit)="onNext()" class="profile-form">
   <fieldset class="form-fieldset">
     <legend class="form__legend">Contact Details</legend>
@@ -66,20 +60,7 @@
   </fieldset>
 
   <div class="form-actions">
-    <button
-      type="button"
-      class="button button--secondary"
-      (click)="onBack()"
-      [disabled]="loading()"
-    >
-      Back
-    </button>
-    <button type="submit" class="button button--primary" [disabled]="loading() || form.invalid">
-      @if (loading()) {
-        <span>Creating profile...</span>
-      } @else {
-        <span>Next</span>
-      }
-    </button>
+    <button type="button" class="button button--secondary" (click)="onBack()">Back</button>
+    <button type="submit" class="button button--primary" [disabled]="form.invalid">Next</button>
   </div>
 </form>

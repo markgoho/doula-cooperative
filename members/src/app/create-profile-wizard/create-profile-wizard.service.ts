@@ -32,7 +32,6 @@ export class CreateProfileWizardService {
 
   // Wizard lifecycle and navigation state
   readonly completedSteps = signal<ReadonlySet<WizardStep>>(new Set());
-  readonly profileCreated = signal(false);
   readonly resolvedSlug = signal('');
 
   /** Whether the wizard has been initialized from the member document. */
@@ -113,7 +112,6 @@ export class CreateProfileWizardService {
   /**
    * Check if a step can be navigated to.
    * All steps before the target must be completed.
-   * The image and preview steps additionally require profileCreated to be true.
    */
   canNavigateToStep(step: WizardStep): boolean {
     const stepIndex = WIZARD_STEPS.indexOf(step);
@@ -123,13 +121,7 @@ export class CreateProfileWizardService {
 
     // Check all prior steps are completed
     const priorSteps = WIZARD_STEPS.slice(0, stepIndex);
-    if (priorSteps.some((priorStep) => !completed.has(priorStep))) return false;
-
-    // Image and preview steps require profile to be created first
-    const imageStepIndex = WIZARD_STEPS.indexOf('image');
-    if (stepIndex >= imageStepIndex && !this.profileCreated()) return false;
-
-    return true;
+    return priorSteps.every((priorStep) => completed.has(priorStep));
   }
 
   /**
@@ -163,7 +155,6 @@ export class CreateProfileWizardService {
     this.bio.set('');
     this.contactInfo.set({ businessName: '', phone: '', email: '', website: '' });
     this.completedSteps.set(new Set());
-    this.profileCreated.set(false);
     this.resolvedSlug.set('');
     this.initialized.set(false);
   }

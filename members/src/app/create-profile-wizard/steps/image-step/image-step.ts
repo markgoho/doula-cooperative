@@ -27,9 +27,6 @@ export class ImageStep {
   protected readonly successMessage = signal<string | undefined>(undefined);
 
   constructor() {
-    // Load the profile so image URL signal works
-    this.profileService.loadProfile();
-
     // Cleanup preview URL when it changes or component is destroyed
     effect((onCleanup) => {
       const url = this.previewUrl();
