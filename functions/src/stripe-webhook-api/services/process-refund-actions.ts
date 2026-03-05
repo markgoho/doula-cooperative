@@ -2,11 +2,11 @@ import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import { ERROR_IDS } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
-import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
+import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { buildRefundNotificationEmail } from "./build-refund-notification-email.js";
 
@@ -77,40 +77,15 @@ export async function processRefundActions({
   // NON-CRITICAL: Draft Hugo profile if member has a slug
   let profileDrafted: boolean | undefined;
   if (member.slug !== undefined && member.slug.length > 0) {
-    try {
-      await draftProfile({ slug: member.slug });
-      logger.info("Set Hugo profile to draft after refund", {
-        memberId,
-        slug: member.slug,
-      });
-      profileDrafted = true;
-
-      // NON-CRITICAL: Trigger Hugo rebuild after drafting
-      try {
-        await triggerHugoRebuild({ slug: member.slug, action: "refund" });
-      } catch (rebuildError: unknown) {
-        const rebuildErrorMessage =
-          rebuildError instanceof Error ? rebuildError.message : "Unknown error";
-        logger.error("Failed to trigger Hugo rebuild after refund draft", {
-          memberId,
-          slug: member.slug,
-          error: rebuildError,
-          errorMessage: rebuildErrorMessage,
-        });
-      }
-    } catch (error) {
-      profileDrafted = false;
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      logger.error("Failed to draft profile during refund", {
-        errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_DRAFT_PROFILE_FAILED,
-        memberId,
-        slug: member.slug,
-        error,
-        errorMessage,
-      });
-      failures.push(`Draft profile (slug: ${member.slug}): ${errorMessage}`);
-    }
+    profileDrafted = await updateProfileWithRebuild({
+      slug: member.slug,
+      action: "refund",
+      actionLabel: "Draft profile",
+      profileAction: draftProfile,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_DRAFT_PROFILE_FAILED,
+      memberId,
+      failures,
+    });
   }
 
   // NON-CRITICAL: Unsubscribe from newsletter if subscribed

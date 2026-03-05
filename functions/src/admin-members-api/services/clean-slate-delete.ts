@@ -2,7 +2,6 @@ import { getAuth } from "firebase-admin/auth";
 import { logger } from "firebase-functions/v2";
 import { ERROR_IDS } from "../../constants/index.js";
 import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
-import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
 import {
   ForbiddenError,
@@ -12,6 +11,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
+import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import { cancelStripeSubscription } from "../../stripe-webhook-api/services/cancel-stripe-subscription.js";
 import { deleteStripeCustomer } from "../../stripe-webhook-api/services/delete-stripe-customer.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
@@ -224,40 +224,15 @@ export async function cleanSlateDelete({
   // Step 6: NON-CRITICAL — Delete Hugo profile
   let profileDeleted: boolean | undefined;
   if (member.slug !== undefined && member.slug.length > 0) {
-    try {
-      await deleteProfile({ slug: member.slug });
-      logger.info("Deleted Hugo profile during clean slate delete", {
-        memberId,
-        slug: member.slug,
-      });
-      profileDeleted = true;
-
-      // NON-CRITICAL: Trigger Hugo rebuild after profile deletion
-      try {
-        await triggerHugoRebuild({ slug: member.slug, action: "clean slate delete" });
-      } catch (rebuildError: unknown) {
-        const rebuildErrorMessage =
-          rebuildError instanceof Error ? rebuildError.message : "Unknown error";
-        logger.error("Failed to trigger Hugo rebuild after clean slate delete", {
-          memberId,
-          slug: member.slug,
-          error: rebuildError,
-          errorMessage: rebuildErrorMessage,
-        });
-      }
-    } catch (error) {
-      profileDeleted = false;
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      logger.error("Failed to delete profile during clean slate delete", {
-        errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_DELETE_PROFILE_FAILED,
-        memberId,
-        slug: member.slug,
-        error,
-        errorMessage,
-      });
-      failures.push(`Delete profile (slug: ${member.slug}): ${errorMessage}`);
-    }
+    profileDeleted = await updateProfileWithRebuild({
+      slug: member.slug,
+      action: "clean slate delete",
+      actionLabel: "Delete profile",
+      profileAction: deleteProfile,
+      errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_DELETE_PROFILE_FAILED,
+      memberId,
+      failures,
+    });
   }
 
   // Step 6b: NON-CRITICAL — Delete ImageKit profile image
