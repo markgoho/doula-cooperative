@@ -1,5 +1,10 @@
 <h1>Edit Profile</h1>
 
+<nav class="profile-nav">
+  <a href="/profile/preview">Preview Profile</a>
+  <a href="/profile/image">Edit Profile Image</a>
+</nav>
+
 @let profileResource = profileService.profileResource;
 @let user = membershipService.userDocument();
 
@@ -200,7 +205,7 @@
       </div>
     </fieldset>
 
-    <!-- Profile Image Link -->
+    <!-- Profile Image -->
     <div class="form-group">
       <span class="form__label">Profile Image</span>
       @if (profileService.profileImageUrl()) {
@@ -220,7 +225,6 @@
           No custom profile image set. A default placeholder is shown on your public profile.
         </p>
       }
-      <a href="/profile/image">Edit Profile Image</a>
     </div>
 
     <!-- Form Actions -->
