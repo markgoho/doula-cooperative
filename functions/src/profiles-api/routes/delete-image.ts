@@ -32,7 +32,7 @@ export async function deleteImageLogic({
     try {
       const imagekit = getImageKitClient();
       const results = await imagekit.assets.list({
-        searchQuery: `name="${slug}-profile"`,
+        searchQuery: `name:"${slug}-profile"`,
         path: `/doulas/${slug}`,
         limit: 1,
       });

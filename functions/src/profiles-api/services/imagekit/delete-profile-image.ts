@@ -25,7 +25,7 @@ export async function deleteProfileImage(options: {
 
   try {
     const results = await imagekit.assets.list({
-      searchQuery: `name="${slug}-profile"`,
+      searchQuery: `name:"${slug}-profile"`,
       path: `/doulas/${slug}`,
       limit: 1,
     });

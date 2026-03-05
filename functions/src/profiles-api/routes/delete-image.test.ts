@@ -49,8 +49,8 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       return Promise.resolve([
         {
           fileId: "ik-file-123",
-          name: "test-user-profile",
-          filePath: "/doulas/test-user/test-user-profile",
+          name: "test-user-profile.jpg",
+          filePath: "/doulas/test-user/test-user-profile.jpg",
         },
       ]);
     });

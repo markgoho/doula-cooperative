@@ -54,9 +54,9 @@ describe("POST /:slug/image (upload profile image)", () => {
       }
       return Promise.resolve({
         fileId: "ik-file-456",
-        name: "test-user-profile",
-        url: "https://ik.imagekit.io/doulacoop/doulas/test-user/test-user-profile",
-        filePath: "/doulas/test-user/test-user-profile",
+        name: "test-user-profile.jpg",
+        url: "https://ik.imagekit.io/doulacoop/doulas/test-user/test-user-profile.jpg",
+        filePath: "/doulas/test-user/test-user-profile.jpg",
         thumbnailUrl: "",
         height: 800,
         width: 600,
