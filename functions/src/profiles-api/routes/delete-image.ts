@@ -2,7 +2,7 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
-import { getImageKitClient } from "../utils/imagekit-client.js";
+import { deleteProfileImage } from "../services/imagekit/delete-profile-image.js";
 
 export async function deleteImageLogic({
   uid,
@@ -28,30 +28,8 @@ export async function deleteImageLogic({
       };
     }
 
-    const expectedPath = `/doulas/${slug}/${slug}-profile`;
     try {
-      const imagekit = getImageKitClient();
-      const results = await imagekit.assets.list({
-        searchQuery: `name:"${slug}-profile"`,
-        path: `/doulas/${slug}`,
-        limit: 1,
-      });
-
-      const firstResult = results[0];
-      if (firstResult && "fileId" in firstResult) {
-        await imagekit.files.delete(firstResult.fileId);
-        logger.info("Successfully deleted image from ImageKit", {
-          uid,
-          slug,
-          fileId: firstResult.fileId,
-        });
-      } else {
-        logger.info("No ImageKit file found at expected path, skipping", {
-          uid,
-          slug,
-          expectedPath,
-        });
-      }
+      await deleteProfileImage({ slug });
     } catch (error: unknown) {
       logger.error("Failed to delete image from ImageKit", {
         errorId: ERROR_IDS.DELETE_PROFILE_IMAGE_FAILED,
