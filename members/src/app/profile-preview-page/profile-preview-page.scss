@@ -3,5 +3,10 @@
 }
 
 nav {
-  margin-block-end: var(--space-sm);
+  margin-block-end: var(--space-s);
+}
+
+app-profile-preview {
+  margin-block-start: var(--space-xl);
+  padding-block-end: var(--space-xl);
 }

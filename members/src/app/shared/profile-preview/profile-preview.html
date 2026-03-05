@@ -1,17 +1,16 @@
-<section class="title-section">
-  <div class="title-header">
-    <h2 class="profile-title">{{ profile().title }}</h2>
-    @if (showEditLinks()) {
-      <button
-        type="button"
-        class="edit-link"
-        (click)="editSection.emit('personal')"
-        aria-label="Edit personal info"
-      >
-        Edit
-      </button>
-    }
-  </div>
+<section class="title">
+  <h1>{{ profile().title }}</h1>
+
+  @if (showEditLinks()) {
+    <button
+      type="button"
+      class="edit-link"
+      (click)="editSection.emit('personal')"
+      aria-label="Edit personal info"
+    >
+      Edit
+    </button>
+  }
 
   @if (profile().credentials) {
     <p class="credentials">{{ profile().credentials }}</p>
@@ -42,58 +41,54 @@
     </button>
   }
 
-  @if (profile().tags?.length) {
-    <div class="tags-section">
-      @if (showEditLinks()) {
-        <button
-          type="button"
-          class="edit-link"
-          (click)="editSection.emit('tags')"
-          aria-label="Edit services"
-        >
-          Edit
-        </button>
-      }
+  <div class="tags">
+    @if (showEditLinks() && profile().tags?.length) {
+      <button
+        type="button"
+        class="edit-link"
+        (click)="editSection.emit('tags')"
+        aria-label="Edit services"
+      >
+        Edit
+      </button>
+    }
+    @if (profile().tags?.length) {
       <ul class="tag-group">
         @for (tag of profile().tags; track tag) {
           <li class="tag">{{ tag }}</li>
         }
       </ul>
-    </div>
-  }
+    }
+  </div>
 </section>
 
 <section class="bio">
-  <div class="bio-header">
-    @if (showEditLinks()) {
-      <button
-        type="button"
-        class="edit-link"
-        (click)="editSection.emit('bio')"
-        aria-label="Edit bio"
-      >
-        Edit
-      </button>
-    }
-  </div>
+  @if (showEditLinks()) {
+    <button
+      type="button"
+      class="edit-link"
+      (click)="editSection.emit('bio')"
+      aria-label="Edit bio"
+    >
+      Edit
+    </button>
+  }
   <p class="bio-text">{{ profile().bio }}</p>
 </section>
 
 @if (profile().contact) {
   <section class="contact-info">
-    <div class="contact-header">
-      <h3>{{ profile().contact?.business_name || 'Contact Information' }}</h3>
-      @if (showEditLinks()) {
-        <button
-          type="button"
-          class="edit-link"
-          (click)="editSection.emit('contact')"
-          aria-label="Edit contact info"
-        >
-          Edit
-        </button>
-      }
-    </div>
+    <h3>{{ profile().contact?.business_name || 'Contact Information' }}</h3>
+    @if (showEditLinks()) {
+      <button
+        type="button"
+        class="edit-link"
+        (click)="editSection.emit('contact')"
+        aria-label="Edit contact info"
+      >
+        Edit
+      </button>
+    }
     <ul>
       @if (profile().contact?.website) {
         <li>
