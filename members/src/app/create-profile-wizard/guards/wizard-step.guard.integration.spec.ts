@@ -118,20 +118,9 @@ describe('wizardStepGuard - Integration Tests', () => {
     expect(screen.getByText('Bio Step')).toBeVisible();
   });
 
-  it('should redirect image step to contact when profileCreated is false', async () => {
+  it('should allow image step when all prior steps are completed', async () => {
     const { navigate } = await setup({
       completedSteps: ['personal', 'tags', 'bio', 'contact'],
-    });
-
-    await navigate('/profile/create/image');
-
-    expect(screen.getByText('Contact Step')).toBeVisible();
-  });
-
-  it('should allow image step when profileCreated is true', async () => {
-    const { navigate } = await setup({
-      completedSteps: ['personal', 'tags', 'bio', 'contact'],
-      profileCreated: true,
     });
 
     await navigate('/profile/create/image');
@@ -139,42 +128,36 @@ describe('wizardStepGuard - Integration Tests', () => {
     expect(screen.getByText('Image Step')).toBeVisible();
   });
 
-  it('should redirect preview step to contact when profileCreated is false', async () => {
+  it('should allow preview when all steps completed', async () => {
     const { navigate } = await setup({
       completedSteps: ['personal', 'tags', 'bio', 'contact', 'image'],
-    });
-
-    await navigate('/profile/create/preview');
-
-    expect(screen.getByText('Contact Step')).toBeVisible();
-  });
-
-  it('should allow preview when all steps completed and profileCreated', async () => {
-    const { navigate } = await setup({
-      completedSteps: ['personal', 'tags', 'bio', 'contact', 'image'],
-      profileCreated: true,
     });
 
     await navigate('/profile/create/preview');
 
     expect(screen.getByText('Preview Step')).toBeVisible();
   });
+
+  it('should redirect preview to first incomplete step when image not completed', async () => {
+    const { navigate } = await setup({
+      completedSteps: ['personal', 'tags', 'bio', 'contact'],
+    });
+
+    await navigate('/profile/create/preview');
+
+    expect(screen.getByText('Image Step')).toBeVisible();
+  });
 });
 
 interface SetupOptions {
   completedSteps?: WizardStep[];
-  profileCreated?: boolean;
 }
 
-async function setup({ completedSteps = [], profileCreated = false }: SetupOptions = {}) {
+async function setup({ completedSteps = [] }: SetupOptions = {}) {
   const wizardService = new CreateProfileWizardService();
 
   for (const step of completedSteps) {
     wizardService.completeStep(step);
-  }
-
-  if (profileCreated) {
-    wizardService.profileCreated.set(true);
   }
 
   const { navigate } = await render(MockApp, {

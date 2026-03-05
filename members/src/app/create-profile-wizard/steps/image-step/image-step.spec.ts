@@ -64,7 +64,6 @@ async function setup() {
   };
 
   const mockProfileService = {
-    loadProfile: vi.fn(),
     uploadProfileImage: vi.fn().mockResolvedValue(undefined),
     profileImageUrl: signal(undefined),
     hasCustomImage: signal(false),

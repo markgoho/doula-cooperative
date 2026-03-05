@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileService } from '../../../services/profile.service';
@@ -15,12 +15,6 @@ describe('PreviewStep', () => {
 
     expect(screen.getByText('Jane Doe')).toBeVisible();
     expect(screen.getByText('I am a doula.')).toBeVisible();
-  });
-
-  it('should show success message', async () => {
-    await setup();
-
-    expect(screen.getByText(/Your profile has been created/)).toBeVisible();
   });
 
   it('should show edit links', async () => {
@@ -41,28 +35,83 @@ describe('PreviewStep', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile/create/personal']);
   });
 
-  it('should reset wizard and navigate to /profile on finish', async () => {
-    const { user, mockRouter, wizardService } = await setup();
+  it('should create profile, reset wizard, and navigate to /profile on finish', async () => {
+    const { user, mockRouter, wizardService, mockProfileService } = await setup();
 
-    // Verify state is populated before clicking Finish
     expect(wizardService.personalInfo().title).toBe('Jane Doe');
 
     const finishButton = screen.getByRole('button', { name: 'Finish' });
     await user.click(finishButton);
 
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
+    });
 
-    // Wait for async navigation to resolve before checking reset
     await vi.waitFor(() => {
-      // Verify all wizard state is reset after Finish
       expect(wizardService.personalInfo().title).toBe('');
       expect(wizardService.selectedTags()).toEqual([]);
       expect(wizardService.bio()).toBe('');
       expect(wizardService.contactInfo().email).toBe('');
       expect(wizardService.completedSteps().size).toBe(0);
-      expect(wizardService.profileCreated()).toBe(false);
       expect(wizardService.resolvedSlug()).toBe('');
       expect(wizardService.initialized()).toBe(false);
+    });
+  });
+
+  it('should show error when profile creation fails', async () => {
+    const { user } = await setup({ createShouldFail: true });
+
+    const finishButton = screen.getByRole('button', { name: 'Finish' });
+    await user.click(finishButton);
+
+    expect(await screen.findByText('Profile creation error')).toBeVisible();
+  });
+
+  it('should show loading state during profile creation', async () => {
+    const { user } = await setup({ delayCreate: true });
+
+    const finishButton = screen.getByRole('button', { name: 'Finish' });
+    const clickPromise = user.click(finishButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Creating Profile...')).toBeVisible();
+    });
+
+    await clickPromise;
+  });
+
+  it('should send assembled profile data to createProfileContent', async () => {
+    const { user, mockProfileService } = await setup({
+      personalInfo: { title: 'Sarah Smith', pronouns: 'they/them', credentials: 'CPD' },
+      tags: ['Postpartum Doula', 'Lactation Support'],
+      bio: 'Supporting families with care.',
+      contactInfo: {
+        businessName: 'Smith Doula Services',
+        phone: '555-9876',
+        email: 'sarah@example.com',
+        website: 'sarahdoula.com',
+      },
+    });
+
+    const finishButton = screen.getByRole('button', { name: 'Finish' });
+    await user.click(finishButton);
+
+    await waitFor(() => {
+      expect(mockProfileService.createProfileContent).toHaveBeenCalled();
+    });
+
+    const profileData = mockProfileService.createProfileContent.mock.calls[0]![0];
+    expect(profileData.title).toBe('Sarah Smith');
+    expect(profileData.pronouns).toBe('they/them');
+    expect(profileData.credentials).toBe('CPD');
+    expect(profileData.bio).toBe('Supporting families with care.');
+    expect(profileData.tags).toEqual(['Postpartum Doula', 'Lactation Support']);
+    expect(profileData.contact).toEqual({
+      business_name: 'Smith Doula Services',
+      phone: '555-9876',
+      email: 'sarah@example.com',
+      website: 'sarahdoula.com',
     });
   });
 
@@ -95,6 +144,8 @@ interface SetupOptions {
   tags?: string[];
   bio?: string;
   contactInfo?: ContactInfo;
+  createShouldFail?: boolean;
+  delayCreate?: boolean;
 }
 
 async function setup({
@@ -102,9 +153,19 @@ async function setup({
   tags = [],
   bio = 'I am a doula.',
   contactInfo,
+  createShouldFail = false,
+  delayCreate = false,
 }: SetupOptions = {}) {
   const mockProfileService = {
     profileImageUrl: signal(undefined),
+    createProfileContent: vi.fn().mockImplementation(async () => {
+      if (delayCreate) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      if (createShouldFail) {
+        throw new Error('Profile creation error');
+      }
+    }),
   };
 
   const mockRouter = {
@@ -131,5 +192,5 @@ async function setup({
   const wizardService = TestBed.inject(CreateProfileWizardService);
   const user = userEvent.setup();
 
-  return { ...result, user, mockRouter, wizardService };
+  return { ...result, user, mockRouter, wizardService, mockProfileService };
 }

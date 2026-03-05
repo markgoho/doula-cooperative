@@ -4,9 +4,11 @@
   section to make changes.
 </p>
 
-<app-alert-banner variant="success">
-  Your profile has been created! Review it below and click "Finish" when you're happy with it.
-</app-alert-banner>
+@if (errorMessage()) {
+  <app-alert-banner variant="error">
+    {{ errorMessage() }}
+  </app-alert-banner>
+}
 
 <div class="preview-wrapper">
   <app-profile-preview
@@ -18,5 +20,16 @@
 </div>
 
 <div class="form-actions">
-  <button type="button" class="button button--primary" (click)="onFinish()">Finish</button>
+  <button
+    type="button"
+    class="button button--primary"
+    (click)="onFinish()"
+    [disabled]="loading()"
+  >
+    @if (loading()) {
+      <span>Creating Profile...</span>
+    } @else {
+      <span>Finish</span>
+    }
+  </button>
 </div>

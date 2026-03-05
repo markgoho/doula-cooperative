@@ -153,13 +153,12 @@ describe('CreateProfileWizard', () => {
     expect(wizardService.personalInfo().title).toBe('');
   });
 
-  it('should not redirect to /profile when profile was just created during wizard flow', async () => {
-    const { wizardService, mockMembershipService, router } = await setup({
+  it('should not redirect to /profile when profileCreatedAt is not set', async () => {
+    const { mockMembershipService, router } = await setup({
       userDocumentLoading: true,
     });
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    // Simulate member loading without profileCreatedAt (new user starting wizard)
     const member: Member = {
       uid: 'test-uid',
       email: 'test@example.com',
@@ -172,20 +171,7 @@ describe('CreateProfileWizard', () => {
     mockMembershipService.userDocument.set(member);
     TestBed.flushEffects();
 
-    // Simulate the contact step completing: profile was created during this wizard session
-    wizardService.profileCreated.set(true);
-    wizardService.completeStep('contact');
-    TestBed.flushEffects();
-
-    // Simulate reloadUserDocument() updating the member with profileCreatedAt
-    // This is what profileService.createProfileContent() does after saving
-    mockMembershipService.userDocument.set({
-      ...member,
-      profileCreatedAt: new Date(),
-    });
-    TestBed.flushEffects();
-
-    // Should NOT redirect — the user needs to finish the image and preview steps
+    // Should NOT redirect — no profileCreatedAt means profile hasn't been created yet
     expect(navigateSpy).not.toHaveBeenCalledWith(['/profile']);
   });
 
@@ -203,7 +189,6 @@ describe('CreateProfileWizard', () => {
       website: 'w.com',
     });
     wizardService.completeStep('personal');
-    wizardService.profileCreated.set(true);
     wizardService.resolvedSlug.set('jane');
 
     // Destroy the component
@@ -215,7 +200,6 @@ describe('CreateProfileWizard', () => {
     expect(wizardService.bio()).toBe('');
     expect(wizardService.contactInfo().email).toBe('');
     expect(wizardService.completedSteps().size).toBe(0);
-    expect(wizardService.profileCreated()).toBe(false);
     expect(wizardService.resolvedSlug()).toBe('');
     expect(wizardService.initialized()).toBe(false);
   });
