@@ -4,8 +4,8 @@ import { ERROR_IDS } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
-import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
+import { unsubscribeNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
 import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { findMemberByStripeCustomer } from "./find-member-by-stripe-customer.js";
@@ -135,54 +135,13 @@ export async function processSubscriptionEnded({
   // NON-CRITICAL: Unsubscribe from newsletter if subscribed
   let newsletterUnsubscribed: boolean | undefined;
   if (member.newsletterSubscribed === true) {
-    const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
-    if (mailerliteApiKey) {
-      try {
-        await removeNewsletterSubscriber({
-          email: member.email,
-          apiKey: mailerliteApiKey,
-        });
-        await updateMemberWithValidation({
-          memberId: member.uid,
-          updates: {
-            newsletterSubscribed: false,
-            newsletterUnsubscribedAt: Timestamp.now(),
-          },
-          operation: "update member",
-        });
-        logger.info("Unsubscribed from newsletter after subscription end", {
-          memberId: member.uid,
-          email: member.email,
-        });
-        newsletterUnsubscribed = true;
-      } catch (error) {
-        newsletterUnsubscribed = false;
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        logger.error(
-          "Failed to unsubscribe from newsletter during subscription end",
-          {
-            errorId:
-              ERROR_IDS.STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NEWSLETTER_FAILED,
-            memberId: member.uid,
-            email: member.email,
-            error,
-            errorMessage,
-          },
-        );
-        failures.push(
-          `Newsletter unsubscribe (${member.email}): ${errorMessage}`,
-        );
-      }
-    } else {
-      logger.warn(
-        "MAILERLITE_API_KEY not configured, skipping newsletter unsubscribe",
-        { memberId: member.uid, email: member.email },
-      );
-      failures.push(
-        "Newsletter unsubscribe skipped: MAILERLITE_API_KEY not configured",
-      );
-    }
+    newsletterUnsubscribed = await unsubscribeNewsletter({
+      email: member.email,
+      memberId: member.uid,
+      action: "subscription end",
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NEWSLETTER_FAILED,
+      failures,
+    });
   }
 
   // NON-CRITICAL: Send admin notification if any cascading action failed

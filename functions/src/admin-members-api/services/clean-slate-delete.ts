@@ -9,8 +9,8 @@ import {
 } from "../../shared-api/errors/http-error.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
-import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
+import { unsubscribeNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
 import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import { cancelStripeSubscription } from "../../stripe-webhook-api/services/cancel-stripe-subscription.js";
 import { deleteStripeCustomer } from "../../stripe-webhook-api/services/delete-stripe-customer.js";
@@ -180,45 +180,14 @@ export async function cleanSlateDelete({
   // Step 5: NON-CRITICAL — Unsubscribe from MailerLite newsletter
   let newsletterUnsubscribed: boolean | undefined;
   if (member.newsletterSubscribed === true) {
-    const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
-    if (mailerliteApiKey) {
-      try {
-        await removeNewsletterSubscriber({
-          email: member.email,
-          apiKey: mailerliteApiKey,
-        });
-        logger.info("Unsubscribed from newsletter during clean slate delete", {
-          memberId,
-          email: member.email,
-        });
-        newsletterUnsubscribed = true;
-      } catch (error) {
-        newsletterUnsubscribed = false;
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        logger.error(
-          "Failed to unsubscribe from newsletter during clean slate delete",
-          {
-            errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_NEWSLETTER_FAILED,
-            memberId,
-            email: member.email,
-            error,
-            errorMessage,
-          },
-        );
-        failures.push(
-          `Newsletter unsubscribe (${member.email}): ${errorMessage}`,
-        );
-      }
-    } else {
-      logger.warn(
-        "MAILERLITE_API_KEY not configured, skipping newsletter unsubscribe",
-        { memberId, email: member.email },
-      );
-      failures.push(
-        "Newsletter unsubscribe skipped: MAILERLITE_API_KEY not configured",
-      );
-    }
+    newsletterUnsubscribed = await unsubscribeNewsletter({
+      email: member.email,
+      memberId,
+      action: "clean slate delete",
+      errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_NEWSLETTER_FAILED,
+      failures,
+      updateMemberDocument: false,
+    });
   }
 
   // Step 6: NON-CRITICAL — Delete Hugo profile
