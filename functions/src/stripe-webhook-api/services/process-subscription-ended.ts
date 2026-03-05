@@ -1,19 +1,12 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import {
-  ERROR_IDS,
-  NEWSLETTER_EMAIL,
-  NO_REPLY_EMAIL,
-} from "../../constants/index.js";
+import { ERROR_IDS } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
-import type {
-  EmailMessage,
-  EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
+import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { findMemberByStripeCustomer } from "./find-member-by-stripe-customer.js";
 
@@ -27,41 +20,6 @@ export interface SubscriptionEndedResult {
   profileDrafted?: boolean;
   newsletterUnsubscribed?: boolean;
   warning?: string;
-}
-
-/**
- * Creates HTML for subscription end failure notification email sent to admin.
- */
-function createSubscriptionEndFailureEmailHtml({
-  email,
-  memberId,
-  failures,
-}: {
-  email: string;
-  memberId: string;
-  failures: string[];
-}): string {
-  const failureItems = failures
-    .map(failure => `<li>${escapeHtml(failure)}</li>`)
-    .join("\n");
-
-  return `
-    <h2>Subscription End - Cascading Action Failures</h2>
-    <p>A subscription ended, but some follow-up actions failed.</p>
-
-    <h3>Member Details:</h3>
-    <ul>
-      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
-      <li><strong>Member ID:</strong> ${escapeHtml(memberId)}</li>
-    </ul>
-
-    <h3>Failed Actions:</h3>
-    <ul>
-      ${failureItems}
-    </ul>
-
-    <p><strong>Action Required:</strong> Please manually complete the failed actions above.</p>
-  `;
 }
 
 /**
@@ -255,38 +213,16 @@ export async function processSubscriptionEnded({
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
-    try {
-      const notificationEmail: EmailMessage = {
-        from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
-        to: NEWSLETTER_EMAIL,
-        subject:
-          "Subscription End - Action Required for Failed Follow-up Actions",
-        html: createSubscriptionEndFailureEmailHtml({
-          email: member.email,
-          memberId: member.uid,
-          failures,
-        }),
-      };
-
-      await emailService.sendEmail({ message: notificationEmail }, logger);
-      logger.info("Sent subscription end failure notification email", {
-        memberId: member.uid,
-      });
-    } catch (emailError) {
-      logger.error(
-        "CRITICAL: Failed to send subscription end failure notification email",
-        {
-          errorId:
-            ERROR_IDS.STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NOTIFICATION_FAILED,
-          memberId: member.uid,
-          error: emailError,
-          severity: "CRITICAL",
-          context:
-            "Subscription end cascading actions failed AND notification email failed",
-          failures,
-        },
-      );
-    }
+    await sendAdminFailureNotification({
+      subject: "Subscription End - Action Required for Failed Follow-up Actions",
+      title: "Subscription End - Cascading Action Failures",
+      description: "A subscription ended, but some follow-up actions failed.",
+      email: member.email,
+      memberId: member.uid,
+      failures,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_SUBSCRIPTION_ENDED_NOTIFICATION_FAILED,
+      emailService,
+    });
   }
 
   const warning =

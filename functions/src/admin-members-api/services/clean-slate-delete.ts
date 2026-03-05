@@ -1,10 +1,6 @@
 import { getAuth } from "firebase-admin/auth";
 import { logger } from "firebase-functions/v2";
-import {
-  ERROR_IDS,
-  NEWSLETTER_EMAIL,
-  NO_REPLY_EMAIL,
-} from "../../constants/index.js";
+import { ERROR_IDS } from "../../constants/index.js";
 import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
@@ -12,13 +8,10 @@ import {
   ForbiddenError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
-import type {
-  EmailMessage,
-  EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
+import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
 import { cancelStripeSubscription } from "../../stripe-webhook-api/services/cancel-stripe-subscription.js";
 import { deleteStripeCustomer } from "../../stripe-webhook-api/services/delete-stripe-customer.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
@@ -36,41 +29,6 @@ export interface CleanSlateResult {
   memberDocumentDeleted: boolean;
   authUserDeleted: boolean;
   warning?: string;
-}
-
-/**
- * Creates HTML for clean slate failure notification email sent to admin.
- */
-function createCleanSlateFailureEmailHtml({
-  email,
-  memberId,
-  failures,
-}: {
-  email: string;
-  memberId: string;
-  failures: string[];
-}): string {
-  const failureItems = failures
-    .map(failure => `<li>${escapeHtml(failure)}</li>`)
-    .join("\n");
-
-  return `
-    <h2>Clean Slate Delete - Cascading Action Failures</h2>
-    <p>A clean slate delete was performed, but some follow-up actions failed.</p>
-
-    <h3>Member Details:</h3>
-    <ul>
-      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
-      <li><strong>Member ID:</strong> ${escapeHtml(memberId)}</li>
-    </ul>
-
-    <h3>Failed Actions:</h3>
-    <ul>
-      ${failureItems}
-    </ul>
-
-    <p><strong>Action Required:</strong> Please manually complete the failed actions above.</p>
-  `;
 }
 
 interface FirebaseAuthError {
@@ -332,35 +290,16 @@ export async function cleanSlateDelete({
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
-    try {
-      const notificationEmail: EmailMessage = {
-        from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
-        to: NEWSLETTER_EMAIL,
-        subject:
-          "Clean Slate Delete - Action Required for Failed Follow-up Actions",
-        html: createCleanSlateFailureEmailHtml({
-          email: member.email,
-          memberId,
-          failures,
-        }),
-      };
-
-      await emailService.sendEmail({ message: notificationEmail }, logger);
-      logger.info("Sent clean slate failure notification email", { memberId });
-    } catch (emailError) {
-      logger.error(
-        "CRITICAL: Failed to send clean slate failure notification email",
-        {
-          errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_NOTIFICATION_FAILED,
-          memberId,
-          error: emailError,
-          severity: "CRITICAL",
-          context:
-            "Clean slate cascading actions failed AND notification email failed",
-          failures,
-        },
-      );
-    }
+    await sendAdminFailureNotification({
+      subject: "Clean Slate Delete - Action Required for Failed Follow-up Actions",
+      title: "Clean Slate Delete - Cascading Action Failures",
+      description: "A clean slate delete was performed, but some follow-up actions failed.",
+      email: member.email,
+      memberId,
+      failures,
+      errorId: ERROR_IDS.API_ADMIN_CLEAN_SLATE_NOTIFICATION_FAILED,
+      emailService,
+    });
   }
 
   // Step 7: CRITICAL — Delete Firestore member document

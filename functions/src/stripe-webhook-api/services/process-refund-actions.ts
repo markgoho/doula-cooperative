@@ -1,19 +1,12 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import {
-  ERROR_IDS,
-  NEWSLETTER_EMAIL,
-  NO_REPLY_EMAIL,
-} from "../../constants/index.js";
+import { ERROR_IDS } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
-import type {
-  EmailMessage,
-  EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
+import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { buildRefundNotificationEmail } from "./build-refund-notification-email.js";
 
@@ -26,41 +19,6 @@ export interface RefundActionsResult {
   newsletterUnsubscribed?: boolean;
   memberNotified?: boolean;
   warning?: string;
-}
-
-/**
- * Creates HTML for refund failure notification email sent to admin.
- */
-function createRefundFailureEmailHtml({
-  email,
-  memberId,
-  failures,
-}: {
-  email: string;
-  memberId: string;
-  failures: string[];
-}): string {
-  const failureItems = failures
-    .map(failure => `<li>${escapeHtml(failure)}</li>`)
-    .join("\n");
-
-  return `
-    <h2>Refund Processing - Cascading Action Failures</h2>
-    <p>A membership refund was processed, but some follow-up actions failed.</p>
-
-    <h3>Member Details:</h3>
-    <ul>
-      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
-      <li><strong>Member ID:</strong> ${escapeHtml(memberId)}</li>
-    </ul>
-
-    <h3>Failed Actions:</h3>
-    <ul>
-      ${failureItems}
-    </ul>
-
-    <p><strong>Action Required:</strong> Please manually complete the failed actions above.</p>
-  `;
 }
 
 /**
@@ -241,35 +199,16 @@ export async function processRefundActions({
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
-    try {
-      const notificationEmail: EmailMessage = {
-        from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
-        to: NEWSLETTER_EMAIL,
-        subject:
-          "Refund Processing - Action Required for Failed Follow-up Actions",
-        html: createRefundFailureEmailHtml({
-          email: member.email,
-          memberId,
-          failures,
-        }),
-      };
-
-      await emailService.sendEmail({ message: notificationEmail }, logger);
-      logger.info("Sent refund failure notification email", { memberId });
-    } catch (emailError) {
-      logger.error(
-        "CRITICAL: Failed to send refund failure notification email",
-        {
-          errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_NOTIFICATION_FAILED,
-          memberId,
-          error: emailError,
-          severity: "CRITICAL",
-          context:
-            "Refund cascading actions failed AND notification email failed",
-          failures,
-        },
-      );
-    }
+    await sendAdminFailureNotification({
+      subject: "Refund Processing - Action Required for Failed Follow-up Actions",
+      title: "Refund Processing - Cascading Action Failures",
+      description: "A membership refund was processed, but some follow-up actions failed.",
+      email: member.email,
+      memberId,
+      failures,
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_NOTIFICATION_FAILED,
+      emailService,
+    });
   }
 
   const warning =
