@@ -105,7 +105,7 @@ async function walkThroughWizard(page: import('@playwright/test').Page) {
   await page.getByLabel(/Bio/i).fill('I am a test doula with experience.');
   await page.getByRole('button', { name: 'Next' }).click();
 
-  // === Step 4: Contact (triggers profile creation POST) ===
+  // === Step 4: Contact ===
   await page
     .getByRole('heading', { name: /Contact Information/i, level: 2 })
     .waitFor({ state: 'visible' });
@@ -117,11 +117,10 @@ async function walkThroughWizard(page: import('@playwright/test').Page) {
     .waitFor({ state: 'visible' });
   await page.getByRole('button', { name: /Skip for now/i }).click();
 
-  // === Step 6: Preview ===
+  // === Step 6: Preview (triggers profile creation POST on Finish) ===
   await page
     .getByRole('heading', { name: /Preview Your Profile/i, level: 2 })
     .waitFor({ state: 'visible' });
-  await expect(page.getByText(/Your profile has been created/i)).toBeVisible();
   await page.getByRole('button', { name: 'Finish' }).click();
 
   // Wait for navigation to the edit profile page
