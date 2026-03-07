@@ -1,0 +1,28 @@
+## (2026-03-07)
+
+### Features
+
+- add draft profile banner and improve profile 404 debugging ([2b30a45](https://github.com/markgoho/doula-cooperative/commit/2b30a45c2f91f8e96188991b98e698d7f3e635c1))
+- add health check tests for profiles API ([164938c](https://github.com/markgoho/doula-cooperative/commit/164938c8af94a682cddcdac92bc66e7a46b6e485))
+- add playwriter skill documentation and tests for markdown serialization ([5441c9d](https://github.com/markgoho/doula-cooperative/commit/5441c9de513b5793010802941adc6e924c633f46))
+- clean slate delete with GitHub profile deletion and ImageKit cleanup ([#63](https://github.com/markgoho/doula-cooperative/issues/63)) ([bc84389](https://github.com/markgoho/doula-cooperative/commit/bc84389d9adc6a2bcd439b21142f2d5d46d67fbc))
+- complete profile API migration with E2E tests ([#35](https://github.com/markgoho/doula-cooperative/issues/35)) ([19436b2](https://github.com/markgoho/doula-cooperative/commit/19436b2282a66658ee701e7d2320d023414aff0e))
+- draft Hugo profile when deleting unclaimed profile ([8fb13ba](https://github.com/markgoho/doula-cooperative/commit/8fb13ba279d885a7663974ade3ab7ae8235d00e6))
+- Implement GitHub batch operations utility ([23f3633](https://github.com/markgoho/doula-cooperative/commit/23f36333a76de4e1ef4064f049e01f0a7a7f7f2d))
+- implement MemberFirestoreService for Firestore operations on members ([0c194b8](https://github.com/markgoho/doula-cooperative/commit/0c194b80287e5c64c5122665626380fb08c41cea))
+- include next payment details in claim profile response ([0519f9f](https://github.com/markgoho/doula-cooperative/commit/0519f9f93defb26ecd8e51cfed7083070a905259))
+- migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
+- migrate profile management to Elysia REST API ([#34](https://github.com/markgoho/doula-cooperative/issues/34)) ([e5cabeb](https://github.com/markgoho/doula-cooperative/commit/e5cabebf7f684403167a0e0c4b779fd93fafa743))
+- send email notification to admin when new profile is created ([433eb63](https://github.com/markgoho/doula-cooperative/commit/433eb637e46284f83656932e25420ea6944f68a2))
+
+### Bug Fixes
+
+- add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
+- check slug availability against profiles collection instead of members ([489e845](https://github.com/markgoho/doula-cooperative/commit/489e84586359680682c86147f1a1626c14121201))
+- preserve aspect ratio on upload and remove optimistic image layer ([55025e8](https://github.com/markgoho/doula-cooperative/commit/55025e82dcbdfc5edcfe5f4befc962d1f9fb06fc))
+- remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))
+- restore profile update email notification after Hugo deploy ([db6eb33](https://github.com/markgoho/doula-cooperative/commit/db6eb33e94fb17c64637b036cf6c5921a3ef07dd)), closes [#71](https://github.com/markgoho/doula-cooperative/issues/71)
+- serialize date as YYYY-MM-DD in Hugo front matter and strip YAML quotes when parsing ([5629f57](https://github.com/markgoho/doula-cooperative/commit/5629f5758e50ca9eec61fd984b8438611851ea45))
+- skip Hugo rebuild for draft profiles ([354487f](https://github.com/markgoho/doula-cooperative/commit/354487fdc33e516207f2c6f528fad8c125f8ce85))
+- update upload-image test to expect c-at_max pre-transformation ([b3235e6](https://github.com/markgoho/doula-cooperative/commit/b3235e6edf75f668e767b57c4be1e30e06a9d802))
+- use prefix match for ImageKit search so profile images are found for deletion ([2a7103b](https://github.com/markgoho/doula-cooperative/commit/2a7103b3335df82e20aa25e04906f9031014053b))
