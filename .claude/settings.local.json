@@ -75,6 +75,7 @@
     "deny": [],
     "ask": []
   },
+  "skipWebFetchPreflight": true,
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
