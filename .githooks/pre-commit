@@ -17,4 +17,33 @@ echo "$STAGED_FILES" | xargs bunx prettier --write --ignore-unknown
 echo "$STAGED_FILES" | xargs git add
 
 echo "✓ Prettier formatting complete"
+
+# Regenerate changelogs if any changelog-worthy files are staged
+CHANGELOG_PATHS="members/ functions/src/forms-api/ functions/src/members-api/ functions/src/profiles-api/ functions/src/admin-members-api/ functions/src/admin-messages-api/ functions/src/admin-match-requests-api/ functions/src/admin-unclaimed-profiles-api/ functions/src/stripe-webhook-api/ functions/src/profile-webhook-api/"
+
+NEEDS_CHANGELOG=false
+for path in $CHANGELOG_PATHS; do
+  if echo "$STAGED_FILES" | grep -q "^$path"; then
+    NEEDS_CHANGELOG=true
+    break
+  fi
+done
+
+if [ "$NEEDS_CHANGELOG" = true ]; then
+  echo "Regenerating changelogs..."
+  bash scripts/generate-changelogs.sh
+  git add \
+    members/CHANGELOG.md \
+    functions/src/forms-api/CHANGELOG.md \
+    functions/src/members-api/CHANGELOG.md \
+    functions/src/profiles-api/CHANGELOG.md \
+    functions/src/admin-members-api/CHANGELOG.md \
+    functions/src/admin-messages-api/CHANGELOG.md \
+    functions/src/admin-match-requests-api/CHANGELOG.md \
+    functions/src/admin-unclaimed-profiles-api/CHANGELOG.md \
+    functions/src/stripe-webhook-api/CHANGELOG.md \
+    functions/src/profile-webhook-api/CHANGELOG.md
+  echo "✓ Changelogs updated"
+fi
+
 exit 0
