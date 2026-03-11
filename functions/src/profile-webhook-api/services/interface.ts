@@ -27,7 +27,7 @@ export interface ProfileWebhookService {
    */
   validatePayload(options: {
     payload: {
-      commitMessage?: string;
+      notificationType?: string;
       commitSha?: string;
       slug?: string;
     };

@@ -1,4 +1,11 @@
-import type { ValidationResult } from "./types.js";
+import type { ProfileNotificationType, ValidationResult } from "./types.js";
+
+const VALID_NOTIFICATION_TYPES = new Set<ProfileNotificationType>([
+  "publish",
+  "update",
+  "image-update",
+  "image-delete",
+]);
 
 /**
  * Validate webhook payload structure and determine if notification should be sent.
@@ -10,15 +17,15 @@ export function validatePayload({
   payload,
 }: {
   payload: {
-    commitMessage?: string;
+    notificationType?: string;
     commitSha?: string;
     slug?: string;
   };
 }): ValidationResult {
-  const { commitMessage, commitSha, slug } = payload;
+  const { notificationType, commitSha, slug } = payload;
 
   // Validate required fields
-  if (!commitMessage || !commitSha || slug === undefined) {
+  if (!notificationType || !commitSha || slug === undefined) {
     return {
       isValid: false,
       reason: "invalid_payload",
@@ -26,21 +33,15 @@ export function validatePayload({
   }
 
   // Check if this is a single profile update
-  if (!slug || slug === "") {
+  if (slug === "") {
     return {
       isValid: false,
       reason: "not_single_profile",
     };
   }
 
-  // Check if commit message indicates a profile or image update/deletion (not creation)
-  const isProfileUpdate = commitMessage.startsWith("Update profile for ");
-  const isImageUpdate = commitMessage.startsWith("Update profile image for ");
-  const isImageDeletion = commitMessage.startsWith(
-    "Delete all profile images for ",
-  );
-
-  if (!isProfileUpdate && !isImageUpdate && !isImageDeletion) {
+  // Check if notification type indicates a supported profile event
+  if (!VALID_NOTIFICATION_TYPES.has(notificationType as ProfileNotificationType)) {
     return {
       isValid: false,
       reason: "not_profile_related",

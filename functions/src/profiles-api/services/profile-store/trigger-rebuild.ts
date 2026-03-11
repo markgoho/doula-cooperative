@@ -11,20 +11,21 @@ import { getOctokit } from "./get-octokit.js";
  *
  * @param slug - The profile slug
  * @param action - Short description of the action (e.g., "updated profile")
- * @param commitMessage - Optional commit-style message for the deployment webhook
- *   notification email. When provided, the GitHub Actions workflow will POST
- *   this to the profile-webhook endpoint after a successful deploy, triggering
- *   a notification email to the member. Expected formats:
- *   - "Update profile for {name}" → generic profile update email
- *   - "Update profile image for {name}" → image update email
- *   - "Delete all profile images for {name}" → image deletion email
+ * @param notificationType - Optional notification type for the deployment webhook.
+ *   When provided, the GitHub Actions workflow will POST this to the
+ *   profile-webhook endpoint after a successful deploy, triggering a
+ *   notification email to the member. Expected values:
+ *   - "publish" → first-publish email
+ *   - "update" → generic profile update email
+ *   - "image-update" → image update email
+ *   - "image-delete" → image deletion email
  */
 export async function triggerHugoRebuild(options: {
   slug: string;
   action: string;
-  commitMessage?: string;
+  notificationType?: "publish" | "update" | "image-update" | "image-delete";
 }): Promise<void> {
-  const { slug, action, commitMessage } = options;
+  const { slug, action, notificationType } = options;
 
   if (process.env["FUNCTIONS_EMULATOR"]) {
     logger.info("Emulator detected, skipping Hugo rebuild trigger", {
@@ -41,7 +42,7 @@ export async function triggerHugoRebuild(options: {
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       event_type: "profile-update",
-      client_payload: { slug, action, commitMessage },
+      client_payload: { slug, action, notificationType },
     });
 
     logger.info("Triggered Hugo rebuild via repository_dispatch", {

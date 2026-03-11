@@ -1,10 +1,34 @@
-import type { ErrorId } from "../../constants/error-ids.js";
+import { ERROR_IDS, type ErrorId } from "../../constants/error-ids.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 import type { ProfileStoreService } from "../services/profile-store/interface.js";
+import { triggerHugoRebuild } from "../services/profile-store/trigger-rebuild.js";
+
+const NOTIFICATION_TYPES = new Set([
+  "publish",
+  "update",
+  "image-update",
+  "image-delete",
+]);
+
+type NotificationType = "publish" | "update" | "image-update" | "image-delete";
+
+function isNotificationType(value: string): value is NotificationType {
+  return NOTIFICATION_TYPES.has(value);
+}
+
+function getNotificationType(
+  buildNotificationType: (() => string) | undefined,
+): NotificationType | undefined {
+  const notificationType = buildNotificationType?.();
+  if (!notificationType || !isNotificationType(notificationType)) {
+    return undefined;
+  }
+  return notificationType;
+}
 
 /**
  * Configuration for profile route handler factory.
@@ -14,10 +38,10 @@ export interface ProfileRouteHandlerConfig<TResponse> {
   errorId: ErrorId;
   slugNotFoundMessage: string;
   successStatus?: number;
-  /** Build the commitMessage for the deployment webhook notification email.
-   *  When provided, the slug is passed so the message can include the doula name.
-   *  Example: (slug) => `Update profile for ${slug}` */
-  buildCommitMessage?: (slug: string) => string;
+  /** Build the notification type for the deployment webhook notification email.
+   *  When provided, the webhook sends a member notification after deploy.
+   *  Example: () => "update" */
+  buildNotificationType?: () => string;
   storeOperation: (
     service: ProfileStoreService,
     slug: string,
@@ -83,15 +107,18 @@ export function createProfileRouteHandler<TResponse>(
         } else {
           const { triggerHugoRebuild } =
             await import("../services/profile-store/trigger-rebuild.js");
-          const commitMessage = config.buildCommitMessage?.(slug);
+          const notificationType = getNotificationType(
+            config.buildNotificationType,
+          );
           await triggerHugoRebuild({
             slug,
             action: config.operation,
-            ...(commitMessage && { commitMessage }),
+            ...(notificationType && { notificationType }),
           });
         }
       } catch (error: unknown) {
         logger.error("Failed to trigger Hugo rebuild after write", {
+          errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
           uid,
           slug,
           error,

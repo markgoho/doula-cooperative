@@ -1,5 +1,11 @@
+export type ProfileNotificationType =
+  | "publish"
+  | "update"
+  | "image-update"
+  | "image-delete";
+
 export interface WebhookPayload {
-  commitMessage: string;
+  notificationType: ProfileNotificationType;
   commitSha: string;
   slug: string; // Empty string if not single profile update
   secret: string;
@@ -16,7 +22,7 @@ export interface NotificationParameters {
   memberEmail: string;
   memberName: string | undefined;
   slug: string;
-  commitMessage: string;
+  notificationType: ProfileNotificationType;
 }
 
 export interface ValidationResult {

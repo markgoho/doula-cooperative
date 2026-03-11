@@ -17,7 +17,7 @@ export async function handleProfileWebhookLogic({
   set,
 }: {
   payload: {
-    commitMessage?: string;
+    notificationType?: string;
     commitSha?: string;
     slug?: string;
     secret?: string;
@@ -57,7 +57,7 @@ export async function handleProfileWebhookLogic({
     if (!validation.isValid) {
       logger.info("Webhook received but not processing", {
         reason: validation.reason,
-        commitMessage: payload.commitMessage,
+        notificationType: payload.notificationType,
         commitSha: payload.commitSha,
       });
       set.status = 200;
@@ -74,16 +74,13 @@ export async function handleProfileWebhookLogic({
       return response;
     }
 
-    const { commitMessage, commitSha, slug } = payload;
-
-    // Type assertion safe here: validation.isValid guarantees these exist
-    if (!commitMessage || !commitSha || !slug) {
-      set.status = 500;
-      return {
-        status: "error",
-        error: "Validation passed but payload incomplete",
-      };
-    }
+    const notificationType = payload.notificationType as
+      | "publish"
+      | "update"
+      | "image-update"
+      | "image-delete";
+    const commitSha = payload.commitSha as string;
+    const slug = payload.slug as string;
 
     // Find member by slug
     const member = await profileWebhookService.findMemberBySlug({
@@ -127,7 +124,7 @@ export async function handleProfileWebhookLogic({
         memberEmail: member.email,
         memberName: member.name,
         slug: member.slug,
-        commitMessage,
+        notificationType,
         emailService,
         logger,
       });

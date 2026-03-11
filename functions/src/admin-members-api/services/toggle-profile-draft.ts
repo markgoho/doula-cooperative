@@ -69,6 +69,7 @@ export async function toggleProfileDraft(options: {
       await triggerHugoRebuild({
         slug,
         action: newDraft ? "draft" : "publish",
+        notificationType: newDraft ? undefined : "publish",
       });
       hugoRebuildTriggered = true;
     } catch (error) {

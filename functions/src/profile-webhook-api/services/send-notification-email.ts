@@ -7,17 +7,25 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import type { NotificationParameters } from "./types.js";
 
 /**
- * Determine email content based on commit message type.
+ * Determine email content based on notification type.
  */
-function getEmailContent(commitMessage: string): {
+function getEmailContent(notificationType: string): {
   subject: string;
   heading: string;
   description: string;
 } {
-  const isImageDeletion = commitMessage.startsWith(
-    "Delete all profile images for ",
-  );
-  const isImageUpdate = commitMessage.startsWith("Update profile image for ");
+  const isProfilePublish = notificationType === "publish";
+  const isImageDeletion = notificationType === "image-delete";
+  const isImageUpdate = notificationType === "image-update";
+
+  if (isProfilePublish) {
+    return {
+      subject: "Your profile is now live",
+      heading: "Your profile is now live!",
+      description:
+        "Your public doula profile on the Rochester Doula Cooperative website has been published and is now live.",
+    };
+  }
 
   if (isImageDeletion) {
     return {
@@ -55,7 +63,7 @@ export async function sendNotificationEmail({
   memberEmail,
   memberName,
   slug,
-  commitMessage,
+  notificationType,
   emailService,
   logger,
 }: NotificationParameters & {
@@ -63,7 +71,7 @@ export async function sendNotificationEmail({
   logger: Logger;
 }): Promise<void> {
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
-  const { subject, heading, description } = getEmailContent(commitMessage);
+  const { subject, heading, description } = getEmailContent(notificationType);
 
   const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,

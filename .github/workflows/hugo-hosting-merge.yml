@@ -46,13 +46,13 @@ jobs:
         if: >-
           success() &&
           github.event_name == 'repository_dispatch' &&
-          github.event.client_payload.commitMessage
+          github.event.client_payload.notificationType
         run: |
           curl -s -X POST https://doulacooperative.com/api/profile-webhook \
             -H "Content-Type: application/json" \
             -d '{
               "slug": "${{ github.event.client_payload.slug }}",
-              "commitMessage": "${{ github.event.client_payload.commitMessage }}",
+              "notificationType": "${{ github.event.client_payload.notificationType }}",
               "commitSha": "${{ github.sha }}",
               "secret": "${{ secrets.DEPLOY_WEBHOOK_SECRET }}"
             }'
