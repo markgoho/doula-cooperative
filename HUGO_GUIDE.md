@@ -37,7 +37,7 @@ env:
 **Why it fails:**
 
 - Hugo interprets this as: `.Site.Params.stripe.publishable.key` (3 levels deep)
-- Template expects: `.Site.Params.stripe.publishableKey` (2 levels)
+- Template expects: `.Site.Params.stripe.publishablekey` (2 levels)
 - Result: `publishableKey` is undefined
 
 **Solution:**
@@ -137,6 +137,21 @@ bun run build           # Outputs to hugo/public/
 # Build with search index
 bun run build:search    # Includes Pagefind indexing
 ```
+
+`bun run hugo:dev` first runs `scripts/sync-profiles-to-hugo.ts`, which reads doula profiles from Firestore before starting Hugo.
+
+For local development, that sync step requires Firebase credentials via one of these options:
+
+- `FIREBASE_SERVICE_ACCOUNT` set to a service account JSON string
+- Application Default Credentials (ADC)
+
+If you are using ADC locally, install `gcloud` and run:
+
+```bash
+gcloud auth application-default login
+```
+
+This creates local credentials at `~/.config/gcloud/application_default_credentials.json`.
 
 ### Configuration File
 
