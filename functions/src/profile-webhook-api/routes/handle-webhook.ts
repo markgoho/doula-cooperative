@@ -7,6 +7,7 @@ import type {
   ProfileWebhookSuccessResponse,
 } from "../schemas/profile-webhook-schemas.js";
 import type { ProfileWebhookService } from "../services/index.js";
+import type { WebhookPayload } from "../services/types.js";
 
 export async function handleProfileWebhookLogic({
   payload,
@@ -16,12 +17,7 @@ export async function handleProfileWebhookLogic({
   logger,
   set,
 }: {
-  payload: {
-    commitMessage?: string;
-    commitSha?: string;
-    slug?: string;
-    secret?: string;
-  };
+  payload: WebhookPayload;
   webhookSecret: string;
   profileWebhookService: typeof ProfileWebhookService;
   emailService: EmailServiceInterface;
@@ -55,35 +51,20 @@ export async function handleProfileWebhookLogic({
     const validation = profileWebhookService.validatePayload({ payload });
 
     if (!validation.isValid) {
-      logger.info("Webhook received but not processing", {
+      logger.info("Webhook received but not processing notification", {
         reason: validation.reason,
-        commitMessage: payload.commitMessage,
-        commitSha: payload.commitSha,
+        notificationType: payload.notificationType,
       });
       set.status = 200;
-      const response: ProfileWebhookSuccessResponse = {
+      return {
         status: "success",
         received: true,
         notified: false,
-      };
-
-      if (validation.reason !== undefined) {
-        response.reason = validation.reason;
-      }
-
-      return response;
-    }
-
-    const { commitMessage, commitSha, slug } = payload;
-
-    // Type assertion safe here: validation.isValid guarantees these exist
-    if (!commitMessage || !commitSha || !slug) {
-      set.status = 500;
-      return {
-        status: "error",
-        error: "Validation passed but payload incomplete",
+        reason: validation.reason,
       };
     }
+
+    const { notificationType, slug } = validation.payload;
 
     // Find member by slug
     const member = await profileWebhookService.findMemberBySlug({
@@ -92,10 +73,9 @@ export async function handleProfileWebhookLogic({
     });
 
     if (!member) {
-      logger.warn("Member not found for profile update notification", {
+      logger.warn("Member not found for profile notification", {
         errorId: ERROR_IDS.PROFILE_DEPLOY_WEBHOOK_MEMBER_NOT_FOUND,
         slug,
-        commitSha,
       });
       set.status = 200;
       return {
@@ -127,15 +107,14 @@ export async function handleProfileWebhookLogic({
         memberEmail: member.email,
         memberName: member.name,
         slug: member.slug,
-        commitMessage,
+        notificationType,
         emailService,
         logger,
       });
 
-      logger.info("Profile update notification sent", {
+      logger.info("Profile notification sent", {
         email: member.email,
         slug,
-        commitSha,
       });
 
       set.status = 200;
@@ -145,12 +124,11 @@ export async function handleProfileWebhookLogic({
         notified: true,
       };
     } catch (emailError) {
-      logger.error("Failed to send profile update notification", {
+      logger.error("Failed to send profile notification", {
         error: emailError,
         errorId: ERROR_IDS.PROFILE_DEPLOY_WEBHOOK_EMAIL_FAILED,
         email: member.email,
         slug,
-        commitSha,
       });
       set.status = 200;
       return {

@@ -4,49 +4,55 @@ import type {
   EmailServiceInterface,
 } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import type { NotificationParameters } from "./types.js";
+import type {
+  NotificationParameters,
+  ProfileNotificationType,
+} from "./types.js";
 
 /**
- * Determine email content based on commit message type.
+ * Determine email content for a supported profile notification type.
  */
-function getEmailContent(commitMessage: string): {
+function getEmailContent(notificationType: ProfileNotificationType): {
   subject: string;
   heading: string;
   description: string;
 } {
-  const isImageDeletion = commitMessage.startsWith(
-    "Delete all profile images for ",
-  );
-  const isImageUpdate = commitMessage.startsWith("Update profile image for ");
-
-  if (isImageDeletion) {
-    return {
-      subject: "Your profile photo has been removed",
-      heading: "Your profile photo has been removed",
+  const emailContentByType: Record<
+    ProfileNotificationType,
+    { subject: string; heading: string; description: string }
+  > = {
+    publish: {
+      subject: "Your profile is now live",
+      heading: "Your profile is now live!",
       description:
-        "Your profile photo on the Rochester Doula Cooperative website has been successfully removed. Your profile is still active and visible without a photo.",
-    };
-  }
-
-  if (isImageUpdate) {
-    return {
+        "Your public doula profile on the Rochester Doula Cooperative website has been published and is now live.",
+    },
+    update: {
+      subject: "Your Doula Cooperative profile has been updated",
+      heading: "Your profile has been updated!",
+      description:
+        "Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.",
+    },
+    "image-update": {
       subject: "Your profile photo has been updated",
       heading: "Your profile photo has been updated!",
       description:
         "Your profile photo on the Rochester Doula Cooperative website has been successfully updated and is now live.",
-    };
-  }
-
-  return {
-    subject: "Your Doula Cooperative profile has been updated",
-    heading: "Your profile has been updated!",
-    description:
-      "Your public doula profile on the Rochester Doula Cooperative website has been successfully updated and is now live.",
+    },
+    "image-delete": {
+      subject: "Your profile photo has been removed",
+      heading: "Your profile photo has been removed",
+      description:
+        "Your profile photo on the Rochester Doula Cooperative website has been successfully removed. Your profile is still active and visible without a photo.",
+    },
   };
+
+  return emailContentByType[notificationType];
 }
 
 /**
- * Send profile update notification email to member.
+ * Send a member notification email for publish, update, image-update,
+ * or image-delete profile events.
  *
  * @param params - Notification parameters
  * @throws Error if email fails to send
@@ -55,7 +61,7 @@ export async function sendNotificationEmail({
   memberEmail,
   memberName,
   slug,
-  commitMessage,
+  notificationType,
   emailService,
   logger,
 }: NotificationParameters & {
@@ -63,7 +69,7 @@ export async function sendNotificationEmail({
   logger: Logger;
 }): Promise<void> {
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
-  const { subject, heading, description } = getEmailContent(commitMessage);
+  const { subject, heading, description } = getEmailContent(notificationType);
 
   const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
