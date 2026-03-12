@@ -5,29 +5,12 @@ import { handleRouteError } from "../../shared-api/utils/route-error-handler.js"
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 import type { ProfileStoreService } from "../services/profile-store/interface.js";
-import { triggerHugoRebuild } from "../services/profile-store/trigger-rebuild.js";
-
-const NOTIFICATION_TYPES = new Set([
-  "publish",
-  "update",
-  "image-update",
-  "image-delete",
-]);
-
-type NotificationType = "publish" | "update" | "image-update" | "image-delete";
-
-function isNotificationType(value: string): value is NotificationType {
-  return NOTIFICATION_TYPES.has(value);
-}
+import type { ProfileNotificationType } from "../../profile-webhook-api/services/types.js";
 
 function getNotificationType(
-  buildNotificationType: (() => string) | undefined,
-): NotificationType | undefined {
-  const notificationType = buildNotificationType?.();
-  if (!notificationType || !isNotificationType(notificationType)) {
-    return undefined;
-  }
-  return notificationType;
+  buildNotificationType: (() => ProfileNotificationType) | undefined,
+): ProfileNotificationType | undefined {
+  return buildNotificationType?.();
 }
 
 /**
@@ -41,7 +24,7 @@ export interface ProfileRouteHandlerConfig<TResponse> {
   /** Build the notification type for the deployment webhook notification email.
    *  When provided, the webhook sends a member notification after deploy.
    *  Example: () => "update" */
-  buildNotificationType?: () => string;
+  buildNotificationType?: () => ProfileNotificationType;
   storeOperation: (
     service: ProfileStoreService,
     slug: string,

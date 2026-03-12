@@ -4,6 +4,7 @@ import type {
   MemberInfo,
   NotificationParameters,
   ValidationResult,
+  WebhookPayload,
 } from "./types.js";
 
 /**
@@ -25,13 +26,7 @@ export interface ProfileWebhookService {
    * @param options - Payload to validate
    * @returns Validation result with success status and optional reason
    */
-  validatePayload(options: {
-    payload: {
-      notificationType?: string;
-      commitSha?: string;
-      slug?: string;
-    };
-  }): ValidationResult;
+  validatePayload(options: { payload: WebhookPayload }): ValidationResult;
 
   /**
    * Find a member by their profile slug.

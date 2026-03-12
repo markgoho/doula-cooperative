@@ -5,7 +5,6 @@ import { t, type Static } from "elysia";
  */
 export const ProfileWebhookBodySchema = t.Object({
   notificationType: t.Optional(t.String()),
-  commitSha: t.Optional(t.String()),
   slug: t.Optional(t.String()),
   secret: t.Optional(t.String()),
 });

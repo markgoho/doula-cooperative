@@ -5,10 +5,14 @@ export type ProfileNotificationType =
   | "image-delete";
 
 export interface WebhookPayload {
+  notificationType?: string;
+  slug?: string;
+  secret?: string;
+}
+
+export interface ValidatedWebhookPayload {
   notificationType: ProfileNotificationType;
-  commitSha: string;
-  slug: string; // Empty string if not single profile update
-  secret: string;
+  slug: string;
 }
 
 export interface MemberInfo {
@@ -25,7 +29,30 @@ export interface NotificationParameters {
   notificationType: ProfileNotificationType;
 }
 
-export interface ValidationResult {
-  isValid: boolean;
-  reason: string | undefined;
+export type ValidationFailureReason =
+  | "invalid_payload"
+  | "not_single_profile"
+  | "not_profile_related";
+
+export type ValidationResult =
+  | {
+      isValid: false;
+      reason: ValidationFailureReason;
+    }
+  | {
+      isValid: true;
+      payload: ValidatedWebhookPayload;
+    };
+
+export const PROFILE_NOTIFICATION_TYPES: readonly ProfileNotificationType[] = [
+  "publish",
+  "update",
+  "image-update",
+  "image-delete",
+] as const;
+
+export function isProfileNotificationType(
+  value: string,
+): value is ProfileNotificationType {
+  return PROFILE_NOTIFICATION_TYPES.includes(value as ProfileNotificationType);
 }

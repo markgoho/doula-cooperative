@@ -2,9 +2,11 @@ import { mock } from "bun:test";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { createProfileWebhookPlugin } from "../plugins/profile-webhook-plugin.js";
 import type { ProfileWebhookService } from "../services/interface.js";
-import type {
-  MemberInfo,
-  ProfileNotificationType,
+import {
+  isProfileNotificationType,
+  type MemberInfo,
+  type ValidationResult,
+  type WebhookPayload,
 } from "../services/types.js";
 
 /**
@@ -24,43 +26,27 @@ export function createProfileWebhookTestPlugin(overrides?: {
         provided === expected,
     ),
     validatePayload: mock(
-      ({
-        payload,
-      }: {
-        payload: {
-          notificationType?: string;
-          commitSha?: string;
-          slug?: string;
-        };
-      }) => {
-        const validNotificationTypes: ProfileNotificationType[] = [
-          "publish",
-          "update",
-          "image-update",
-          "image-delete",
-        ];
-        if (
-          !payload.notificationType ||
-          !payload.commitSha ||
-          payload.slug === undefined
-        ) {
+      ({ payload }: { payload: WebhookPayload }): ValidationResult => {
+        if (!payload.notificationType || payload.slug === undefined) {
           return { isValid: false, reason: "invalid_payload" };
         }
         if (!payload.slug) {
           return { isValid: false, reason: "not_single_profile" };
         }
-        if (
-          !validNotificationTypes.includes(
-            payload.notificationType as ProfileNotificationType,
-          )
-        ) {
+        if (!isProfileNotificationType(payload.notificationType)) {
           return { isValid: false, reason: "not_profile_related" };
         }
-        return { isValid: true, reason: undefined };
+        return {
+          isValid: true,
+          payload: {
+            notificationType: payload.notificationType,
+            slug: payload.slug,
+          },
+        };
       },
     ),
     findMemberBySlug: mock(
-      ({ slug }: { slug: string; logger: Logger }) =>
+      ({ slug }: { slug: string }) =>
         Promise.resolve({
           uid: "member-123",
           email: "jane@example.com",

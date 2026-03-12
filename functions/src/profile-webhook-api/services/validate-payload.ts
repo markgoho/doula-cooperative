@@ -1,11 +1,8 @@
-import type { ProfileNotificationType, ValidationResult } from "./types.js";
-
-const VALID_NOTIFICATION_TYPES = new Set<ProfileNotificationType>([
-  "publish",
-  "update",
-  "image-update",
-  "image-delete",
-]);
+import {
+  isProfileNotificationType,
+  type ValidationResult,
+  type WebhookPayload,
+} from "./types.js";
 
 /**
  * Validate webhook payload structure and determine if notification should be sent.
@@ -16,16 +13,12 @@ const VALID_NOTIFICATION_TYPES = new Set<ProfileNotificationType>([
 export function validatePayload({
   payload,
 }: {
-  payload: {
-    notificationType?: string;
-    commitSha?: string;
-    slug?: string;
-  };
+  payload: WebhookPayload;
 }): ValidationResult {
-  const { notificationType, commitSha, slug } = payload;
+  const { notificationType, slug } = payload;
 
   // Validate required fields
-  if (!notificationType || !commitSha || slug === undefined) {
+  if (!notificationType || slug === undefined) {
     return {
       isValid: false,
       reason: "invalid_payload",
@@ -41,12 +34,18 @@ export function validatePayload({
   }
 
   // Check if notification type indicates a supported profile event
-  if (!VALID_NOTIFICATION_TYPES.has(notificationType as ProfileNotificationType)) {
+  if (!isProfileNotificationType(notificationType)) {
     return {
       isValid: false,
       reason: "not_profile_related",
     };
   }
 
-  return { isValid: true, reason: undefined };
+  return {
+    isValid: true,
+    payload: {
+      notificationType,
+      slug,
+    },
+  };
 }

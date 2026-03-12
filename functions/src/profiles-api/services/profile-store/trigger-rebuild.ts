@@ -1,6 +1,7 @@
 import { logger } from "firebase-functions/v2";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { GITHUB_OWNER, GITHUB_REPO } from "../../../constants/github-config.js";
+import type { ProfileNotificationType } from "../../../profile-webhook-api/services/types.js";
 import { HttpError } from "../../../shared-api/errors/http-error.js";
 import { getOctokit } from "./get-octokit.js";
 
@@ -23,7 +24,7 @@ import { getOctokit } from "./get-octokit.js";
 export async function triggerHugoRebuild(options: {
   slug: string;
   action: string;
-  notificationType?: "publish" | "update" | "image-update" | "image-delete";
+  notificationType?: ProfileNotificationType;
 }): Promise<void> {
   const { slug, action, notificationType } = options;
 
@@ -42,7 +43,7 @@ export async function triggerHugoRebuild(options: {
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       event_type: "profile-update",
-      client_payload: { slug, action, notificationType },
+      client_payload: { slug, action, ...(notificationType && { notificationType }) },
     });
 
     logger.info("Triggered Hugo rebuild via repository_dispatch", {

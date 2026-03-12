@@ -6,7 +6,6 @@ describe("POST /", () => {
   interface SetupOptions {
     body?: {
       notificationType?: string;
-      commitSha?: string;
       slug?: string;
       secret?: string;
     };
@@ -19,7 +18,6 @@ describe("POST /", () => {
   function setup({
     body = {
       notificationType: "publish",
-      commitSha: "abc123",
       slug: "jane-doe",
       secret: "test-secret",
     },
@@ -88,7 +86,6 @@ describe("POST /", () => {
     const { testApp, request } = setup({
       body: {
         notificationType: "update",
-        commitSha: "abc123",
         slug: "jane-doe",
         secret: "test-secret",
       },
@@ -107,10 +104,101 @@ describe("POST /", () => {
     expect(responseBody.notified).toBe(true);
   });
 
+  it("should return 200 and notified:true for valid image-update payload", async () => {
+    const { testApp, request } = setup({
+      body: {
+        notificationType: "image-update",
+        slug: "jane-doe",
+        secret: "test-secret",
+      },
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(200);
+    const responseBody = (await response.json()) as {
+      status?: string;
+      received?: boolean;
+      notified?: boolean;
+    };
+    expect(responseBody.status).toBe("success");
+    expect(responseBody.received).toBe(true);
+    expect(responseBody.notified).toBe(true);
+  });
+
+  it("should return 200 and notified:true for valid image-delete payload", async () => {
+    const { testApp, request } = setup({
+      body: {
+        notificationType: "image-delete",
+        slug: "jane-doe",
+        secret: "test-secret",
+      },
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(200);
+    const responseBody = (await response.json()) as {
+      status?: string;
+      received?: boolean;
+      notified?: boolean;
+    };
+    expect(responseBody.status).toBe("success");
+    expect(responseBody.received).toBe(true);
+    expect(responseBody.notified).toBe(true);
+  });
+
+  it("should return 200 with not_single_profile when slug is empty", async () => {
+    const { testApp, request } = setup({
+      body: {
+        notificationType: "update",
+        slug: "",
+        secret: "test-secret",
+      },
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(200);
+    const responseBody = (await response.json()) as {
+      status?: string;
+      received?: boolean;
+      notified?: boolean;
+      reason?: string;
+    };
+    expect(responseBody.status).toBe("success");
+    expect(responseBody.received).toBe(true);
+    expect(responseBody.notified).toBe(false);
+    expect(responseBody.reason).toBe("not_single_profile");
+  });
+
+  it("should return 200 with not_profile_related for unsupported notification type", async () => {
+    const { testApp, request } = setup({
+      body: {
+        notificationType: "delete",
+        slug: "jane-doe",
+        secret: "test-secret",
+      },
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(200);
+    const responseBody = (await response.json()) as {
+      status?: string;
+      received?: boolean;
+      notified?: boolean;
+      reason?: string;
+    };
+    expect(responseBody.status).toBe("success");
+    expect(responseBody.received).toBe(true);
+    expect(responseBody.notified).toBe(false);
+    expect(responseBody.reason).toBe("not_profile_related");
+  });
+
   it("should return 200 with invalid_payload when notificationType is missing", async () => {
     const { testApp, request } = setup({
       body: {
-        commitSha: "abc123",
         slug: "jane-doe",
         secret: "test-secret",
       },
@@ -129,6 +217,25 @@ describe("POST /", () => {
     expect(responseBody.received).toBe(true);
     expect(responseBody.notified).toBe(false);
     expect(responseBody.reason).toBe("invalid_payload");
+  });
+
+  it("should return 401 for missing secret", async () => {
+    const { testApp, request } = setup({
+      body: {
+        notificationType: "publish",
+        slug: "jane-doe",
+      },
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(401);
+    const responseBody = (await response.json()) as {
+      status?: string;
+      error?: string;
+    };
+    expect(responseBody.status).toBe("error");
+    expect(responseBody.error).toBe("Unauthorized");
   });
 
   it("should return 401 for invalid secret", async () => {
