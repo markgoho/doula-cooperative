@@ -42,18 +42,3 @@ jobs:
           channelId: live
           projectId: doula-cooperative
           target: main-site
-      - name: Notify Profile Updates
-        if: >-
-          success() &&
-          github.event_name == 'repository_dispatch' &&
-          github.event.client_payload.notificationType
-        run: |
-          curl -s -X POST https://doulacooperative.com/api/profile-webhook \
-            -H "Content-Type: application/json" \
-            -d '{
-              "slug": "${{ github.event.client_payload.slug }}",
-              "notificationType": "${{ github.event.client_payload.notificationType }}",
-              "commitSha": "${{ github.sha }}",
-              "secret": "${{ secrets.DEPLOY_WEBHOOK_SECRET }}"
-            }'
-        continue-on-error: true
