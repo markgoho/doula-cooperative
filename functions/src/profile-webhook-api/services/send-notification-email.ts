@@ -74,6 +74,7 @@ export async function sendNotificationEmail({
   const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: memberEmail,
+    bcc: [MARK_EMAIL],
     subject,
     html: `<!DOCTYPE html>
 <html lang="en">
