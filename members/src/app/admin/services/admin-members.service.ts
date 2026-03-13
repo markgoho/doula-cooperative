@@ -9,6 +9,7 @@ import type {
   UnclaimedProfile,
 } from '../admin.types';
 import type {
+  ApiAttachImportedProfileResponse,
   ApiListUnclaimedProfilesResponse,
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
@@ -238,6 +239,18 @@ export class AdminMembersService {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
       this.httpClient.delete<{ success: boolean }>(`/api/admin/unclaimed-profiles/${email}`),
+    );
+  }
+
+  async attachImportedProfile(
+    email: string,
+    memberUid: string,
+  ): Promise<ApiAttachImportedProfileResponse> {
+    return firstValueFrom(
+      this.httpClient.post<ApiAttachImportedProfileResponse>(
+        `/api/admin/unclaimed-profiles/${email}/attach`,
+        { memberUid },
+      ),
     );
   }
 

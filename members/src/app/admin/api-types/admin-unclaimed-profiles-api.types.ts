@@ -36,3 +36,10 @@ export interface ApiListUnclaimedProfilesResponse {
   profiles: ApiUnclaimedProfileResponse[];
   total: number;
 }
+
+export interface ApiAttachImportedProfileResponse {
+  success: true;
+  memberUid: string;
+  email: string;
+  status: 'merged';
+}

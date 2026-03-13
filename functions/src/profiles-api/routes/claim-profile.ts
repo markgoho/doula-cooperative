@@ -1,149 +1,12 @@
 import { Timestamp } from "firebase-admin/firestore";
-import {
-  type MemberDocument,
-  type UnclaimedProfileDocumentData,
-} from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { NEWSLETTER_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import type {
-  EmailMessage,
-  EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
-import { addNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import type { ClaimProfileResponse } from "../schemas/profile-schemas.js";
 import type { AuthUpdateService } from "../services/auth-update/interface.js";
 import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
-
-/**
- * Creates HTML for MailerLite failure notification email during profile claim
- */
-function createClaimProfileMailerLiteFailureEmailHtml({
-  email,
-  name,
-  uid,
-  subscriptionStart,
-  membershipExpiresAt,
-  errorMessage,
-}: {
-  email: string;
-  name: string | undefined;
-  uid: string;
-  subscriptionStart: Timestamp;
-  membershipExpiresAt: Timestamp;
-  errorMessage: string;
-}): string {
-  return `
-    <h2>MailerLite Newsletter Signup Failed During Profile Claim</h2>
-    <p>A member claimed their profile but could not be added to the newsletter automatically.</p>
-
-    <h3>Member Details:</h3>
-    <ul>
-      <li><strong>Email:</strong> ${escapeHtml(email)}</li>
-      <li><strong>Name:</strong> ${escapeHtml(name) || "Not provided"}</li>
-      <li><strong>UID:</strong> ${escapeHtml(uid)}</li>
-      <li><strong>Subscription Start:</strong> ${escapeHtml(subscriptionStart.toDate().toISOString())}</li>
-      <li><strong>Membership Expires:</strong> ${escapeHtml(membershipExpiresAt.toDate().toISOString())}</li>
-    </ul>
-
-    <h3>Error Details:</h3>
-    <p>${escapeHtml(errorMessage)}</p>
-
-    <p><strong>Action Required:</strong> Manually add this member to the MailerLite newsletter.</p>
-    <p><strong>Note:</strong> The member document has been updated with newsletterSubscribed: true, but MailerLite is out of sync.</p>
-  `;
-}
-
-/**
- * Sends notification email when MailerLite subscription fails during profile claim
- */
-async function sendClaimProfileMailerLiteFailureNotification({
-  email,
-  name,
-  uid,
-  subscriptionStart,
-  membershipExpiresAt,
-  errorMessage,
-  emailService,
-  logger,
-}: {
-  email: string;
-  name: string | undefined;
-  uid: string;
-  subscriptionStart: Timestamp;
-  membershipExpiresAt: Timestamp;
-  errorMessage: string;
-  emailService: EmailServiceInterface;
-  logger: Logger;
-}): Promise<void> {
-  try {
-    const notificationEmail: EmailMessage = {
-      from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
-      to: NEWSLETTER_EMAIL,
-      subject: "Action Required: Manual Newsletter Signup (Profile Claim)",
-      html: createClaimProfileMailerLiteFailureEmailHtml({
-        email,
-        name,
-        uid,
-        subscriptionStart,
-        membershipExpiresAt,
-        errorMessage,
-      }),
-    };
-
-    await emailService.sendEmail({ message: notificationEmail }, logger);
-  } catch (emailNotificationError: unknown) {
-    // Log the email service failure separately for debugging cascading failures
-    logger.error("Failed to send MailerLite failure notification email", {
-      errorId: ERROR_IDS.CLAIM_PROFILE_EMAIL_SERVICE_FAILED,
-      error: emailNotificationError,
-      errorMessage:
-        emailNotificationError instanceof Error
-          ? emailNotificationError.message
-          : "Unknown error",
-      errorStack:
-        emailNotificationError instanceof Error
-          ? emailNotificationError.stack
-          : undefined,
-      uid,
-      email,
-      context: "Attempting to notify admin of MailerLite sync failure",
-    });
-    // Re-throw to let outer catch handle with CRITICAL logging
-    throw emailNotificationError;
-  }
-}
-
-/**
- * Calculate the expiration date for a membership based on the subscription start date.
- * Membership expires on the last day of the subscription month in the current or next year.
- */
-function calculateExpirationDate(subscriptionStart: Timestamp): Timestamp {
-  const startDate = subscriptionStart.toDate();
-  const monthIndex = startDate.getMonth(); // 0-11
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  let expirationYear = currentYear;
-
-  // If the renewal month has already passed this year, or we are in the renewal month,
-  // the next renewal is next year.
-  if (
-    currentMonth > monthIndex ||
-    (currentMonth === monthIndex && now.getDate() > 1)
-  ) {
-    expirationYear += 1;
-  }
-
-  // Set the expiration to the last day of the subscription month in the expiration year.
-  const expirationDate = new Date(expirationYear, monthIndex + 1, 0);
-  return Timestamp.fromDate(expirationDate);
-}
+import { applyImportedMemberMerge } from "../services/imported-member-merge/index.js";
 
 /**
  * Claim an unclaimed profile for the authenticated user.
@@ -183,250 +46,42 @@ export async function claimProfileLogic({
   }
 
   try {
-    // Look for a matching document in the import collection
-    const importDocument =
-      await claimProfileFirestoreService.getImportDocument(email);
+    const mergeResult = await applyImportedMemberMerge({
+      uid,
+      email,
+      emailService,
+      firestoreService: claimProfileFirestoreService,
+      authUpdateService,
+      logger,
+      source: "claim_profile",
+    });
 
-    if (!importDocument.exists) {
-      // No pre-existing profile to claim
+    if (mergeResult.status === "not_found") {
       logger.info(`No profile to claim for user: ${email}`);
       return { status: "no_profile_to_claim" };
     }
 
-    const profileData = importDocument.data() as
-      | UnclaimedProfileDocumentData
-      | undefined;
-
-    if (!profileData) {
-      logger.error("Profile document exists but has no data", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_NO_DATA,
-        email,
-        uid,
-        documentExists: true,
-        documentId: importDocument.id,
-      });
-      throw new NotFoundError("No profile data found for this user.");
-    }
-
-    // Validate required fields (runtime validation despite TypeScript types)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Runtime validation needed for Firestore data
-    if (!profileData.subscriptionStart) {
-      logger.error("Profile missing required subscriptionStart field", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
-        email,
-        uid,
-        profileData: {
-          hasName: Boolean(profileData.name),
-          hasEmail: Boolean(profileData.email),
-          hasCreatedAt: Boolean(profileData.createdAt),
-        },
-      });
+    if (mergeResult.status === "invalid_import_data") {
       set.status = 500;
       return {
         error:
-          "Your profile is missing required subscription information. Please contact support with error code: MISSING_SUBSCRIPTION_START",
+          mergeResult.warning ??
+          "Your imported profile is missing required information. Please contact support.",
       };
-    }
-
-    if (!profileData.name || profileData.name.trim().length === 0) {
-      logger.error("Profile missing required name field", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
-        email,
-        uid,
-        hasName: Boolean(profileData.name),
-        nameLength: profileData.name.length,
-      });
-      set.status = 500;
-      return {
-        error:
-          "Your profile is missing a required name. Please contact support with error code: MISSING_NAME",
-      };
-    }
-
-    const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
-
-    // Calculate membership expiration date
-    let membershipExpiresAt: Timestamp;
-    try {
-      membershipExpiresAt = calculateExpirationDate(subscriptionStart);
-    } catch (error) {
-      logger.error("Error calculating expiration date", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_EXPIRATION_CALC_ERROR,
-        email,
-        uid,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        errorStack: error instanceof Error ? error.stack : undefined,
-        subscriptionStartValue: subscriptionStart,
-        subscriptionStartSeconds: subscriptionStart.seconds,
-        subscriptionStartDate: subscriptionStart.toDate().toISOString(),
-      });
-      set.status = 500;
-      return { error: "Failed to calculate membership expiration date." };
-    }
-
-    // Create the member document update
-    const memberUpdate: Partial<MemberDocument> = {
-      ...restOfProfileData,
-      subscriptionStart,
-      membershipActive: true,
-      membershipExpiresAt,
-      newsletterSubscribed: true,
-      newsletterSubscribedAt: Timestamp.now(),
-    };
-
-    // If legacy profile has createdAt, use it as profileCreatedAt
-    if (createdAt !== undefined) {
-      memberUpdate.profileCreatedAt = createdAt;
-    }
-
-    // Write member document
-    try {
-      await claimProfileFirestoreService.writeMemberDocument(uid, memberUpdate);
-      logger.info(
-        `Successfully claimed profile for user: ${email} (UID: ${uid})`,
-      );
-    } catch (error) {
-      logger.error("Error writing member document", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_FIRESTORE_WRITE_ERROR,
-        email,
-        uid,
-        error,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        errorStack: error instanceof Error ? error.stack : undefined,
-        memberUpdateFields: {
-          hasName: Boolean(memberUpdate.name),
-          hasSlug: Boolean(memberUpdate.slug),
-          hasSubscriptionStart: Boolean(memberUpdate.subscriptionStart),
-          hasMembershipExpiresAt: Boolean(memberUpdate.membershipExpiresAt),
-          membershipActive: memberUpdate.membershipActive,
-          newsletterSubscribed: memberUpdate.newsletterSubscribed,
-          hasProfileCreatedAt: Boolean(memberUpdate.profileCreatedAt),
-          fieldCount: Object.keys(memberUpdate).length,
-        },
-      });
-      set.status = 500;
-      return { error: "Failed to save profile data. Please try again." };
-    }
-
-    // Add to newsletter (non-critical - don't fail if this fails)
-    const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
-    if (mailerliteApiKey) {
-      try {
-        const subscriberOptions: {
-          email: string;
-          name: string;
-          subscriptionStart: Timestamp;
-          membershipExpiresAt: Timestamp;
-          groupId?: string;
-          apiKey: string;
-        } = {
-          email,
-          name: profileData.name,
-          subscriptionStart,
-          membershipExpiresAt,
-          apiKey: mailerliteApiKey,
-        };
-
-        const groupId = process.env["MAILERLITE_GROUP_ID"];
-        if (groupId !== undefined) {
-          subscriberOptions.groupId = groupId;
-        }
-
-        await addNewsletterSubscriber(subscriberOptions);
-        logger.info(`Added subscriber to MailerLite newsletter: ${email}`);
-      } catch (newsletterError) {
-        const errorMessage =
-          newsletterError instanceof Error
-            ? newsletterError.message
-            : "Unknown error";
-
-        logger.error(
-          "Failed to add subscriber to MailerLite during profile claim",
-          {
-            errorId: ERROR_IDS.CLAIM_PROFILE_MAILERLITE_FAILED,
-            email,
-            uid,
-            error: newsletterError,
-            context: "Member is subscribed in Firestore but not in MailerLite",
-          },
-        );
-
-        // Send notification email
-        try {
-          await sendClaimProfileMailerLiteFailureNotification({
-            email,
-            name: profileData.name,
-            uid,
-            subscriptionStart,
-            membershipExpiresAt,
-            errorMessage,
-            emailService,
-            logger,
-          });
-          logger.info(
-            "Sent MailerLite failure notification email for profile claim",
-            {
-              uid,
-              email,
-            },
-          );
-        } catch {
-          logger.error(
-            "CRITICAL: Failed to send MailerLite failure notification email during profile claim",
-            {
-              errorId: ERROR_IDS.CLAIM_PROFILE_NOTIFICATION_FAILED,
-              uid,
-              email,
-              severity: "CRITICAL",
-              context:
-                "MailerLite sync failed during profile claim AND notification email failed - admin is unaware",
-              actionRequired:
-                "Check Sentry alerts immediately and manually add member to MailerLite",
-              originalMailerLiteError: errorMessage,
-            },
-          );
-        }
-      }
-    }
-
-    // Update the auth displayName with profile name
-    try {
-      await authUpdateService.updateDisplayName(uid, profileData.name);
-      logger.info(`Successfully updated displayName for user: ${email}`);
-    } catch (authError) {
-      // Log error but don't fail the whole operation - profile claim was successful
-      logger.error("Error updating auth displayName", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_AUTH_UPDATE_FAILED,
-        email,
-        uid,
-        error: authError,
-      });
-    }
-
-    // Delete the document from the import collection
-    try {
-      await claimProfileFirestoreService.deleteImportDocument(email);
-      logger.info(`Successfully deleted import record for: ${email}`);
-    } catch (deleteError) {
-      // Log error but don't fail - profile claim was successful
-      // Import cleanup is not critical but should be tracked for data hygiene
-      logger.error("Failed to delete import record after successful claim", {
-        errorId: ERROR_IDS.CLAIM_PROFILE_IMPORT_DELETE_FAILED,
-        email,
-        uid,
-        error: deleteError,
-      });
     }
 
     return {
       status: "success",
       data: {
-        ...profileData,
-        nextPayment: {
-          seconds: membershipExpiresAt.seconds,
-          nanoseconds: membershipExpiresAt.nanoseconds,
-        },
+        ...(mergeResult.mergedFields ?? {}),
+        nextPayment:
+          mergeResult.mergedFields?.membershipExpiresAt !== undefined
+            ? {
+                seconds: mergeResult.mergedFields.membershipExpiresAt.seconds,
+                nanoseconds:
+                  mergeResult.mergedFields.membershipExpiresAt.nanoseconds,
+              }
+            : undefined,
       },
     };
   } catch (error: unknown) {

@@ -4,7 +4,6 @@ import {
   Component,
   computed,
   inject,
-  resource,
   signal,
   viewChild,
 } from '@angular/core';
@@ -13,12 +12,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 import { ConfirmDialog } from '../shared/confirm-dialog/confirm-dialog';
-import { AlertBanner } from '../shared/alert-banner/alert-banner';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
 import { ensureUniqueSlug, generateSlug } from '../utils/slug-generator';
 
 @Component({
-  imports: [DatePipe, FormsModule, ConfirmDialog, AlertBanner],
+  imports: [DatePipe, FormsModule, ConfirmDialog],
   templateUrl: './membership.html',
   styleUrl: './membership.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,7 +29,6 @@ export class Membership {
   protected readonly facebookGroupUrl = FACEBOOK_GROUP_URL;
 
   protected user = this.authService.user;
-  protected claimInProgress = signal(false);
   protected createProfileInProgress = signal(false);
   protected createProfileError = signal<string | undefined>(undefined);
   protected newsletterUpdateInProgress = signal(false);
@@ -51,11 +48,6 @@ export class Membership {
       : undefined;
   });
 
-  // Resource automatically loads when user changes
-  protected claimableProfileResource = resource({
-    params: () => ({ user: this.user() }),
-    loader: ({ params }) => this.membershipService.getClaimableProfileData(params.user),
-  });
 
   // Name prompt and profile creation banner are mutually exclusive:
   // the name prompt appears first; once the member sets their name,
@@ -139,10 +131,6 @@ export class Membership {
 
   protected confirmDialog = viewChild(ConfirmDialog);
 
-  // Hide newsletter preferences when there's a claimable profile (will be updated on claim)
-  protected hasClaimableProfile = computed(() => {
-    return this.claimableProfileResource.hasValue() && !!this.claimableProfileResource.value();
-  });
 
   protected async onUpdateNewsletterPreference(subscribed: boolean) {
     this.newsletterUpdateInProgress.set(true);
@@ -160,28 +148,6 @@ export class Membership {
       this.newsletterUpdateError.set(errorMessage);
     } finally {
       this.newsletterUpdateInProgress.set(false);
-    }
-  }
-
-  protected async onClaimProfile() {
-    const claimableProfile = this.claimableProfileResource.value();
-    if (!claimableProfile?.slug) {
-      console.error('Cannot claim profile without a slug');
-      return;
-    }
-
-    this.claimInProgress.set(true);
-    try {
-      await this.membershipService.claimProfile(claimableProfile.slug);
-      // Reload user document to reflect claimed profile
-      this.membershipService.reloadUserDocument();
-      // Clear the banner after claiming
-      this.claimableProfileResource.set(undefined);
-    } catch (error) {
-      console.error('Failed to claim profile:', error);
-      // TODO: Add proper error handling (toast notification, etc.)
-    } finally {
-      this.claimInProgress.set(false);
     }
   }
 

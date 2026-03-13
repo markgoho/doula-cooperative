@@ -89,4 +89,11 @@ export class AdminUnclaimedProfileDetail {
       await this.router.navigate(['/admin/unclaimed', newEmail]);
     }
   }
+
+  protected async attachImportedProfile(): Promise<void> {
+    const memberUid = await this.service.attachImportedProfile(this.email());
+    if (memberUid !== undefined) {
+      await this.router.navigate(['/admin/members', memberUid]);
+    }
+  }
 }

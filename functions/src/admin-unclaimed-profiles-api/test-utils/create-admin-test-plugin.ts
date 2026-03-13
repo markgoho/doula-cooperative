@@ -9,6 +9,7 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
 import type {
+  AttachImportedProfileSuccessResponse,
   ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
@@ -58,6 +59,14 @@ export function createAdminTestPlugin(overrides?: {
         updatedCount: 0,
         totalCount: 0,
       } as RefreshPaymentDatesSuccessResponse),
+    ),
+    attachImportedProfile: mock(() =>
+      Promise.resolve({
+        success: true,
+        memberUid: "test-member-uid",
+        email: "test@example.com",
+        status: "merged",
+      } as AttachImportedProfileSuccessResponse),
     ),
     ...overrides?.unclaimedProfileAdminService,
   };

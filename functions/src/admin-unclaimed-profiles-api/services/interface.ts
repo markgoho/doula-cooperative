@@ -1,6 +1,7 @@
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
+  AttachImportedProfileSuccessResponse,
   ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
@@ -50,4 +51,10 @@ export interface UnclaimedProfileAdminService {
   refreshPaymentDates(options: {
     logger: Logger;
   }): Promise<RefreshPaymentDatesSuccessResponse>;
+
+  attachImportedProfile(options: {
+    email: string;
+    memberUid: string;
+    logger: Logger;
+  }): Promise<AttachImportedProfileSuccessResponse>;
 }

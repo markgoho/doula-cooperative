@@ -6,6 +6,7 @@ import { adminDerive } from "../../shared-api/utils/admin-derive.js";
 import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
+  attachImportedProfileLogic,
   changeEmailAndResendLogic,
   deleteUnclaimedProfileLogic,
   getUnclaimedProfileLogic,
@@ -15,6 +16,8 @@ import {
   updateEmailLogic,
 } from "../routes/index.js";
 import {
+  AttachImportedProfileBodySchema,
+  AttachImportedProfileResponseSchema,
   ChangeEmailAndResendResponseSchema,
   ChangeEmailBodySchema,
   DeleteUnclaimedProfileResponseSchema,
@@ -187,6 +190,31 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
           params: EmailParameterSchema,
           body: ChangeEmailBodySchema,
           response: UpdateEmailResponseSchema,
+        },
+      )
+      // POST /:email/attach - Attach imported profile to an existing paid member
+      .post(
+        "/:email/attach",
+        async ({
+          params,
+          body,
+          adminToken,
+          unclaimedProfileAdminService,
+          logger,
+          set,
+        }) =>
+          attachImportedProfileLogic({
+            email: params.email,
+            memberUid: body.memberUid,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        {
+          params: EmailParameterSchema,
+          body: AttachImportedProfileBodySchema,
+          response: AttachImportedProfileResponseSchema,
         },
       )
       // DELETE /:email - Delete unclaimed profile

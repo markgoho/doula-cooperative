@@ -208,8 +208,10 @@ describe('AdminUnclaimedProfileDetail', () => {
     const sendButton = screen.getByRole('button', { name: 'Send Invitation' });
     await user.click(sendButton);
 
-    // Assert - button should show processing state
-    expect(await screen.findByRole('button', { name: 'Processing...' })).toBeVisible();
+    // Assert - invitation actions are disabled while work is in progress
+    // Manual attach stays unavailable here because its UID field starts empty.
+    expect(screen.getAllByRole('button', { name: 'Processing...' }).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Paid Member UID')).toBeDisabled();
 
     // Clean up - resolve the promise with proper response
     resolveSendInvitationPromise({ success: true });

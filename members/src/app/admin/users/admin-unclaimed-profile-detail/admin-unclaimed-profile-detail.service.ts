@@ -25,6 +25,7 @@ export class AdminUnclaimedProfileDetailService {
   readonly successMessage = signal<string | undefined>(undefined);
   readonly actionError = signal<string | undefined>(undefined);
   readonly deleteInProgress = signal(false);
+  readonly attachMemberUid = signal('');
 
   /**
    * Initialize the service with the email signal from component input
@@ -49,6 +50,30 @@ export class AdminUnclaimedProfileDetailService {
     } catch (error) {
       console.error('Error sending invitation:', error);
       this.actionError.set('Failed to send invitation.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  async attachImportedProfile(email: string): Promise<string | undefined> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    const memberUid = this.attachMemberUid().trim();
+    if (memberUid.length === 0) {
+      this.actionError.set('Enter a member UID to attach this imported profile.');
+      return undefined;
+    }
+
+    try {
+      const result = await this.adminMembersService.attachImportedProfile(email, memberUid);
+      this.successMessage.set(`Imported profile attached to member ${result.memberUid}`);
+      return result.memberUid;
+    } catch (error) {
+      console.error('Error attaching imported profile:', error);
+      this.actionError.set('Failed to attach imported profile.');
+      return undefined;
     } finally {
       this.actionInProgress.set(false);
     }

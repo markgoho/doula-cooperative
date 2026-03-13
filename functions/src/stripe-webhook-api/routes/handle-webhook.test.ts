@@ -306,6 +306,124 @@ describe("POST /webhook", () => {
       expect(body.warning).toBe("Newsletter and email services unavailable");
     });
 
+    it("should return success for checkout when no exact imported member match exists", async () => {
+      const { testApp, request } = setup({
+        sessionData: {
+          id: "cs_test_unmatched",
+          customer_details: { email: "nomatch@example.com" },
+          metadata: { name: "No Match" },
+        },
+        processCheckoutResult: {
+          userId: "paid-member-001",
+          isNewUser: true,
+          emailSent: true,
+          mailerliteSynced: true,
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+        isNewUser?: boolean;
+        emailSent?: boolean;
+        mailerliteSynced?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("paid-member-001");
+      expect(body.isNewUser).toBe(true);
+      expect(body.emailSent).toBe(true);
+      expect(body.mailerliteSynced).toBe(true);
+      expect(body.warning).toBeUndefined();
+    });
+
+    it("should return success for checkout when exact imported member match is auto-linked", async () => {
+      const { testApp, request } = setup({
+        sessionData: {
+          id: "cs_test_autolink",
+          customer_details: { email: "legacy-match@example.com" },
+          metadata: { name: "Legacy Match" },
+        },
+        processCheckoutResult: {
+          userId: "paid-member-legacy-123",
+          isNewUser: true,
+          emailSent: true,
+          mailerliteSynced: true,
+          warning: "Imported legacy profile auto-linked during checkout",
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+        isNewUser?: boolean;
+        emailSent?: boolean;
+        mailerliteSynced?: boolean;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("paid-member-legacy-123");
+      expect(body.isNewUser).toBe(true);
+      expect(body.emailSent).toBe(true);
+      expect(body.mailerliteSynced).toBe(true);
+      expect(body.warning).toBe("Imported legacy profile auto-linked during checkout");
+    });
+
+    it("should return success with warning when exact imported match cannot be merged", async () => {
+      const { testApp, request } = setup({
+        sessionData: {
+          id: "cs_test_invalid_import",
+          customer_details: { email: "legacy-invalid@example.com" },
+          metadata: { name: "Legacy Invalid" },
+        },
+        processCheckoutResult: {
+          userId: "paid-member-invalid-456",
+          isNewUser: true,
+          emailSent: true,
+          mailerliteSynced: true,
+          warning:
+            "Imported member record matched checkout email but requires manual admin attachment.",
+        },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        userId?: string;
+        warning?: string;
+      };
+      expect(body.received).toBe(true);
+      expect(body.userId).toBe("paid-member-invalid-456");
+      expect(body.warning).toBe(
+        "Imported member record matched checkout email but requires manual admin attachment.",
+      );
+    });
+
+    it("should return duplicate true when a retried checkout event was already processed", async () => {
+      const { testApp, request } = setup({
+        eventType: "checkout.session.completed",
+        eventAlreadyProcessed: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        received?: boolean;
+        duplicate?: boolean;
+      };
+      expect(body.received).toBe(true);
+      expect(body.duplicate).toBe(true);
+    });
+
     it("should return error when checkout processing throws HttpError", async () => {
       const { testApp, request } = setup({
         processCheckoutError: new HttpError("Duplicate email address", 409),

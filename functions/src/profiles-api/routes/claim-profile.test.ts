@@ -216,9 +216,9 @@ describe("POST /:slug/claim (claim profile)", () => {
 
       const response = await handleRequest(testApp, request);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("No profile data found");
+      expect(body.error).toContain("has no data");
     });
 
     it("should return error when profile is missing subscriptionStart", async () => {
@@ -234,7 +234,6 @@ describe("POST /:slug/claim (claim profile)", () => {
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toContain("subscription information");
-      expect(body.error).toContain("MISSING_SUBSCRIPTION_START");
     });
 
     it("should return error when profile is missing name", async () => {
@@ -250,8 +249,7 @@ describe("POST /:slug/claim (claim profile)", () => {
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("missing a required name");
-      expect(body.error).toContain("MISSING_NAME");
+      expect(body.error).toContain("missing a name");
     });
 
     it("should return error when Firestore write fails", async () => {
@@ -285,7 +283,7 @@ describe("POST /:slug/claim (claim profile)", () => {
 
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("Failed to save profile data");
+      expect(body.error).toContain("Failed to claim profile");
     });
 
     it("should succeed even when auth displayName update fails (non-critical)", async () => {

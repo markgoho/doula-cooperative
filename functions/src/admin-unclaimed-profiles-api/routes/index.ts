@@ -1,3 +1,4 @@
+export { attachImportedProfileLogic } from "./attach-imported-profile.js";
 export { changeEmailAndResendLogic } from "./change-email-and-resend.js";
 export { deleteUnclaimedProfileLogic } from "./delete-unclaimed-profile.js";
 export { getUnclaimedProfileLogic } from "./get-unclaimed-profile.js";

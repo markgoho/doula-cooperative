@@ -29,6 +29,9 @@ import {
   createStripeMemberDocument,
   createStripeMemberUpdate,
 } from "../utils/index.js";
+import { AuthUpdateService } from "../../profiles-api/services/auth-update/index.js";
+import { ClaimProfileFirestoreService } from "../../profiles-api/services/firestore/index.js";
+import { applyImportedMemberMerge } from "../../profiles-api/services/imported-member-merge/index.js";
 import type { CheckoutCompletedResult } from "./interface.js";
 
 /**
@@ -603,6 +606,36 @@ export async function processCheckoutCompleted(options: {
       });
       throw new StripeWebhookError("Unable to update membership", 500);
     }
+  }
+
+  const autoLinkResult = await applyImportedMemberMerge({
+    uid: userRecord.uid,
+    email: customerEmail,
+    emailService,
+    firestoreService: ClaimProfileFirestoreService,
+    authUpdateService: AuthUpdateService,
+    logger,
+    source: "stripe_webhook",
+  });
+
+  if (autoLinkResult.status === "merged") {
+    logger.info("Auto-linked imported member during Stripe checkout", {
+      uid: userRecord.uid,
+      email: customerEmail,
+      hasSlug: Boolean(autoLinkResult.mergedFields?.slug),
+    });
+  } else if (autoLinkResult.status === "not_found") {
+    logger.info("No exact imported member match found during Stripe checkout", {
+      uid: userRecord.uid,
+      email: customerEmail,
+    });
+  } else {
+    logger.error("Imported member record matched checkout email but could not be merged", {
+      uid: userRecord.uid,
+      email: customerEmail,
+      warning: autoLinkResult.warning,
+      errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
+    });
   }
 
   // Track non-critical operation results

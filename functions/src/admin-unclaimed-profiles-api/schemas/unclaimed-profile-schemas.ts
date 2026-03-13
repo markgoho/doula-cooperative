@@ -25,6 +25,33 @@ const ErrorResponseSchema = t.Object({
   error: t.String(),
 });
 
+export const AttachImportedProfileBodySchema = t.Object({
+  memberUid: t.String({
+    minLength: 1,
+    description: "The paid member UID to attach this imported profile to",
+  }),
+});
+
+const AttachImportedProfileSuccessSchema = t.Object({
+  success: t.Literal(true),
+  memberUid: t.String(),
+  email: t.String({ format: "email" }),
+  status: t.Literal("merged"),
+});
+
+export type AttachImportedProfileSuccessResponse = Static<
+  typeof AttachImportedProfileSuccessSchema
+>;
+
+export const AttachImportedProfileResponseSchema = t.Union([
+  AttachImportedProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type AttachImportedProfileResponse = Static<
+  typeof AttachImportedProfileResponseSchema
+>;
+
 export const UnclaimedProfileResponseSchema = t.Union([
   UnclaimedProfileSuccessSchema,
   ErrorResponseSchema,

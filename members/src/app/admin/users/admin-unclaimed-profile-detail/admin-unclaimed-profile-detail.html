@@ -126,6 +126,33 @@
     </dl>
 
     <div class="actions">
+      <h3>Manual Attach</h3>
+      <app-alert-banner variant="info">
+        If this paid member used a different checkout email, attach this imported legacy record to an
+        existing member UID instead of inviting them to claim it.
+      </app-alert-banner>
+      <label for="member-uid-attach">Paid Member UID</label>
+      <input
+        id="member-uid-attach"
+        type="text"
+        [ngModel]="service.attachMemberUid()"
+        (ngModelChange)="service.attachMemberUid.set($event)"
+        placeholder="Enter existing paid member UID"
+        [disabled]="service.actionInProgress()"
+      />
+      <div class="action-buttons">
+        <button
+          type="button"
+          class="button"
+          (click)="attachImportedProfile()"
+          [disabled]="service.actionInProgress() || service.attachMemberUid().trim() === ''"
+        >
+          {{ service.actionInProgress() ? 'Processing...' : 'Attach to Paid Member' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="actions">
       <h3>Invitation Actions</h3>
       <app-alert-banner variant="info">
         Send an email invitation to this user to create an account and claim their membership.
