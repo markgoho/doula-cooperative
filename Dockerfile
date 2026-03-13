@@ -30,8 +30,8 @@ RUN git config --global --add safe.directory /__w/doula-cooperative/doula-cooper
   git config --system --add safe.directory /__w/doula-cooperative/doula-cooperative && \
   git config --system --add core.quotepath false
 
-# Install Node.js 22.x (required by Firebase Functions)
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+# Install Node.js 24.x (required by Firebase Functions)
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
   && apt-get install -y nodejs
 
 # 2. Install Bun
