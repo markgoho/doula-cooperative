@@ -15,15 +15,10 @@ export class AdminUnclaimedProfileDetailPage {
   readonly sectionHeading: Locator;
 
   // Actions (reused across tests)
-  readonly sendInvitationButton: Locator;
   readonly deleteProfileButton: Locator;
-  readonly changeEmailButton: Locator;
   readonly updateEmailButton: Locator;
 
   // Change email form
-  readonly newEmailInput: Locator;
-  readonly confirmChangeButton: Locator;
-  readonly cancelChangeButton: Locator;
 
   // Update email form
   readonly updateEmailInput: Locator;
@@ -45,19 +40,7 @@ export class AdminUnclaimedProfileDetailPage {
       level: 2,
     });
 
-    this.sendInvitationButton = page.getByRole('button', {
-      name: /^(Send Invitation|Invitation Already Sent|Processing\.\.\.)$/,
-    });
     this.deleteProfileButton = page.getByRole('button', { name: /Delete Profile/ });
-    this.changeEmailButton = page.getByRole('button', {
-      name: 'Change Email & Resend Invitation',
-    });
-
-    // Change email form
-    this.newEmailInput = page.getByLabel('New Email Address');
-    this.confirmChangeButton = page.getByRole('button', { name: 'Confirm Change & Resend' });
-    this.cancelChangeButton = page.getByRole('button', { name: 'Cancel' });
-
     // Update email form
     this.updateEmailButton = page.getByRole('button', { name: 'Update Email' });
     this.updateEmailInput = page.getByLabel('New Email Address');
@@ -76,16 +59,6 @@ export class AdminUnclaimedProfileDetailPage {
 
   async waitForProfileDetails(): Promise<void> {
     await this.sectionHeading.waitFor({ state: 'visible' });
-  }
-
-  async sendInvitation(): Promise<void> {
-    await this.sendInvitationButton.click();
-  }
-
-  async fillAndSubmitChangeEmail(newEmail: string): Promise<void> {
-    await this.changeEmailButton.click();
-    await this.newEmailInput.fill(newEmail);
-    await this.confirmChangeButton.click();
   }
 
   async fillAndSubmitUpdateEmail(newEmail: string): Promise<void> {

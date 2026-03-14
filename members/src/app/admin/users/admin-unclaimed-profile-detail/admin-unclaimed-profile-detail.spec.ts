@@ -93,92 +93,6 @@ describe('AdminUnclaimedProfileDetail', () => {
     expect(nextPaymentValue).toHaveTextContent('—');
   });
 
-  it('should display "Not Sent" status when no invitation sent', async () => {
-    // Arrange & Act
-    await setup(); // Default has invitationEmailStatus: 'pending'
-
-    // Assert
-    expect(await screen.findByText('Not Sent')).toBeVisible();
-  });
-
-  it('should display "Sent" status with date when invitation sent', async () => {
-    // Arrange & Act
-    await setup({
-      invitationEmailStatus: 'sent',
-      invitationEmailSentAt: Timestamp.fromDate(new Date('2024-01-20T10:00:00')),
-    });
-
-    // Assert
-    expect(await screen.findByText(/Sent.*Jan 20, 2024/)).toBeVisible();
-  });
-
-  it('should display "Failed" status with error when invitation failed', async () => {
-    // Arrange & Act
-    await setup({
-      invitationEmailStatus: 'failed',
-      invitationEmailError: 'Invalid email address',
-    });
-
-    // Assert
-    expect(await screen.findByText('Failed')).toBeVisible();
-    expect(screen.getByText('Invalid email address')).toBeVisible();
-  });
-
-  it('should enable Send Invitation button when invitation not sent', async () => {
-    // Arrange & Act
-    await setup(); // Default has invitationEmailStatus: 'pending'
-
-    // Assert
-    const button = await screen.findByRole('button', { name: 'Send Invitation' });
-    expect(button).toBeVisible();
-    expect(button).toBeEnabled();
-  });
-
-  it('should disable Send Invitation button when invitation already sent', async () => {
-    // Arrange & Act
-    await setup({ invitationEmailStatus: 'sent' });
-
-    // Assert
-    const button = await screen.findByRole('button', { name: 'Invitation Already Sent' });
-    expect(button).toBeVisible();
-    expect(button).toBeDisabled();
-  });
-
-  it('should show success message after sending invitation', async () => {
-    // Arrange
-    const { user } = await setup(); // Default has invitationEmailStatus: 'pending'
-
-    expect(await screen.findByRole('button', { name: 'Send Invitation' })).toBeVisible();
-
-    // Act
-    const sendButton = screen.getByRole('button', { name: 'Send Invitation' });
-    await user.click(sendButton);
-
-    // Assert
-    expect(await screen.findByText('Invitation sent successfully')).toBeVisible();
-  });
-
-  it('should show error message when sending invitation fails', async () => {
-    // Suppress console.error during this test
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-      // Intentionally empty - we're just suppressing console output in tests
-    });
-
-    // Arrange
-    const { user } = await setup({ shouldFailSendInvitation: true });
-
-    expect(await screen.findByRole('button', { name: 'Send Invitation' })).toBeVisible();
-
-    // Act
-    const sendButton = screen.getByRole('button', { name: 'Send Invitation' });
-    await user.click(sendButton);
-
-    // Assert
-    expect(await screen.findByText('Failed to send invitation.')).toBeVisible();
-
-    consoleErrorSpy.mockRestore();
-  });
-
   it('should display error message when loading fails', async () => {
     // Suppress console.error during this test
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
@@ -196,151 +110,13 @@ describe('AdminUnclaimedProfileDetail', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('should show processing state while sending invitation', async () => {
-    // Arrange
-    const { user, resolveSendInvitationPromise } = await setup({
-      shouldKeepSendingInvitation: true,
-    });
-
-    expect(await screen.findByRole('button', { name: 'Send Invitation' })).toBeVisible();
-
-    // Act
-    const sendButton = screen.getByRole('button', { name: 'Send Invitation' });
-    await user.click(sendButton);
-
-    // Assert - button should show processing state
-    expect(await screen.findByRole('button', { name: 'Processing...' })).toBeVisible();
-
-    // Clean up - resolve the promise with proper response
-    resolveSendInvitationPromise({ success: true });
-  });
-
-  it('should show Change Email button when invitation already sent', async () => {
-    // Arrange & Act
-    await setup({ invitationEmailStatus: 'sent' });
-
-    // Assert
-    const button = await screen.findByRole('button', {
-      name: 'Change Email & Resend Invitation',
-    });
-    expect(button).toBeVisible();
-  });
-
-  it('should not show Change Email button when invitation not sent', async () => {
-    // Arrange & Act
-    await setup();
-
-    // Assert
-    await screen.findByRole('button', { name: 'Send Invitation' });
-    expect(
-      screen.queryByRole('button', { name: 'Change Email & Resend Invitation' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('should show email input form when Change Email button clicked', async () => {
-    // Arrange
-    const { user } = await setup({ invitationEmailStatus: 'sent' });
-
-    const changeButton = await screen.findByRole('button', {
-      name: 'Change Email & Resend Invitation',
-    });
-
-    // Act
-    await user.click(changeButton);
-
-    // Assert
-    expect(screen.getByLabelText('New Email Address')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Confirm Change & Resend' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-  });
-
-  it('should hide form when Cancel clicked', async () => {
-    // Arrange
-    const { user } = await setup({ invitationEmailStatus: 'sent' });
-
-    const changeButton = await screen.findByRole('button', {
-      name: 'Change Email & Resend Invitation',
-    });
-    await user.click(changeButton);
-    expect(screen.getByLabelText('New Email Address')).toBeVisible();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-
-    // Assert
-    expect(screen.queryByLabelText('New Email Address')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Change Email & Resend Invitation' })).toBeVisible();
-  });
-
-  it('should disable Confirm button when email input is empty', async () => {
-    // Arrange
-    const { user } = await setup({ invitationEmailStatus: 'sent' });
-
-    const changeButton = await screen.findByRole('button', {
-      name: 'Change Email & Resend Invitation',
-    });
-
-    // Act
-    await user.click(changeButton);
-
-    // Assert
-    expect(screen.getByRole('button', { name: 'Confirm Change & Resend' })).toBeDisabled();
-  });
-
-  it('should navigate to new email route after successful change', async () => {
-    // Arrange
-    const { component, router, mockService } = await setup({ invitationEmailStatus: 'sent' });
-    mockService.changeEmailAndResend.mockResolvedValue('new@example.com');
-
-    const instance = component.fixture.componentInstance as unknown as {
-      newEmailValue: { set(value: string): void };
-      changeEmailAndResend(): Promise<void>;
-    };
-    instance.newEmailValue.set('new@example.com');
-
-    // Act
-    await instance.changeEmailAndResend();
-
-    // Assert
-    expect(router.navigate).toHaveBeenCalledWith(['/admin/unclaimed', 'new@example.com']);
-  });
-
-  it('should not navigate when change email fails', async () => {
-    // Arrange
-    const { component, router } = await setup({
-      invitationEmailStatus: 'sent',
-      shouldFailChangeEmail: true,
-    });
-
-    const instance = component.fixture.componentInstance as unknown as {
-      newEmailValue: { set(value: string): void };
-      changeEmailAndResend(): Promise<void>;
-    };
-    instance.newEmailValue.set('new@example.com');
-
-    // Act
-    await instance.changeEmailAndResend();
-
-    // Assert
-    expect(router.navigate).not.toHaveBeenCalled();
-  });
-
-  it('should show Update Email button when invitation not sent', async () => {
+  it('should show Update Email button', async () => {
     // Arrange & Act
     await setup();
 
     // Assert
     const button = await screen.findByRole('button', { name: 'Update Email' });
     expect(button).toBeVisible();
-  });
-
-  it('should not show Update Email button when invitation already sent', async () => {
-    // Arrange & Act
-    await setup({ invitationEmailStatus: 'sent' });
-
-    // Assert
-    await screen.findByRole('button', { name: 'Invitation Already Sent' });
-    expect(screen.queryByRole('button', { name: 'Update Email' })).not.toBeInTheDocument();
   });
 
   it('should show update email form when Update Email button clicked', async () => {
@@ -427,17 +203,11 @@ interface SetupOptions {
   email?: string;
   profile?: UnclaimedProfile;
   slug?: string | undefined;
-  invitationEmailStatus?: 'pending' | 'sent' | 'failed';
-  invitationEmailSentAt?: typeof Timestamp.prototype;
-  invitationEmailError?: string;
   lastPayment?: typeof Timestamp.prototype | undefined;
   nextPayment?: typeof Timestamp.prototype | undefined;
   shouldFailLoad?: boolean;
-  shouldFailSendInvitation?: boolean;
-  shouldFailChangeEmail?: boolean;
   shouldFailUpdateEmail?: boolean;
   shouldKeepLoading?: boolean;
-  shouldKeepSendingInvitation?: boolean;
   errorMessage?: string;
 }
 
@@ -446,17 +216,11 @@ async function setup(options: SetupOptions = {}) {
     email = 'test@example.com',
     profile,
     slug,
-    invitationEmailStatus,
-    invitationEmailSentAt,
-    invitationEmailError,
     lastPayment,
     nextPayment,
     shouldFailLoad = false,
-    shouldFailSendInvitation = false,
-    shouldFailChangeEmail = false,
     shouldFailUpdateEmail = false,
     shouldKeepLoading = false,
-    shouldKeepSendingInvitation = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
   } = options;
 
@@ -467,9 +231,6 @@ async function setup(options: SetupOptions = {}) {
     ({
       ...baseProfile,
       ...('slug' in options ? { slug } : {}),
-      ...('invitationEmailStatus' in options ? { invitationEmailStatus } : {}),
-      ...('invitationEmailSentAt' in options ? { invitationEmailSentAt } : {}),
-      ...('invitationEmailError' in options ? { invitationEmailError } : {}),
       ...('lastPayment' in options ? { lastPayment } : {}),
       ...('nextPayment' in options ? { nextPayment } : {}),
     } as UnclaimedProfile);
@@ -494,34 +255,8 @@ async function setup(options: SetupOptions = {}) {
     return Promise.resolve(finalProfile);
   });
 
-  let resolveSendInvitationPromise: (value: { success: boolean; warning?: string }) => void;
-  const pendingSendInvitationPromise = new Promise<{ success: boolean; warning?: string }>(
-    (resolve) => {
-      resolveSendInvitationPromise = resolve;
-    },
-  );
-
-  const sendInvitation = vi.fn().mockImplementation(() => {
-    if (shouldKeepSendingInvitation) {
-      return pendingSendInvitationPromise;
-    }
-
-    if (shouldFailSendInvitation) {
-      return Promise.reject(new Error('Failed'));
-    }
-
-    return Promise.resolve({ success: true });
-  });
-
   const mockAdminMembersService = {
     getUnclaimedProfile,
-    sendInvitation,
-    changeEmailAndResend: vi.fn().mockImplementation(() => {
-      if (shouldFailChangeEmail) {
-        return Promise.reject(new Error('Failed'));
-      }
-      return Promise.resolve({ success: true });
-    }),
     updateEmail: vi.fn().mockImplementation(() => {
       if (shouldFailUpdateEmail) {
         return Promise.reject(new Error('Failed'));
@@ -544,28 +279,6 @@ async function setup(options: SetupOptions = {}) {
     successMessage: signal<string | undefined>(undefined),
     actionError: signal<string | undefined>(undefined),
     init: vi.fn(),
-    sendInvitation: vi.fn().mockImplementation(async () => {
-      if (shouldKeepSendingInvitation) {
-        return pendingSendInvitationPromise;
-      }
-      if (shouldFailSendInvitation) {
-        throw new Error('Failed');
-      }
-      mockService.successMessage.set('Invitation sent successfully');
-      return;
-    }),
-    changeEmailAndResend: vi
-      .fn()
-      .mockImplementation(async (_oldEmail: string, newEmail: string) => {
-        if (shouldFailChangeEmail) {
-          mockService.actionError.set('Failed to change email and resend invitation.');
-          return;
-        }
-        mockService.successMessage.set(
-          `Email changed to ${newEmail} and invitation resent successfully`,
-        );
-        return newEmail;
-      }),
     updateEmail: vi.fn().mockImplementation(async (_oldEmail: string, newEmail: string) => {
       if (shouldFailUpdateEmail) {
         mockService.actionError.set('Failed to update email.');
@@ -597,7 +310,6 @@ async function setup(options: SetupOptions = {}) {
     user,
     component,
     resolveProfilePromise: resolveProfilePromise!,
-    resolveSendInvitationPromise: resolveSendInvitationPromise!,
     mockAdminMembersService,
     mockService,
     router,
@@ -610,7 +322,6 @@ function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): 
     name: 'Test User',
     slug: 'test-user',
     subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
-    invitationEmailStatus: 'pending',
     ...overrides,
   };
 }

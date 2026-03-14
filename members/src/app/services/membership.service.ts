@@ -12,9 +12,6 @@ interface MigratedUserData {
   slug?: string;
   membershipActive?: boolean;
   membershipExpiresAt?: Timestamp;
-  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
-  invitationEmailSentAt?: Timestamp;
-  invitationEmailError?: string;
 }
 
 export interface UnclaimedProfile {

@@ -1,11 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { IMPORT_COLLECTION } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/index.js";
-import {
-  ConflictError,
-  HttpError,
-  NotFoundError,
-} from "../../shared-api/errors/http-error.js";
+import { ConflictError, HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 
 interface UpdateEmailOptions {
@@ -15,14 +11,9 @@ interface UpdateEmailOptions {
 }
 
 /**
- * Update the email address on an unclaimed profile (pre-invitation only).
+ * Update the email address on an unclaimed profile.
  *
- * This is a simpler operation than changeEmailAndResend — it only moves the
- * Firestore document to a new email (new doc ID). No auth cleanup, no invitation.
- *
- * Guards:
- * - Rejects if the profile has already been invited (invitationEmailStatus === 'sent'
- *   or invitedUserUid exists). In that case, use changeEmailAndResend instead.
+ * This moves the Firestore document to a new email (new doc ID).
  */
 export async function updateEmail({
   oldEmail,
@@ -60,26 +51,6 @@ export async function updateEmail({
 
   const oldProfileData = oldProfileDocument.data() as Record<string, unknown>;
 
-  const invitationEmailStatus = oldProfileData["invitationEmailStatus"] as
-    | string
-    | undefined;
-  const invitedUserUid = oldProfileData["invitedUserUid"] as string | undefined;
-
-  if (invitationEmailStatus === "sent" || invitedUserUid !== undefined) {
-    logger.error(
-      "Cannot use simple email update on profile that has already been invited",
-      {
-        errorId: ERROR_IDS.ADMIN_UPDATE_EMAIL_ALREADY_INVITED,
-        oldEmail,
-        invitationEmailStatus,
-        hasInvitedUserUid: invitedUserUid !== undefined,
-      },
-    );
-    throw new ConflictError(
-      "This profile has already been invited. Use 'Change Email & Resend' instead.",
-    );
-  }
-
   const newProfileReference = firestore
     .collection(IMPORT_COLLECTION)
     .doc(newEmail);
@@ -104,7 +75,7 @@ export async function updateEmail({
 
     await oldProfileReference.delete();
 
-    logger.info("Updated unclaimed profile email (pre-invitation)", {
+    logger.info("Updated unclaimed profile email", {
       oldEmail,
       newEmail,
     });

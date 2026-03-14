@@ -194,20 +194,11 @@ export class AdminMembersService {
         name: profile.name,
         subscriptionStart: this.toTimestamp(profile.subscriptionStart),
         ...(profile.slug !== undefined && { slug: profile.slug }),
-        ...(profile.invitationEmailStatus !== undefined && {
-          invitationEmailStatus: profile.invitationEmailStatus,
-        }),
-        ...(profile.invitationEmailError !== undefined && {
-          invitationEmailError: profile.invitationEmailError,
-        }),
         ...(profile.lastPayment !== undefined && {
           lastPayment: this.toTimestamp(profile.lastPayment),
         }),
         ...(profile.nextPayment !== undefined && {
           nextPayment: this.toTimestamp(profile.nextPayment),
-        }),
-        ...(profile.invitationEmailSentAt !== undefined && {
-          invitationEmailSentAt: this.toTimestamp(profile.invitationEmailSentAt),
         }),
       };
 
@@ -224,33 +215,10 @@ export class AdminMembersService {
     }
   }
 
-  async sendInvitation(email: string): Promise<{ success: boolean; warning?: string }> {
-    // Authorization header added automatically by authInterceptor
-    return firstValueFrom(
-      this.httpClient.post<{ success: boolean; warning?: string }>(
-        `/api/admin/unclaimed-profiles/${email}/invitation`,
-        {},
-      ),
-    );
-  }
-
   async deleteUnclaimedProfile(email: string): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
       this.httpClient.delete<{ success: boolean }>(`/api/admin/unclaimed-profiles/${email}`),
-    );
-  }
-
-  async changeEmailAndResend(
-    email: string,
-    newEmail: string,
-  ): Promise<{ success: boolean; warning?: string }> {
-    // Authorization header added automatically by authInterceptor
-    return firstValueFrom(
-      this.httpClient.post<{ success: boolean; warning?: string }>(
-        `/api/admin/unclaimed-profiles/${email}/change-email`,
-        { newEmail },
-      ),
     );
   }
 

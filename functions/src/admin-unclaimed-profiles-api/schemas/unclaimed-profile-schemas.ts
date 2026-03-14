@@ -8,11 +8,6 @@ const UnclaimedProfileSuccessSchema = t.Object({
   subscriptionStart: t.String({ format: "date-time" }),
   lastPayment: t.String({ format: "date-time" }),
   nextPayment: t.String({ format: "date-time" }),
-  invitationEmailStatus: t.Optional(
-    t.Union([t.Literal("sent"), t.Literal("failed"), t.Literal("pending")]),
-  ),
-  invitationEmailSentAt: t.Optional(t.String({ format: "date-time" })),
-  invitationEmailError: t.Optional(t.String()),
   createdAt: t.Optional(t.String({ format: "date-time" })),
   updatedAt: t.Optional(t.String({ format: "date-time" })),
 });
@@ -64,57 +59,12 @@ export const EmailParameterSchema = t.Object({
   }),
 });
 
-const SendInvitationSuccessSchema = t.Object({
-  success: t.Boolean(),
-  warning: t.Optional(
-    t.String({
-      description: "Warning message if email sent but tracking update failed",
-    }),
-  ),
-});
-
-export type SendInvitationSuccessResponse = Static<
-  typeof SendInvitationSuccessSchema
->;
-
-export const SendInvitationResponseSchema = t.Union([
-  SendInvitationSuccessSchema,
-  ErrorResponseSchema,
-]);
-
-export type SendInvitationResponse = Static<
-  typeof SendInvitationResponseSchema
->;
-
 export const ChangeEmailBodySchema = t.Object({
   newEmail: t.String({
     format: "email",
     description: "The new email address for the unclaimed profile",
   }),
 });
-
-const ChangeEmailAndResendSuccessSchema = t.Object({
-  success: t.Boolean(),
-  warning: t.Optional(
-    t.String({
-      description:
-        "Warning message if email changed but resend had partial issues",
-    }),
-  ),
-});
-
-export type ChangeEmailAndResendSuccessResponse = Static<
-  typeof ChangeEmailAndResendSuccessSchema
->;
-
-export const ChangeEmailAndResendResponseSchema = t.Union([
-  ChangeEmailAndResendSuccessSchema,
-  ErrorResponseSchema,
-]);
-
-export type ChangeEmailAndResendResponse = Static<
-  typeof ChangeEmailAndResendResponseSchema
->;
 
 const UpdateEmailSuccessSchema = t.Object({
   success: t.Literal(true),
@@ -178,17 +128,6 @@ export function toUnclaimedProfileResponse(
     subscriptionStart: document.subscriptionStart.toDate().toISOString(),
     lastPayment: document.lastPayment.toDate().toISOString(),
     nextPayment: document.nextPayment.toDate().toISOString(),
-    ...(document.invitationEmailStatus !== undefined && {
-      invitationEmailStatus: document.invitationEmailStatus,
-    }),
-    ...(document.invitationEmailSentAt !== undefined && {
-      invitationEmailSentAt: document.invitationEmailSentAt
-        .toDate()
-        .toISOString(),
-    }),
-    ...(document.invitationEmailError !== undefined && {
-      invitationEmailError: document.invitationEmailError,
-    }),
     ...(document.createdAt !== undefined && {
       createdAt: document.createdAt.toDate().toISOString(),
     }),

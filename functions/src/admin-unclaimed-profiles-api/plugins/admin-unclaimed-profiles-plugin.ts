@@ -6,23 +6,19 @@ import { adminDerive } from "../../shared-api/utils/admin-derive.js";
 import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
-  changeEmailAndResendLogic,
   deleteUnclaimedProfileLogic,
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
   refreshPaymentDatesLogic,
-  sendInvitationLogic,
   updateEmailLogic,
 } from "../routes/index.js";
 import {
-  ChangeEmailAndResendResponseSchema,
   ChangeEmailBodySchema,
   DeleteUnclaimedProfileResponseSchema,
   EmailParameterSchema,
   ListUnclaimedProfilesQuerySchema,
   ListUnclaimedProfilesResponseSchema,
   RefreshPaymentDatesResponseSchema,
-  SendInvitationResponseSchema,
   UnclaimedProfileResponseSchema,
   UpdateEmailResponseSchema,
 } from "../schemas/unclaimed-profile-schemas.js";
@@ -113,58 +109,7 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
           response: UnclaimedProfileResponseSchema,
         },
       )
-      // POST /:email/invitation - Send invitation email to unclaimed profile
-      .post(
-        "/:email/invitation",
-        async ({
-          params,
-          adminToken,
-          unclaimedProfileAdminService,
-          emailService,
-          logger,
-          set,
-        }) =>
-          sendInvitationLogic({
-            email: params.email,
-            adminUid: getAdminUid(adminToken, logger),
-            unclaimedProfileAdminService,
-            emailService,
-            logger,
-            set,
-          }),
-        {
-          params: EmailParameterSchema,
-          response: SendInvitationResponseSchema,
-        },
-      )
-      // POST /:email/change-email - Change email and resend invitation
-      .post(
-        "/:email/change-email",
-        async ({
-          params,
-          body,
-          adminToken,
-          unclaimedProfileAdminService,
-          emailService,
-          logger,
-          set,
-        }) =>
-          changeEmailAndResendLogic({
-            oldEmail: params.email,
-            newEmail: body.newEmail,
-            adminUid: getAdminUid(adminToken, logger),
-            unclaimedProfileAdminService,
-            emailService,
-            logger,
-            set,
-          }),
-        {
-          params: EmailParameterSchema,
-          body: ChangeEmailBodySchema,
-          response: ChangeEmailAndResendResponseSchema,
-        },
-      )
-      // PATCH /:email - Update email (pre-invitation only)
+      // PATCH /:email - Update email
       .patch(
         "/:email",
         async ({

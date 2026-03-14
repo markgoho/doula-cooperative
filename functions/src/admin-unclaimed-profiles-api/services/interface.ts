@@ -1,11 +1,9 @@
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
-  ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   RefreshPaymentDatesSuccessResponse,
-  SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 
@@ -20,19 +18,6 @@ export interface UnclaimedProfileAdminService {
     email: string;
     logger: Logger;
   }): Promise<UnclaimedProfileSuccessResponse>;
-
-  sendInvitation(options: {
-    email: string;
-    emailService: EmailServiceInterface;
-    logger: Logger;
-  }): Promise<SendInvitationSuccessResponse>;
-
-  changeEmailAndResend(options: {
-    oldEmail: string;
-    newEmail: string;
-    emailService: EmailServiceInterface;
-    logger: Logger;
-  }): Promise<ChangeEmailAndResendSuccessResponse>;
 
   updateEmail(options: {
     oldEmail: string;

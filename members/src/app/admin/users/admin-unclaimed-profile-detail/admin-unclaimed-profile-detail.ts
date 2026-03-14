@@ -29,12 +29,6 @@ export class AdminUnclaimedProfileDetail {
 
   protected confirmDialog = viewChild(ConfirmDialog);
 
-  protected invitationAlreadySent = computed(() => {
-    const resource = this.service.unclaimedProfileResource;
-    if (!resource.hasValue()) return false;
-    return resource.value().invitationEmailStatus === 'sent';
-  });
-
   protected deleteConfirmMessage = computed(() => {
     const resource = this.service.unclaimedProfileResource;
     if (resource.hasValue() && resource.value().slug) {
@@ -43,18 +37,11 @@ export class AdminUnclaimedProfileDetail {
     return 'This will remove the unclaimed profile and unsubscribe from the newsletter.';
   });
 
-  protected showChangeEmailForm = signal(false);
-  protected newEmailValue = signal('');
-
   protected showUpdateEmailForm = signal(false);
   protected updateEmailValue = signal('');
 
   constructor() {
     this.service.init(this.email);
-  }
-
-  protected async sendInvitation(): Promise<void> {
-    await this.service.sendInvitation(this.email());
   }
 
   protected showDeleteConfirm(): void {
@@ -74,13 +61,6 @@ export class AdminUnclaimedProfileDetail {
 
   protected onCancelDelete(): void {
     this.confirmDialog()?.close();
-  }
-
-  protected async changeEmailAndResend(): Promise<void> {
-    const newEmail = await this.service.changeEmailAndResend(this.email(), this.newEmailValue());
-    if (newEmail !== undefined) {
-      await this.router.navigate(['/admin/unclaimed', newEmail]);
-    }
   }
 
   protected async updateEmail(): Promise<void> {

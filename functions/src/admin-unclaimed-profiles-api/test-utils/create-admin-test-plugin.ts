@@ -9,11 +9,9 @@ import {
 } from "../../test-utils/auth-mocks.js";
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
 import type {
-  ChangeEmailAndResendSuccessResponse,
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   RefreshPaymentDatesSuccessResponse,
-  SendInvitationSuccessResponse,
   UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
@@ -33,14 +31,6 @@ export function createAdminTestPlugin(overrides?: {
     ),
     getUnclaimedProfile: mock(() =>
       Promise.resolve({} as UnclaimedProfileSuccessResponse),
-    ),
-    sendInvitation: mock(() =>
-      Promise.resolve({ success: true } as SendInvitationSuccessResponse),
-    ),
-    changeEmailAndResend: mock(() =>
-      Promise.resolve({
-        success: true,
-      } as ChangeEmailAndResendSuccessResponse),
     ),
     updateEmail: mock(() =>
       Promise.resolve({

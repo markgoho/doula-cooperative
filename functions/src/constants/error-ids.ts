@@ -54,36 +54,6 @@ export const ERROR_IDS = {
   STRIPE_WEBHOOK_MAILERLITE_NOTIFICATION_FAILED:
     "stripe_webhook_mailerlite_notification_failed",
 
-  // Admin send invitation errors
-  ADMIN_SEND_INVITATION_INVALID_EMAIL: "admin_send_invitation_invalid_email",
-  ADMIN_SEND_INVITATION_MEMBER_NOT_FOUND:
-    "admin_send_invitation_member_not_found",
-  ADMIN_SEND_INVITATION_NO_SUBSCRIPTION:
-    "admin_send_invitation_no_subscription",
-  ADMIN_SEND_INVITATION_EMAIL_FAILED: "admin_send_invitation_email_failed",
-  ADMIN_SEND_INVITATION_TRACKING_FAILED:
-    "admin_send_invitation_tracking_failed",
-  ADMIN_SEND_INVITATION_FIRESTORE_UPDATE_FAILED:
-    "admin_send_invitation_firestore_update_failed",
-  ADMIN_SEND_INVITATION_AUTH_LOOKUP_FAILED:
-    "admin_send_invitation_auth_lookup_failed",
-  ADMIN_SEND_INVITATION_AUTH_CREATE_FAILED:
-    "admin_send_invitation_auth_create_failed",
-  ADMIN_SEND_INVITATION_MEMBER_DOC_FAILED:
-    "admin_send_invitation_member_doc_failed",
-  ADMIN_SEND_INVITATION_CLEANUP_FAILED: "admin_send_invitation_cleanup_failed",
-  ADMIN_SEND_INVITATION_CLAIM_FAILED: "admin_send_invitation_claim_failed",
-  ADMIN_SEND_INVITATION_RESET_LINK_FAILED:
-    "admin_send_invitation_reset_link_failed",
-
-  // Admin change email and resend errors
-  ADMIN_CHANGE_EMAIL_INVALID_EMAIL: "admin_change_email_invalid_email",
-  ADMIN_CHANGE_EMAIL_PROFILE_NOT_FOUND: "admin_change_email_profile_not_found",
-  ADMIN_CHANGE_EMAIL_NEW_EMAIL_EXISTS: "admin_change_email_new_email_exists",
-  ADMIN_CHANGE_EMAIL_CLEANUP_FAILED: "admin_change_email_cleanup_failed",
-  ADMIN_CHANGE_EMAIL_MOVE_FAILED: "admin_change_email_move_failed",
-  ADMIN_CHANGE_EMAIL_RESEND_FAILED: "admin_change_email_resend_failed",
-
   // Write profile errors
   WRITE_PROFILE_METADATA_PARSE_FAILED: "write_profile_metadata_parse_failed",
   WRITE_PROFILE_PROCESSING_ERROR: "write_profile_processing_error",
@@ -236,16 +206,14 @@ export const ERROR_IDS = {
   API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED:
     "api_admin_delete_unclaimed_profile_draft_failed",
   API_UNCLAIMED_PROFILE_NOT_FOUND: "api_unclaimed_profile_not_found",
-  API_ADMIN_CHANGE_EMAIL_FAILED: "api_admin_change_email_failed",
   API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",
   API_ADMIN_REFRESH_PAYMENT_DATES_FAILED:
     "api_admin_refresh_payment_dates_failed",
 
-  // Admin update email (pre-invitation) errors
+  // Admin update email errors
   ADMIN_UPDATE_EMAIL_INVALID_EMAIL: "admin_update_email_invalid_email",
   ADMIN_UPDATE_EMAIL_PROFILE_NOT_FOUND: "admin_update_email_profile_not_found",
   ADMIN_UPDATE_EMAIL_NEW_EMAIL_EXISTS: "admin_update_email_new_email_exists",
-  ADMIN_UPDATE_EMAIL_ALREADY_INVITED: "admin_update_email_already_invited",
   ADMIN_UPDATE_EMAIL_MOVE_FAILED: "admin_update_email_move_failed",
 
   // Specific admin error scenarios

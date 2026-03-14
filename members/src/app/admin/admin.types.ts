@@ -10,9 +10,6 @@ export interface UnclaimedProfile {
   lastPayment?: Timestamp;
   nextPayment?: Timestamp;
   slug?: string;
-  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
-  invitationEmailSentAt?: Timestamp;
-  invitationEmailError?: string;
 }
 
 /**
