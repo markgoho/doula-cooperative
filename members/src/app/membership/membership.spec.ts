@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
 import {
+  type ClaimableProfile,
   type Member,
   MembershipService,
-  type UnclaimedProfile,
 } from '../services/membership.service';
 import { Membership } from './membership';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
@@ -830,7 +830,7 @@ interface SetupOptions {
   userEmailVerified?: boolean;
   hasUserDocument?: boolean;
   userDocument?: Partial<Member>;
-  claimableProfileData?: UnclaimedProfile;
+  claimableProfileData?: ClaimableProfile;
   claimableProfileError?: Error;
   signOutShouldFail?: boolean;
   claimProfileShouldFail?: boolean;

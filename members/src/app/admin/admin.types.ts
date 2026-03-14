@@ -1,7 +1,7 @@
 import { Timestamp } from '@angular/fire/firestore';
-import type { ApiMemberResponse } from '../api-types/members-api.types';
+import type { ApiMemberResponse } from '../api-types/api-member-response';
 
-export type Member = ApiMemberResponse;
+export type AdminMemberResponse = ApiMemberResponse;
 
 export interface UnclaimedProfile {
   email: string;
@@ -16,7 +16,7 @@ export interface UnclaimedProfile {
  * List members response - matches API but uses frontend Member type.
  */
 export interface ListMembersResponse {
-  members: Member[];
+  members: AdminMemberResponse[];
   total: number;
   warning?: string;
 }

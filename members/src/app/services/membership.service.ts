@@ -4,7 +4,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Auth, authState, type User } from '@angular/fire/auth';
 import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
-import { type ApiMemberResponse, type SubscriptionStatus } from '../api-types/members-api.types';
+import type { ApiMemberResponse } from '../api-types/api-member-response';
+import type { SubscriptionStatus } from '../api-types/subscription-status';
 
 interface MigratedUserData {
   name: string;
@@ -14,7 +15,7 @@ interface MigratedUserData {
   membershipExpiresAt?: Timestamp;
 }
 
-export interface UnclaimedProfile {
+export interface ClaimableProfile {
   name: string;
   subscriptionStart: Date;
   slug?: string;
@@ -92,7 +93,7 @@ export class MembershipService {
 
   async getClaimableProfileData(
     user: User | null | undefined,
-  ): Promise<UnclaimedProfile | undefined> {
+  ): Promise<ClaimableProfile | undefined> {
     if (user?.email && user.emailVerified) {
       const userDocumentReference = doc(this.firestore, `migrated_users_import/${user.email}`);
       const userDocument = await getDoc(userDocumentReference);
