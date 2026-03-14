@@ -114,13 +114,44 @@ async function sendMailerLiteFailureNotification({
   }
 }
 
-export interface ApplyImportedMemberMergeResult {
-  status: "merged" | "not_found" | "invalid_import_data";
-  mergedFields?: Partial<MemberDocument>;
-  importEmail?: string;
-  warning?: string;
-}
+type ImportedMemberMergeFields = Pick<
+  MemberDocument,
+  | "email"
+  | "subscriptionStart"
+  | "membershipActive"
+  | "membershipExpiresAt"
+  | "newsletterSubscribed"
+  | "newsletterSubscribedAt"
+  | "profileCreatedAt"
+> & {
+  name: string;
+  slug?: string;
+};
 
+export type ApplyImportedMemberMergeResult =
+  | {
+      status: "merged";
+      mergedFields: ImportedMemberMergeFields;
+      importEmail: string;
+      warning?: string;
+      newsletterHandledByMerge: true;
+    }
+  | {
+      status: "not_found";
+      importEmail: string;
+      warning?: string;
+    }
+  | {
+      status: "invalid_import_data";
+      importEmail: string;
+      warning?: string;
+    };
+
+/**
+ * Applies imported legacy member data to an existing member account and reports
+ * whether the merge succeeded, was not needed, or could not proceed because the
+ * imported record is incomplete.
+ */
 export async function applyImportedMemberMerge({
   uid,
   email,
@@ -205,21 +236,20 @@ export async function applyImportedMemberMerge({
     };
   }
 
-  const { subscriptionStart, createdAt, ...restOfProfileData } = profileData;
+  const { name, slug, subscriptionStart, createdAt } = profileData;
   const membershipExpiresAt = calculateExpirationDate(subscriptionStart);
 
-  const memberUpdate: Partial<MemberDocument> = {
-    ...restOfProfileData,
+  const memberUpdate: ImportedMemberMergeFields = {
+    email,
+    name,
+    ...(slug !== undefined && { slug }),
     subscriptionStart,
     membershipActive: true,
     membershipExpiresAt,
     newsletterSubscribed: true,
     newsletterSubscribedAt: Timestamp.now(),
+    ...(createdAt !== undefined && { profileCreatedAt: createdAt }),
   };
-
-  if (createdAt !== undefined) {
-    memberUpdate.profileCreatedAt = createdAt;
-  }
 
   await firestoreService.writeMemberDocument(uid, memberUpdate);
   logger.info("Successfully merged imported member data", {
@@ -231,6 +261,7 @@ export async function applyImportedMemberMerge({
   });
 
   const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
+  let warning: string | undefined;
   if (mailerliteApiKey) {
     try {
       const subscriberOptions: {
@@ -289,7 +320,7 @@ export async function applyImportedMemberMerge({
           email,
           source,
         });
-      } catch {
+      } catch (notificationError: unknown) {
         logger.error(
           "CRITICAL: Failed to send MailerLite failure notification during imported member merge",
           {
@@ -303,27 +334,66 @@ export async function applyImportedMemberMerge({
             actionRequired:
               "Check Sentry alerts immediately and manually add member to MailerLite",
             originalMailerLiteError: errorMessage,
+            notificationError,
           },
         );
       }
     }
+  } else if (process.env["FUNCTIONS_EMULATOR"]) {
+    logger.warn("MAILERLITE_API_KEY not configured - emulator mode, skipping newsletter sync", {
+      uid,
+      email,
+      source,
+    });
+  } else {
+    logger.error("CRITICAL: MAILERLITE_API_KEY not configured during imported member merge", {
+      errorId: ERROR_IDS.STRIPE_WEBHOOK_MAILERLITE_NOT_CONFIGURED,
+      uid,
+      email,
+      source,
+      severity: "CRITICAL",
+      actionRequired:
+        "Configure MAILERLITE_API_KEY in Firebase Functions secrets immediately",
+      impact: "Imported member merges will not sync newsletter subscriptions",
+    });
+    warning = "Newsletter not configured - manual signup required";
   }
 
-  try {
-    await authUpdateService.updateDisplayName(uid, profileData.name);
-    logger.info("Successfully updated displayName during imported member merge", {
-      uid,
-      email,
-      source,
-    });
-  } catch (authError) {
-    logger.error("Error updating auth displayName during imported member merge", {
-      errorId: ERROR_IDS.CLAIM_PROFILE_AUTH_UPDATE_FAILED,
-      email,
-      uid,
-      source,
-      error: authError,
-    });
+  if (warning === undefined) {
+    try {
+      await authUpdateService.updateDisplayName(uid, profileData.name);
+      logger.info("Successfully updated displayName during imported member merge", {
+        uid,
+        email,
+        source,
+      });
+    } catch (authError) {
+      logger.error("Error updating auth displayName during imported member merge", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_AUTH_UPDATE_FAILED,
+        email,
+        uid,
+        source,
+        error: authError,
+      });
+      warning = "Profile merged but display name update failed";
+    }
+  } else {
+    try {
+      await authUpdateService.updateDisplayName(uid, profileData.name);
+      logger.info("Successfully updated displayName during imported member merge", {
+        uid,
+        email,
+        source,
+      });
+    } catch (authError) {
+      logger.error("Error updating auth displayName during imported member merge", {
+        errorId: ERROR_IDS.CLAIM_PROFILE_AUTH_UPDATE_FAILED,
+        email,
+        uid,
+        source,
+        error: authError,
+      });
+    }
   }
 
   try {
@@ -341,11 +411,14 @@ export async function applyImportedMemberMerge({
       source,
       error: deleteError,
     });
+    warning = warning ?? "Profile merged but import record cleanup failed";
   }
 
   return {
     status: "merged",
     mergedFields: memberUpdate,
     importEmail: email,
+    ...(warning !== undefined && { warning }),
+    newsletterHandledByMerge: true,
   };
 }

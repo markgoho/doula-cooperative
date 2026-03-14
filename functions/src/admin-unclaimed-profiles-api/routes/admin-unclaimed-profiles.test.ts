@@ -213,6 +213,111 @@ describe("Admin Unclaimed Profiles API", () => {
     });
   });
 
+  describe("POST /:email/attach", () => {
+    interface SetupOptions {
+      email?: string;
+      memberUid?: string;
+      authToken?: string | null;
+      profileNotFound?: boolean;
+      invalidImportData?: boolean;
+    }
+
+    function setup({
+      email = "test@example.com",
+      memberUid = "paid-member-123",
+      authToken = "admin-token",
+      profileNotFound = false,
+      invalidImportData = false,
+    }: SetupOptions = {}) {
+      const mockAttachImportedProfile = mock(() => {
+        if (profileNotFound) {
+          throw new NotFoundError("Imported legacy record not found.");
+        }
+        if (invalidImportData) {
+          throw new HttpError(
+            "Imported legacy record is missing required data. Please review it before attaching.",
+            500,
+          );
+        }
+        return Promise.resolve({
+          success: true,
+          memberUid,
+          email,
+          status: "merged" as const,
+        });
+      });
+
+      const testApp = createAdminTestPlugin({
+        unclaimedProfileAdminService: {
+          attachImportedProfile: mockAttachImportedProfile,
+        },
+      });
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      const request = new Request(`http://localhost/${email}/attach`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ memberUid }),
+      });
+
+      return { testApp, request };
+    }
+
+    it("should return 401 when not authenticated", async () => {
+      const { testApp, request } = setup({ authToken: null });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(401);
+    });
+
+    it("should attach imported profile when authenticated", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success: boolean;
+        memberUid: string;
+        email: string;
+        status: string;
+      };
+      expect(body.success).toBe(true);
+      expect(body.memberUid).toBe("paid-member-123");
+      expect(body.email).toBe("test@example.com");
+      expect(body.status).toBe("merged");
+    });
+
+    it("should return 404 when imported profile is missing", async () => {
+      const { testApp, request } = setup({ profileNotFound: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(404);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Imported legacy record not found.");
+    });
+
+    it("should return 500 when imported profile data is invalid", async () => {
+      const { testApp, request } = setup({ invalidImportData: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe(
+        "Imported legacy record is missing required data. Please review it before attaching.",
+      );
+    });
+  });
+
   describe("POST /:email/invitation (send invitation)", () => {
     interface SetupOptions {
       // Request parameters

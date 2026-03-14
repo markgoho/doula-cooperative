@@ -608,41 +608,69 @@ export async function processCheckoutCompleted(options: {
     }
   }
 
-  const autoLinkResult = await applyImportedMemberMerge({
-    uid: userRecord.uid,
-    email: customerEmail,
-    emailService,
-    firestoreService: ClaimProfileFirestoreService,
-    authUpdateService: AuthUpdateService,
-    logger,
-    source: "stripe_webhook",
-  });
+  let autoLinkResult:
+    | Awaited<ReturnType<typeof applyImportedMemberMerge>>
+    | undefined;
+  try {
+    autoLinkResult = await applyImportedMemberMerge({
+      uid: userRecord.uid,
+      email: customerEmail,
+      emailService,
+      firestoreService: ClaimProfileFirestoreService,
+      authUpdateService: AuthUpdateService,
+      logger,
+      source: "stripe_webhook",
+    });
+  } catch (error) {
+    logger.error("Imported member auto-link failed during Stripe checkout", {
+      error,
+      errorId: ERROR_IDS.CLAIM_PROFILE_FAILED,
+      uid: userRecord.uid,
+      email: customerEmail,
+      actionRequired: "Review imported member merge failure for this checkout",
+    });
+    warning = "Imported legacy profile could not be auto-linked during checkout";
+  }
 
-  if (autoLinkResult.status === "merged") {
-    logger.info("Auto-linked imported member during Stripe checkout", {
-      uid: userRecord.uid,
-      email: customerEmail,
-      hasSlug: Boolean(autoLinkResult.mergedFields?.slug),
-    });
-  } else if (autoLinkResult.status === "not_found") {
-    logger.info("No exact imported member match found during Stripe checkout", {
-      uid: userRecord.uid,
-      email: customerEmail,
-    });
-  } else {
-    logger.error("Imported member record matched checkout email but could not be merged", {
-      uid: userRecord.uid,
-      email: customerEmail,
-      warning: autoLinkResult.warning,
-      errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
-    });
+  if (autoLinkResult !== undefined) {
+    switch (autoLinkResult.status) {
+      case "merged": {
+        logger.info("Auto-linked imported member during Stripe checkout", {
+          uid: userRecord.uid,
+          email: customerEmail,
+          hasSlug: Boolean(autoLinkResult.mergedFields.slug),
+        });
+        warning = autoLinkResult.warning ?? warning;
+        break;
+      }
+      case "not_found": {
+        logger.info("No exact imported member match found during Stripe checkout", {
+          uid: userRecord.uid,
+          email: customerEmail,
+        });
+        break;
+      }
+      case "invalid_import_data": {
+        logger.error(
+          "Imported member record matched checkout email but could not be merged",
+          {
+            uid: userRecord.uid,
+            email: customerEmail,
+            warning: autoLinkResult.warning,
+            errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
+          },
+        );
+        warning = autoLinkResult.warning ?? warning;
+        break;
+      }
+    }
   }
 
   // Track non-critical operation results
-  let mailerliteSynced = false;
+  let mailerliteSynced = autoLinkResult?.status === "merged";
 
   // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
-  if (mailerliteApiKey) {
+  if (mailerliteApiKey && autoLinkResult?.status !== "merged") {
     try {
       await addNewsletterSubscriber({
         email: customerEmail,

@@ -1,7 +1,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { IMPORT_COLLECTION, MEMBERS_COLLECTION } from "../../collections/index.js";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
+import { HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { AuthUpdateService } from "../../profiles-api/services/auth-update/index.js";
@@ -34,7 +34,7 @@ export async function attachImportedProfile({
     throw new NotFoundError("Paid member account not found.");
   }
 
-  await applyImportedMemberMerge({
+  const mergeResult = await applyImportedMemberMerge({
     uid: memberUid,
     email,
     emailService: EmailService,
@@ -43,6 +43,18 @@ export async function attachImportedProfile({
     logger,
     source: "admin_manual_attach",
   });
+
+  if (mergeResult.status === "not_found") {
+    throw new NotFoundError("Imported legacy record not found.");
+  }
+
+  if (mergeResult.status === "invalid_import_data") {
+    throw new HttpError(
+      mergeResult.warning ??
+        "Imported legacy record is missing required data. Please review it before attaching.",
+      500,
+    );
+  }
 
   logger.info("Admin attached imported member record", {
     memberUid,

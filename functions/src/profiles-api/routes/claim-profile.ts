@@ -8,14 +8,8 @@ import type { ClaimProfileFirestoreService } from "../services/firestore/interfa
 import { applyImportedMemberMerge } from "../services/imported-member-merge/index.js";
 
 /**
- * Claim an unclaimed profile for the authenticated user.
- * This function:
- * 1. Looks for a matching document in the import collection
- * 2. Creates/updates the member document with the profile data
- * 3. Calculates membership expiration date
- * 4. Subscribes user to newsletter (non-critical)
- * 5. Updates auth displayName if profile has name
- * 6. Deletes the import document
+ * Claims a matching imported profile for the authenticated user by delegating to
+ * the shared imported-member merge flow and translating the result into the API response.
  */
 export async function claimProfileLogic({
   uid,
@@ -69,48 +63,26 @@ export async function claimProfileLogic({
       };
     }
 
-    if (
-      !mergeResult.mergedFields?.email ||
-      !mergeResult.mergedFields.name ||
-      !mergeResult.mergedFields.subscriptionStart ||
-      !mergeResult.mergedFields.lastPayment ||
-      !mergeResult.mergedFields.membershipExpiresAt
-    ) {
-      set.status = 500;
-      return {
-        error:
-          "Your imported profile is missing required information. Please contact support.",
-      };
-    }
-
-    const mergedFields = mergeResult.mergedFields as {
-      email: string;
-      name: string;
-      subscriptionStart: unknown;
-      lastPayment: unknown;
-      membershipExpiresAt: unknown;
-      slug?: string;
-      profileCreatedAt?: unknown;
-    };
     const {
       email: mergedEmail,
       name,
       subscriptionStart,
-      lastPayment,
       membershipExpiresAt,
-    } = mergedFields;
+      slug,
+      profileCreatedAt,
+    } = mergeResult.mergedFields;
 
     return {
       status: "success",
       data: {
         email: mergedEmail,
         name,
-        ...(mergedFields.slug !== undefined && { slug: mergedFields.slug }),
+        ...(slug !== undefined && { slug }),
         subscriptionStart,
-        lastPayment,
+        lastPayment: membershipExpiresAt,
         nextPayment: membershipExpiresAt,
-        ...(mergedFields.profileCreatedAt !== undefined && {
-          createdAt: mergedFields.profileCreatedAt,
+        ...(profileCreatedAt !== undefined && {
+          createdAt: profileCreatedAt,
         }),
       },
     };
