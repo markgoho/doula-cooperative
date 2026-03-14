@@ -18,8 +18,6 @@ export class AdminUnclaimedProfileDetailPage {
   readonly deleteProfileButton: Locator;
   readonly updateEmailButton: Locator;
 
-  // Change email form
-
   // Update email form
   readonly updateEmailInput: Locator;
   readonly confirmUpdateButton: Locator;

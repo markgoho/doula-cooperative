@@ -221,7 +221,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('admin deletes unclaimed profile with confirmation', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     let deleteRequestMade = false;
 
@@ -413,10 +413,10 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.updateEmailButton).toBeVisible();
   });
 
-  test('admin updates email on uninvited profile successfully', async ({
+  test('admin updates email successfully', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
     let patchRequestMade = false;
 
     await authenticatedAdminPage.route(
@@ -491,7 +491,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('handles update email failure with error message', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
@@ -534,7 +534,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('admin cancels update email form', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
