@@ -1,24 +1,18 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Timestamp } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
 import type {
   ListMembersResponse,
   ListUnclaimedProfilesResponse,
-  Member,
+  MemberProfile,
   UnclaimedProfile,
 } from '../admin.types';
+import type { ApiMemberResponse } from '../../api-types/api-member-response';
 import type {
   ApiListUnclaimedProfilesResponse,
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
-
-interface Contact {
-  email?: string;
-  phone?: string;
-  website?: string;
-  business_name?: string;
-}
+import type { ApiReadMemberProfileResponse } from '../api-types/admin-member-profile-api.types';
 
 @Injectable({
   providedIn: 'root',
@@ -31,46 +25,15 @@ export class AdminMembersService {
     return firstValueFrom(this.httpClient.get<ListMembersResponse>('/api/admin/members'));
   }
 
-  async getMember(uid: string): Promise<Member> {
+  async getMember(uid: string): Promise<ApiMemberResponse> {
     // Authorization header added automatically by authInterceptor
-    return firstValueFrom(this.httpClient.get<Member>(`/api/admin/members/${uid}`));
+    return firstValueFrom(this.httpClient.get<ApiMemberResponse>(`/api/admin/members/${uid}`));
   }
 
-  private toTimestamp(
-    value:
-      | Timestamp
-      | string
-      | { seconds: number; nanoseconds: number }
-      | { _seconds: number; _nanoseconds: number },
-  ): Timestamp {
-    if (value === null || value === undefined) {
-      throw new Error(
-        `Timestamp value is ${value === null ? 'null' : 'undefined'}. Expected a valid Timestamp object or ISO string.`,
-      );
-    }
-
-    if (value instanceof Timestamp) {
-      return value;
-    }
-
-    // Handle ISO 8601 string format from Elysia API
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        throw new TypeError(`Invalid date string: ${value}`);
-      }
-      return Timestamp.fromDate(date);
-    }
-
-    // Handle both formats that Firebase might return
-    const seconds = 'seconds' in value ? value.seconds : (value as { _seconds: number })._seconds;
-    const nanoseconds =
-      'nanoseconds' in value ? value.nanoseconds : (value as { _nanoseconds: number })._nanoseconds;
-
-    return new Timestamp(seconds, nanoseconds);
-  }
-
-  async updateMember(uid: string, updates: Partial<Member>): Promise<{ success: boolean }> {
+  async updateMember(
+    uid: string,
+    updates: Partial<ApiMemberResponse>,
+  ): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
       this.httpClient.patch<{ success: boolean }>(`/api/admin/members/${uid}`, updates),
@@ -111,46 +74,23 @@ export class AdminMembersService {
     );
   }
 
-  async readMemberProfile(uid: string): Promise<{
-    title: string;
-    bio: string;
-    credentials?: string;
-    pronouns?: string;
-    tags?: string[];
-    contact?: Contact;
-    draft?: boolean;
-    image?: string;
-    slug: string;
-  }> {
+  async readMemberProfile(uid: string): Promise<MemberProfile> {
     // Use dedicated admin endpoint that reads directly from Firestore,
     // bypassing the public endpoint's draft access control
-    const result = await firstValueFrom(
-      this.httpClient.get<{
-        success: boolean;
-        slug: string;
-        profile: {
-          title: string;
-          bio: string;
-          credentials?: string;
-          pronouns?: string;
-          tags?: string[];
-          contact?: Contact;
-          draft?: boolean;
-          image?: string;
-        };
-      }>(`/api/admin/members/${uid}/profile`),
+    const { profile, slug } = await firstValueFrom(
+      this.httpClient.get<ApiReadMemberProfileResponse>(`/api/admin/members/${uid}/profile`),
     );
 
     return {
-      title: result.profile.title,
-      bio: result.profile.bio,
-      ...(result.profile.credentials !== undefined && { credentials: result.profile.credentials }),
-      ...(result.profile.pronouns !== undefined && { pronouns: result.profile.pronouns }),
-      ...(result.profile.tags !== undefined && { tags: result.profile.tags }),
-      ...(result.profile.contact !== undefined && { contact: result.profile.contact }),
-      ...(result.profile.draft !== undefined && { draft: result.profile.draft }),
-      ...(result.profile.image !== undefined && { image: result.profile.image }),
-      slug: result.slug,
+      title: profile.title,
+      bio: profile.bio,
+      ...(profile.credentials !== undefined && { credentials: profile.credentials }),
+      ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
+      ...(profile.tags !== undefined && { tags: profile.tags }),
+      ...(profile.contact !== undefined && { contact: profile.contact }),
+      ...(profile.draft !== undefined && { draft: profile.draft }),
+      ...(profile.image !== undefined && { image: profile.image }),
+      slug,
     };
   }
 
@@ -166,10 +106,7 @@ export class AdminMembersService {
       }),
     );
 
-    // Convert ISO string timestamps to Timestamp instances
-    const profiles = result.profiles.map((profile) =>
-      this.convertUnclaimedProfileTimestamps(profile),
-    );
+    const profiles = result.profiles.map((profile) => this.convertUnclaimedProfileDates(profile));
 
     return {
       profiles,
@@ -182,30 +119,28 @@ export class AdminMembersService {
     const result = await firstValueFrom(
       this.httpClient.get<ApiUnclaimedProfileResponse>(`/api/admin/unclaimed-profiles/${email}`),
     );
-    return this.convertUnclaimedProfileTimestamps(result);
+    return this.convertUnclaimedProfileDates(result);
   }
 
-  private convertUnclaimedProfileTimestamps(
-    profile: ApiUnclaimedProfileResponse,
-  ): UnclaimedProfile {
+  private convertUnclaimedProfileDates(profile: ApiUnclaimedProfileResponse): UnclaimedProfile {
     try {
       const result: UnclaimedProfile = {
         email: profile.email,
         name: profile.name,
-        subscriptionStart: this.toTimestamp(profile.subscriptionStart),
+        subscriptionStart: new Date(profile.subscriptionStart),
         ...(profile.slug !== undefined && { slug: profile.slug }),
         ...(profile.lastPayment !== undefined && {
-          lastPayment: this.toTimestamp(profile.lastPayment),
+          lastPayment: new Date(profile.lastPayment),
         }),
         ...(profile.nextPayment !== undefined && {
-          nextPayment: this.toTimestamp(profile.nextPayment),
+          nextPayment: new Date(profile.nextPayment),
         }),
       };
 
       return result;
     } catch (error) {
       console.error(
-        `Error converting timestamps for unclaimed profile: ${profile.name} (${profile.email})`,
+        `Error converting dates for unclaimed profile: ${profile.name} (${profile.email})`,
         {
           profile,
           error,

@@ -1,51 +1,6 @@
 @if (user(); as user) {
   <!-- Authenticated User View -->
   <div class="authenticated-view">
-    @if (claimableProfileResource.error()) {
-      <app-alert-banner variant="error">
-        <h3>Unable to Load Profile Information</h3>
-        <p>
-          We encountered an error while loading your profile information. Please try refreshing the
-          page.
-        </p>
-      </app-alert-banner>
-    } @else {
-      @let claimableProfileData = claimableProfileResource.value();
-      @if (claimableProfileData; as profileData) {
-        <div class="claim-profile-banner">
-          <h3>Claim Your Existing Membership</h3>
-          <div><strong>Name:</strong> {{ profileData.name }}</div>
-
-          <div>
-            <strong>Member Since:</strong>
-            {{ profileData.subscriptionStart | date: 'MMMM yyyy' }}
-          </div>
-
-          <p>
-            @if (profileData.slug) {
-              We found an existing doula profile associated with your email address. Claim it now to
-              access your full membership details and profile management.
-            } @else {
-              We found an existing membership subscription associated with your email address. Claim
-              it now to access your membership details and set up your doula profile.
-            }
-          </p>
-          <button
-            type="button"
-            class="button"
-            (click)="onClaimProfile()"
-            [disabled]="claimInProgress()"
-          >
-            @if (claimInProgress()) {
-              Claiming Membership...
-            } @else {
-              Claim Membership
-            }
-          </button>
-        </div>
-      }
-    }
-
     @if (showCreateProfileBanner()) {
       <div class="create-profile-banner">
         <h3>Create Your Doula Profile</h3>
@@ -155,7 +110,7 @@
         </section>
 
         <!-- Newsletter Preferences Card -->
-        @if (!hasClaimableProfile() && !isRefunded()) {
+        @if (!isRefunded()) {
           <section class="membership-card card-2" aria-labelledby="newsletter-heading">
             <h2 id="newsletter-heading" class="section-heading">Newsletter Preferences</h2>
             <div class="newsletter-content">

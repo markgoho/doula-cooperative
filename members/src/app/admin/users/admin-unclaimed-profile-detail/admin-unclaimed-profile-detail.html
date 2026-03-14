@@ -89,16 +89,16 @@
     <h2>Membership Details</h2>
     <dl class="info-grid">
       <dt>Subscription Start:</dt>
-      <dd>{{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}</dd>
+      <dd>{{ profile.subscriptionStart | date: 'MMM d, yyyy' }}</dd>
 
       <dt>Last Payment:</dt>
       <dd>
-        {{ profile.lastPayment ? (profile.lastPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+        {{ profile.lastPayment ? (profile.lastPayment | date: 'MMM d, yyyy') : '—' }}
       </dd>
 
       <dt>Next Payment:</dt>
       <dd>
-        {{ profile.nextPayment ? (profile.nextPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+        {{ profile.nextPayment ? (profile.nextPayment | date: 'MMM d, yyyy') : '—' }}
       </dd>
 
     </dl>

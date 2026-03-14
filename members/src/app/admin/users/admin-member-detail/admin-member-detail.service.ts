@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
-import type { Member } from '../../admin.types';
+import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import { AdminMembersService } from '../../services/admin-members.service';
 
 @Injectable()
@@ -92,7 +92,7 @@ export class AdminMemberDetailService {
   /**
    * Load profile content for the current member
    */
-  loadProfile(member: Member): void {
+  loadProfile(member: ApiMemberResponse): void {
     if (member.slug) {
       this.profileUidSignal.set(member.uid);
     }

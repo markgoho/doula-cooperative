@@ -3,7 +3,6 @@ import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import type { UnclaimedProfile } from '../../admin.types';
 import { AdminMembersService } from '../../services/admin-members.service';
 import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
@@ -65,9 +64,9 @@ describe('AdminUnclaimedProfileDetail', () => {
   it('should display subscription dates', async () => {
     // Arrange
     const profile = createMockUnclaimedProfile({
-      subscriptionStart: Timestamp.fromDate(new Date('2024-01-15T12:00:00')),
-      lastPayment: Timestamp.fromDate(new Date('2024-02-15T12:00:00')),
-      nextPayment: Timestamp.fromDate(new Date('2024-03-15T12:00:00')),
+      subscriptionStart: new Date('2024-01-15T12:00:00'),
+      lastPayment: new Date('2024-02-15T12:00:00'),
+      nextPayment: new Date('2024-03-15T12:00:00'),
     });
 
     // Act
@@ -203,8 +202,8 @@ interface SetupOptions {
   email?: string;
   profile?: UnclaimedProfile;
   slug?: string | undefined;
-  lastPayment?: typeof Timestamp.prototype | undefined;
-  nextPayment?: typeof Timestamp.prototype | undefined;
+  lastPayment?: Date | undefined;
+  nextPayment?: Date | undefined;
   shouldFailLoad?: boolean;
   shouldFailUpdateEmail?: boolean;
   shouldKeepLoading?: boolean;
@@ -321,7 +320,7 @@ function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): 
     email: 'test@example.com',
     name: 'Test User',
     slug: 'test-user',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
+    subscriptionStart: new Date('2024-01-01'),
     ...overrides,
   };
 }

@@ -1,25 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, resource } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Auth, authState, type User } from '@angular/fire/auth';
-import { doc, Firestore, getDoc, Timestamp } from '@angular/fire/firestore';
+import { Auth, authState } from '@angular/fire/auth';
 import { firstValueFrom } from 'rxjs';
 import type { ApiMemberResponse } from '../api-types/api-member-response';
 import type { SubscriptionStatus } from '../api-types/subscription-status';
-
-interface MigratedUserData {
-  name: string;
-  subscriptionStart: Timestamp;
-  slug?: string;
-  membershipActive?: boolean;
-  membershipExpiresAt?: Timestamp;
-}
-
-export interface ClaimableProfile {
-  name: string;
-  subscriptionStart: Date;
-  slug?: string;
-}
 
 export interface Member {
   createdAt: Date;
@@ -46,7 +31,6 @@ export interface Member {
   providedIn: 'root',
 })
 export class MembershipService {
-  private firestore = inject(Firestore);
   private auth = inject(Auth);
   private http = inject(HttpClient);
 
@@ -90,25 +74,6 @@ export class MembershipService {
   hasProfile = computed(() => {
     return !!this.userDocument()?.profileCreatedAt;
   });
-
-  async getClaimableProfileData(
-    user: User | null | undefined,
-  ): Promise<ClaimableProfile | undefined> {
-    if (user?.email && user.emailVerified) {
-      const userDocumentReference = doc(this.firestore, `migrated_users_import/${user.email}`);
-      const userDocument = await getDoc(userDocumentReference);
-
-      if (userDocument.exists()) {
-        const data = userDocument.data() as MigratedUserData;
-        return {
-          name: data.name,
-          subscriptionStart: data.subscriptionStart.toDate(),
-          ...(data.slug && { slug: data.slug }),
-        };
-      }
-    }
-    return undefined;
-  }
 
   /**
    * Check if a slug is available (not taken by another member)
@@ -418,64 +383,6 @@ export class MembershipService {
       }
 
       throw new Error('Unable to verify email. Please try again.');
-    }
-  }
-
-  /**
-   * Claim an unclaimed profile for the authenticated user
-   * @param slug - The slug of the profile to claim
-   * @throws Error with user-friendly message
-   */
-  async claimProfile(slug: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.error('Attempted to claim profile without a logged-in user.');
-      throw new Error('No authenticated user to claim profile.');
-    }
-
-    // Force a refresh of the user's ID token to get the latest claims
-    // and email_verified status before calling the API.
-    await user.getIdToken(true);
-
-    try {
-      await firstValueFrom(
-        this.http.post<{ status: string; data?: unknown }>(`/api/profiles/${slug}/claim`, {}),
-      );
-    } catch (error) {
-      console.error('Error calling claimProfile API:', {
-        slug,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      if (error instanceof HttpErrorResponse) {
-        switch (error.status) {
-          case 401: {
-            throw new Error('You must be signed in to claim a profile.');
-          }
-
-          case 428: {
-            if (error.error?.error?.includes('verified email')) {
-              throw new Error('Please verify your email address before claiming your profile.');
-            }
-            throw new Error('Email verification required to claim profile.');
-          }
-
-          case 404: {
-            throw new Error('No profile found to claim.');
-          }
-
-          case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
-          }
-
-          default: {
-            throw new Error('Unable to claim profile. Please try again or contact support.');
-          }
-        }
-      }
-
-      // Handle non-HTTP errors (network failures, Angular errors, etc.)
-      throw new Error('Unable to claim profile. Please check your connection and try again.');
     }
   }
 

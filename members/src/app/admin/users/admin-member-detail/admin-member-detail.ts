@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import type { Member } from '../../admin.types';
+import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
@@ -50,13 +50,13 @@ export class AdminMemberDetail {
   protected isTargetUserAdmin = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) return false;
-    return (resource.value() as Member).isAdmin;
+    return (resource.value() as ApiMemberResponse).isAdmin;
   });
 
   protected isRefundEligible = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) return false;
-    const member = resource.value() as Member;
+    const member = resource.value() as ApiMemberResponse;
     if (member.subscriptionStart === undefined) return false;
     const subscriptionStartMs = new Date(member.subscriptionStart).getTime();
     const REFUND_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
@@ -174,7 +174,7 @@ export class AdminMemberDetail {
 
   protected loadProfile(): void {
     if (this.service.memberResource.hasValue()) {
-      this.service.loadProfile(this.service.memberResource.value() as Member);
+      this.service.loadProfile(this.service.memberResource.value() as ApiMemberResponse);
     }
   }
 

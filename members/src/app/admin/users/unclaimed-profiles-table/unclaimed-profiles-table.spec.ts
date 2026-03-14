@@ -2,7 +2,6 @@ import { signal, type ResourceRef } from '@angular/core';
 import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { Timestamp } from '../../../../test-utils/timestamp-mock';
 import type { ListUnclaimedProfilesResponse, UnclaimedProfile } from '../../admin.types';
 import { UnclaimedProfilesTable } from './unclaimed-profiles-table';
 
@@ -10,9 +9,9 @@ function createMockProfile(overrides: Partial<UnclaimedProfile> = {}): Unclaimed
   return {
     email: 'test@example.com',
     name: 'Test User',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-01-15')),
-    lastPayment: Timestamp.fromDate(new Date('2024-01-10')),
-    nextPayment: Timestamp.fromDate(new Date('2024-02-10')),
+    subscriptionStart: new Date('2024-01-15'),
+    lastPayment: new Date('2024-01-10'),
+    nextPayment: new Date('2024-02-10'),
     ...overrides,
   };
 }
@@ -128,17 +127,17 @@ describe('UnclaimedProfilesTable', () => {
         createMockProfile({
           email: '1@example.com',
           name: 'User 1',
-          subscriptionStart: Timestamp.fromDate(new Date('2024-06-01')),
+          subscriptionStart: new Date('2024-06-01'),
         }),
         createMockProfile({
           email: '2@example.com',
           name: 'User 2',
-          subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
+          subscriptionStart: new Date('2024-01-01'),
         }),
         createMockProfile({
           email: '3@example.com',
           name: 'User 3',
-          subscriptionStart: Timestamp.fromDate(new Date('2024-03-01')),
+          subscriptionStart: new Date('2024-03-01'),
         }),
       ];
       const { user } = await setup({ profiles });

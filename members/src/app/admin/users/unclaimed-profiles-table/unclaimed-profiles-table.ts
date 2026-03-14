@@ -70,19 +70,19 @@ export class UnclaimedProfilesTable {
           break;
         }
         case 'subscriptionStart': {
-          comparison = a.subscriptionStart.toMillis() - b.subscriptionStart.toMillis();
+          comparison = a.subscriptionStart.getTime() - b.subscriptionStart.getTime();
           break;
         }
         case 'lastPayment': {
-          const aMillis = a.lastPayment?.toMillis() ?? 0;
-          const bMillis = b.lastPayment?.toMillis() ?? 0;
-          comparison = aMillis - bMillis;
+          const aMilliseconds = a.lastPayment?.getTime() ?? 0;
+          const bMilliseconds = b.lastPayment?.getTime() ?? 0;
+          comparison = aMilliseconds - bMilliseconds;
           break;
         }
         case 'nextPayment': {
-          const aMillis = a.nextPayment?.toMillis() ?? 0;
-          const bMillis = b.nextPayment?.toMillis() ?? 0;
-          comparison = aMillis - bMillis;
+          const aMilliseconds = a.nextPayment?.getTime() ?? 0;
+          const bMilliseconds = b.nextPayment?.getTime() ?? 0;
+          comparison = aMilliseconds - bMilliseconds;
           break;
         }
       }

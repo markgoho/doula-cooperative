@@ -2,10 +2,11 @@ import { signal, type ResourceRef } from '@angular/core';
 import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import type { ListMembersResponse, Member } from '../../admin.types';
+import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+import type { ListMembersResponse } from '../../admin.types';
 import { ActiveMembersTable } from './active-members-table';
 
-function createMockMember(overrides: Partial<Member> = {}): Member {
+function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMemberResponse {
   return {
     uid: 'test-uid-123',
     email: 'test@example.com',
@@ -16,7 +17,7 @@ function createMockMember(overrides: Partial<Member> = {}): Member {
   };
 }
 
-function createDefaultTestMembers(): Member[] {
+function createDefaultTestMembers(): ApiMemberResponse[] {
   return [
     createMockMember({ uid: '1', name: 'Zoe', email: 'zoe@example.com' }),
     createMockMember({ uid: '2', name: 'Alice', email: 'alice@example.com' }),
@@ -28,7 +29,7 @@ async function setup({
   members = createDefaultTestMembers(),
   loading = false,
   error,
-}: { members?: Member[]; loading?: boolean; error?: string | undefined } = {}) {
+}: { members?: ApiMemberResponse[]; loading?: boolean; error?: string | undefined } = {}) {
   const mockResource = {
     value: signal(members ? { members, total: members.length } : undefined),
     isLoading: signal(loading),
@@ -150,7 +151,7 @@ describe('ActiveMembersTable', () => {
     it('should handle members with missing names when sorting by name', async () => {
       // Arrange
       const memberWithoutName = createMockMember({ uid: '1', email: 'no-name@example.com' });
-      delete (memberWithoutName as Partial<Member>).name;
+      delete (memberWithoutName as Partial<ApiMemberResponse>).name;
 
       const members = [
         memberWithoutName,

@@ -3,11 +3,7 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
-import {
-  type ClaimableProfile,
-  type Member,
-  MembershipService,
-} from '../services/membership.service';
+import { type Member, MembershipService } from '../services/membership.service';
 import { Membership } from './membership';
 import { FACEBOOK_GROUP_URL } from '../constants/urls';
 
@@ -416,160 +412,6 @@ describe('Membership', () => {
     });
   });
 
-  describe('claimable profile banner', () => {
-    it('should show error message when claimable profile fails to load', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileError: new Error('Failed to load profile'),
-      });
-
-      expect(await screen.findByText('Unable to Load Profile Information')).toBeVisible();
-      expect(
-        screen.getByText(/We encountered an error while loading your profile information/),
-      ).toBeVisible();
-    });
-
-    it('should not show claim banner when no claimable profile exists', async () => {
-      await setup({
-        isAuthenticated: true,
-      });
-
-      expect(screen.queryByText('Claim Your Existing Membership')).toBeNull();
-    });
-
-    it('should show claim banner when claimable profile exists', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-        },
-      });
-
-      expect(await screen.findByText('Claim Your Existing Membership')).toBeVisible();
-    });
-
-    it('should show claimable profile name', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-        },
-      });
-
-      expect(await screen.findByText('Jane Smith')).toBeVisible();
-    });
-
-    it('should show claimable profile subscription start date', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-15T12:00:00Z'),
-        },
-      });
-
-      expect(await screen.findByText(/June 2023/)).toBeVisible();
-    });
-
-    it('should show doula profile message when claimable profile has a profile', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-          slug: 'jane-smith',
-        },
-      });
-
-      expect(
-        await screen.findByText(
-          /We found an existing doula profile associated with your email address/,
-        ),
-      ).toBeVisible();
-    });
-
-    it('should show membership subscription message when claimable profile has no profile', async () => {
-      await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-        },
-      });
-
-      expect(
-        await screen.findByText(
-          /We found an existing membership subscription associated with your email address/,
-        ),
-      ).toBeVisible();
-    });
-
-    it('should allow user to claim profile', async () => {
-      const { user, claimProfileMock } = await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-          slug: 'jane-smith',
-        },
-      });
-
-      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
-
-      const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
-      await user.click(claimButton);
-
-      expect(claimProfileMock).toHaveBeenCalledOnce();
-    });
-
-    it('should hide claim banner after successfully claiming profile', async () => {
-      const { user } = await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-          slug: 'jane-smith',
-        },
-      });
-
-      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
-
-      const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
-      await user.click(claimButton);
-
-      expect(screen.queryByText('Claim Your Existing Membership')).toBeNull();
-    });
-
-    it('should not crash when claim profile fails', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-        // Intentionally empty - we're just suppressing console output in tests
-      });
-      const { user } = await setup({
-        isAuthenticated: true,
-        claimableProfileData: {
-          name: 'Jane Smith',
-          subscriptionStart: new Date('2023-06-01'),
-          slug: 'jane-smith',
-        },
-        claimProfileShouldFail: true,
-      });
-
-      expect(await screen.findByRole('button', { name: 'Claim Membership' })).toBeVisible();
-
-      const claimButton = screen.getByRole('button', { name: 'Claim Membership' });
-      await user.click(claimButton);
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to claim profile:', expect.any(Error));
-
-      // Banner should still be visible after error
-      expect(screen.getByText('Claim Your Existing Membership')).toBeVisible();
-
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
   describe('cancel membership', () => {
     it('should show cancel button for active Stripe members', async () => {
       await setup({
@@ -830,11 +672,7 @@ interface SetupOptions {
   userEmailVerified?: boolean;
   hasUserDocument?: boolean;
   userDocument?: Partial<Member>;
-  claimableProfileData?: ClaimableProfile;
-  claimableProfileError?: Error;
   signOutShouldFail?: boolean;
-  claimProfileShouldFail?: boolean;
-  claimProfileError?: Error;
   updateMemberNameShouldFail?: boolean;
   cancelMembershipShouldFail?: boolean;
 }
@@ -846,11 +684,7 @@ async function setup({
   userEmailVerified = false,
   hasUserDocument = true,
   userDocument,
-  claimableProfileData,
-  claimableProfileError,
   signOutShouldFail = false,
-  claimProfileShouldFail = false,
-  claimProfileError = new Error('Claim failed'),
   updateMemberNameShouldFail = false,
   cancelMembershipShouldFail = false,
 }: SetupOptions = {}) {
@@ -881,15 +715,6 @@ async function setup({
       }
     : undefined;
 
-  const getClaimableProfileDataMock = claimableProfileError
-    ? vi.fn().mockRejectedValue(claimableProfileError)
-    : vi.fn().mockResolvedValue(claimableProfileData);
-
-  // Create claim profile mock based on whether it should fail
-  const claimProfileMock = claimProfileShouldFail
-    ? vi.fn(() => Promise.reject(claimProfileError))
-    : vi.fn(() => Promise.resolve());
-
   const updateMemberNameMock = updateMemberNameShouldFail
     ? vi.fn().mockRejectedValue(new Error('Failed to save name'))
     : vi.fn().mockResolvedValue(undefined);
@@ -900,9 +725,7 @@ async function setup({
 
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
-    getClaimableProfileData: getClaimableProfileDataMock,
     reloadUserDocument: vi.fn(),
-    claimProfile: claimProfileMock,
     updateMemberName: updateMemberNameMock,
     cancelMembership: cancelMembershipMock,
   };
@@ -925,7 +748,6 @@ async function setup({
 
   return {
     user,
-    claimProfileMock,
     signOutMock,
     updateMemberNameMock,
     cancelMembershipMock,

@@ -259,21 +259,6 @@
 }
 
 // --- Banners ---
-.claim-profile-banner {
-  background: var(--brown-100);
-  border: 3px solid var(--brown-400);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-l);
-  padding-block-start: var(--space-xs);
-  margin-block-end: var(--space-l);
-  max-width: 50ch;
-  animation: fadeSlideUp 0.5s ease-out both;
-}
-
-.claim-profile-banner p {
-  margin-block-end: var(--space-m);
-}
-
 .create-profile-banner {
   background: var(--brown-100);
   border: 3px solid var(--brown-400);
@@ -434,7 +419,6 @@
   .welcome-section,
   .membership-card,
   .membership-actions,
-  .claim-profile-banner,
   .create-profile-banner,
   .welcome-name-prompt {
     animation: none;

@@ -26,3 +26,5 @@ export interface ApiMemberResponse {
   refundedAt?: string;
   refundReason?: string;
 }
+
+// export type Member = ApiMemberResponse;

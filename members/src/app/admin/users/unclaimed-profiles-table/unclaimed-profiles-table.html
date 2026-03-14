@@ -85,13 +85,13 @@
               }
             </td>
             <td class="date-cell">
-              {{ profile.subscriptionStart.toDate() | date: 'MMM d, yyyy' }}
+              {{ profile.subscriptionStart | date: 'MMM d, yyyy' }}
             </td>
             <td class="date-cell">
-              {{ profile.lastPayment ? (profile.lastPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+              {{ profile.lastPayment ? (profile.lastPayment | date: 'MMM d, yyyy') : '—' }}
             </td>
             <td class="date-cell">
-              {{ profile.nextPayment ? (profile.nextPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
+              {{ profile.nextPayment ? (profile.nextPayment | date: 'MMM d, yyyy') : '—' }}
             </td>
             <td>
               <div class="actions-cell">

@@ -2,7 +2,7 @@ import { Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import type { Member } from '../../admin.types';
+import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import { AdminMembersService } from '../../services/admin-members.service';
 import { AdminMemberDetail } from './admin-member-detail';
 import { AdminMemberDetailService } from './admin-member-detail.service';
@@ -49,7 +49,7 @@ describe('AdminUserDetail', () => {
   it('should display dash when user has no name', async () => {
     // Arrange
     const member = createMockMember();
-    delete (member as Partial<Member>).name;
+    delete (member as Partial<ApiMemberResponse>).name;
 
     // Act
     await setup({ member });
@@ -121,8 +121,8 @@ describe('AdminUserDetail', () => {
   it('should display dash when subscription dates are missing', async () => {
     // Arrange
     const member = createMockMember();
-    delete (member as Partial<Member>).subscriptionStart;
-    delete (member as Partial<Member>).membershipExpiresAt;
+    delete (member as Partial<ApiMemberResponse>).subscriptionStart;
+    delete (member as Partial<ApiMemberResponse>).membershipExpiresAt;
 
     // Act
     await setup({ member });
@@ -152,7 +152,7 @@ describe('AdminUserDetail', () => {
   it('should not display Stripe section when not a Stripe customer', async () => {
     // Arrange
     const member = createMockMember();
-    delete (member as Partial<Member>).stripeCustomerId;
+    delete (member as Partial<ApiMemberResponse>).stripeCustomerId;
 
     // Act
     await setup({ member });
@@ -462,7 +462,7 @@ describe('AdminUserDetail', () => {
 
 interface SetupOptions {
   uid?: string;
-  member?: Member;
+  member?: ApiMemberResponse;
   shouldFailLoad?: boolean;
   shouldFailActivate?: boolean;
   shouldFailCancel?: boolean;
@@ -488,8 +488,8 @@ async function setup({
   const defaultMember = createMockMember({ uid });
   const memberToUse = member ?? defaultMember;
 
-  let resolveMemberPromise: (value: Member) => void;
-  const pendingMemberPromise = new Promise<Member>((resolve) => {
+  let resolveMemberPromise: (value: ApiMemberResponse) => void;
+  const pendingMemberPromise = new Promise<ApiMemberResponse>((resolve) => {
     resolveMemberPromise = resolve;
   });
 
@@ -563,7 +563,7 @@ async function setup({
   };
 }
 
-function createMockMember(overrides: Partial<Member> = {}): Member {
+function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMemberResponse {
   return {
     uid: 'test-uid-123',
     email: 'test@example.com',

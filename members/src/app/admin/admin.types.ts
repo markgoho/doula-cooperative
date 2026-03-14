@@ -1,22 +1,20 @@
-import { Timestamp } from '@angular/fire/firestore';
 import type { ApiMemberResponse } from '../api-types/api-member-response';
-
-export type AdminMemberResponse = ApiMemberResponse;
+import type { ProfileData } from '../types/profile-data';
 
 export interface UnclaimedProfile {
   email: string;
   name: string;
-  subscriptionStart: Timestamp;
-  lastPayment?: Timestamp;
-  nextPayment?: Timestamp;
+  subscriptionStart: Date;
+  lastPayment?: Date;
+  nextPayment?: Date;
   slug?: string;
 }
 
 /**
- * List members response - matches API but uses frontend Member type.
+ * List members response returned by the admin members API.
  */
 export interface ListMembersResponse {
-  members: AdminMemberResponse[];
+  members: ApiMemberResponse[];
   total: number;
   warning?: string;
 }
@@ -25,6 +23,10 @@ export interface ListUnclaimedProfilesResponse {
   profiles: UnclaimedProfile[];
   total: number;
 }
+
+export type MemberProfile = ProfileData & {
+  slug: string;
+};
 
 export interface MatchRequest {
   id: string;
