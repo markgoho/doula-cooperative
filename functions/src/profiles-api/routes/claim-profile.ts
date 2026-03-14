@@ -67,7 +67,6 @@ export async function claimProfileLogic({
       email: mergedEmail,
       name,
       subscriptionStart,
-      membershipExpiresAt,
       slug,
       profileCreatedAt,
     } = mergeResult.mergedFields;
@@ -79,8 +78,8 @@ export async function claimProfileLogic({
         name,
         ...(slug !== undefined && { slug }),
         subscriptionStart,
-        lastPayment: membershipExpiresAt,
-        nextPayment: membershipExpiresAt,
+        lastPayment: subscriptionStart,
+        nextPayment: subscriptionStart,
         ...(profileCreatedAt !== undefined && {
           createdAt: profileCreatedAt,
         }),

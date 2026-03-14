@@ -217,6 +217,64 @@ describe('AdminUnclaimedProfileDetail', () => {
     resolveSendInvitationPromise({ success: true });
   });
 
+  it('should disable attach button when member UID is empty', async () => {
+    // Arrange & Act
+    await setup();
+
+    // Assert
+    expect(await screen.findByRole('button', { name: 'Attach to Paid Member' })).toBeDisabled();
+  });
+
+  it('should show success message and navigate after successful attach', async () => {
+    // Arrange
+    const { user, component, router } = await setup();
+    const instance = component.fixture.componentInstance as unknown as {
+      attachImportedProfile(): Promise<void>;
+    };
+
+    // Act
+    await user.type(await screen.findByLabelText('Paid Member UID'), 'paid-member-123');
+    await instance.attachImportedProfile();
+
+    // Assert
+    expect(await screen.findByText('Imported profile attached to member paid-member-123')).toBeVisible();
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/members', 'paid-member-123']);
+  });
+
+  it('should show error message and not navigate when attach fails', async () => {
+    // Arrange
+    const { user, component, router } = await setup({ shouldFailAttachImportedProfile: true });
+    const instance = component.fixture.componentInstance as unknown as {
+      attachImportedProfile(): Promise<void>;
+    };
+
+    // Act
+    await user.type(await screen.findByLabelText('Paid Member UID'), 'paid-member-123');
+    await instance.attachImportedProfile();
+
+    // Assert
+    expect(await screen.findByText('Failed to attach imported profile.')).toBeVisible();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('should show processing state while attaching imported profile', async () => {
+    // Arrange
+    const { user, resolveAttachImportedProfilePromise } = await setup({
+      shouldKeepAttachingImportedProfile: true,
+    });
+
+    // Act
+    await user.type(await screen.findByLabelText('Paid Member UID'), 'paid-member-123');
+    await user.click(screen.getByRole('button', { name: 'Attach to Paid Member' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Processing...' })).toBeDisabled();
+    expect(screen.getByLabelText('Paid Member UID')).toBeDisabled();
+
+    // Clean up
+    resolveAttachImportedProfilePromise('paid-member-123');
+  });
+
   it('should show Change Email button when invitation already sent', async () => {
     // Arrange & Act
     await setup({ invitationEmailStatus: 'sent' });
@@ -438,9 +496,24 @@ interface SetupOptions {
   shouldFailSendInvitation?: boolean;
   shouldFailChangeEmail?: boolean;
   shouldFailUpdateEmail?: boolean;
+  shouldFailAttachImportedProfile?: boolean;
   shouldKeepLoading?: boolean;
   shouldKeepSendingInvitation?: boolean;
+  shouldKeepAttachingImportedProfile?: boolean;
   errorMessage?: string;
+}
+
+function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {
+  return {
+    email: 'test@example.com',
+    name: 'Test User',
+    slug: 'test-user',
+    subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
+    lastPayment: Timestamp.fromDate(new Date('2024-01-10')),
+    nextPayment: Timestamp.fromDate(new Date('2024-02-10')),
+    invitationEmailStatus: 'pending',
+    ...overrides,
+  };
 }
 
 async function setup(options: SetupOptions = {}) {
@@ -457,12 +530,13 @@ async function setup(options: SetupOptions = {}) {
     shouldFailSendInvitation = false,
     shouldFailChangeEmail = false,
     shouldFailUpdateEmail = false,
+    shouldFailAttachImportedProfile = false,
     shouldKeepLoading = false,
     shouldKeepSendingInvitation = false,
+    shouldKeepAttachingImportedProfile = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
   } = options;
 
-  // Build the profile with defaults and overrides
   const baseProfile = createMockUnclaimedProfile({ email });
   const finalProfile =
     profile ??
@@ -476,63 +550,40 @@ async function setup(options: SetupOptions = {}) {
       ...('nextPayment' in options ? { nextPayment } : {}),
     } as UnclaimedProfile);
 
-  let resolveProfilePromise: (value: UnclaimedProfile) => void;
+  let resolveProfilePromise!: (value: UnclaimedProfile) => void;
   const pendingProfilePromise = new Promise<UnclaimedProfile>((resolve) => {
     resolveProfilePromise = resolve;
   });
 
-  let getProfileCallCount = 0;
-  const getUnclaimedProfile = vi.fn().mockImplementation(() => {
-    getProfileCallCount++;
-
-    if (shouldKeepLoading) {
-      return pendingProfilePromise;
-    }
-
-    if (shouldFailLoad && getProfileCallCount === 1) {
-      return Promise.reject(new Error(errorMessage));
-    }
-
-    return Promise.resolve(finalProfile);
-  });
-
-  let resolveSendInvitationPromise: (value: { success: boolean; warning?: string }) => void;
+  let resolveSendInvitationPromise!: (value: { success: boolean; warning?: string }) => void;
   const pendingSendInvitationPromise = new Promise<{ success: boolean; warning?: string }>(
     (resolve) => {
       resolveSendInvitationPromise = resolve;
     },
   );
 
-  const sendInvitation = vi.fn().mockImplementation(() => {
-    if (shouldKeepSendingInvitation) {
-      return pendingSendInvitationPromise;
-    }
-
-    if (shouldFailSendInvitation) {
-      return Promise.reject(new Error('Failed'));
-    }
-
-    return Promise.resolve({ success: true });
+  let resolveAttachImportedProfilePromise!: (value: string | undefined) => void;
+  const pendingAttachImportedProfilePromise = new Promise<string | undefined>((resolve) => {
+    resolveAttachImportedProfilePromise = resolve;
   });
 
+  let getProfileCallCount = 0;
   const mockAdminMembersService = {
-    getUnclaimedProfile,
-    sendInvitation,
-    changeEmailAndResend: vi.fn().mockImplementation(() => {
-      if (shouldFailChangeEmail) {
-        return Promise.reject(new Error('Failed'));
+    getUnclaimedProfile: vi.fn().mockImplementation(() => {
+      getProfileCallCount++;
+      if (shouldKeepLoading) {
+        return pendingProfilePromise;
       }
-      return Promise.resolve({ success: true });
-    }),
-    updateEmail: vi.fn().mockImplementation(() => {
-      if (shouldFailUpdateEmail) {
-        return Promise.reject(new Error('Failed'));
+      if (shouldFailLoad && getProfileCallCount === 1) {
+        return Promise.reject(new Error(errorMessage));
       }
-      return Promise.resolve({ success: true });
+      return Promise.resolve(finalProfile);
     }),
+    sendInvitation: vi.fn().mockResolvedValue({ success: true }),
+    changeEmailAndResend: vi.fn().mockResolvedValue({ success: true }),
+    updateEmail: vi.fn().mockResolvedValue({ success: true }),
   };
 
-  // Mock the service to avoid resource() lifecycle issues in CI
   const mockService = {
     unclaimedProfileResource: {
       isLoading: vi.fn(() => shouldKeepLoading),
@@ -545,16 +596,43 @@ async function setup(options: SetupOptions = {}) {
     actionInProgress: signal(false),
     successMessage: signal<string | undefined>(undefined),
     actionError: signal<string | undefined>(undefined),
+    attachMemberUid: signal(''),
     init: vi.fn(),
     sendInvitation: vi.fn().mockImplementation(async () => {
+      mockService.actionInProgress.set(true);
       if (shouldKeepSendingInvitation) {
-        return pendingSendInvitationPromise;
+        return pendingSendInvitationPromise.finally(() => {
+          mockService.actionInProgress.set(false);
+        });
       }
       if (shouldFailSendInvitation) {
+        mockService.actionInProgress.set(false);
         throw new Error('Failed');
       }
       mockService.successMessage.set('Invitation sent successfully');
-      return;
+      mockService.actionInProgress.set(false);
+    }),
+    attachImportedProfile: vi.fn().mockImplementation(async () => {
+      mockService.actionInProgress.set(true);
+      const memberUid = mockService.attachMemberUid().trim();
+      if (memberUid.length === 0) {
+        mockService.actionError.set('Enter a member UID to attach this imported profile.');
+        mockService.actionInProgress.set(false);
+        return;
+      }
+      if (shouldKeepAttachingImportedProfile) {
+        return pendingAttachImportedProfilePromise.finally(() => {
+          mockService.actionInProgress.set(false);
+        });
+      }
+      if (shouldFailAttachImportedProfile) {
+        mockService.actionError.set('Failed to attach imported profile.');
+        mockService.actionInProgress.set(false);
+        return;
+      }
+      mockService.successMessage.set(`Imported profile attached to member ${memberUid}`);
+      mockService.actionInProgress.set(false);
+      return memberUid;
     }),
     changeEmailAndResend: vi
       .fn()
@@ -592,27 +670,16 @@ async function setup(options: SetupOptions = {}) {
     inputs: { email },
   });
 
-  // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
   return {
     user,
     component,
-    resolveProfilePromise: resolveProfilePromise!,
-    resolveSendInvitationPromise: resolveSendInvitationPromise!,
+    resolveProfilePromise,
+    resolveSendInvitationPromise,
+    resolveAttachImportedProfilePromise,
     mockAdminMembersService,
     mockService,
     router,
-  };
-}
-
-function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {
-  return {
-    email: 'test@example.com',
-    name: 'Test User',
-    slug: 'test-user',
-    subscriptionStart: Timestamp.fromDate(new Date('2024-01-01')),
-    invitationEmailStatus: 'pending',
-    ...overrides,
   };
 }

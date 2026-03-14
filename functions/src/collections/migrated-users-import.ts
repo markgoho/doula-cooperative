@@ -26,7 +26,7 @@ export interface UnclaimedProfileDocumentData {
   /**
    * The start date of the user's subscription.
    */
-  subscriptionStart?: Timestamp;
+  subscriptionStart: Timestamp;
   /**
    * The last payment date of the user's subscription.
    */

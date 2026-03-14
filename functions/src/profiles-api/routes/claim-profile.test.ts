@@ -365,7 +365,10 @@ describe("POST /:slug/claim (claim profile)", () => {
     });
 
     it("should succeed and send notification email when MailerLite fails", async () => {
-      const { testApp, request } = setup({ mailerliteApiKey: "test-api-key" });
+      const { testApp, request } = setup({
+        mailerliteApiKey: null,
+        emailSendFails: false,
+      });
 
       const response = await handleRequest(testApp, request);
 

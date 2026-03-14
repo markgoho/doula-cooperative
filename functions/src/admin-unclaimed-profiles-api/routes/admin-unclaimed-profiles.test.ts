@@ -219,14 +219,30 @@ describe("Admin Unclaimed Profiles API", () => {
       email?: string;
       memberUid?: string;
       authToken?: string | null;
+      body?: Record<string, unknown>;
       profileNotFound?: boolean;
       invalidImportData?: boolean;
+    }
+
+    function createRequestBody({
+      body,
+      memberUid,
+    }: {
+      body: Record<string, unknown> | undefined;
+      memberUid: string;
+    }): string {
+      if (body !== undefined) {
+        return JSON.stringify(body);
+      }
+
+      return JSON.stringify({ memberUid });
     }
 
     function setup({
       email = "test@example.com",
       memberUid = "paid-member-123",
       authToken = "admin-token",
+      body,
       profileNotFound = false,
       invalidImportData = false,
     }: SetupOptions = {}) {
@@ -266,7 +282,7 @@ describe("Admin Unclaimed Profiles API", () => {
       const request = new Request(`http://localhost/${email}/attach`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ memberUid }),
+        body: createRequestBody({ body, memberUid }),
       });
 
       return { testApp, request };
@@ -278,6 +294,30 @@ describe("Admin Unclaimed Profiles API", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(401);
+    });
+
+    it("should return 403 when not admin", async () => {
+      const { testApp, request } = setup({ authToken: "non-admin-token" });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(403);
+    });
+
+    it("should return 422 when memberUid is empty", async () => {
+      const { testApp, request } = setup({ body: { memberUid: "" } });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(422);
+    });
+
+    it("should return 422 when memberUid is missing", async () => {
+      const { testApp, request } = setup({ body: {} });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(422);
     });
 
     it("should attach imported profile when authenticated", async () => {

@@ -117,14 +117,14 @@ async function sendMailerLiteFailureNotification({
 type ImportedMemberMergeFields = Pick<
   MemberDocument,
   | "email"
-  | "subscriptionStart"
   | "membershipActive"
-  | "membershipExpiresAt"
   | "newsletterSubscribed"
   | "newsletterSubscribedAt"
   | "profileCreatedAt"
 > & {
   name: string;
+  subscriptionStart: Timestamp;
+  membershipExpiresAt: Timestamp;
   slug?: string;
 };
 
@@ -134,7 +134,7 @@ export type ApplyImportedMemberMergeResult =
       mergedFields: ImportedMemberMergeFields;
       importEmail: string;
       warning?: string;
-      newsletterHandledByMerge: true;
+      mailerliteSynced: boolean;
     }
   | {
       status: "not_found";
@@ -183,7 +183,9 @@ export async function applyImportedMemberMerge({
     };
   }
 
-  const profileData = importDocument.data() as UnclaimedProfileDocumentData | undefined;
+  const profileData = importDocument.data() as
+    | (Partial<UnclaimedProfileDocumentData> & Pick<UnclaimedProfileDocumentData, "email">)
+    | undefined;
 
   if (!profileData) {
     logger.error("Imported member document exists but has no data", {
@@ -201,7 +203,7 @@ export async function applyImportedMemberMerge({
     };
   }
 
-  if (!profileData.subscriptionStart) {
+  if (profileData.subscriptionStart === undefined) {
     logger.error("Imported member missing required subscriptionStart field", {
       errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
       email,
@@ -262,6 +264,7 @@ export async function applyImportedMemberMerge({
 
   const mailerliteApiKey = process.env["MAILERLITE_API_KEY"];
   let warning: string | undefined;
+  let mailerliteSynced = false;
   if (mailerliteApiKey) {
     try {
       const subscriberOptions: {
@@ -285,6 +288,7 @@ export async function applyImportedMemberMerge({
       }
 
       await addNewsletterSubscriber(subscriberOptions);
+      mailerliteSynced = true;
       logger.info("Added subscriber to MailerLite during imported member merge", {
         uid,
         email,
@@ -340,6 +344,7 @@ export async function applyImportedMemberMerge({
       }
     }
   } else if (process.env["FUNCTIONS_EMULATOR"]) {
+    mailerliteSynced = true;
     logger.warn("MAILERLITE_API_KEY not configured - emulator mode, skipping newsletter sync", {
       uid,
       email,
@@ -419,6 +424,6 @@ export async function applyImportedMemberMerge({
     mergedFields: memberUpdate,
     importEmail: email,
     ...(warning !== undefined && { warning }),
-    newsletterHandledByMerge: true,
+    mailerliteSynced,
   };
 }

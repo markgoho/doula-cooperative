@@ -1,19 +1,18 @@
 import { Timestamp } from '@angular/fire/firestore';
 import type { ApiMemberResponse } from '../api-types/members-api.types';
+import type { ApiUnclaimedProfileResponse } from './api-types/admin-unclaimed-profiles-api.types';
 
 export type Member = ApiMemberResponse;
 
-export interface UnclaimedProfile {
-  email: string;
-  name: string;
+export type UnclaimedProfile = Omit<
+  ApiUnclaimedProfileResponse,
+  'subscriptionStart' | 'lastPayment' | 'nextPayment' | 'invitationEmailSentAt'
+> & {
   subscriptionStart: Timestamp;
-  lastPayment?: Timestamp;
-  nextPayment?: Timestamp;
-  slug?: string;
-  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
+  lastPayment: Timestamp;
+  nextPayment: Timestamp;
   invitationEmailSentAt?: Timestamp;
-  invitationEmailError?: string;
-}
+};
 
 /**
  * List members response - matches API but uses frontend Member type.

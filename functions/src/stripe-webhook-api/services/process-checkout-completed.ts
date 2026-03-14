@@ -640,7 +640,7 @@ export async function processCheckoutCompleted(options: {
           email: customerEmail,
           hasSlug: Boolean(autoLinkResult.mergedFields.slug),
         });
-        warning = autoLinkResult.warning ?? warning;
+        warning = warning ?? autoLinkResult.warning;
         break;
       }
       case "not_found": {
@@ -660,14 +660,14 @@ export async function processCheckoutCompleted(options: {
             errorId: ERROR_IDS.CLAIM_PROFILE_INVALID_DATA,
           },
         );
-        warning = autoLinkResult.warning ?? warning;
+        warning = warning ?? autoLinkResult.warning;
         break;
       }
     }
   }
 
   // Track non-critical operation results
-  let mailerliteSynced = autoLinkResult?.status === "merged";
+  let mailerliteSynced = autoLinkResult?.status === "merged" && autoLinkResult.mailerliteSynced;
 
   // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
   if (mailerliteApiKey && autoLinkResult?.status !== "merged") {

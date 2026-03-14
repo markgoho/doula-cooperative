@@ -39,8 +39,8 @@ export interface ApiMemberResponse {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
-  lastPayment?: string; // ISO 8601
-  nextPayment?: string; // ISO 8601
+  lastPayment: string; // ISO 8601
+  nextPayment: string; // ISO 8601
   welcomeEmailStatus?: WelcomeEmailStatus;
   welcomeEmailSentAt?: string; // ISO 8601
   welcomeEmailError?: string;
@@ -69,8 +69,8 @@ export interface ApiUnclaimedProfileResponse {
   email: string;
   name: string;
   subscriptionStart: string; // ISO 8601
-  lastPayment?: string; // ISO 8601
-  nextPayment?: string; // ISO 8601
+  lastPayment: string; // ISO 8601
+  nextPayment: string; // ISO 8601
   slug?: string;
   invitationEmailStatus?: 'sent' | 'failed' | 'pending';
   invitationEmailSentAt?: string; // ISO 8601

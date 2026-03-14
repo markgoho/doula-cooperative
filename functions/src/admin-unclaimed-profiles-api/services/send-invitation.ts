@@ -387,12 +387,13 @@ export async function sendInvitation({
     }
 
     // Step 5: Build and send invitation email with password reset link
-    const subscriptionStartDate =
-      unclaimedProfile.subscriptionStart?.toDate().toLocaleDateString("en-US", {
+    const subscriptionStartDate = unclaimedProfile.subscriptionStart
+      .toDate()
+      .toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
-      }) ?? "Unknown start date";
+      });
 
     const memberName = unclaimedProfile.name ?? "Member";
 
