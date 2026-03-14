@@ -28,46 +28,44 @@
       <dt>Email:</dt>
       <dd>
         {{ profile.email }}
-        @if (!invitationAlreadySent()) {
-          @if (showUpdateEmailForm()) {
-            <div class="update-email-form">
-              <label for="update-email">New Email Address</label>
-              <input
-                id="update-email"
-                type="email"
-                [ngModel]="updateEmailValue()"
-                (ngModelChange)="updateEmailValue.set($event)"
-                placeholder="Enter new email address"
+        @if (showUpdateEmailForm()) {
+          <div class="update-email-form">
+            <label for="update-email">New Email Address</label>
+            <input
+              id="update-email"
+              type="email"
+              [ngModel]="updateEmailValue()"
+              (ngModelChange)="updateEmailValue.set($event)"
+              placeholder="Enter new email address"
+              [disabled]="service.actionInProgress()"
+            />
+            <div class="update-email-actions">
+              <button
+                type="button"
+                class="button"
+                (click)="updateEmail()"
+                [disabled]="service.actionInProgress() || updateEmailValue() === ''"
+              >
+                {{ service.actionInProgress() ? 'Processing...' : 'Confirm Update' }}
+              </button>
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="showUpdateEmailForm.set(false)"
                 [disabled]="service.actionInProgress()"
-              />
-              <div class="update-email-actions">
-                <button
-                  type="button"
-                  class="button"
-                  (click)="updateEmail()"
-                  [disabled]="service.actionInProgress() || updateEmailValue() === ''"
-                >
-                  {{ service.actionInProgress() ? 'Processing...' : 'Confirm Update' }}
-                </button>
-                <button
-                  type="button"
-                  class="button button-secondary"
-                  (click)="showUpdateEmailForm.set(false)"
-                  [disabled]="service.actionInProgress()"
-                >
-                  Cancel
-                </button>
-              </div>
+              >
+                Cancel
+              </button>
             </div>
-          } @else {
-            <button
-              type="button"
-              class="button button-secondary button-small"
-              (click)="showUpdateEmailForm.set(true)"
-            >
-              Update Email
-            </button>
-          }
+          </div>
+        } @else {
+          <button
+            type="button"
+            class="button button-secondary button-small"
+            (click)="showUpdateEmailForm.set(true)"
+          >
+            Update Email
+          </button>
         }
       </dd>
 
@@ -103,100 +101,7 @@
         {{ profile.nextPayment ? (profile.nextPayment.toDate() | date: 'MMM d, yyyy') : '—' }}
       </dd>
 
-      <dt>Invitation Email:</dt>
-      <dd>
-        @if (profile.invitationEmailStatus === 'sent') {
-          <span class="status-badge active">
-            Sent
-            {{
-              profile.invitationEmailSentAt
-                ? (profile.invitationEmailSentAt.toDate() | date: 'MMM d, yyyy')
-                : ''
-            }}
-          </span>
-        } @else if (profile.invitationEmailStatus === 'failed') {
-          <span class="status-badge inactive">Failed</span>
-          @if (profile.invitationEmailError) {
-            <span class="error-detail">{{ profile.invitationEmailError }}</span>
-          }
-        } @else {
-          <span class="status-badge">Not Sent</span>
-        }
-      </dd>
     </dl>
-
-    <div class="actions">
-      <h3>Invitation Actions</h3>
-      <app-alert-banner variant="info">
-        Send an email invitation to this user to create an account and claim their membership.
-      </app-alert-banner>
-
-      <div class="action-buttons">
-        <button
-          type="button"
-          class="button"
-          (click)="sendInvitation()"
-          [disabled]="service.actionInProgress() || invitationAlreadySent()"
-          [title]="
-            invitationAlreadySent()
-              ? 'Invitation already sent'
-              : 'Send invitation email to claim subscription'
-          "
-        >
-          {{
-            service.actionInProgress()
-              ? 'Processing...'
-              : invitationAlreadySent()
-                ? 'Invitation Already Sent'
-                : 'Send Invitation'
-          }}
-        </button>
-      </div>
-
-      @if (invitationAlreadySent()) {
-        <div class="change-email-section">
-          @if (showChangeEmailForm()) {
-            <div class="change-email-form">
-              <label for="new-email">New Email Address</label>
-              <input
-                id="new-email"
-                type="email"
-                [ngModel]="newEmailValue()"
-                (ngModelChange)="newEmailValue.set($event)"
-                placeholder="Enter new email address"
-                [disabled]="service.actionInProgress()"
-              />
-              <div class="change-email-actions">
-                <button
-                  type="button"
-                  class="button"
-                  (click)="changeEmailAndResend()"
-                  [disabled]="service.actionInProgress() || newEmailValue() === ''"
-                >
-                  {{ service.actionInProgress() ? 'Processing...' : 'Confirm Change & Resend' }}
-                </button>
-                <button
-                  type="button"
-                  class="button button-secondary"
-                  (click)="showChangeEmailForm.set(false)"
-                  [disabled]="service.actionInProgress()"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          } @else {
-            <button
-              type="button"
-              class="button button-secondary"
-              (click)="showChangeEmailForm.set(true)"
-            >
-              Change Email & Resend Invitation
-            </button>
-          }
-        </div>
-      }
-    </div>
   </section>
 
   <section class="danger-zone">

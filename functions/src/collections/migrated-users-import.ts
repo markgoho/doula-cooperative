@@ -36,18 +36,6 @@ export interface UnclaimedProfileDocumentData {
    */
   nextPayment: Timestamp;
   /**
-   * The status of the user's invitation email.
-   */
-  invitationEmailStatus?: "sent" | "failed" | "pending";
-  /**
-   * The date the user's invitation email was sent.
-   */
-  invitationEmailSentAt?: Timestamp;
-  /**
-   * The error message from the user's invitation email.
-   */
-  invitationEmailError?: string;
-  /**
    * The date the profile was originally created in the legacy system.
    */
   createdAt?: Timestamp;

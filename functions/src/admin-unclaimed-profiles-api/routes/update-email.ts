@@ -30,7 +30,7 @@ export async function updateEmailLogic({
       logger,
     });
 
-    logger.info("Admin updated unclaimed profile email (pre-invitation)", {
+    logger.info("Admin updated unclaimed profile email", {
       adminUid,
       oldEmail,
       newEmail,

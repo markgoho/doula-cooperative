@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-14)
 
 ### Features
 
@@ -17,6 +17,7 @@
 ### Bug Fixes
 
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove unnecessary optional chain on custom_fields ([51a0c2f](https://github.com/markgoho/doula-cooperative/commit/51a0c2fb8f2c1e1857e456984b90d5010730e289))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))
 * resolve 'Body already used' error in Stripe webhook handler ([4444f93](https://github.com/markgoho/doula-cooperative/commit/4444f939b9f4b59f25bea258f801c3650f089951))

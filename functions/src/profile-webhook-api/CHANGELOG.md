@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-14)
 
 ### Features
 
@@ -9,4 +9,5 @@
 
 ### Bug Fixes
 
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * Update import paths for constants and utility functions in send-notification-email service ([610b1f5](https://github.com/markgoho/doula-cooperative/commit/610b1f5a6ff55dc03b921cc2a66647d378f1e656))

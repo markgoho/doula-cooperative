@@ -72,9 +72,6 @@ export interface ApiUnclaimedProfileResponse {
   lastPayment?: string; // ISO 8601
   nextPayment?: string; // ISO 8601
   slug?: string;
-  invitationEmailStatus?: 'sent' | 'failed' | 'pending';
-  invitationEmailSentAt?: string; // ISO 8601
-  invitationEmailError?: string;
   createdAt?: string; // ISO 8601
   updatedAt?: string; // ISO 8601
 }

@@ -34,27 +34,6 @@ export class AdminUnclaimedProfileDetailService {
   }
 
   /**
-   * Send invitation to the unclaimed profile
-   */
-  async sendInvitation(email: string): Promise<void> {
-    this.actionInProgress.set(true);
-    this.successMessage.set(undefined);
-    this.actionError.set(undefined);
-
-    try {
-      const result = await this.adminMembersService.sendInvitation(email);
-      // Show warning if tracking failed, otherwise show success
-      this.successMessage.set(result.warning ?? 'Invitation sent successfully');
-      this.unclaimedProfileResource.reload(); // Reload to get updated invitation status
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      this.actionError.set('Failed to send invitation.');
-    } finally {
-      this.actionInProgress.set(false);
-    }
-  }
-
-  /**
    * Delete the unclaimed profile
    */
   async deleteProfile(email: string): Promise<void> {
@@ -74,31 +53,7 @@ export class AdminUnclaimedProfileDetailService {
   }
 
   /**
-   * Change the email on an unclaimed profile and resend the invitation.
-   * Returns the new email on success so the component can navigate to the new URL.
-   */
-  async changeEmailAndResend(oldEmail: string, newEmail: string): Promise<string | undefined> {
-    this.actionInProgress.set(true);
-    this.successMessage.set(undefined);
-    this.actionError.set(undefined);
-
-    try {
-      const result = await this.adminMembersService.changeEmailAndResend(oldEmail, newEmail);
-      this.successMessage.set(
-        result.warning ?? `Email changed to ${newEmail} and invitation resent successfully`,
-      );
-      return newEmail;
-    } catch (error) {
-      console.error('Error changing email and resending invitation:', error);
-      this.actionError.set('Failed to change email and resend invitation.');
-      return undefined;
-    } finally {
-      this.actionInProgress.set(false);
-    }
-  }
-
-  /**
-   * Update the email on an unclaimed profile (pre-invitation only).
+   * Update the email on an unclaimed profile.
    * Returns the new email on success so the component can navigate to the new URL.
    */
   async updateEmail(oldEmail: string, newEmail: string): Promise<string | undefined> {

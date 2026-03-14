@@ -8,8 +8,6 @@
  * When updating the Elysia schemas, update these types to match.
  */
 
-export type InvitationEmailStatus = 'sent' | 'failed' | 'pending';
-
 /**
  * Unclaimed profile response from the API with ISO 8601 timestamp strings.
  * Mirrors: UnclaimedProfileResponse (from UnclaimedProfileResponseSchema)
@@ -21,9 +19,6 @@ export interface ApiUnclaimedProfileResponse {
   lastPayment: string; // ISO 8601
   nextPayment: string; // ISO 8601
   slug?: string;
-  invitationEmailStatus?: InvitationEmailStatus;
-  invitationEmailSentAt?: string; // ISO 8601
-  invitationEmailError?: string;
   createdAt?: string; // ISO 8601
   updatedAt?: string; // ISO 8601
 }

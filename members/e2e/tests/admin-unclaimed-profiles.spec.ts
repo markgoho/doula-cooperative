@@ -19,8 +19,6 @@ const mockUnclaimedProfiles: ApiUnclaimedProfileResponse[] = [
     lastPayment: '2024-01-15T10:30:00.000Z',
     nextPayment: '2025-01-15T10:30:00.000Z',
     slug: 'alice-unclaimed',
-    invitationEmailStatus: 'sent',
-    invitationEmailSentAt: '2024-01-16T10:00:00.000Z',
   },
   {
     email: 'bob.unclaimed@example.com',
@@ -194,54 +192,8 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(authenticatedAdminPage.getByText('Jan 15, 2024').first()).toBeVisible();
     await expect(authenticatedAdminPage.getByText('Jan 15, 2025')).toBeVisible();
 
-    // === Verify invitation email status (ad-hoc selectors) ===
-    // Use more specific selector to avoid matching button text "Invitation Already Sent"
-    await expect(authenticatedAdminPage.getByText('Sent Jan 16, 2024')).toBeVisible();
-
-    // === Verify send invitation button is disabled (already sent) ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeDisabled();
-    await expect(unclaimedProfilePage.sendInvitationButton).toContainText(
-      'Invitation Already Sent',
-    );
   });
 
-  test('admin views unclaimed profile without invitation sent shows send invitation button', async ({
-    authenticatedAdminPage,
-  }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
-
-    // Mock GET single profile (email in path)
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
-      async (route) => {
-        await (route.request().method() === 'GET'
-          ? route.fulfill({
-              status: 200,
-              contentType: 'application/json',
-              body: JSON.stringify(mockProfile),
-            })
-          : route.continue());
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Verify profile data (ad-hoc selectors) ===
-    await expect(authenticatedAdminPage.getByText('Bob Unclaimed')).toBeVisible();
-    await expect(authenticatedAdminPage.getByText('bob.unclaimed@example.com')).toBeVisible();
-
-    // === Verify no profile link (ad-hoc selector) ===
-    await expect(authenticatedAdminPage.getByText('No', { exact: true })).toBeVisible();
-
-    // === Verify invitation status (ad-hoc selector) ===
-    await expect(authenticatedAdminPage.getByText('Not Sent')).toBeVisible();
-
-    // === Verify send invitation button is enabled (clicking requires callable function/emulator) ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
-    await expect(unclaimedProfilePage.sendInvitationButton).toContainText('Send Invitation');
-  });
 
   test('handles profile not found error', async ({ authenticatedAdminPage }) => {
     // Mock 404 response for specific profile
@@ -268,166 +220,8 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.sectionHeading).not.toBeVisible();
   });
 
-  test('displays profile with failed invitation status', async ({ authenticatedAdminPage }) => {
-    const profileWithFailedInvitation: ApiUnclaimedProfileResponse = {
-      email: 'failed.invitation@example.com',
-      name: 'Failed Invitation',
-      subscriptionStart: '2024-04-01T10:00:00.000Z',
-      lastPayment: '2024-04-01T10:00:00.000Z',
-      nextPayment: '2025-04-01T10:00:00.000Z',
-      invitationEmailStatus: 'failed',
-      invitationEmailError: 'Email service temporarily unavailable',
-    };
-
-    // Mock GET single profile with failed invitation status
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/failed.invitation@example.com',
-      async (route) => {
-        await (route.request().method() === 'GET'
-          ? route.fulfill({
-              status: 200,
-              contentType: 'application/json',
-              body: JSON.stringify(profileWithFailedInvitation),
-            })
-          : route.continue());
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('failed.invitation@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Verify failed invitation status (ad-hoc selectors) ===
-    // Use exact match to avoid matching "Failed Invitation" name or email
-    await expect(authenticatedAdminPage.getByText('Failed', { exact: true })).toBeVisible();
-    await expect(
-      authenticatedAdminPage.getByText('Email service temporarily unavailable'),
-    ).toBeVisible();
-
-    // === Verify send invitation button is enabled (can retry) ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
-  });
-
-  test('admin sends invitation to unclaimed profile', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
-
-    // Create updated profile with invitation sent status
-    // Use conditional spread to avoid undefined with exactOptionalPropertyTypes
-    const updatedProfile: ApiUnclaimedProfileResponse = {
-      email: mockProfile.email,
-      name: mockProfile.name,
-      subscriptionStart: mockProfile.subscriptionStart,
-      lastPayment: mockProfile.lastPayment,
-      nextPayment: mockProfile.nextPayment,
-      ...(mockProfile.slug !== undefined && { slug: mockProfile.slug }),
-      ...(mockProfile.createdAt !== undefined && { createdAt: mockProfile.createdAt }),
-      ...(mockProfile.updatedAt !== undefined && { updatedAt: mockProfile.updatedAt }),
-      invitationEmailStatus: 'sent',
-      invitationEmailSentAt: new Date().toISOString(),
-    };
-
-    let postRequestMade = false;
-
-    // Mock GET and POST - after POST succeeds, return updated profile
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com**',
-      async (route) => {
-        const method = route.request().method();
-        if (method === 'GET') {
-          // Return updated profile after POST succeeds, initial profile otherwise
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(postRequestMade ? updatedProfile : mockProfile),
-          });
-          return;
-        }
-        if (method === 'POST' && route.request().url().includes('/invitation')) {
-          postRequestMade = true;
-          // Mock successful invitation send
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true }),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Verify initial state (not sent) ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
-    await expect(unclaimedProfilePage.sendInvitationButton).toContainText('Send Invitation');
-
-    // === Click send invitation button ===
-    await unclaimedProfilePage.sendInvitationButton.click();
-
-    // === Verify success message appears ===
-    await expect(authenticatedAdminPage.getByText('Invitation sent successfully')).toBeVisible({
-      timeout: 5000,
-    });
-
-    // === Verify button state changes to disabled ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeDisabled({ timeout: 5000 });
-    await expect(unclaimedProfilePage.sendInvitationButton).toContainText(
-      'Invitation Already Sent',
-    );
-  });
-
-  test('handles invitation sending failure with error message', async ({
-    authenticatedAdminPage,
-  }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
-
-    // Mock GET and POST with error response
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com**',
-      async (route) => {
-        const method = route.request().method();
-        if (method === 'GET') {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfile),
-          });
-          return;
-        }
-        if (method === 'POST' && route.request().url().includes('/invitation')) {
-          // Mock invitation send failure
-          await route.fulfill({
-            status: 500,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Failed to send invitation email.' }),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('bob.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Click send invitation button ===
-    await unclaimedProfilePage.sendInvitationButton.click();
-
-    // === Verify error message appears ===
-    await expect(authenticatedAdminPage.getByText(/Failed to send invitation|error/i)).toBeVisible({
-      timeout: 5000,
-    });
-
-    // === Verify button remains enabled (can retry) ===
-    await expect(unclaimedProfilePage.sendInvitationButton).toBeEnabled();
-  });
-
   test('admin deletes unclaimed profile with confirmation', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     let deleteRequestMade = false;
 
@@ -593,169 +387,12 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
   });
 
-  test('admin changes email and resends invitation successfully', async ({
+
+  test('update email button visible for unclaimed profile', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
-    let changeEmailPostMade = false;
+    const bobProfile = mockUnclaimedProfiles[1]!;
 
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
-      async (route) => {
-        const method = route.request().method();
-        if (method === 'GET') {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfile),
-          });
-          return;
-        }
-        if (method === 'POST' && route.request().url().includes('/change-email')) {
-          changeEmailPostMade = true;
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true }),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    // Mock the new email profile page (will navigate here after success)
-    const updatedProfile: ApiUnclaimedProfileResponse = {
-      ...mockProfile,
-      email: 'newalice@example.com',
-      invitationEmailSentAt: new Date().toISOString(),
-    };
-
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/newalice@example.com**',
-      async (route) => {
-        if (route.request().method() === 'GET') {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(updatedProfile),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Verify Change Email button visible (invitation already sent) ===
-    await expect(unclaimedProfilePage.changeEmailButton).toBeVisible();
-
-    // === Fill and submit change email form ===
-    await unclaimedProfilePage.fillAndSubmitChangeEmail('newalice@example.com');
-
-    // === Verify success message appears ===
-    await expect(unclaimedProfilePage.successMessage).toBeVisible({ timeout: 5000 });
-    await expect(unclaimedProfilePage.successMessage).toContainText(
-      'Email changed to newalice@example.com and invitation resent successfully',
-    );
-
-    // === Verify navigated to new email route ===
-    await authenticatedAdminPage.waitForURL('**/admin/unclaimed/newalice@example.com', {
-      timeout: 5000,
-    });
-
-    // === Verify the POST was made ===
-    expect(changeEmailPostMade).toBe(true);
-  });
-
-  test('handles change email failure with error message', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
-
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
-      async (route) => {
-        const method = route.request().method();
-        if (method === 'GET') {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfile),
-          });
-          return;
-        }
-        if (method === 'POST' && route.request().url().includes('/change-email')) {
-          await route.fulfill({
-            status: 500,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Failed to change email' }),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Fill and submit change email form ===
-    await unclaimedProfilePage.fillAndSubmitChangeEmail('newalice@example.com');
-
-    // === Verify error message appears ===
-    await expect(unclaimedProfilePage.errorMessage).toBeVisible({ timeout: 5000 });
-
-    // === Verify still on original page (no navigation) ===
-    await expect(authenticatedAdminPage).toHaveURL(
-      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
-    );
-  });
-
-  test('admin cancels change email form', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[0]!; // Alice - invitation already sent
-
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com**',
-      async (route) => {
-        if (route.request().method() === 'GET') {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfile),
-          });
-          return;
-        }
-        await route.continue();
-      },
-    );
-
-    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
-    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Open change email form ===
-    await unclaimedProfilePage.changeEmailButton.click();
-    await expect(unclaimedProfilePage.newEmailInput).toBeVisible();
-    await expect(unclaimedProfilePage.confirmChangeButton).toBeVisible();
-
-    // === Cancel ===
-    await unclaimedProfilePage.cancelChangeButton.click();
-
-    // === Verify form is hidden and original button is back ===
-    await expect(unclaimedProfilePage.newEmailInput).not.toBeVisible();
-    await expect(unclaimedProfilePage.changeEmailButton).toBeVisible();
-  });
-
-  test('update email button visible for uninvited profile, hidden for invited profile', async ({
-    authenticatedAdminPage,
-  }) => {
-    const bobProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
-    const aliceProfile = mockUnclaimedProfiles[0]!; // Alice - invitation sent
-
-    // Mock Bob's profile (uninvited)
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
       async (route) => {
@@ -773,40 +410,13 @@ test.describe('Admin Unclaimed Profiles', () => {
     await unclaimedProfilePage.goto('bob.unclaimed@example.com');
     await unclaimedProfilePage.waitForProfileDetails();
 
-    // === Update Email button should be visible for uninvited profile ===
     await expect(unclaimedProfilePage.updateEmailButton).toBeVisible();
-
-    // === Change Email button should NOT be visible (no invitation sent) ===
-    await expect(unclaimedProfilePage.changeEmailButton).not.toBeVisible();
-
-    // Now check Alice (invited) - Update Email should NOT be visible
-    await authenticatedAdminPage.route(
-      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
-      async (route) => {
-        await (route.request().method() === 'GET'
-          ? route.fulfill({
-              status: 200,
-              contentType: 'application/json',
-              body: JSON.stringify(aliceProfile),
-            })
-          : route.continue());
-      },
-    );
-
-    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
-    await unclaimedProfilePage.waitForProfileDetails();
-
-    // === Update Email button should NOT be visible for invited profile ===
-    await expect(unclaimedProfilePage.updateEmailButton).not.toBeVisible();
-
-    // === Change Email button should be visible (invitation already sent) ===
-    await expect(unclaimedProfilePage.changeEmailButton).toBeVisible();
   });
 
-  test('admin updates email on uninvited profile successfully', async ({
+  test('admin updates email successfully', async ({
     authenticatedAdminPage,
   }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
     let patchRequestMade = false;
 
     await authenticatedAdminPage.route(
@@ -881,7 +491,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('handles update email failure with error message', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
@@ -924,7 +534,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   });
 
   test('admin cancels update email form', async ({ authenticatedAdminPage }) => {
-    const mockProfile = mockUnclaimedProfiles[1]!; // Bob - no invitation sent
+    const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',

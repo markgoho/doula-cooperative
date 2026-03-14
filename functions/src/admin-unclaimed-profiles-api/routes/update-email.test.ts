@@ -17,7 +17,6 @@ describe("PATCH /:email", () => {
     profileNotFound?: boolean;
     newEmailAlreadyExists?: boolean;
     sameEmail?: boolean;
-    alreadyInvited?: boolean;
     moveFailed?: boolean;
   }
 
@@ -28,7 +27,6 @@ describe("PATCH /:email", () => {
     profileNotFound = false,
     newEmailAlreadyExists = false,
     sameEmail = false,
-    alreadyInvited = false,
     moveFailed = false,
   }: SetupOptions = {}) {
     const mockUpdateEmail = mock((): Promise<UpdateEmailSuccessResponse> => {
@@ -47,13 +45,6 @@ describe("PATCH /:email", () => {
         return Promise.reject(
           new ConflictError(
             "An unclaimed profile with that email already exists.",
-          ),
-        );
-      }
-      if (alreadyInvited) {
-        return Promise.reject(
-          new ConflictError(
-            "This profile has already been invited. Use 'Change Email & Resend' instead.",
           ),
         );
       }
@@ -144,7 +135,7 @@ describe("PATCH /:email", () => {
   });
 
   describe("Successful email update", () => {
-    it("should update email for pre-invitation profile", async () => {
+    it("should update email for unclaimed profile", async () => {
       const { testApp, request } = setup();
 
       const response = await handleRequest(testApp, request);
@@ -184,16 +175,6 @@ describe("PATCH /:email", () => {
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toContain("already exists");
-    });
-
-    it("should return 409 when profile has already been invited", async () => {
-      const { testApp, request } = setup({ alreadyInvited: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(409);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("already been invited");
     });
 
     it("should return 500 when profile move fails", async () => {
