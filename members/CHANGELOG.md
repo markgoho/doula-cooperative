@@ -47,6 +47,7 @@
 
 ### Bug Fixes
 
+* remove unclaimed profile invitation flow ([5a1cd6a](https://github.com/markgoho/doula-cooperative/commit/5a1cd6a))
 * add z-0.5 zoom to face crop, cache-bust ImageKit URLs, fix banner layout ([aaf4c8e](https://github.com/markgoho/doula-cooperative/commit/aaf4c8e46e54c513320f7924f41bea2dc5ec7280))
 * clear optimistic profile data when all retries are exhausted ([dc6d906](https://github.com/markgoho/doula-cooperative/commit/dc6d90679d534381b2d26e5566b0b0a3da036f10))
 * defer profile creation to preview step to prevent 409 on back navigation ([17150f2](https://github.com/markgoho/doula-cooperative/commit/17150f2bb31252486781bc2a4cc861b68b014ca7))
