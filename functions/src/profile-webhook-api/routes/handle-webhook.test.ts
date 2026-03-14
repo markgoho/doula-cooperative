@@ -289,7 +289,9 @@ describe("POST /", () => {
   });
 
   it("should return 500 when deploy webhook secret is not configured", async () => {
-    const { testApp, request } = setup({ deployWebhookSecret: null });
+    const { testApp, request } = setup({
+      deployWebhookSecret: null,
+    });
 
     const response = await handleRequest(testApp, request);
 

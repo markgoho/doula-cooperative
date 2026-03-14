@@ -44,6 +44,7 @@ describe("POST /:slug/claim (claim profile)", () => {
       subscriptionStart: Timestamp.now(),
       lastPayment: Timestamp.now(),
       nextPayment: Timestamp.now(),
+      createdAt: Timestamp.now(),
     },
     authUpdateFails = false,
     importDeleteFails = false,
@@ -180,8 +181,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { status?: string };
+      const body = (await response.json()) as {
+        status?: string;
+        data?: { createdAt?: { seconds?: number; nanoseconds?: number } };
+      };
       expect(body.status).toBe("success");
+      expect(body.data?.createdAt).toBeDefined();
     });
 
     it("should return no_profile_to_claim when import document doesn't exist", async () => {
@@ -265,6 +270,9 @@ describe("POST /:slug/claim (claim profile)", () => {
                 name: "Test User",
                 email: "test@example.com",
                 subscriptionStart: Timestamp.now(),
+                lastPayment: Timestamp.now(),
+                nextPayment: Timestamp.now(),
+                createdAt: Timestamp.now(),
               }),
             ),
           ),
@@ -292,8 +300,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { status?: string };
+      const body = (await response.json()) as {
+        status?: string;
+        data?: { createdAt?: { seconds?: number; nanoseconds?: number } };
+      };
       expect(body.status).toBe("success");
+      expect(body.data?.createdAt).toBeDefined();
     });
 
     it("should succeed even when import deletion fails (non-critical)", async () => {
@@ -302,8 +314,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { status?: string };
+      const body = (await response.json()) as {
+        status?: string;
+        data?: { createdAt?: { seconds?: number; nanoseconds?: number } };
+      };
       expect(body.status).toBe("success");
+      expect(body.data?.createdAt).toBeDefined();
     });
 
     it("should calculate membership expiration correctly", async () => {
@@ -313,6 +329,9 @@ describe("POST /:slug/claim (claim profile)", () => {
           name: "Test User",
           email: "test@example.com",
           subscriptionStart: Timestamp.fromDate(subscriptionDate),
+          lastPayment: Timestamp.fromDate(subscriptionDate),
+          nextPayment: Timestamp.fromDate(subscriptionDate),
+          createdAt: Timestamp.fromDate(subscriptionDate),
         },
       });
 
@@ -323,12 +342,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const body = (await response.json()) as {
         status?: string;
         data?: {
-          nextPayment?: { seconds?: number; nanoseconds?: number };
+          nextPayment?: { _seconds?: number; _nanoseconds?: number };
         };
       };
       expect(body.status).toBe("success");
-      expect(body.data?.nextPayment).toBeDefined();
-      expect(body.data?.nextPayment?.seconds).toBeTypeOf("number");
+      expect(body.data?.nextPayment?._seconds).toBeTypeOf("number");
+      expect(body.data?.nextPayment?._nanoseconds).toBeTypeOf("number");
     });
 
     it("should succeed with MailerLite integration when MAILERLITE_API_KEY is set", async () => {
@@ -337,8 +356,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { status?: string };
+      const body = (await response.json()) as {
+        status?: string;
+        data?: { createdAt?: { seconds?: number; nanoseconds?: number } };
+      };
       expect(body.status).toBe("success");
+      expect(body.data?.createdAt).toBeDefined();
     });
 
     it("should succeed and send notification email when MailerLite fails", async () => {
@@ -347,8 +370,12 @@ describe("POST /:slug/claim (claim profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { status?: string };
+      const body = (await response.json()) as {
+        status?: string;
+        data?: { createdAt?: { seconds?: number; nanoseconds?: number } };
+      };
       expect(body.status).toBe("success");
+      expect(body.data?.createdAt).toBeDefined();
     });
   });
 });

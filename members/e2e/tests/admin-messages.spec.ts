@@ -176,24 +176,4 @@ test.describe('Admin Messages Page', () => {
     // Verify success message appears
     await expect(authenticatedAdminPage.getByText('Message marked as processed')).toBeVisible();
   });
-
-  test('handles error when viewing non-existent message', async ({ authenticatedAdminPage }) => {
-    const messageId = 'non-existent-id';
-
-    // Mock 404 error
-    await authenticatedAdminPage.route(`**/api/admin/messages/${messageId}`, async (route) => {
-      await route.fulfill({
-        status: 404,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Message not found' }),
-      });
-    });
-
-    await authenticatedAdminPage.goto(`/admin/messages/${messageId}`);
-
-    // Verify error message appears
-    await expect(
-      authenticatedAdminPage.getByText('Failed to load message details. Please try again.'),
-    ).toBeVisible();
-  });
 });

@@ -15,7 +15,8 @@
     "cleanup-test-data": "bun run src/scripts/cleanup-test-data.ts",
     "test-webhook": "bun run src/scripts/test-stripe-webhook.ts",
     "sync-profile-timestamps": "bun run src/scripts/sync-profile-timestamps.ts",
-    "seed-claim-test": "bun run src/scripts/seed-claim-test.ts"
+    "seed-claim-test": "bun run src/scripts/seed-claim-test.ts",
+    "test": "bun test src"
   },
   "engines": {
     "node": "24"
