@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-14)
 
 ### Features
 
@@ -43,6 +43,7 @@
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
 * show inactive membership banner on profile page and fix Firestore newsletter/expiry on refund ([d040764](https://github.com/markgoho/doula-cooperative/commit/d0407643398a9bc5d4801c4d1b04b095688c62c7))
 * show refunded status and hide newsletter toggle for refunded members ([f1cbecb](https://github.com/markgoho/doula-cooperative/commit/f1cbecbdcb3bfbc846118da2b85e37f06d2b68f8))
+* unify legacy member signup through Stripe ([4289ba7](https://github.com/markgoho/doula-cooperative/commit/4289ba7f32c61a8ce0fc8adcf7a506a1cf406ad3))
 * update Playwright test routes to use regex for matching members API with/without query params ([40cb5c2](https://github.com/markgoho/doula-cooperative/commit/40cb5c2d58260e7ae4affc41536cd842b5f40542))
 
 ### Bug Fixes
@@ -64,6 +65,7 @@
 * optimistic profile UI after creation + add Mailgun secret to profilesApi ([1787a75](https://github.com/markgoho/doula-cooperative/commit/1787a756a845c0df989282b3ff47153c4b1a6835))
 * preserve aspect ratio on upload and remove optimistic image layer ([55025e8](https://github.com/markgoho/doula-cooperative/commit/55025e82dcbdfc5edcfe5f4befc962d1f9fb06fc))
 * prevent persisting image URLs with data URIs to localStorage to avoid quota errors ([8628c08](https://github.com/markgoho/doula-cooperative/commit/8628c083c9f3c8bcf4354417ea094eeac76f0b71))
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * reload user document after profile creation so header shows Edit Profile ([479e8e2](https://github.com/markgoho/doula-cooperative/commit/479e8e2fcd46e4019de233623bb8b9e223ece82f))
 * remove max-width from wizard step components for full-width layout ([acc7000](https://github.com/markgoho/doula-cooperative/commit/acc7000abedb52d2a7593b1cd6f994865d26020c))
 * remove production logs for Auth and Firestore in app configuration ([73e8d41](https://github.com/markgoho/doula-cooperative/commit/73e8d41bf767e8ac1bdee7b16d2c2ae166ec10f0))

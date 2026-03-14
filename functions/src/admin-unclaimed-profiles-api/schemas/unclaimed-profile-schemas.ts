@@ -200,9 +200,9 @@ export function toUnclaimedProfileResponse(
 ): UnclaimedProfileSuccessResponse {
   return {
     email: document.email,
-    name: document.name,
+    name: document.name ?? "",
     ...(document.slug !== undefined && { slug: document.slug }),
-    subscriptionStart: document.subscriptionStart.toDate().toISOString(),
+    subscriptionStart: document.subscriptionStart?.toDate().toISOString() ?? "",
     lastPayment: document.lastPayment.toDate().toISOString(),
     nextPayment: document.nextPayment.toDate().toISOString(),
     ...(document.invitationEmailStatus !== undefined && {

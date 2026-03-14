@@ -240,6 +240,8 @@ export const ERROR_IDS = {
   API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",
   API_ADMIN_REFRESH_PAYMENT_DATES_FAILED:
     "api_admin_refresh_payment_dates_failed",
+  API_ADMIN_ATTACH_IMPORTED_PROFILE_FAILED:
+    "api_admin_attach_imported_profile_failed",
 
   // Admin update email (pre-invitation) errors
   ADMIN_UPDATE_EMAIL_INVALID_EMAIL: "admin_update_email_invalid_email",

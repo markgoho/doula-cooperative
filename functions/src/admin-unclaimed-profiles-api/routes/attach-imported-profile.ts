@@ -1,9 +1,9 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
+import { HttpError } from "../../shared-api/errors/http-error.js";
+import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { AttachImportedProfileResponse } from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 
 export async function attachImportedProfileLogic({
   email,
@@ -35,7 +35,7 @@ export async function attachImportedProfileLogic({
 
     return result;
   } catch (error: unknown) {
-    if (error instanceof NotFoundError || error instanceof HttpError) {
+    if (error instanceof HttpError) {
       set.status = error.statusCode;
       return { error: error.message };
     }

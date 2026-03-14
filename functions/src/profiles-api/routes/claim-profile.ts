@@ -1,8 +1,7 @@
-import { Timestamp } from "firebase-admin/firestore";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ClaimProfileResponse } from "../schemas/profile-schemas.js";
 import type { AuthUpdateService } from "../services/auth-update/interface.js";
 import type { ClaimProfileFirestoreService } from "../services/firestore/interface.js";
@@ -70,18 +69,49 @@ export async function claimProfileLogic({
       };
     }
 
+    if (
+      !mergeResult.mergedFields?.email ||
+      !mergeResult.mergedFields.name ||
+      !mergeResult.mergedFields.subscriptionStart ||
+      !mergeResult.mergedFields.lastPayment ||
+      !mergeResult.mergedFields.membershipExpiresAt
+    ) {
+      set.status = 500;
+      return {
+        error:
+          "Your imported profile is missing required information. Please contact support.",
+      };
+    }
+
+    const mergedFields = mergeResult.mergedFields as {
+      email: string;
+      name: string;
+      subscriptionStart: unknown;
+      lastPayment: unknown;
+      membershipExpiresAt: unknown;
+      slug?: string;
+      profileCreatedAt?: unknown;
+    };
+    const {
+      email: mergedEmail,
+      name,
+      subscriptionStart,
+      lastPayment,
+      membershipExpiresAt,
+    } = mergedFields;
+
     return {
       status: "success",
       data: {
-        ...(mergeResult.mergedFields ?? {}),
-        nextPayment:
-          mergeResult.mergedFields?.membershipExpiresAt !== undefined
-            ? {
-                seconds: mergeResult.mergedFields.membershipExpiresAt.seconds,
-                nanoseconds:
-                  mergeResult.mergedFields.membershipExpiresAt.nanoseconds,
-              }
-            : undefined,
+        email: mergedEmail,
+        name,
+        ...(mergedFields.slug !== undefined && { slug: mergedFields.slug }),
+        subscriptionStart,
+        lastPayment,
+        nextPayment: membershipExpiresAt,
+        ...(mergedFields.profileCreatedAt !== undefined && {
+          createdAt: mergedFields.profileCreatedAt,
+        }),
       },
     };
   } catch (error: unknown) {

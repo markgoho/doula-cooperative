@@ -14,7 +14,7 @@ export interface UnclaimedProfileDocumentData {
   /**
    * The name of the user.
    */
-  name: string;
+  name?: string;
   /**
    * The email of the user.
    */
@@ -26,7 +26,7 @@ export interface UnclaimedProfileDocumentData {
   /**
    * The start date of the user's subscription.
    */
-  subscriptionStart: Timestamp;
+  subscriptionStart?: Timestamp;
   /**
    * The last payment date of the user's subscription.
    */

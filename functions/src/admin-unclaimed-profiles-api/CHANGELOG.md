@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-14)
 
 ### Features
 
@@ -14,9 +14,11 @@
 * migrate admin unclaimed profiles functions to Elysia API ([#30](https://github.com/markgoho/doula-cooperative/issues/30)) ([51cd7f2](https://github.com/markgoho/doula-cooperative/commit/51cd7f221c391e839f5a39c5e0336071c4094a6e)), closes [#24](https://github.com/markgoho/doula-cooperative/issues/24) [#24](https://github.com/markgoho/doula-cooperative/issues/24)
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
+* unify legacy member signup through Stripe ([4289ba7](https://github.com/markgoho/doula-cooperative/commit/4289ba7f32c61a8ce0fc8adcf7a506a1cf406ad3))
 * wire change-email-and-resend route into plugin with integration tests ([f8dfd44](https://github.com/markgoho/doula-cooperative/commit/f8dfd44af73bab23926adc6ac49b321ba483d5ba))
 
 ### Bug Fixes
 
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))
