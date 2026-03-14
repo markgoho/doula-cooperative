@@ -9,6 +9,7 @@ import {
 import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   toUnclaimedProfileResponse,
+  type AttachImportedProfileSuccessResponse,
   type ChangeEmailAndResendSuccessResponse,
   type UnclaimedProfileSuccessResponse,
 } from "../schemas/unclaimed-profile-schemas.js";
@@ -229,7 +230,9 @@ describe("Admin Unclaimed Profiles API", () => {
       profileNotFound = false,
       invalidImportData = false,
     }: SetupOptions = {}) {
-      const mockAttachImportedProfile = mock(() => {
+      const mockAttachImportedProfile = mock<
+        () => Promise<AttachImportedProfileSuccessResponse>
+      >(() => {
         if (profileNotFound) {
           throw new NotFoundError("Imported legacy record not found.");
         }
@@ -243,7 +246,7 @@ describe("Admin Unclaimed Profiles API", () => {
           success: true,
           memberUid,
           email,
-          status: "merged" as const,
+          status: "merged",
         });
       });
 
