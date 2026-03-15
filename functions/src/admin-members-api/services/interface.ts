@@ -2,6 +2,8 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
+import type { LinkProfileResult } from "./link-profile.js";
+import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";
 import type { ReadProfileResult } from "./read-profile.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";
@@ -176,4 +178,26 @@ export interface MemberAdminService {
    * @throws ValidationError if member has no slug
    */
   readProfile(options: { memberId: string }): Promise<ReadProfileResult>;
+
+  /**
+   * List all profiles that are not linked to a member account.
+   * These are profiles where the `ownerUid` field does not exist.
+   *
+   * @returns Promise resolving to array of unlinked profiles
+   */
+  listUnlinkedProfiles(): Promise<ListUnlinkedProfilesResult>;
+
+  /**
+   * Link an unlinked profile to a member account.
+   * Creates a bidirectional relationship between profile and member.
+   *
+   * @param options - Object containing memberId and slug
+   * @returns Promise resolving to updated member document
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ValidationError if member already has a profile or profile is already linked
+   */
+  linkProfile(options: {
+    memberId: string;
+    slug: string;
+  }): Promise<LinkProfileResult>;
 }

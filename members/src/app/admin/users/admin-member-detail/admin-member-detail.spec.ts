@@ -458,6 +458,145 @@ describe('AdminUserDetail', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('should render unlinked profiles table for members without a slug', async () => {
+    const member = createMockMemberWithoutSlug();
+
+    await setup({
+      member,
+      unlinkedProfiles: [
+        {
+          slug: 'matching-doula',
+          title: 'Test User Doula',
+          email: 'test@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(await screen.findByText('Link Existing Profile')).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'Full Name' })).toBeVisible();
+    expect(screen.getByText('Test User Doula')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Link' })).toBeVisible();
+  });
+
+  it('should open the link confirmation dialog', async () => {
+    const member = createMockMemberWithoutSlug();
+    const { user } = await setup({
+      member,
+      unlinkedProfiles: [
+        {
+          slug: 'matching-doula',
+          title: 'Test User Doula',
+          email: 'test@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const linkButton = await screen.findByRole('button', { name: 'Link' });
+    await user.click(linkButton);
+
+    expect(screen.getByText(/Link profile "Test User Doula" \(matching-doula\) to this member/)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Link Profile' })).toBeVisible();
+  });
+
+  it('should show success banner after linking a profile', async () => {
+    const member = createMockMemberWithoutSlug();
+    const { user } = await setup({
+      member,
+      unlinkedProfiles: [
+        {
+          slug: 'matching-doula',
+          title: 'Test User Doula',
+          email: 'test@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const linkButton = await screen.findByRole('button', { name: 'Link' });
+    await user.click(linkButton);
+
+    const confirmButton = screen.getByRole('button', { name: 'Link Profile' });
+    await user.click(confirmButton);
+
+    expect(await screen.findByText('Profile "matching-doula" linked successfully')).toBeVisible();
+  });
+
+  it('should show error banner when linking a profile fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
+    const member = createMockMemberWithoutSlug();
+    const { user } = await setup({
+      member,
+      shouldFailLinkProfile: true,
+      unlinkedProfiles: [
+        {
+          slug: 'matching-doula',
+          title: 'Test User Doula',
+          email: 'test@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const linkButton = await screen.findByRole('button', { name: 'Link' });
+    await user.click(linkButton);
+
+    const confirmButton = screen.getByRole('button', { name: 'Link Profile' });
+    await user.click(confirmButton);
+
+    expect(await screen.findByText('Failed to link profile.')).toBeVisible();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should show inline error state when unlinked profiles fail to load', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - we're just suppressing console output in tests
+    });
+
+    const member = createMockMemberWithoutSlug();
+    const { user, mockAdminMembersService } = await setup({
+      member,
+      shouldFailUnlinkedProfilesLoad: true,
+    });
+
+    expect(await screen.findByText('Failed to load unlinked profiles. Please try again.')).toBeVisible();
+
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    await user.click(retryButton);
+
+    expect(mockAdminMembersService.listUnlinkedProfiles).toHaveBeenCalledTimes(2);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should cancel link dialog without linking', async () => {
+    const member = createMockMemberWithoutSlug();
+    const { user } = await setup({
+      member,
+      unlinkedProfiles: [
+        {
+          slug: 'matching-doula',
+          title: 'Test User Doula',
+          email: 'test@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const linkButton = await screen.findByRole('button', { name: 'Link' });
+    await user.click(linkButton);
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    await user.click(cancelButton);
+
+    expect(screen.queryByText('Profile "matching-doula" linked successfully')).toBeNull();
+  });
 });
 
 interface SetupOptions {
@@ -468,9 +607,17 @@ interface SetupOptions {
   shouldFailCancel?: boolean;
   shouldFailCleanSlate?: boolean;
   shouldFailToggleDraft?: boolean;
+  shouldFailLinkProfile?: boolean;
+  shouldFailUnlinkedProfilesLoad?: boolean;
   shouldKeepLoading?: boolean;
   errorMessage?: string;
   profileDraft?: boolean;
+  unlinkedProfiles?: {
+    slug: string;
+    title: string;
+    email: string;
+    createdAt: string;
+  }[];
 }
 
 async function setup({
@@ -481,9 +628,12 @@ async function setup({
   shouldFailCancel = false,
   shouldFailCleanSlate = false,
   shouldFailToggleDraft = false,
+  shouldFailLinkProfile = false,
+  shouldFailUnlinkedProfilesLoad = false,
   shouldKeepLoading = false,
   errorMessage = 'Failed to load member details. Please try again.',
   profileDraft = true,
+  unlinkedProfiles = [],
 }: SetupOptions = {}) {
   const defaultMember = createMockMember({ uid });
   const memberToUse = member ?? defaultMember;
@@ -536,6 +686,12 @@ async function setup({
           slug: 'test-slug',
           draft: !profileDraft,
         }),
+    listUnlinkedProfiles: shouldFailUnlinkedProfilesLoad
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue(unlinkedProfiles),
+    linkProfile: shouldFailLinkProfile
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue(memberToUse),
   };
 
   const mockRouter = {
@@ -564,7 +720,7 @@ async function setup({
 }
 
 function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMemberResponse {
-  return {
+  const member: ApiMemberResponse = {
     uid: 'test-uid-123',
     email: 'test@example.com',
     name: 'Test User',
@@ -573,6 +729,17 @@ function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMember
     membershipActive: false,
     subscriptionStart: '2024-01-01T00:00:00.000Z',
     membershipExpiresAt: '2025-01-01T00:00:00.000Z',
+    slug: 'test-slug',
     ...overrides,
   };
+
+  return member;
+}
+
+function createMockMemberWithoutSlug(
+  overrides: Partial<ApiMemberResponse> = {},
+): ApiMemberResponse {
+  const member = createMockMember(overrides);
+  delete member.slug;
+  return member;
 }

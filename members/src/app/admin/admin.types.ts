@@ -24,6 +24,13 @@ export interface ListUnclaimedProfilesResponse {
   total: number;
 }
 
+export interface UnlinkedProfile {
+  slug: string;
+  title: string;
+  email: string;
+  createdAt: string;
+}
+
 export type MemberProfile = ProfileData & {
   slug: string;
 };

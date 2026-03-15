@@ -655,3 +655,69 @@ export const ReadProfileApiResponseSchema = t.Union([
 export type ReadProfileApiResponse = Static<
   typeof ReadProfileApiResponseSchema
 >;
+
+/**
+ * Schema for an unlinked profile in list responses.
+ */
+export const UnlinkedProfileSchema = t.Object({
+  slug: t.String({
+    description: "URL-friendly slug identifying the profile",
+  }),
+  title: t.String({
+    description: "Profile display name/title",
+  }),
+  email: t.String({
+    description: "Contact email from the profile",
+  }),
+  createdAt: t.String({
+    description: "Profile creation timestamp (ISO 8601)",
+  }),
+});
+
+/**
+ * GET /api/admin/members/unlinked-profiles response - success case.
+ */
+export const ListUnlinkedProfilesResponseSchema = t.Object({
+  profiles: t.Array(UnlinkedProfileSchema),
+});
+
+export type ListUnlinkedProfilesResponse = Static<
+  typeof ListUnlinkedProfilesResponseSchema
+>;
+
+/**
+ * GET /api/admin/members/unlinked-profiles response - union of success and error.
+ */
+export const ListUnlinkedProfilesApiResponseSchema = t.Union([
+  ListUnlinkedProfilesResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ListUnlinkedProfilesApiResponse = Static<
+  typeof ListUnlinkedProfilesApiResponseSchema
+>;
+
+/**
+ * Request body schema for linking a profile to a member.
+ */
+export const LinkProfileBodySchema = t.Object({
+  slug: t.String({
+    minLength: 1,
+    description: "The profile slug to link to this member",
+    error: "Slug must be a non-empty string",
+  }),
+});
+
+export type LinkProfileBody = Static<typeof LinkProfileBodySchema>;
+
+/**
+ * POST /api/admin/members/:memberId/link-profile response - union of success and error.
+ */
+export const LinkProfileApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type LinkProfileApiResponse = Static<
+  typeof LinkProfileApiResponseSchema
+>;
