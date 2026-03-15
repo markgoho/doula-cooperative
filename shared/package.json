@@ -9,10 +9,15 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "elysia": "^1.2.0"
   },
   "devDependencies": {
     "typescript": "~5.9.3"

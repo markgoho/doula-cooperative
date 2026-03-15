@@ -7,6 +7,11 @@ import { getMemberLogic } from "../routes/members.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import { verifyEmailLogic } from "../routes/verify-email.js";
+import type {
+  CancelMembershipResponse,
+  GetMemberResponse,
+  UpdateMemberNameResponse,
+} from "../schemas/member-schemas.js";
 import {
   CancelMembershipResponseSchema,
   GetMemberResponseSchema,
@@ -21,6 +26,22 @@ import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
 import { VerifyEmailServiceImpl } from "../services/verify-email/verify-email-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
+
+function asGetMemberResponse(value: GetMemberResponse): GetMemberResponse {
+  return value;
+}
+
+function asUpdateMemberNameResponse(
+  value: UpdateMemberNameResponse,
+): UpdateMemberNameResponse {
+  return value;
+}
+
+function asCancelMembershipResponse(
+  value: CancelMembershipResponse,
+): CancelMembershipResponse {
+  return value;
+}
 
 /**
  * Create members plugin for member-related routes.
@@ -58,15 +79,17 @@ export function createMembersPlugin(services?: PartialServices) {
       .get(
         "/:memberId",
         async ({ params, memberService, authService, logger, request, set }) =>
-          getMemberLogic({
-            memberId: params.memberId,
-            memberService,
-            authService,
-            logger,
-            authorizationHeader:
-              request.headers.get("authorization") ?? undefined,
-            set,
-          }),
+          asGetMemberResponse(
+            await getMemberLogic({
+              memberId: params.memberId,
+              memberService,
+              authService,
+              logger,
+              authorizationHeader:
+                request.headers.get("authorization") ?? undefined,
+              set,
+            }),
+          ),
         {
           params: MemberIdParameterSchema,
           response: GetMemberResponseSchema,
@@ -84,10 +107,11 @@ export function createMembersPlugin(services?: PartialServices) {
           logger,
           request,
           set,
-        }) =>
-          updateNewsletterPreferenceLogic({
+        }) => {
+          const typedBody = body as { subscribed: boolean };
+          return updateNewsletterPreferenceLogic({
             memberId: params.memberId,
-            subscribed: body.subscribed,
+            subscribed: typedBody.subscribed,
             newsletterService,
             authService,
             emailService,
@@ -95,7 +119,8 @@ export function createMembersPlugin(services?: PartialServices) {
             authorizationHeader:
               request.headers.get("authorization") ?? undefined,
             set,
-          }),
+          });
+        },
         {
           params: MemberIdParameterSchema,
           body: UpdateNewsletterPreferenceBodySchema,
@@ -138,17 +163,21 @@ export function createMembersPlugin(services?: PartialServices) {
           logger,
           request,
           set,
-        }) =>
-          updateMemberNameLogic({
-            memberId: params.memberId,
-            name: body.name,
-            memberService,
-            authService,
-            logger,
-            authorizationHeader:
-              request.headers.get("authorization") ?? undefined,
-            set,
-          }),
+        }) => {
+          const typedBody = body as { name: string };
+          return asUpdateMemberNameResponse(
+            await updateMemberNameLogic({
+              memberId: params.memberId,
+              name: typedBody.name,
+              memberService,
+              authService,
+              logger,
+              authorizationHeader:
+                request.headers.get("authorization") ?? undefined,
+              set,
+            }),
+          );
+        },
         {
           params: MemberIdParameterSchema,
           body: UpdateMemberNameBodySchema,
@@ -159,15 +188,17 @@ export function createMembersPlugin(services?: PartialServices) {
       .post(
         "/:memberId/membership/cancel",
         async ({ params, memberService, authService, logger, request, set }) =>
-          cancelMembershipLogic({
-            memberId: params.memberId,
-            memberService,
-            authService,
-            logger,
-            authorizationHeader:
-              request.headers.get("authorization") ?? undefined,
-            set,
-          }),
+          asCancelMembershipResponse(
+            await cancelMembershipLogic({
+              memberId: params.memberId,
+              memberService,
+              authService,
+              logger,
+              authorizationHeader:
+                request.headers.get("authorization") ?? undefined,
+              set,
+            }),
+          ),
         {
           params: MemberIdParameterSchema,
           response: CancelMembershipResponseSchema,
