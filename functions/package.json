@@ -22,6 +22,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@doula-coop/shared": "file:../shared",
     "@elysiajs/node": "^1.2.0",
     "@mailerlite/mailerlite-nodejs": "^1.0.0",
     "elysia": "^1.2.0",
