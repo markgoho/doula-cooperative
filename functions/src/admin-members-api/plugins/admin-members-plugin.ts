@@ -42,6 +42,11 @@ import {
   UpdateMemberApiResponseSchema,
   UpdateMemberBodySchema,
 } from "../schemas/member-schemas.js";
+
+function asRouteResponse<TValue>(value: TValue): TValue {
+  return value;
+}
+
 import { MemberAdminService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
@@ -79,12 +84,14 @@ export function createAdminMembersPlugin(services?: PartialServices) {
       .get(
         "/",
         async ({ adminToken, memberAdminService, logger, set }) =>
-          listMembersLogic({
-            adminUid: getAdminUid(adminToken, logger),
-            memberAdminService,
-            logger,
-            set,
-          }),
+          asRouteResponse(
+            await listMembersLogic({
+              adminUid: getAdminUid(adminToken, logger),
+              memberAdminService,
+              logger,
+              set,
+            }),
+          ),
         {
           response: ListMembersApiResponseSchema,
         },
@@ -110,13 +117,15 @@ export function createAdminMembersPlugin(services?: PartialServices) {
           .get(
             "/",
             async ({ params, adminToken, memberAdminService, logger, set }) =>
-              getMemberLogic({
-                memberId: params.memberId,
-                adminUid: getAdminUid(adminToken, logger),
-                memberAdminService,
-                logger,
-                set,
-              }),
+              asRouteResponse(
+                await getMemberLogic({
+                  memberId: params.memberId,
+                  adminUid: getAdminUid(adminToken, logger),
+                  memberAdminService,
+                  logger,
+                  set,
+                }),
+              ),
             {
               response: GetMemberApiResponseSchema,
             },
@@ -132,14 +141,23 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               logger,
               set,
             }) =>
-              updateMemberLogic({
-                memberId: params.memberId,
-                updates: body,
-                adminUid: getAdminUid(adminToken, logger),
-                memberAdminService,
-                logger,
-                set,
-              }),
+              asRouteResponse(
+                await updateMemberLogic({
+                  memberId: params.memberId,
+                  updates: body as {
+                    email?: string;
+                    name?: string;
+                    subscriptionStart?: string;
+                    membershipActive?: boolean;
+                    membershipExpiresAt?: string;
+                    slug?: string;
+                  },
+                  adminUid: getAdminUid(adminToken, logger),
+                  memberAdminService,
+                  logger,
+                  set,
+                }),
+              ),
             {
               body: UpdateMemberBodySchema,
               response: UpdateMemberApiResponseSchema,
@@ -244,19 +262,21 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                         membershipExpiresAt?: string;
                       }
                     | undefined;
-                  return activateMembershipLogic({
-                    memberId: params.memberId,
-                    ...(typedBody?.subscriptionStart !== undefined && {
-                      subscriptionStart: typedBody.subscriptionStart,
+                  return asRouteResponse(
+                    await activateMembershipLogic({
+                      memberId: params.memberId,
+                      ...(typedBody?.subscriptionStart !== undefined && {
+                        subscriptionStart: typedBody.subscriptionStart,
+                      }),
+                      ...(typedBody?.membershipExpiresAt !== undefined && {
+                        membershipExpiresAt: typedBody.membershipExpiresAt,
+                      }),
+                      adminUid: getAdminUid(adminToken, logger),
+                      memberAdminService,
+                      logger,
+                      set,
                     }),
-                    ...(typedBody?.membershipExpiresAt !== undefined && {
-                      membershipExpiresAt: typedBody.membershipExpiresAt,
-                    }),
-                    adminUid: getAdminUid(adminToken, logger),
-                    memberAdminService,
-                    logger,
-                    set,
-                  });
+                  );
                 },
                 {
                   body: ActivateMembershipBodySchema,
@@ -273,13 +293,15 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   logger,
                   set,
                 }) =>
-                  cancelMembershipLogic({
-                    memberId: params.memberId,
-                    adminUid: getAdminUid(adminToken, logger),
-                    memberAdminService,
-                    logger,
-                    set,
-                  }),
+                  asRouteResponse(
+                    await cancelMembershipLogic({
+                      memberId: params.memberId,
+                      adminUid: getAdminUid(adminToken, logger),
+                      memberAdminService,
+                      logger,
+                      set,
+                    }),
+                  ),
                 {
                   response: CancelMembershipApiResponseSchema,
                 },
@@ -296,14 +318,16 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   set,
                 }) => {
                   const typedBody = body as { newExpirationDate: string };
-                  return extendMembershipLogic({
-                    memberId: params.memberId,
-                    newExpirationDate: typedBody.newExpirationDate,
-                    adminUid: getAdminUid(adminToken, logger),
-                    memberAdminService,
-                    logger,
-                    set,
-                  });
+                  return asRouteResponse(
+                    await extendMembershipLogic({
+                      memberId: params.memberId,
+                      newExpirationDate: typedBody.newExpirationDate,
+                      adminUid: getAdminUid(adminToken, logger),
+                      memberAdminService,
+                      logger,
+                      set,
+                    }),
+                  );
                 },
                 {
                   body: ExtendMembershipBodySchema,

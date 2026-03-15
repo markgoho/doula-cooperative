@@ -1,4 +1,4 @@
-##  (2026-03-14)
+##  (2026-03-15)
 
 ### Features
 
@@ -15,7 +15,6 @@
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
 * wire change-email-and-resend route into plugin with integration tests ([f8dfd44](https://github.com/markgoho/doula-cooperative/commit/f8dfd44af73bab23926adc6ac49b321ba483d5ba))
-* remove unclaimed profile invitation flow ([5a1cd6a](https://github.com/markgoho/doula-cooperative/commit/5a1cd6a))
 
 ### Bug Fixes
 

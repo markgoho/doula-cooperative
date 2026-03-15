@@ -1,150 +1,17 @@
+import {
+  MemberResponseSchema,
+  type ApiMemberResponse,
+} from "@doula-coop/shared";
 import { t, type Static } from "elysia";
+
+export type MemberResponse = ApiMemberResponse;
+
 import type { Timestamp } from "firebase-admin/firestore";
 import type { MemberDocument } from "../../types/member-document.js";
 
 /**
- * Subscription status enum for API responses.
- */
-export const SubscriptionStatusSchema = t.Union([
-  t.Literal("active"),
-  t.Literal("past_due"),
-  t.Literal("canceled"),
-  t.Literal("incomplete"),
-  t.Literal("trialing"),
-  t.Literal("unpaid"),
-  t.Literal("refunded"),
-]);
-
-/**
- * Welcome email status enum for API responses.
- */
-export const WelcomeEmailStatusSchema = t.Union([
-  t.Literal("sent"),
-  t.Literal("failed"),
-  t.Literal("pending"),
-]);
-
-/**
- * Member response schema - represents a member document as returned by the API.
- * All Timestamp fields are converted to ISO 8601 strings.
- * Admin-specific endpoint includes isAdmin field from custom claims.
- *
- * IMPORTANT INVARIANTS:
- * - Stripe fields (stripeCustomerId, stripeSubscriptionId, subscriptionStatus):
- *   Either all three must be present OR all three must be absent.
- *   Partial Stripe data indicates a data integrity issue.
- *
- * - Newsletter state: Only one of newsletterSubscribedAt OR newsletterUnsubscribedAt
- *   should be set, never both. newsletterSubscribed boolean indicates current state.
- *
- * - Membership expiration: membershipExpiresAt should only be present when
- *   subscriptionStart exists (either from Stripe or manual membership).
- */
-export const MemberResponseSchema = t.Object({
-  uid: t.String({
-    description: "User ID (Firestore document ID)",
-  }),
-  email: t.String({
-    format: "email",
-    description: "User email address",
-  }),
-  createdAt: t.String({
-    format: "date-time",
-    description: "Account creation timestamp (ISO 8601)",
-  }),
-  isAdmin: t.Boolean({
-    description: "Whether the user has admin privileges (from custom claims)",
-  }),
-  name: t.Optional(
-    t.String({
-      description: "User display name",
-    }),
-  ),
-  subscriptionStart: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Subscription start date (ISO 8601)",
-    }),
-  ),
-  membershipActive: t.Optional(
-    t.Boolean({
-      description: "Whether the membership is currently active",
-    }),
-  ),
-  membershipExpiresAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Membership expiration date (ISO 8601)",
-    }),
-  ),
-  slug: t.Optional(
-    t.String({
-      description: "URL-friendly slug for the member's profile",
-    }),
-  ),
-  profileCreatedAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Profile creation timestamp (ISO 8601)",
-    }),
-  ),
-  stripeCustomerId: t.Optional(
-    t.String({
-      description: "Stripe customer ID",
-    }),
-  ),
-  stripeSubscriptionId: t.Optional(
-    t.String({
-      description: "Stripe subscription ID",
-    }),
-  ),
-  subscriptionStatus: t.Optional(SubscriptionStatusSchema),
-  welcomeEmailStatus: t.Optional(WelcomeEmailStatusSchema),
-  welcomeEmailSentAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Welcome email sent timestamp (ISO 8601)",
-    }),
-  ),
-  welcomeEmailError: t.Optional(
-    t.String({
-      description: "Error message if welcome email failed",
-    }),
-  ),
-  newsletterSubscribed: t.Optional(
-    t.Boolean({
-      description: "Whether the user is subscribed to the newsletter",
-    }),
-  ),
-  newsletterSubscribedAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Newsletter subscription timestamp (ISO 8601)",
-    }),
-  ),
-  newsletterUnsubscribedAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Newsletter unsubscription timestamp (ISO 8601)",
-    }),
-  ),
-  refundedAt: t.Optional(
-    t.String({
-      format: "date-time",
-      description: "Refund timestamp (ISO 8601)",
-    }),
-  ),
-  refundReason: t.Optional(
-    t.String({
-      description: "Reason for the refund",
-    }),
-  ),
-});
-
-/**
  * Inferred TypeScript type for member API responses.
  */
-export type MemberResponse = Static<typeof MemberResponseSchema>;
 
 /**
  * Convert a Timestamp to an ISO 8601 string.

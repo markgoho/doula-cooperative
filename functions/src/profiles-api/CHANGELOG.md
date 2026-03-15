@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-15)
 
 ### Features
 
@@ -21,6 +21,7 @@
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
 * check slug availability against profiles collection instead of members ([489e845](https://github.com/markgoho/doula-cooperative/commit/489e84586359680682c86147f1a1626c14121201))
 * preserve aspect ratio on upload and remove optimistic image layer ([55025e8](https://github.com/markgoho/doula-cooperative/commit/55025e82dcbdfc5edcfe5f4befc962d1f9fb06fc))
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))
 * restore profile update email notification after Hugo deploy ([db6eb33](https://github.com/markgoho/doula-cooperative/commit/db6eb33e94fb17c64637b036cf6c5921a3ef07dd)), closes [#71](https://github.com/markgoho/doula-cooperative/issues/71)
 * serialize date as YYYY-MM-DD in Hugo front matter and strip YAML quotes when parsing ([5629f57](https://github.com/markgoho/doula-cooperative/commit/5629f5758e50ca9eec61fd984b8438611851ea45))

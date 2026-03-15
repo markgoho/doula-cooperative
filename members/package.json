@@ -30,6 +30,7 @@
   "private": true,
   "dependencies": {
     "@angular/common": "^21.2.1",
+    "@doula-coop/shared": "file:../shared",
     "@angular/compiler": "^21.2.1",
     "@angular/core": "^21.2.1",
     "@angular/fire": "^20.0.1",
