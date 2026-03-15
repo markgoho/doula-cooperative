@@ -89,6 +89,16 @@ export function createAdminTestPlugin(overrides?: {
         } as ProfileDocument,
       }),
     ),
+    listUnlinkedProfiles: mock(() =>
+      Promise.resolve({
+        profiles: [],
+      }),
+    ),
+    linkProfile: mock(() =>
+      Promise.resolve({
+        member: {} as MemberDocument,
+      }),
+    ),
     ...overrides?.memberAdminService,
   };
 

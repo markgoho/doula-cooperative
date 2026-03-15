@@ -330,6 +330,11 @@ export const ERROR_IDS = {
 
   // Admin read profile errors
   API_ADMIN_READ_PROFILE_FAILED: "api_admin_read_profile_failed",
+
+  // Admin link profile errors
+  API_ADMIN_LIST_UNLINKED_PROFILES_FAILED:
+    "api_admin_list_unlinked_profiles_failed",
+  API_ADMIN_LINK_PROFILE_FAILED: "api_admin_link_profile_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

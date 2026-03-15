@@ -3,7 +3,9 @@ import { cancelMembership } from "./cancel-membership.js";
 import { cleanSlateDelete } from "./clean-slate-delete.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
+import { linkProfile } from "./link-profile.js";
 import { listMembers } from "./list-members.js";
+import { listUnlinkedProfiles } from "./list-unlinked-profiles.js";
 import { readProfile } from "./read-profile.js";
 import { refundMembership } from "./refund-membership.js";
 import { toggleProfileDraft } from "./toggle-profile-draft.js";
@@ -28,6 +30,8 @@ export const MemberAdminService = {
   cleanSlateDelete,
   toggleProfileDraft,
   readProfile,
+  listUnlinkedProfiles,
+  linkProfile,
 };
 
 // Re-export individual functions for direct imports
@@ -36,7 +40,9 @@ export { cancelMembership } from "./cancel-membership.js";
 export { cleanSlateDelete } from "./clean-slate-delete.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
+export { linkProfile } from "./link-profile.js";
 export { listMembers } from "./list-members.js";
+export { listUnlinkedProfiles } from "./list-unlinked-profiles.js";
 export { readProfile } from "./read-profile.js";
 export { refundMembership } from "./refund-membership.js";
 export { toggleProfileDraft } from "./toggle-profile-draft.js";

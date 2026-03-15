@@ -6,6 +6,7 @@ import type {
   ListUnclaimedProfilesResponse,
   MemberProfile,
   UnclaimedProfile,
+  UnlinkedProfile,
 } from '../admin.types';
 import type { ApiMemberResponse } from '../../api-types/api-member-response';
 import type {
@@ -13,6 +14,7 @@ import type {
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
 import type { ApiReadMemberProfileResponse } from '../api-types/admin-member-profile-api.types';
+import type { ApiListUnlinkedProfilesResponse } from '../api-types/admin-unlinked-profiles-api.types';
 
 @Injectable({
   providedIn: 'root',
@@ -256,6 +258,24 @@ export class AdminMembersService {
         draft: boolean;
         warning?: string;
       }>(`/api/admin/members/${uid}/profile/toggle-draft`, {}),
+    );
+  }
+
+  async listUnlinkedProfiles(): Promise<UnlinkedProfile[]> {
+    // Authorization header added automatically by authInterceptor
+    const result = await firstValueFrom(
+      this.httpClient.get<ApiListUnlinkedProfilesResponse>('/api/admin/members/unlinked-profiles'),
+    );
+    return result.profiles;
+  }
+
+  async linkProfile(uid: string, slug: string): Promise<{ success: boolean; member: ApiMemberResponse }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{ success: boolean; member: ApiMemberResponse }>(
+        `/api/admin/members/${uid}/profile/link`,
+        { slug },
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+
 import { AdminMembersService } from '../../services/admin-members.service';
 
 @Injectable()
@@ -40,6 +41,18 @@ export class AdminMemberDetailService {
   readonly profileErrorMessage = computed(() => {
     const error = this.profileResource.error();
     return error ? 'Failed to load profile content. Please try again.' : undefined;
+  });
+
+  // Unlinked profiles resource — loads when member has no slug
+  readonly unlinkedProfilesResource = resource({
+    params: () => {
+      if (!this.memberResource.hasValue()) return undefined;
+      const member = this.memberResource.value() as ApiMemberResponse;
+      // Only load unlinked profiles when the member has no linked profile
+      if (member.slug) return undefined;
+      return { noSlug: true as const };
+    },
+    loader: () => this.adminMembersService.listUnlinkedProfiles(),
   });
 
   /**
@@ -175,6 +188,26 @@ export class AdminMemberDetailService {
     } catch (error) {
       console.error('Error toggling profile draft:', error);
       this.actionError.set('Failed to toggle profile draft status.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Link a profile to the current member
+   */
+  async linkProfile(uid: string, slug: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.linkProfile(uid, slug);
+      this.successMessage.set(`Profile "${slug}" linked successfully`);
+      this.memberResource.reload();
+    } catch (error) {
+      console.error('Error linking profile:', error);
+      this.actionError.set('Failed to link profile.');
     } finally {
       this.actionInProgress.set(false);
     }

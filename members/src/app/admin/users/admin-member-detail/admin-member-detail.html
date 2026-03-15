@@ -86,6 +86,42 @@
           >
         } @else {
           No
+          @if (service.unlinkedProfilesResource.isLoading()) {
+            <p>Loading unlinked profiles…</p>
+          } @else if (service.unlinkedProfilesResource.value(); as profiles) {
+            @if (profiles.length > 0) {
+              <h3>Link Existing Profile</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Slug</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (profile of sortedUnlinkedProfiles(); track profile.slug) {
+                    <tr>
+                      <td>{{ profile.title }}</td>
+                      <td>{{ profile.email }}</td>
+                      <td class="monospace">{{ profile.slug }}</td>
+                      <td>
+                        <button
+                          type="button"
+                          class="button"
+                          (click)="confirmLinkProfile(profile)"
+                          [disabled]="service.actionInProgress()"
+                        >
+                          Link
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          }
         }
       </dd>
 

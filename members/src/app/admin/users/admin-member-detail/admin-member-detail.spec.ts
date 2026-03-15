@@ -536,6 +536,8 @@ async function setup({
           slug: 'test-slug',
           draft: !profileDraft,
         }),
+    listUnlinkedProfiles: vi.fn().mockResolvedValue([]),
+    linkProfile: vi.fn().mockResolvedValue({ success: true, member: memberToUse }),
   };
 
   const mockRouter = {

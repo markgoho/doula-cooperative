@@ -10,11 +10,12 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+import type { UnlinkedProfile } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate' | 'toggleDraft';
+type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate' | 'toggleDraft' | 'linkProfile';
 
 interface DialogConfig {
   title: string;
@@ -68,6 +69,39 @@ export class AdminMemberDetail {
     if (!profile) return;
     return profile.draft;
   });
+
+  protected sortedUnlinkedProfiles = computed(() => {
+    const profiles = this.service.unlinkedProfilesResource.value();
+    if (!profiles) return [];
+
+    const member = this.service.memberResource.hasValue()
+      ? (this.service.memberResource.value() as ApiMemberResponse)
+      : undefined;
+
+    const memberEmail = member?.email?.toLowerCase() ?? '';
+    const memberName = member?.name?.toLowerCase() ?? '';
+
+    return [...profiles].sort((a, b) => {
+      const aEmail = a.email.toLowerCase();
+      const bEmail = b.email.toLowerCase();
+      const aTitle = a.title.toLowerCase();
+      const bTitle = b.title.toLowerCase();
+
+      const aExactEmail = aEmail === memberEmail;
+      const bExactEmail = bEmail === memberEmail;
+      if (aExactEmail && !bExactEmail) return -1;
+      if (!aExactEmail && bExactEmail) return 1;
+
+      const aNameMatch = memberName.length > 0 && aTitle.includes(memberName);
+      const bNameMatch = memberName.length > 0 && bTitle.includes(memberName);
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+
+      return aTitle.localeCompare(bTitle);
+    });
+  });
+
+  private pendingLinkSlug = signal<string | undefined>(undefined);
 
   constructor() {
     // Initialize service with uid signal
@@ -135,9 +169,22 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
+  protected confirmLinkProfile(profile: UnlinkedProfile): void {
+    this.pendingAction.set('linkProfile');
+    this.pendingLinkSlug.set(profile.slug);
+    this.dialogConfig.set({
+      title: 'Confirm Link Profile',
+      message: `Link profile "${profile.title}" (${profile.slug}) to this member? This action cannot be undone.`,
+      confirmText: 'Link Profile',
+      variant: 'primary',
+    });
+    this.confirmDialog()?.showModal();
+  }
+
   protected onCancelDialog(): void {
     this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
+    this.pendingLinkSlug.set(undefined);
   }
 
   protected async onConfirmDialog(): Promise<void> {
@@ -165,10 +212,18 @@ export class AdminMemberDetail {
           await this.service.toggleProfileDraft(this.uid());
           break;
         }
+        case 'linkProfile': {
+          const slug = this.pendingLinkSlug();
+          if (slug) {
+            await this.service.linkProfile(this.uid(), slug);
+          }
+          break;
+        }
       }
     } finally {
       this.confirmDialog()?.close();
       this.pendingAction.set(undefined);
+      this.pendingLinkSlug.set(undefined);
     }
   }
 

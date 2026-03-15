@@ -11,7 +11,9 @@ import {
   cleanSlateDeleteLogic,
   extendMembershipLogic,
   getMemberLogic,
+  linkProfileLogic,
   listMembersLogic,
+  listUnlinkedProfilesLogic,
   readProfileLogic,
   refundMembershipLogic,
   toggleProfileDraftLogic,
@@ -26,7 +28,10 @@ import {
   ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
   GetMemberApiResponseSchema,
+  LinkProfileApiResponseSchema,
+  LinkProfileBodySchema,
   ListMembersApiResponseSchema,
+  ListUnlinkedProfilesApiResponseSchema,
   MemberIdParameterSchema,
   ReadProfileApiResponseSchema,
   RefundMembershipApiResponseSchema,
@@ -82,6 +87,20 @@ export function createAdminMembersPlugin(services?: PartialServices) {
           }),
         {
           response: ListMembersApiResponseSchema,
+        },
+      )
+      // GET /unlinked-profiles - List profiles not linked to a member (served at /api/admin/members/unlinked-profiles)
+      .get(
+        "/unlinked-profiles",
+        async ({ adminToken, memberAdminService, logger, set }) =>
+          listUnlinkedProfilesLogic({
+            adminUid: getAdminUid(adminToken, logger),
+            memberAdminService,
+            logger,
+            set,
+          }),
+        {
+          response: ListUnlinkedProfilesApiResponseSchema,
         },
       )
       // Member-specific routes under /:memberId (served at /api/admin/members/:memberId)
@@ -177,6 +196,32 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: ReadProfileApiResponseSchema,
+            },
+          )
+          // POST /:memberId/profile/link - Link an unlinked profile to member (served at /api/admin/members/:memberId/profile/link)
+          .post(
+            "/profile/link",
+            async ({
+              params,
+              body,
+              adminToken,
+              memberAdminService,
+              logger,
+              set,
+            }) => {
+              const typedBody = body as { slug: string };
+              return linkProfileLogic({
+                memberId: params.memberId,
+                slug: typedBody.slug,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              });
+            },
+            {
+              body: LinkProfileBodySchema,
+              response: LinkProfileApiResponseSchema,
             },
           )
           // Membership management routes under /:memberId/membership
