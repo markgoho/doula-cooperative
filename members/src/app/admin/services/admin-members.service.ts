@@ -14,7 +14,56 @@ import type {
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
 import type { ApiReadMemberProfileResponse } from '../api-types/admin-member-profile-api.types';
-import type { ApiListUnlinkedProfilesResponse } from '../api-types/admin-unlinked-profiles-api.types';
+import type {
+  ApiListUnlinkedProfilesResponse,
+  ApiUnlinkedProfileResponse,
+} from '../api-types/admin-unlinked-profiles-api.types';
+
+interface ApiErrorResponse {
+  error: string;
+}
+
+type ApiMemberSuccessResponse = {
+  success: true;
+  member: ApiMemberResponse;
+};
+
+type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
+type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;
+
+function isApiErrorResponse(response: unknown): response is ApiErrorResponse {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'error' in response &&
+    typeof response.error === 'string'
+  );
+}
+
+function assertApiSuccess<TResponse extends object>(response: TResponse | ApiErrorResponse): TResponse {
+  if (isApiErrorResponse(response)) {
+    throw new Error(response.error);
+  }
+
+  return response;
+}
+
+function toUnlinkedProfile(profile: ApiUnlinkedProfileResponse): UnlinkedProfile {
+  return {
+    slug: profile.slug,
+    title: profile.title,
+    email: profile.email,
+    createdAt: profile.createdAt,
+  };
+}
+
+function toUnlinkedProfiles(response: ApiListUnlinkedProfilesResult): UnlinkedProfile[] {
+  return assertApiSuccess(response).profiles.map((profile) => toUnlinkedProfile(profile));
+}
+
+function toLinkedMember(response: ApiLinkProfileResponse): ApiMemberResponse {
+  return assertApiSuccess(response).member;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -263,19 +312,21 @@ export class AdminMembersService {
 
   async listUnlinkedProfiles(): Promise<UnlinkedProfile[]> {
     // Authorization header added automatically by authInterceptor
-    const result = await firstValueFrom(
-      this.httpClient.get<ApiListUnlinkedProfilesResponse>('/api/admin/members/unlinked-profiles'),
+    const response = await firstValueFrom(
+      this.httpClient.get<ApiListUnlinkedProfilesResult>('/api/admin/members/unlinked-profiles'),
     );
-    return result.profiles;
+
+    return toUnlinkedProfiles(response);
   }
 
-  async linkProfile(uid: string, slug: string): Promise<{ success: boolean; member: ApiMemberResponse }> {
+  async linkProfile(uid: string, slug: string): Promise<ApiMemberResponse> {
     // Authorization header added automatically by authInterceptor
-    return firstValueFrom(
-      this.httpClient.post<{ success: boolean; member: ApiMemberResponse }>(
-        `/api/admin/members/${uid}/profile/link`,
-        { slug },
-      ),
+    const response = await firstValueFrom(
+      this.httpClient.post<ApiLinkProfileResponse>(`/api/admin/members/${uid}/profile/link`, {
+        slug,
+      }),
     );
+
+    return toLinkedMember(response);
   }
 }

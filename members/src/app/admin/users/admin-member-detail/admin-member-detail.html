@@ -88,6 +88,16 @@
           No
           @if (service.unlinkedProfilesResource.isLoading()) {
             <p>Loading unlinked profiles…</p>
+          } @else if (service.unlinkedProfilesErrorMessage(); as error) {
+            <p class="error" role="alert">{{ error }}</p>
+            <button
+              type="button"
+              class="button"
+              (click)="service.unlinkedProfilesResource.reload()"
+              [disabled]="service.unlinkedProfilesResource.isLoading()"
+            >
+              Retry
+            </button>
           } @else if (service.unlinkedProfilesResource.value(); as profiles) {
             @if (profiles.length > 0) {
               <h3>Link Existing Profile</h3>

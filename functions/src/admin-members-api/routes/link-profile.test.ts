@@ -28,6 +28,7 @@ describe("POST /:memberId/profile/link", () => {
     profileNotFound?: boolean;
     profileAlreadyLinked?: boolean;
     serverError?: boolean;
+    isAdminLookupFails?: boolean;
   }
 
   function setup({
@@ -39,6 +40,7 @@ describe("POST /:memberId/profile/link", () => {
     profileNotFound = false,
     profileAlreadyLinked = false,
     serverError = false,
+    isAdminLookupFails = false,
   }: SetupOptions = {}) {
     const defaultMember: MemberDocument = {
       uid: memberId,
@@ -96,6 +98,12 @@ describe("POST /:memberId/profile/link", () => {
     const testApp = createAdminTestPlugin({
       memberAdminService: {
         linkProfile: mockLinkProfile,
+        isAdmin: mock((): Promise<boolean> => {
+          if (isAdminLookupFails) {
+            return Promise.reject(new Error("Auth lookup unavailable"));
+          }
+          return Promise.resolve(false);
+        }),
       },
     });
 
@@ -155,12 +163,34 @@ describe("POST /:memberId/profile/link", () => {
           email?: string;
           membershipActive?: boolean;
           slug?: string;
+          isAdmin?: boolean;
         };
       };
       expect(body.success).toBe(true);
       expect(body.member?.uid).toBe("test-member-id");
       expect(body.member?.email).toBe("member@example.com");
       expect(body.member?.slug).toBe("unlinked-doula-profile");
+      expect(body.member?.isAdmin).toBe(false);
+    });
+
+    it("should still return success when isAdmin lookup fails after linking", async () => {
+      const { testApp, request } = setup({ isAdminLookupFails: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        member?: {
+          uid?: string;
+          slug?: string;
+          isAdmin?: boolean;
+        };
+      };
+      expect(body.success).toBe(true);
+      expect(body.member?.uid).toBe("test-member-id");
+      expect(body.member?.slug).toBe("unlinked-doula-profile");
+      expect(body.member?.isAdmin).toBe(false);
     });
   });
 

@@ -1,4 +1,4 @@
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
   MEMBERS_COLLECTION,
@@ -39,17 +39,16 @@ export async function linkProfile(options: {
 }): Promise<LinkProfileResult> {
   const { memberId, slug } = options;
 
-  // 1. Verify member exists
-  const member = await verifyMemberExists(memberId);
-
-  // 2. Verify member doesn't already have a slug
-  if (member.slug !== undefined) {
-    throw new ValidationError(
-      `Member already has a linked profile with slug: ${member.slug}`,
-    );
-  }
-
   try {
+    const member = await verifyMemberExists(memberId);
+
+    // 2. Verify member doesn't already have a slug
+    if (member.slug !== undefined) {
+      throw new ValidationError(
+        `Member already has a linked profile with slug: ${member.slug}`,
+      );
+    }
+
     const firestore = getFirestore();
 
     // 3. Read the profile document
@@ -79,15 +78,22 @@ export async function linkProfile(options: {
       .doc(memberId);
 
     batch.update(profileReference, { ownerUid: memberId });
+    const profileCreatedAt = Timestamp.fromDate(new Date(profileData.createdAt));
+
     batch.update(memberReference, {
       slug,
-      profileCreatedAt: profileData.createdAt,
+      profileCreatedAt,
     });
 
     await batch.commit();
 
     // 6. Read and return the updated member document
     const updatedMemberDocument = await memberReference.get();
+
+    if (!updatedMemberDocument.exists) {
+      throw new NotFoundError(`Member not found for ID: ${memberId}`);
+    }
+
     const updatedMember = updatedMemberDocument.data() as MemberDocument;
 
     logger.info("Linked profile to member", { memberId, slug });

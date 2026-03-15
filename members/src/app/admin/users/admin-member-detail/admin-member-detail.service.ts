@@ -55,6 +55,11 @@ export class AdminMemberDetailService {
     loader: () => this.adminMembersService.listUnlinkedProfiles(),
   });
 
+  readonly unlinkedProfilesErrorMessage = computed(() => {
+    const error = this.unlinkedProfilesResource.error();
+    return error ? 'Failed to load unlinked profiles. Please try again.' : undefined;
+  });
+
   /**
    * Initialize the service with the uid signal from component input
    */

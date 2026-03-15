@@ -29,7 +29,20 @@ export async function linkProfileLogic({
   try {
     const result = await memberAdminService.linkProfile({ memberId, slug });
 
-    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
+    let isAdmin = false;
+
+    try {
+      isAdmin = await memberAdminService.isAdmin(memberId, logger);
+    } catch (error) {
+      logger.error("Failed to enrich linked member with admin status", {
+        errorId: ERROR_IDS.API_ADMIN_LINK_PROFILE_FAILED,
+        adminUid,
+        memberId,
+        slug,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
 
     logger.info("Admin linked profile to member", {
       adminUid,

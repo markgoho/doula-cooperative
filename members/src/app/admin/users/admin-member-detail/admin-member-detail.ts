@@ -214,9 +214,11 @@ export class AdminMemberDetail {
         }
         case 'linkProfile': {
           const slug = this.pendingLinkSlug();
-          if (slug) {
-            await this.service.linkProfile(this.uid(), slug);
+          if (slug === undefined) {
+            this.service.actionError.set('Failed to link profile.');
+            break;
           }
+          await this.service.linkProfile(this.uid(), slug);
           break;
         }
       }
