@@ -53,6 +53,8 @@ export class AdminMemberDetailService {
           return { noSlug: true as const };
         }
       }
+
+      return;
     },
     loader: () => this.adminMembersService.listUnlinkedProfiles(),
   });
