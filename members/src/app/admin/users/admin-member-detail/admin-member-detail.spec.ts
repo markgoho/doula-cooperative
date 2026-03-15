@@ -612,12 +612,12 @@ interface SetupOptions {
   shouldKeepLoading?: boolean;
   errorMessage?: string;
   profileDraft?: boolean;
-  unlinkedProfiles?: Array<{
+  unlinkedProfiles?: {
     slug: string;
     title: string;
     email: string;
     createdAt: string;
-  }>;
+  }[];
 }
 
 async function setup({
@@ -739,6 +739,7 @@ function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMember
 function createMockMemberWithoutSlug(
   overrides: Partial<ApiMemberResponse> = {},
 ): ApiMemberResponse {
-  const { slug: _, ...member } = createMockMember(overrides);
+  const member = createMockMember(overrides);
+  delete member.slug;
   return member;
 }

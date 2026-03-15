@@ -23,10 +23,10 @@ interface ApiErrorResponse {
   error: string;
 }
 
-type ApiMemberSuccessResponse = {
+interface ApiMemberSuccessResponse {
   success: true;
   member: ApiMemberResponse;
-};
+}
 
 type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
 type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;

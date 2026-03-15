@@ -81,7 +81,7 @@ export class AdminMemberDetail {
     const memberEmail = member?.email?.toLowerCase() ?? '';
     const memberName = member?.name?.toLowerCase() ?? '';
 
-    return [...profiles].sort((a, b) => {
+    return profiles.toSorted((a, b) => {
       const aEmail = a.email.toLowerCase();
       const bEmail = b.email.toLowerCase();
       const aTitle = a.title.toLowerCase();

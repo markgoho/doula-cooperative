@@ -46,11 +46,13 @@ export class AdminMemberDetailService {
   // Unlinked profiles resource — loads when member has no slug
   readonly unlinkedProfilesResource = resource({
     params: () => {
-      if (!this.memberResource.hasValue()) return undefined;
-      const member = this.memberResource.value() as ApiMemberResponse;
-      // Only load unlinked profiles when the member has no linked profile
-      if (member.slug) return undefined;
-      return { noSlug: true as const };
+      if (this.memberResource.hasValue()) {
+        const member = this.memberResource.value() as ApiMemberResponse;
+        // Only load unlinked profiles when the member has no linked profile
+        if (!member.slug) {
+          return { noSlug: true as const };
+        }
+      }
     },
     loader: () => this.adminMembersService.listUnlinkedProfiles(),
   });
