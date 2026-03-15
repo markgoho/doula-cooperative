@@ -86,52 +86,6 @@
           >
         } @else {
           No
-          @if (service.unlinkedProfilesResource.isLoading()) {
-            <p>Loading unlinked profiles…</p>
-          } @else if (service.unlinkedProfilesErrorMessage(); as error) {
-            <p class="error" role="alert">{{ error }}</p>
-            <button
-              type="button"
-              class="button"
-              (click)="service.unlinkedProfilesResource.reload()"
-              [disabled]="service.unlinkedProfilesResource.isLoading()"
-            >
-              Retry
-            </button>
-          } @else if (service.unlinkedProfilesResource.value(); as profiles) {
-            @if (profiles.length > 0) {
-              <h3>Link Existing Profile</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Slug</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (profile of sortedUnlinkedProfiles(); track profile.slug) {
-                    <tr>
-                      <td>{{ profile.title }}</td>
-                      <td>{{ profile.email }}</td>
-                      <td class="monospace">{{ profile.slug }}</td>
-                      <td>
-                        <button
-                          type="button"
-                          class="button"
-                          (click)="confirmLinkProfile(profile)"
-                          [disabled]="service.actionInProgress()"
-                        >
-                          Link
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          }
         }
       </dd>
 
@@ -194,6 +148,73 @@
       </div>
     </div>
   </section>
+
+  @if (!member.slug) {
+    <section class="subscription-card">
+      <h2>Link Existing Profile</h2>
+
+      @if (service.unlinkedProfilesResource.isLoading()) {
+        <p>Loading unlinked profiles...</p>
+      } @else if (service.unlinkedProfilesErrorMessage(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+        <button
+          type="button"
+          class="button"
+          (click)="service.unlinkedProfilesResource.reload()"
+          [disabled]="service.unlinkedProfilesResource.isLoading()"
+        >
+          Retry
+        </button>
+      } @else if (service.unlinkedProfilesResource.value(); as profiles) {
+        @if (profiles.length > 0) {
+          <label for="profile-search">Search profiles</label>
+          <input
+            id="profile-search"
+            type="search"
+            [(ngModel)]="profileSearchTerm"
+            placeholder="Search by name, email, or slug"
+          />
+          <p class="result-count">{{ filteredUnlinkedProfiles().length }} of {{ profiles.length }} profiles</p>
+
+          @if (filteredUnlinkedProfiles().length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Slug</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (profile of filteredUnlinkedProfiles(); track profile.slug) {
+                  <tr>
+                    <td>{{ profile.title }}</td>
+                    <td>{{ profile.email }}</td>
+                    <td class="monospace">{{ profile.slug }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="button"
+                        (click)="confirmLinkProfile(profile)"
+                        [disabled]="service.actionInProgress()"
+                      >
+                        Link
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else if (debouncedSearchTerm().length > 0) {
+            <p>No profiles match your search.</p>
+          }
+        } @else {
+          <p>No unlinked profiles are available.</p>
+        }
+      }
+    </section>
+  }
 
   @if (!isTargetUserAdmin()) {
     <section class="subscription-card danger-zone">

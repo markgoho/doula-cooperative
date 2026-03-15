@@ -2,13 +2,17 @@ import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
+  effect,
   inject,
   input,
+  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import type { UnlinkedProfile } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -25,7 +29,7 @@ interface DialogConfig {
 }
 
 @Component({
-  imports: [DatePipe, ConfirmDialog, AlertBanner],
+  imports: [DatePipe, FormsModule, ConfirmDialog, AlertBanner],
   templateUrl: './admin-member-detail.html',
   styleUrl: './admin-member-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,42 +74,49 @@ export class AdminMemberDetail {
     return profile.draft;
   });
 
-  protected sortedUnlinkedProfiles = computed(() => {
-    const profiles = this.service.unlinkedProfilesResource.value();
-    if (!profiles) return [];
-
+  protected profileSearchTerm = linkedSignal(() => {
     const member = this.service.memberResource.hasValue()
       ? (this.service.memberResource.value() as ApiMemberResponse)
       : undefined;
+    return member?.email?.toLowerCase() ?? '';
+  });
 
-    const memberEmail = member?.email?.toLowerCase() ?? '';
-    const memberName = member?.name?.toLowerCase() ?? '';
+  protected debouncedSearchTerm = signal('');
 
-    return profiles.toSorted((a, b) => {
-      const aEmail = a.email.toLowerCase();
-      const bEmail = b.email.toLowerCase();
-      const aTitle = a.title.toLowerCase();
-      const bTitle = b.title.toLowerCase();
+  protected filteredUnlinkedProfiles = computed(() => {
+    const profiles = this.service.unlinkedProfilesResource.value();
+    if (!profiles) return [];
 
-      const aExactEmail = aEmail === memberEmail;
-      const bExactEmail = bEmail === memberEmail;
-      if (aExactEmail && !bExactEmail) return -1;
-      if (!aExactEmail && bExactEmail) return 1;
+    const searchTerm = this.debouncedSearchTerm().toLowerCase().trim();
+    if (searchTerm.length === 0) return [];
 
-      const aNameMatch = memberName.length > 0 && aTitle.includes(memberName);
-      const bNameMatch = memberName.length > 0 && bTitle.includes(memberName);
-      if (aNameMatch && !bNameMatch) return -1;
-      if (!aNameMatch && bNameMatch) return 1;
-
-      return aTitle.localeCompare(bTitle);
-    });
+    return profiles.filter(
+      (profile) =>
+        profile.email.toLowerCase().includes(searchTerm) ||
+        profile.title.toLowerCase().includes(searchTerm) ||
+        profile.slug.toLowerCase().includes(searchTerm),
+    );
   });
 
   private pendingLinkSlug = signal<string | undefined>(undefined);
 
   constructor() {
-    // Initialize service with uid signal
     this.service.init(this.uid);
+
+    const destroyReference = inject(DestroyRef);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    effect(() => {
+      const searchTerm = this.profileSearchTerm();
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        this.debouncedSearchTerm.set(searchTerm);
+      }, 300);
+    });
+
+    destroyReference.onDestroy(() => {
+      clearTimeout(timeoutId);
+    });
   }
 
   protected showActivateConfirm(): void {

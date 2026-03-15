@@ -16,6 +16,10 @@ export class AdminMemberDetailPage {
   readonly deactivateButton: Locator;
   readonly cleanSlateDeleteButton: Locator;
 
+  // Link Profile Search
+  readonly linkExistingProfileHeading: Locator;
+  readonly profileSearchInput: Locator;
+
   // Confirm Dialog
   readonly confirmDialog: Locator;
   readonly confirmMessage: Locator;
@@ -36,6 +40,10 @@ export class AdminMemberDetailPage {
     this.activateButton = page.getByRole('button', { name: /Activate Membership/ });
     this.deactivateButton = page.getByRole('button', { name: /Deactivate Membership/ });
     this.cleanSlateDeleteButton = page.getByRole('button', { name: /Clean Slate Delete/ });
+
+    // Link profile search
+    this.linkExistingProfileHeading = page.getByRole('heading', { name: 'Link Existing Profile' });
+    this.profileSearchInput = page.getByLabel('Search profiles');
 
     // Confirm dialog
     this.confirmDialog = page.getByRole('dialog');
