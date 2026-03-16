@@ -1,5 +1,5 @@
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { getAuth } from "firebase-admin/auth";
-import type { Logger } from "../../shared-api/types/logger.js";
 
 /**
  * Check if a user has admin privileges via Firebase Auth custom claims.

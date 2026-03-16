@@ -2,8 +2,8 @@ import {
   MARK_EMAIL,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
-} from "../../constants/email-addresses.js";
-import type { EmailMessage } from "../../shared-api/services/email/index.js";
+} from "@doula-coop/functions-shared/constants/email-addresses.js";
+import type { EmailMessage } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
 import type { DoulaMatchData } from "./form-storage/types.js";
 
 /**

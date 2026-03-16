@@ -1,5 +1,5 @@
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**
@@ -33,9 +33,7 @@ describe("GET /slugs/check (check slug availability)", () => {
       },
     });
 
-    const request = new Request(
-      `http://localhost/slugs/check?slug=${slug}`,
-    );
+    const request = new Request(`http://localhost/slugs/check?slug=${slug}`);
 
     return { testApp, request, mockCheckSlug };
   }

@@ -1,5 +1,5 @@
+import { HttpError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import { App } from "octokit";
-import { HttpError } from "../../../shared-api/errors/http-error.js";
 
 /**
  * Get authenticated Octokit instance using GitHub App credentials.

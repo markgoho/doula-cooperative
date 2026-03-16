@@ -1,7 +1,7 @@
+import type { UnclaimedProfileDocument } from "@doula-coop/functions-shared/collections/migrated-users-import.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import { toUnclaimedProfileResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 

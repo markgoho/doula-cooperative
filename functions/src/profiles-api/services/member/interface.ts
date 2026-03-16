@@ -1,4 +1,4 @@
-import type { MemberDocument } from "../../../collections/index.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/collections/index.js";
 
 /**
  * Response from checking slug availability.

@@ -1,7 +1,7 @@
 /**
  * Members collection: stores member account data and subscription status
  */
-export const MEMBERS_COLLECTION = "members";
+export { MEMBERS_COLLECTION } from "@doula-coop/shared-types";
 
 // Re-export types from the canonical source to avoid duplication
 export {

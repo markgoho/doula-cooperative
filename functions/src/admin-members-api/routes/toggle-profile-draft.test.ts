@@ -1,9 +1,9 @@
-import { describe, expect, it, mock } from "bun:test";
 import {
   NotFoundError,
   ValidationError,
-} from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import { describe, expect, it, mock } from "bun:test";
 import type { ToggleProfileDraftResult } from "../services/toggle-profile-draft.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 

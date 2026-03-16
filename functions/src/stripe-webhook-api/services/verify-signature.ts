@@ -1,10 +1,10 @@
-import { logger } from "firebase-functions/v2";
-import Stripe from "stripe";
-import { ERROR_IDS } from "../../constants/error-ids.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import {
   StripeConfigurationError,
   StripeSignatureError,
-} from "../../shared-api/errors/stripe-errors.js";
+} from "@doula-coop/functions-shared/shared-api/errors/stripe-errors.js";
+import { logger } from "firebase-functions/v2";
+import Stripe from "stripe";
 
 /**
  * Verify Stripe webhook signature and construct the event.

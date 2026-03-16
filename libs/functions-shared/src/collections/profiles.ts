@@ -1,4 +1,4 @@
-import type { ProfileData } from "../profiles-api/schemas/profile-schemas.js";
+import type { ProfileData } from "@doula-coop/shared-types";
 
 /**
  * Profiles collection: stores doula profile data as source of truth.

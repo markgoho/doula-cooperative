@@ -1,11 +1,11 @@
 import {
   NotFoundError,
   ValidationError,
-} from "../../../shared-api/errors/http-error.js";
-import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
-import { updateMemberWithValidation } from "../../../shared-api/utils/firestore-helpers.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { MemberFirestoreService } from "@doula-coop/functions-shared/shared-api/services/member-firestore/index.js";
+import { updateMemberWithValidation } from "@doula-coop/functions-shared/shared-api/utils/firestore-helpers.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { cancelStripeSubscriptionAtPeriodEnd } from "../../../stripe-webhook-api/services/cancel-stripe-subscription-at-period-end.js";
-import type { MemberDocument } from "../../../types/member-document.js";
 import type { MemberService as MemberServiceInterface } from "./interface.js";
 
 /**

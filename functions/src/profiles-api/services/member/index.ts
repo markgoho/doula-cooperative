@@ -1,18 +1,18 @@
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
-import type { MemberDocument } from "../../../collections/index.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/collections/index.js";
 import {
   MEMBERS_COLLECTION,
   PROFILES_COLLECTION,
-} from "../../../collections/index.js";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import {
   ConflictError,
   ForbiddenError,
   HttpError,
   NotFoundError,
-} from "../../../shared-api/errors/http-error.js";
-import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { MemberFirestoreService } from "@doula-coop/functions-shared/shared-api/services/member-firestore/index.js";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions/v2";
 import type {
   ProfileMemberService as ProfileMemberServiceInterface,
   SetSlugResponse,

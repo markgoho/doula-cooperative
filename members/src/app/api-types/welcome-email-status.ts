@@ -1,1 +1,1 @@
-export type WelcomeEmailStatus = 'sent' | 'failed' | 'pending';
+export type { WelcomeEmailStatus } from '@doula-coop/shared-types';

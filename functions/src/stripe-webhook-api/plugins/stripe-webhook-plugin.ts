@@ -1,6 +1,6 @@
+import { EmailService } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { EmailService } from "../../shared-api/services/email/index.js";
 import { handleStripeWebhookLogic } from "../routes/handle-webhook.js";
 import { StripeWebhookApiResponseSchema } from "../schemas/stripe-webhook-schemas.js";
 import { StripeWebhookService } from "../services/index.js";

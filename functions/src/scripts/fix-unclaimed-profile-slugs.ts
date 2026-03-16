@@ -1,8 +1,8 @@
+import { IMPORT_COLLECTION } from "@doula-coop/functions-shared/collections/index.js";
 import { getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { IMPORT_COLLECTION } from "../collections/index.js";
 
 const USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
 

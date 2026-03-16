@@ -1,7 +1,7 @@
+import type { MatchRequestDocument } from "@doula-coop/functions-shared/collections/match-requests.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import type { MatchRequestDocument } from "../../collections/match-requests.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import { toMatchRequestResponse } from "../schemas/match-request-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 

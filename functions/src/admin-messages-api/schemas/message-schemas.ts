@@ -1,6 +1,6 @@
+import type { MessageDocument } from "@doula-coop/functions-shared/collections/messages.js";
+import { timestampToIso } from "@doula-coop/functions-shared/shared-api/utils/timestamp-to-iso.js";
 import { t, type Static } from "elysia";
-import type { MessageDocument } from "../../collections/messages.js";
-import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 
 /**
  * Message response schema (API representation with ISO dates)

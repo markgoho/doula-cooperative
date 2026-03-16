@@ -1,6 +1,6 @@
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
-import type { MemberDocument } from "../../types/member-document.js";
+import { NotFoundError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { MemberFirestoreService } from "@doula-coop/functions-shared/shared-api/services/member-firestore/index.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 
 /**
  * Verify that a member exists in Firestore.

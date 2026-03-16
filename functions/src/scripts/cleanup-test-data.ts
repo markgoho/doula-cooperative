@@ -24,13 +24,13 @@
  *   - Blocks deletion of production emails without explicit confirmation
  */
 
-import { getApps, initializeApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import {
   MEMBERS_COLLECTION,
   PROCESSED_STRIPE_EVENTS_COLLECTION,
-} from "../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
 // Parse command line arguments
 const arguments_ = process.argv.slice(2);

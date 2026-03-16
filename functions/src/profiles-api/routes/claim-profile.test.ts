@@ -1,7 +1,7 @@
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
 import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import { createProfilesTestPlugin } from "../test-utils/create-profiles-test-plugin.js";
 
 /**

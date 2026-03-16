@@ -1,10 +1,10 @@
+import { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/index.js";
+import { EmailService } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import { adminDerive } from "@doula-coop/functions-shared/shared-api/utils/admin-derive.js";
+import { adminGuard } from "@doula-coop/functions-shared/shared-api/utils/admin-guard.js";
+import { getAdminUid } from "@doula-coop/functions-shared/shared-api/utils/get-admin-uid.js";
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { AuthService } from "../../shared-api/services/auth/index.js";
-import { EmailService } from "../../shared-api/services/email/index.js";
-import { adminDerive } from "../../shared-api/utils/admin-derive.js";
-import { adminGuard } from "../../shared-api/utils/admin-guard.js";
-import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   deleteUnclaimedProfileLogic,
   getUnclaimedProfileLogic,

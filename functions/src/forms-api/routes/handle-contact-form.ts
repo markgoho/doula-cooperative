@@ -1,7 +1,7 @@
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import { HttpError } from "../../shared-api/errors/http-error.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import { HttpError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type { FormResponse } from "../schemas/form-response-schemas.js";
 import { buildContactFormNotification } from "../services/build-contact-form-notification.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";

@@ -1,17 +1,17 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
 import {
   MEMBERS_COLLECTION,
   PROFILES_COLLECTION,
   type ProfileDocument,
-} from "../../collections/index.js";
-import { ERROR_IDS } from "../../constants/error-ids.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import {
   HttpError,
   NotFoundError,
   ValidationError,
-} from "../../shared-api/errors/http-error.js";
-import type { MemberDocument } from "../../types/member-document.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { logger } from "firebase-functions/v2";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 export interface LinkProfileResult {
@@ -78,7 +78,9 @@ export async function linkProfile(options: {
       .doc(memberId);
 
     batch.update(profileReference, { ownerUid: memberId });
-    const profileCreatedAt = Timestamp.fromDate(new Date(profileData.createdAt));
+    const profileCreatedAt = Timestamp.fromDate(
+      new Date(profileData.createdAt),
+    );
 
     batch.update(memberReference, {
       slug,

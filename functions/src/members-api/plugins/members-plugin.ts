@@ -1,7 +1,7 @@
+import { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/index.js";
+import { EmailService } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { AuthService } from "../../shared-api/services/auth/index.js";
-import { EmailService } from "../../shared-api/services/email/index.js";
 import { cancelMembershipLogic } from "../routes/cancel-membership.js";
 import { getMemberLogic } from "../routes/members.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";

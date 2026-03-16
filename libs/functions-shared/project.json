@@ -1,0 +1,15 @@
+{
+  "name": "functions-shared",
+  "projectType": "library",
+  "root": "libs/functions-shared",
+  "sourceRoot": "libs/functions-shared/src",
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint .",
+        "cwd": "libs/functions-shared"
+      }
+    }
+  }
+}

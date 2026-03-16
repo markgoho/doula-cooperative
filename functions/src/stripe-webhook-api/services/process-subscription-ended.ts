@@ -1,13 +1,13 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/index.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import { updateMemberWithValidation } from "@doula-coop/functions-shared/shared-api/utils/firestore-helpers.js";
+import { sendAdminFailureNotification } from "@doula-coop/functions-shared/shared-api/utils/send-admin-failure-notification.js";
+import { unsubscribeNewsletter } from "@doula-coop/functions-shared/shared-api/utils/unsubscribe-newsletter.js";
+import { updateProfileWithRebuild } from "@doula-coop/functions-shared/shared-api/utils/update-profile-with-rebuild.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { ERROR_IDS } from "../../constants/index.js";
 import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
-import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
-import { unsubscribeNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
-import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
-import type { MemberDocument } from "../../types/member-document.js";
 import { findMemberByStripeCustomer } from "./find-member-by-stripe-customer.js";
 
 /**
@@ -147,7 +147,8 @@ export async function processSubscriptionEnded({
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
     await sendAdminFailureNotification({
-      subject: "Subscription End - Action Required for Failed Follow-up Actions",
+      subject:
+        "Subscription End - Action Required for Failed Follow-up Actions",
       title: "Subscription End - Cascading Action Failures",
       description: "A subscription ended, but some follow-up actions failed.",
       email: member.email,

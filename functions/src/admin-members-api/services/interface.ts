@@ -1,6 +1,6 @@
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import type { MemberDocument } from "../../types/member-document.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { LinkProfileResult } from "./link-profile.js";
 import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";

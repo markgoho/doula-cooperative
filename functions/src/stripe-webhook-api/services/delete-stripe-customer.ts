@@ -1,6 +1,6 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import { logger } from "firebase-functions/v2";
 import Stripe from "stripe";
-import { ERROR_IDS } from "../../constants/error-ids.js";
 
 /**
  * Delete a Stripe customer.

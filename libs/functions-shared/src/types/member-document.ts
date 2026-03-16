@@ -1,13 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
+import type { SubscriptionStatus } from "@doula-coop/shared-types";
 
-export type SubscriptionStatus =
-  | "active"
-  | "past_due"
-  | "canceled"
-  | "incomplete"
-  | "trialing"
-  | "unpaid"
-  | "refunded";
+export type { SubscriptionStatus };
 
 /**
  * Member document stored in Firestore.

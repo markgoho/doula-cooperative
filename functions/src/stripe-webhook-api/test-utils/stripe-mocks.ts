@@ -1,5 +1,5 @@
+import { STRIPE_API_VERSION } from "@doula-coop/functions-shared/constants/stripe.js";
 import type Stripe from "stripe";
-import { STRIPE_API_VERSION } from "../../constants/stripe.js";
 
 /**
  * Creates a mock Stripe event for testing.

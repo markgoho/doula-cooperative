@@ -1,8 +1,1 @@
-export type SubscriptionStatus =
-  | 'active'
-  | 'past_due'
-  | 'canceled'
-  | 'incomplete'
-  | 'trialing'
-  | 'unpaid'
-  | 'refunded';
+export type { SubscriptionStatus } from '@doula-coop/shared-types';

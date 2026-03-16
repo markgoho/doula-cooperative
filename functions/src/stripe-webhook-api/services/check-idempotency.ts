@@ -1,5 +1,5 @@
+import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "@doula-coop/functions-shared/collections/index.js";
 import { getFirestore } from "firebase-admin/firestore";
-import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "../../collections/index.js";
 
 /**
  * Check if an event has already been processed (idempotency).

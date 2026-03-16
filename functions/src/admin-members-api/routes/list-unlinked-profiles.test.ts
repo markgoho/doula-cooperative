@@ -1,5 +1,5 @@
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import type { UnlinkedProfile } from "../services/list-unlinked-profiles.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 

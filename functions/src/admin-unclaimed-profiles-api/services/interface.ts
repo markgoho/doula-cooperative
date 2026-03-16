@@ -1,5 +1,5 @@
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type {
   DeleteUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,

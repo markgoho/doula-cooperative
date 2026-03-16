@@ -1,9 +1,5 @@
-import type { UserRecord } from "firebase-admin/auth";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import type Stripe from "stripe";
-import { MEMBERS_COLLECTION } from "../../collections/index.js";
-import { ADMIN_EMAIL } from "../../constants/admin.js";
+import { MEMBERS_COLLECTION } from "@doula-coop/functions-shared/collections/index.js";
+import { ADMIN_EMAIL } from "@doula-coop/functions-shared/constants/admin.js";
 import {
   ERROR_IDS,
   FACEBOOK_GROUP_URL,
@@ -11,19 +7,23 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
-} from "../../constants/index.js";
-import { StripeWebhookError } from "../../shared-api/errors/stripe-errors.js";
+} from "@doula-coop/functions-shared/constants/index.js";
+import { StripeWebhookError } from "@doula-coop/functions-shared/shared-api/errors/stripe-errors.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { generateSecurePassword } from "../../shared-api/utils/generate-secure-password.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
+} from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { generateSecurePassword } from "@doula-coop/functions-shared/shared-api/utils/generate-secure-password.js";
+import { escapeHtml } from "@doula-coop/functions-shared/shared-api/utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   MailerLiteError,
-} from "../../shared-api/utils/mailerlite.js";
+} from "@doula-coop/functions-shared/shared-api/utils/mailerlite.js";
+import type { UserRecord } from "firebase-admin/auth";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import type Stripe from "stripe";
 import {
   calculateExpirationDate,
   createStripeMemberDocument,

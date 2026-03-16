@@ -1,6 +1,6 @@
-import { validateAndConvertDate } from "../../shared-api/utils/date-validator.js";
-import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
-import type { MemberDocument } from "../../types/member-document.js";
+import { validateAndConvertDate } from "@doula-coop/functions-shared/shared-api/utils/date-validator.js";
+import { updateMemberWithValidation } from "@doula-coop/functions-shared/shared-api/utils/firestore-helpers.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**

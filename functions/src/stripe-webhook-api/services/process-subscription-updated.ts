@@ -1,10 +1,10 @@
-import { logger } from "firebase-functions/v2";
-import { ERROR_IDS } from "../../constants/index.js";
-import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/index.js";
+import { updateMemberWithValidation } from "@doula-coop/functions-shared/shared-api/utils/firestore-helpers.js";
 import type {
   MemberDocument,
   SubscriptionStatus,
-} from "../../types/member-document.js";
+} from "@doula-coop/functions-shared/types/member-document.js";
+import { logger } from "firebase-functions/v2";
 import { findMemberByStripeCustomer } from "./find-member-by-stripe-customer.js";
 
 /**

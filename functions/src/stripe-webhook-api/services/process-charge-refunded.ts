@@ -1,6 +1,6 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
 import { logger } from "firebase-functions/v2";
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { cancelStripeSubscription } from "./cancel-stripe-subscription.js";
 import { findMemberByStripeCustomer } from "./find-member-by-stripe-customer.js";
 import {

@@ -1,6 +1,6 @@
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { t, type Static } from "elysia";
 import type { Timestamp } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../types/member-document.js";
 
 /**
  * Subscription status enum for API responses.

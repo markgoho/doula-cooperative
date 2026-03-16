@@ -1,5 +1,5 @@
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
 import { mock } from "bun:test";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { createProfileWebhookPlugin } from "../plugins/profile-webhook-plugin.js";
 import type { ProfileWebhookService } from "../services/interface.js";
 import {
@@ -45,14 +45,13 @@ export function createProfileWebhookTestPlugin(overrides?: {
         };
       },
     ),
-    findMemberBySlug: mock(
-      ({ slug }: { slug: string }) =>
-        Promise.resolve({
-          uid: "member-123",
-          email: "jane@example.com",
-          name: "Jane Doe",
-          slug,
-        } satisfies MemberInfo),
+    findMemberBySlug: mock(({ slug }: { slug: string }) =>
+      Promise.resolve({
+        uid: "member-123",
+        email: "jane@example.com",
+        name: "Jane Doe",
+        slug,
+      } satisfies MemberInfo),
     ),
     sendNotificationEmail: mock(() => Promise.resolve()),
     ...overrides?.profileWebhookService,

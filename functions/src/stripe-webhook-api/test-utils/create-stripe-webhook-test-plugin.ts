@@ -1,5 +1,5 @@
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { mock } from "bun:test";
-import type { Logger } from "../../shared-api/types/logger.js";
 import { createStripeWebhookPlugin } from "../plugins/stripe-webhook-plugin.js";
 import type { StripeWebhookService } from "../services/interface.js";
 import { createMockStripeEvent } from "./stripe-mocks.js";

@@ -1,5 +1,5 @@
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import type { DoulaMatchFormBody } from "../schemas/form-response-schemas.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
 import { createDoulaMatchFormTestPlugin } from "../test-utils/create-forms-test-plugins.js";

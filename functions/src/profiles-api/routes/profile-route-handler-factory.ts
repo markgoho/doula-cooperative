@@ -1,11 +1,14 @@
-import { ERROR_IDS, type ErrorId } from "../../constants/error-ids.js";
-import { ForbiddenError } from "../../shared-api/errors/http-error.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import {
+  ERROR_IDS,
+  type ErrorId,
+} from "@doula-coop/functions-shared/constants/error-ids.js";
+import { ForbiddenError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { handleRouteError } from "@doula-coop/functions-shared/shared-api/utils/route-error-handler.js";
+import type { ProfileNotificationType } from "../../profile-webhook-api/services/types.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
 import type { ProfileStoreService } from "../services/profile-store/interface.js";
-import type { ProfileNotificationType } from "../../profile-webhook-api/services/types.js";
 
 function getNotificationType(
   buildNotificationType: (() => ProfileNotificationType) | undefined,

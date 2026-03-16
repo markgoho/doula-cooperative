@@ -1,4 +1,4 @@
-import type { MemberDocument } from "../../../types/member-document.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 
 /**
  * Service interface for member-related operations.

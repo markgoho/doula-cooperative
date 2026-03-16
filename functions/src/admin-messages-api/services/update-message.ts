@@ -1,8 +1,8 @@
+import { MESSAGES_COLLECTION } from "@doula-coop/functions-shared/collections/messages.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import { NotFoundError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { getFirestore } from "firebase-admin/firestore";
-import { MESSAGES_COLLECTION } from "../../collections/messages.js";
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 
 export async function updateMessage(options: {
   messageId: string;

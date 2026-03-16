@@ -1,8 +1,8 @@
-import { getFirestore } from "firebase-admin/firestore";
 import {
   MEMBERS_COLLECTION,
   type MemberDocument,
-} from "../../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { getFirestore } from "firebase-admin/firestore";
 
 /**
  * Get a member document reference from Firestore

@@ -1,15 +1,15 @@
-import { getFirestore } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
 import {
   PROFILES_COLLECTION,
   type ProfileDocument,
-} from "../../collections/index.js";
-import { ERROR_IDS } from "../../constants/error-ids.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import {
   HttpError,
   NotFoundError,
   ValidationError,
-} from "../../shared-api/errors/http-error.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { getFirestore } from "firebase-admin/firestore";
+import { logger } from "firebase-functions/v2";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
@@ -46,7 +46,9 @@ export async function toggleProfileDraft(options: {
 
   try {
     const firestore = getFirestore();
-    const profileReference = firestore.collection(PROFILES_COLLECTION).doc(slug);
+    const profileReference = firestore
+      .collection(PROFILES_COLLECTION)
+      .doc(slug);
     const profileDocument = await profileReference.get();
 
     if (!profileDocument.exists) {

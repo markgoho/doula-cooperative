@@ -1,11 +1,11 @@
+import type { MemberDocument } from "@doula-coop/functions-shared/collections/index.js";
+import type { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import { createMockVerifyAuthToken } from "@doula-coop/functions-shared/test-utils/auth-mocks.js";
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../collections/index.js";
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import { createMockVerifyAuthToken } from "../../test-utils/auth-mocks.js";
 import { createProfilesPlugin } from "../plugins/profiles-plugin.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { AuthUpdateService } from "../services/auth-update/interface.js";

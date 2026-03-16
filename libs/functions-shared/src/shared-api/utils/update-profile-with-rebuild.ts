@@ -1,5 +1,5 @@
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
+import { triggerHugoRebuild } from "@doula-coop/profile-services";
 import type { Logger } from "../types/logger.js";
 
 /**

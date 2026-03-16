@@ -1,12 +1,12 @@
-import { describe, expect, it, mock } from "bun:test";
-import type Stripe from "stripe";
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import { HttpError } from "../../shared-api/errors/http-error.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import { HttpError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import {
   StripeConfigurationError,
   StripeSignatureError,
-} from "../../shared-api/errors/stripe-errors.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
+} from "@doula-coop/functions-shared/shared-api/errors/stripe-errors.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import { describe, expect, it, mock } from "bun:test";
+import type Stripe from "stripe";
 import type { ChargeRefundedResult } from "../services/process-charge-refunded.js";
 import type { SubscriptionEndedResult } from "../services/process-subscription-ended.js";
 import type { SubscriptionUpdatedResult } from "../services/process-subscription-updated.js";

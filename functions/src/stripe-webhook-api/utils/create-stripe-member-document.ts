@@ -1,8 +1,8 @@
-import { Timestamp } from "firebase-admin/firestore";
 import type {
   StripeMemberDocument,
   SubscriptionStatus,
-} from "../../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { Timestamp } from "firebase-admin/firestore";
 
 /**
  * Factory function to create a member document for a user with a Stripe subscription.

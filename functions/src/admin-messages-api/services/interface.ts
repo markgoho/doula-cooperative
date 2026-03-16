@@ -1,4 +1,4 @@
-import type { Logger } from "../../shared-api/types/logger.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type {
   ListMessagesResponse,
   MessageResponse,

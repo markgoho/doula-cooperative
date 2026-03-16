@@ -1,6 +1,9 @@
-import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
-import type { EmailMessage } from "../../shared-api/services/email/index.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
+import {
+  MARK_EMAIL,
+  NO_REPLY_EMAIL,
+} from "@doula-coop/functions-shared/constants/index.js";
+import type { EmailMessage } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import { escapeHtml } from "@doula-coop/functions-shared/shared-api/utils/html-escape.js";
 
 /**
  * Builds a notification email sent to a member whose membership was refunded.

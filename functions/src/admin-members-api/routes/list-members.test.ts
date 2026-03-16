@@ -1,7 +1,7 @@
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import { handleRequest } from "../../test-utils/handle-request.js";
-import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**

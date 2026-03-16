@@ -1,5 +1,5 @@
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import type { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/interface.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type { MessageAdminService } from "../services/interface.js";
 
 export const SERVICE_KEYS = {

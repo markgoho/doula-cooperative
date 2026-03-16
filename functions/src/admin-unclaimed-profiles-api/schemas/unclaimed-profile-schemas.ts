@@ -1,5 +1,5 @@
+import type { UnclaimedProfileDocument } from "@doula-coop/functions-shared/collections/migrated-users-import.js";
 import { t, type Static } from "elysia";
-import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
 
 const UnclaimedProfileSuccessSchema = t.Object({
   email: t.String({ format: "email" }),

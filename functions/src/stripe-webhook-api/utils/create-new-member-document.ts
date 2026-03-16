@@ -1,5 +1,5 @@
+import type { MemberDocument } from "@doula-coop/functions-shared/collections/index.js";
 import { Timestamp } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../collections/index.js";
 
 /**
  * Factory function to create a new member document for a user who just signed up.

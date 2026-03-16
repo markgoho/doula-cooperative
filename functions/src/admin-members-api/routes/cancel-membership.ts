@@ -1,4 +1,4 @@
-import { ERROR_IDS } from "../../constants/error-ids.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import { type MemberSuccessResponse } from "../schemas/member-schemas.js";
 import { createMemberRouteHandler } from "./route-handler-factory.js";
 

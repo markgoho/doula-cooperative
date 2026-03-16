@@ -1,28 +1,28 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import {
   MEMBERS_COLLECTION,
   type MemberDocument,
-} from "../../../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
 import {
   ERROR_IDS,
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
-} from "../../../constants/index.js";
+} from "@doula-coop/functions-shared/constants/index.js";
 import {
   HttpError,
   NotFoundError,
   ValidationError,
-} from "../../../shared-api/errors/http-error.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
-} from "../../../shared-api/services/email/index.js";
-import type { Logger } from "../../../shared-api/types/logger.js";
-import { escapeHtml } from "../../../shared-api/utils/html-escape.js";
+} from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { escapeHtml } from "@doula-coop/functions-shared/shared-api/utils/html-escape.js";
 import {
   addNewsletterSubscriber,
   removeNewsletterSubscriber,
-} from "../../../shared-api/utils/mailerlite.js";
+} from "@doula-coop/functions-shared/shared-api/utils/mailerlite.js";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import type { NewsletterService as NewsletterServiceInterface } from "./interface.js";
 
 /**

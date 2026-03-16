@@ -1,7 +1,7 @@
+import type { FirebaseResponse } from "@doula-coop/functions-shared/shared-api/types/firebase-response.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { describe, expect, it, mock } from "bun:test";
 import type { Request as FirebaseRequest } from "firebase-functions/v2/https";
-import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
-import type { Logger } from "../shared-api/types/logger.js";
 import { createMockStripeEvent } from "./test-utils/stripe-mocks.js";
 
 /**

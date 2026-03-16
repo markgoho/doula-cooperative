@@ -1,10 +1,10 @@
-import { ERROR_IDS } from "../../constants/error-ids.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import {
   ForbiddenError,
   HttpError,
-} from "../../shared-api/errors/http-error.js";
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/interface.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type { VerifyEmailResponse } from "../schemas/member-schemas.js";
 import type { VerifyEmailService } from "../services/verify-email/interface.js";
 

@@ -1,8 +1,8 @@
+import type { UnclaimedProfileDocument } from "@doula-coop/functions-shared/collections/migrated-users-import.js";
+import { NotFoundError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import type { UnclaimedProfileDocument } from "../../collections/migrated-users-import.js";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   toUnclaimedProfileResponse,
   type UnclaimedProfileSuccessResponse,
@@ -207,5 +207,4 @@ describe("Admin Unclaimed Profiles API", () => {
       });
     });
   });
-
 });

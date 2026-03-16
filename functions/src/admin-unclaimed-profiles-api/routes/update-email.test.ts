@@ -1,10 +1,10 @@
-import { describe, expect, it, mock } from "bun:test";
 import {
   ConflictError,
   HttpError,
   NotFoundError,
-} from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import { describe, expect, it, mock } from "bun:test";
 import type { UpdateEmailSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 

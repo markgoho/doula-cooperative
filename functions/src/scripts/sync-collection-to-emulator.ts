@@ -14,16 +14,16 @@
 /* eslint-disable unicorn/no-process-exit */
 /* eslint-disable unicorn/prefer-top-level-await */
 
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import * as readline from "node:readline";
 import {
   IMPORT_COLLECTION,
   MATCH_REQUESTS_COLLECTION,
   MEMBERS_COLLECTION,
   MESSAGES_COLLECTION,
   PROCESSED_STRIPE_EVENTS_COLLECTION,
-} from "../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import * as readline from "node:readline";
 
 // Available collections with friendly names
 const AVAILABLE_COLLECTIONS = [

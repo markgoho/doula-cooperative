@@ -1,8 +1,12 @@
+import { IMPORT_COLLECTION } from "@doula-coop/functions-shared/collections/index.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/index.js";
+import {
+  ConflictError,
+  HttpError,
+  NotFoundError,
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { getFirestore } from "firebase-admin/firestore";
-import { IMPORT_COLLECTION } from "../../collections/index.js";
-import { ERROR_IDS } from "../../constants/index.js";
-import { ConflictError, HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 
 interface UpdateEmailOptions {
   oldEmail: string;

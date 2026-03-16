@@ -1,11 +1,11 @@
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import { HttpError } from "../../shared-api/errors/http-error.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import { HttpError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import {
   StripeConfigurationError,
   StripeSignatureError,
-} from "../../shared-api/errors/stripe-errors.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+} from "@doula-coop/functions-shared/shared-api/errors/stripe-errors.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type {
   StripeWebhookErrorResponse,
   StripeWebhookResponse,

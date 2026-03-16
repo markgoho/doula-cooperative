@@ -1,7 +1,7 @@
+import { ForbiddenError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import ImageKit from "@imagekit/nodejs";
 import { describe, expect, it, mock } from "bun:test";
-import { ForbiddenError } from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   createProfilesTestPlugin,
   mockMemberDocument,

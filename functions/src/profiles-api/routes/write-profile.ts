@@ -1,4 +1,4 @@
-import { ERROR_IDS } from "../../constants/error-ids.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import type { WriteProfileResponse } from "../schemas/profile-schemas.js";
 import { createProfileRouteHandler } from "./profile-route-handler-factory.js";
 

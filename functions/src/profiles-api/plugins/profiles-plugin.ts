@@ -1,14 +1,14 @@
+import { ForbiddenError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/index.js";
+import { EmailService } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { getUserUid } from "@doula-coop/functions-shared/shared-api/utils/get-user-uid.js";
+import { optionalUserDerive } from "@doula-coop/functions-shared/shared-api/utils/optional-user-derive.js";
+import { userDerive } from "@doula-coop/functions-shared/shared-api/utils/user-derive.js";
+import { userGuard } from "@doula-coop/functions-shared/shared-api/utils/user-guard.js";
 import { Elysia } from "elysia";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import { ForbiddenError } from "../../shared-api/errors/http-error.js";
-import { AuthService } from "../../shared-api/services/auth/index.js";
-import { EmailService } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { getUserUid } from "../../shared-api/utils/get-user-uid.js";
-import { optionalUserDerive } from "../../shared-api/utils/optional-user-derive.js";
-import { userDerive } from "../../shared-api/utils/user-derive.js";
-import { userGuard } from "../../shared-api/utils/user-guard.js";
 import {
   checkSlugAvailableLogic,
   claimProfileLogic,

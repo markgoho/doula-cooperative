@@ -1,23 +1,23 @@
-import { getFirestore } from "firebase-admin/firestore";
-import { IMPORT_COLLECTION } from "../../collections/migrated-users-import.js";
+import { IMPORT_COLLECTION } from "@doula-coop/functions-shared/collections/migrated-users-import.js";
 import {
   ERROR_IDS,
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
-} from "../../constants/index.js";
-import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
-import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
+} from "@doula-coop/functions-shared/constants/index.js";
 import {
   HttpError,
   NotFoundError,
-} from "../../shared-api/errors/http-error.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { escapeHtml } from "../../shared-api/utils/html-escape.js";
-import { removeNewsletterSubscriber } from "../../shared-api/utils/mailerlite.js";
+} from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { escapeHtml } from "@doula-coop/functions-shared/shared-api/utils/html-escape.js";
+import { removeNewsletterSubscriber } from "@doula-coop/functions-shared/shared-api/utils/mailerlite.js";
+import { getFirestore } from "firebase-admin/firestore";
+import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
+import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 
 /**
  * Creates HTML for newsletter unsubscribe failure notification email
@@ -140,8 +140,7 @@ async function sendDraftFailureNotification({
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
-      subject:
-        "Profile Draft Failed During Profile Deletion - Action Required",
+      subject: "Profile Draft Failed During Profile Deletion - Action Required",
       html: createDraftFailureEmailHtml({
         email,
         slug,
@@ -256,33 +255,39 @@ export async function deleteUnclaimedProfile(options: {
 
         // NON-CRITICAL: Trigger Hugo rebuild after drafting
         try {
-          await triggerHugoRebuild({ slug, action: "unclaimed profile deleted" });
+          await triggerHugoRebuild({
+            slug,
+            action: "unclaimed profile deleted",
+          });
         } catch (rebuildError: unknown) {
           const rebuildErrorMessage =
-            rebuildError instanceof Error ? rebuildError.message : "Unknown error";
-          logger.error("Failed to trigger Hugo rebuild after unclaimed profile draft", {
-            email,
-            slug,
-            error: rebuildError,
-            errorMessage: rebuildErrorMessage,
-          });
+            rebuildError instanceof Error
+              ? rebuildError.message
+              : "Unknown error";
+          logger.error(
+            "Failed to trigger Hugo rebuild after unclaimed profile draft",
+            {
+              email,
+              slug,
+              error: rebuildError,
+              errorMessage: rebuildErrorMessage,
+            },
+          );
         }
       } catch (draftError) {
         profileDrafted = false;
         const draftErrorMessage =
           draftError instanceof Error ? draftError.message : "Unknown error";
 
-        logger.error(
-          "Failed to set profile to draft during profile deletion",
-          {
-            errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
-            email,
-            slug,
-            error: draftError,
-            errorMessage: draftErrorMessage,
-            actionRequired: "Manually set draft: true on the Firestore profiles document",
-          },
-        );
+        logger.error("Failed to set profile to draft during profile deletion", {
+          errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
+          email,
+          slug,
+          error: draftError,
+          errorMessage: draftErrorMessage,
+          actionRequired:
+            "Manually set draft: true on the Firestore profiles document",
+        });
 
         await sendDraftFailureNotification({
           email,

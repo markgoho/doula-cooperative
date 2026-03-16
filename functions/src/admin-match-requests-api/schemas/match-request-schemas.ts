@@ -1,6 +1,6 @@
+import type { MatchRequestDocument } from "@doula-coop/functions-shared/collections/match-requests.js";
+import { timestampToIso } from "@doula-coop/functions-shared/shared-api/utils/timestamp-to-iso.js";
 import { t, type Static } from "elysia";
-import type { MatchRequestDocument } from "../../collections/match-requests.js";
-import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 
 /**
  * Match request response schema (API representation with ISO dates)

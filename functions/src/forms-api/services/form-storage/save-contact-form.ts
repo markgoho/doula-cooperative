@@ -1,10 +1,10 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { logger } from "firebase-functions/v2";
 import {
   MESSAGES_COLLECTION,
   type MessageDocument,
-} from "../../../collections/messages.js";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
+} from "@doula-coop/functions-shared/collections/messages.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { logger } from "firebase-functions/v2";
 import type { ContactFormData } from "./types.js";
 
 /**

@@ -1,5 +1,5 @@
+import type { MemberDocument } from "@doula-coop/functions-shared/collections/index.js";
 import type { DocumentSnapshot } from "firebase-admin/firestore";
-import type { MemberDocument } from "../../../collections/index.js";
 
 /**
  * Service interface for Firestore operations in claim profile flow.

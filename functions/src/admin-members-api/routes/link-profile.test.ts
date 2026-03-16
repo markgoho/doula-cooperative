@@ -1,11 +1,11 @@
-import { describe, expect, it, mock } from "bun:test";
-import { Timestamp } from "firebase-admin/firestore";
 import {
   NotFoundError,
   ValidationError,
-} from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
-import type { MemberDocument } from "../../types/member-document.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
+import { describe, expect, it, mock } from "bun:test";
+import { Timestamp } from "firebase-admin/firestore";
 import type { LinkProfileResult } from "../services/link-profile.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -60,9 +60,7 @@ describe("POST /:memberId/profile/link", () => {
       }): Promise<LinkProfileResult> => {
         if (memberNotFound) {
           return Promise.reject(
-            new NotFoundError(
-              `Member with ID ${options.memberId} not found`,
-            ),
+            new NotFoundError(`Member with ID ${options.memberId} not found`),
           );
         }
         if (memberAlreadyHasSlug) {
@@ -74,9 +72,7 @@ describe("POST /:memberId/profile/link", () => {
         }
         if (profileNotFound) {
           return Promise.reject(
-            new NotFoundError(
-              `Profile not found for slug: ${options.slug}`,
-            ),
+            new NotFoundError(`Profile not found for slug: ${options.slug}`),
           );
         }
         if (profileAlreadyLinked) {
@@ -115,14 +111,11 @@ describe("POST /:memberId/profile/link", () => {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
 
-    const request = new Request(
-      `http://localhost/${memberId}/profile/link`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      },
-    );
+    const request = new Request(`http://localhost/${memberId}/profile/link`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
 
     return { testApp, request };
   }

@@ -1,12 +1,12 @@
-import { describe, expect, it, mock } from "bun:test";
-import type { DecodedIdToken } from "firebase-admin/auth";
 import {
   AuthError,
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
+} from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import { describe, expect, it, mock } from "bun:test";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
 /**

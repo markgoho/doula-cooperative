@@ -1,9 +1,12 @@
-import { MARK_EMAIL, NO_REPLY_EMAIL } from "../../constants/index.js";
+import {
+  MARK_EMAIL,
+  NO_REPLY_EMAIL,
+} from "@doula-coop/functions-shared/constants/index.js";
 import type {
   EmailMessage,
   EmailServiceInterface,
-} from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+} from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import type {
   NotificationParameters,
   ProfileNotificationType,

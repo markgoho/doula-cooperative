@@ -1,13 +1,13 @@
-import { mock } from "bun:test";
-import type { DecodedIdToken } from "firebase-admin/auth";
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
-import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import type { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/interface.js";
+import type { EmailServiceInterface } from "@doula-coop/functions-shared/shared-api/services/email/index.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
   createMockVerifyOwnerOrAdmin,
-} from "../../test-utils/auth-mocks.js";
-import type { MemberDocument } from "../../types/member-document.js";
+} from "@doula-coop/functions-shared/test-utils/auth-mocks.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
+import { mock } from "bun:test";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";

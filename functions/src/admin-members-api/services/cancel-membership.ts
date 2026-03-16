@@ -1,7 +1,7 @@
+import { updateMemberWithValidation } from "@doula-coop/functions-shared/shared-api/utils/firestore-helpers.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { logger } from "firebase-functions/v2";
-import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
 import { cancelStripeSubscriptionAtPeriodEnd } from "../../stripe-webhook-api/services/cancel-stripe-subscription-at-period-end.js";
-import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**

@@ -5,11 +5,18 @@
     "lib": ["es2023"],
     "module": "NodeNext",
     "outDir": "lib",
+    "rootDir": "..",
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es2022"
   },
   "compileOnSave": true,
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/test-utils/**", "node_modules"]
+  "include": [
+    "src",
+    "../libs/shared/types/src",
+    "../libs/functions-shared/src",
+    "../libs/profile-services/src",
+    "../libs/stripe-services/src"
+  ],
+  "exclude": ["**/*.test.ts", "**/test-utils/**", "node_modules"]
 }

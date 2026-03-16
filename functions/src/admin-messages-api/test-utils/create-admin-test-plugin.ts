@@ -1,11 +1,11 @@
-import { mock } from "bun:test";
-import type { DecodedIdToken } from "firebase-admin/auth";
-import type { AuthService } from "../../shared-api/services/auth/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+import type { AuthService } from "@doula-coop/functions-shared/shared-api/services/auth/interface.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
   createMockVerifyOwnerOrAdmin,
-} from "../../test-utils/auth-mocks.js";
+} from "@doula-coop/functions-shared/test-utils/auth-mocks.js";
+import { mock } from "bun:test";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { createAdminMessagesPlugin } from "../plugins/admin-messages-plugin.js";
 import type { MessageResponse } from "../schemas/message-schemas.js";
 import type { MessageAdminService } from "../services/interface.js";

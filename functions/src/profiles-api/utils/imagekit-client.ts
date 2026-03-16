@@ -1,5 +1,5 @@
+import { HttpError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
 import ImageKit from "@imagekit/nodejs";
-import { HttpError } from "../../shared-api/errors/http-error.js";
 
 let cachedClient: ImageKit | undefined;
 

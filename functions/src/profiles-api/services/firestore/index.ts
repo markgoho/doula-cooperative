@@ -1,10 +1,10 @@
-import type { DocumentSnapshot } from "firebase-admin/firestore";
-import { getFirestore } from "firebase-admin/firestore";
 import {
   IMPORT_COLLECTION,
   type MemberDocument,
-} from "../../../collections/index.js";
-import { MemberFirestoreService } from "../../../shared-api/services/member-firestore/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { MemberFirestoreService } from "@doula-coop/functions-shared/shared-api/services/member-firestore/index.js";
+import type { DocumentSnapshot } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 import type { ClaimProfileFirestoreService as ClaimProfileFirestoreServiceInterface } from "./interface.js";
 
 /**

@@ -1,9 +1,12 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import {
+  sendWebResponse,
+  toWebRequest,
+} from "@doula-coop/functions-shared/shared-api/adapters.js";
+import type { FirebaseResponse } from "@doula-coop/functions-shared/shared-api/types/firebase-response.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
-import { ERROR_IDS } from "../constants/error-ids.js";
-import { sendWebResponse, toWebRequest } from "../shared-api/adapters.js";
-import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
-import type { Logger } from "../shared-api/types/logger.js";
 
 export async function handleStripeWebhookApi(
   request: Request,

@@ -1,6 +1,6 @@
+import type { EmailService } from "@doula-coop/functions-shared/shared-api/services/email/interface.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
 import { mock } from "bun:test";
-import type { EmailService } from "../../shared-api/services/email/interface.js";
-import type { Logger } from "../../shared-api/types/logger.js";
 import { createContactUsFormPlugin } from "../plugins/contact-us-form-plugin.js";
 import { createDoulaMatchFormPlugin } from "../plugins/doula-match-form-plugin.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";

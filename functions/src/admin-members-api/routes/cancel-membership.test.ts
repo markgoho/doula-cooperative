@@ -1,8 +1,8 @@
+import { NotFoundError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
+import type { MemberDocument } from "@doula-coop/functions-shared/types/member-document.js";
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
-import type { MemberDocument } from "../../types/member-document.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 /**
@@ -30,33 +30,31 @@ describe("POST /:memberId/membership/cancel", () => {
     stripeCancelFails = false,
   }: SetupOptions = {}) {
     // Configure mock based on scenario
-    const mockCancelMembership = mock(
-      (id: string): Promise<MemberDocument> => {
-        if (memberNotFound || id === "non-existent-id") {
-          return Promise.reject(new NotFoundError("Member not found"));
-        }
-        if (stripeCancelFails) {
-          return Promise.reject(new Error("Stripe API error"));
-        }
-        if (hasStripeData) {
-          return Promise.resolve({
-            uid: id,
-            email: "test@example.com",
-            createdAt: Timestamp.now(),
-            membershipActive: true,
-            stripeCustomerId: "cus_123",
-            stripeSubscriptionId: "sub_456",
-            subscriptionStatus: "canceled",
-          });
-        }
+    const mockCancelMembership = mock((id: string): Promise<MemberDocument> => {
+      if (memberNotFound || id === "non-existent-id") {
+        return Promise.reject(new NotFoundError("Member not found"));
+      }
+      if (stripeCancelFails) {
+        return Promise.reject(new Error("Stripe API error"));
+      }
+      if (hasStripeData) {
         return Promise.resolve({
           uid: id,
           email: "test@example.com",
           createdAt: Timestamp.now(),
-          membershipActive: false,
+          membershipActive: true,
+          stripeCustomerId: "cus_123",
+          stripeSubscriptionId: "sub_456",
+          subscriptionStatus: "canceled",
         });
-      },
-    );
+      }
+      return Promise.resolve({
+        uid: id,
+        email: "test@example.com",
+        createdAt: Timestamp.now(),
+        membershipActive: false,
+      });
+    });
 
     const testApp = createAdminTestPlugin({
       memberAdminService: {

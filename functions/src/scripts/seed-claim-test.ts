@@ -15,14 +15,14 @@
  *   USE_EMULATOR=false bun run seed-claim-test # Production mode
  */
 
-import { getApps, initializeApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import {
   IMPORT_COLLECTION,
   MEMBERS_COLLECTION,
   type UnclaimedProfileDocumentData,
-} from "../collections/index.js";
+} from "@doula-coop/functions-shared/collections/index.js";
+import { getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 
 // Default configuration
 const DEFAULT_SLUG = "marie-curie";

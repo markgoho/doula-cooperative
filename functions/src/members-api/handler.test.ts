@@ -1,6 +1,6 @@
+import type { FirebaseResponse } from "@doula-coop/functions-shared/shared-api/types/firebase-response.js";
 import { describe, expect, it, mock } from "bun:test";
 import type { Request } from "firebase-functions/v2/https";
-import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
 import { handleMembersApi } from "./handler.js";
 
 /**

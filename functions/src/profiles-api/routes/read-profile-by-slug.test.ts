@@ -1,6 +1,6 @@
+import { NotFoundError } from "@doula-coop/functions-shared/shared-api/errors/http-error.js";
+import { handleRequest } from "@doula-coop/functions-shared/test-utils/handle-request.js";
 import { describe, expect, it, mock } from "bun:test";
-import { NotFoundError } from "../../shared-api/errors/http-error.js";
-import { handleRequest } from "../../test-utils/handle-request.js";
 import type { ProfileData } from "../schemas/profile-schemas.js";
 import type { ReadProfileResponse } from "../services/profile-store/interface.js";
 import {

@@ -1,10 +1,10 @@
-import { getFirestore } from "firebase-admin/firestore";
 import {
   MATCH_REQUESTS_COLLECTION,
   type MatchRequestDocument,
-} from "../../collections/match-requests.js";
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { Logger } from "../../shared-api/types/logger.js";
+} from "@doula-coop/functions-shared/collections/match-requests.js";
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { getFirestore } from "firebase-admin/firestore";
 import {
   toMatchRequestResponse,
   type ListMatchRequestsResponse,

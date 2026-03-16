@@ -1,5 +1,5 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
 import { logger } from "firebase-functions/v2";
-import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { getImageKitClient } from "../../utils/imagekit-client.js";
 
 /**

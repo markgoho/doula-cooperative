@@ -1,8 +1,8 @@
+import type { FirebaseResponse } from "@doula-coop/functions-shared/shared-api/types/firebase-response.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { handleElysiaRequest } from "@doula-coop/functions-shared/shared-api/utils/handle-elysia-request.js";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import type { Request } from "firebase-functions/v2/https";
-import type { FirebaseResponse } from "../shared-api/types/firebase-response.js";
-import type { Logger } from "../shared-api/types/logger.js";
-import { handleElysiaRequest } from "../shared-api/utils/handle-elysia-request.js";
 
 /**
  * Admin Unclaimed Profiles API handler that bridges Firebase Functions with Elysia.

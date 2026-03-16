@@ -1,7 +1,7 @@
+import { ERROR_IDS } from "@doula-coop/functions-shared/constants/error-ids.js";
+import type { Logger } from "@doula-coop/functions-shared/shared-api/types/logger.js";
+import { handleRouteError } from "@doula-coop/functions-shared/shared-api/utils/route-error-handler.js";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import { ERROR_IDS } from "../../constants/error-ids.js";
-import type { Logger } from "../../shared-api/types/logger.js";
-import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ReadProfileSuccessResponse } from "../schemas/profile-schemas.js";
 import type {
   ProfileStoreService,

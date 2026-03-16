@@ -1,5 +1,5 @@
+import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "@doula-coop/functions-shared/collections/index.js";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "../../collections/index.js";
 
 /**
  * Mark an event as processed atomically using Firestore create().

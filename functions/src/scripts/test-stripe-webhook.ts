@@ -21,8 +21,8 @@
  *   - For --use-stripe-cli: `stripe listen` must be running
  */
 
+import { STRIPE_API_VERSION } from "@doula-coop/functions-shared/constants/stripe.js";
 import { $ } from "bun";
-import { STRIPE_API_VERSION } from "../constants/stripe.js";
 
 // Parse command line arguments
 const commandLineArguments = process.argv.slice(2);

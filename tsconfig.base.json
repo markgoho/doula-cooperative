@@ -1,5 +1,33 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@doula-coop/shared-types": ["libs/shared/types/src/index.ts"],
+      "@doula-coop/functions-shared": ["libs/functions-shared/src/index.ts"],
+      "@doula-coop/functions-shared/*": ["libs/functions-shared/src/*"],
+      "@doula-coop/profile-services": ["libs/profile-services/src/index.ts"],
+      "@doula-coop/stripe-services": ["libs/stripe-services/src/index.ts"],
+      "@doula-coop/members-api": ["apps/members-api/src/index.ts"],
+      "@doula-coop/admin-members-api": ["apps/admin-members-api/src/index.ts"],
+      "@doula-coop/admin-match-requests-api": [
+        "apps/admin-match-requests-api/src/index.ts"
+      ],
+      "@doula-coop/admin-messages-api": [
+        "apps/admin-messages-api/src/index.ts"
+      ],
+      "@doula-coop/admin-unclaimed-profiles-api": [
+        "apps/admin-unclaimed-profiles-api/src/index.ts"
+      ],
+      "@doula-coop/profiles-api": ["apps/profiles-api/src/index.ts"],
+      "@doula-coop/forms-api": ["apps/forms-api/src/index.ts"],
+      "@doula-coop/stripe-webhook-api": [
+        "apps/stripe-webhook-api/src/index.ts"
+      ],
+      "@doula-coop/profile-webhook-api": [
+        "apps/profile-webhook-api/src/index.ts"
+      ]
+    },
+
     // Best practices - strict type checking
     "strict": true,
     "skipLibCheck": true,
