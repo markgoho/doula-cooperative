@@ -1,0 +1,21 @@
+{
+  "run": {
+    "command": "nx lint",
+    "startTime": "2026-03-16T15:35:40.864Z",
+    "endTime": "2026-03-16T15:35:48.810Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "functions:lint",
+      "target": "lint",
+      "projectName": "functions",
+      "hash": "14038888519010303575",
+      "startTime": "2026-03-16T15:35:40.947Z",
+      "endTime": "2026-03-16T15:35:48.808Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 1
+    }
+  ]
+}
