@@ -71,6 +71,29 @@
       </div>
 
       <div id="form-error" class="form__error-message" aria-live="polite"></div>
+      <div id="doula-redirect-notice" class="doula-redirect-notice" hidden>
+        <div
+          id="doula-redirect-announcement"
+          class="visually-hidden"
+          aria-live="polite"></div>
+        <h3 class="doula-redirect-notice__heading">
+          Looking for Doula Support?
+        </h3>
+        <p class="doula-redirect-notice__text">
+          It sounds like you're looking for doula services! We have a dedicated
+          form that will help match you with the right doula for your needs.
+        </p>
+        <a href="/find-a-doula/match/" class="button">Go to Doula Match Form</a>
+        <p class="doula-redirect-notice__alt">
+          Not looking for a doula?
+          <button
+            type="button"
+            id="dismiss-doula-notice"
+            class="doula-redirect-notice__dismiss">
+            Dismiss and continue
+          </button>
+        </p>
+      </div>
       <button type="submit" id="submit-button" class="button">Submit</button>
     </form>
   </section>
