@@ -1,4 +1,4 @@
-##  (2026-03-13)
+##  (2026-03-18)
 
 ### Features
 
@@ -9,6 +9,7 @@
 * Add Elysia API testing guidelines and shared auth mocks for consistent authentication testing ([1c286dd](https://github.com/markgoho/doula-cooperative/commit/1c286dd353c02077f38293a3b1274b54d0bccadc))
 * add prefix option to Elysia apps for Firebase Hosting compatibility ([d1c25c1](https://github.com/markgoho/doula-cooperative/commit/d1c25c10b28889b39247a5dab7b0adcbaf9533f8))
 * add versioning and changelog infrastructure ([bb61cff](https://github.com/markgoho/doula-cooperative/commit/bb61cff47f85e7f7a5a0cdb8877345183ddd611f))
+* **admin:** add ability to link unlinked profiles to members ([#78](https://github.com/markgoho/doula-cooperative/issues/78)) ([255d2ce](https://github.com/markgoho/doula-cooperative/commit/255d2cee0aa7f5bb7e495109fe28972cf1f679ab))
 * clean slate delete with GitHub profile deletion and ImageKit cleanup ([#63](https://github.com/markgoho/doula-cooperative/issues/63)) ([bc84389](https://github.com/markgoho/doula-cooperative/commit/bc84389d9adc6a2bcd439b21142f2d5d46d67fbc))
 * handle Stripe refunds via webhook and admin UI ([#62](https://github.com/markgoho/doula-cooperative/issues/62)) ([014a036](https://github.com/markgoho/doula-cooperative/commit/014a0361bef0241de65e186fa7f3484d01788aed))
 * Implement admin membership management service ([4753ff5](https://github.com/markgoho/doula-cooperative/commit/4753ff507004b9674e91fe4739a01e82209b8f7f))
@@ -21,4 +22,5 @@
 * add profile image URL to admin member detail page ([03bea4d](https://github.com/markgoho/doula-cooperative/commit/03bea4dc990738cbbf5c06a5a7d1d6c15ce82d84))
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
 * include memberNotified in refund API response schema and mapping ([43ea4b2](https://github.com/markgoho/doula-cooperative/commit/43ea4b2ababb315478e4c49573649001c430e418))
+* **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))

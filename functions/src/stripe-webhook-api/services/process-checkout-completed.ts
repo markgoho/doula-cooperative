@@ -30,6 +30,7 @@ import {
   createStripeMemberUpdate,
 } from "../utils/index.js";
 import type { CheckoutCompletedResult } from "./interface.js";
+import { sendNewMemberAdminNotification } from "./send-new-member-admin-notification.js";
 
 /**
  * Create HTML for MailerLite failure notification email.
@@ -794,6 +795,14 @@ export async function processCheckoutCompleted(options: {
     // Step 5: Notify referrals coordinator about new member (non-critical)
     if (!process.env["FUNCTIONS_EMULATOR"]) {
       await sendReferralCoordinatorNotification({
+        emailService,
+        customerEmail,
+        customerName,
+        uid: userRecord.uid,
+        logger,
+      });
+
+      await sendNewMemberAdminNotification({
         emailService,
         customerEmail,
         customerName,

@@ -32,7 +32,7 @@ const weakSignals = [
 ];
 
 function escapeRegex(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return text.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 export function detectDoulaRequest(text: string): boolean {
@@ -43,7 +43,7 @@ export function detectDoulaRequest(text: string): boolean {
   }
 
   const weakMatchCount = weakSignals.filter(signal => {
-    const pattern = new RegExp(`\\b${escapeRegex(signal)}\\b`, "i");
+    const pattern = new RegExp(String.raw`\b${escapeRegex(signal)}\b`, "i");
     return pattern.test(normalizedText);
   }).length;
 

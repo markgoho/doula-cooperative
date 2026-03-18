@@ -32,7 +32,7 @@ interface DoulaMatchFormRequest {
 }
 
 async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
-  const url = matchForm?.dataset["apiUrl"];
+  const url = matchForm?.dataset.apiUrl;
   if (!url) {
     throw new Error("API URL not found");
   }
@@ -129,7 +129,7 @@ const doSubmit = async () => {
     }
 
     // Get reCAPTCHA site key from form data attribute
-    const siteKey = matchForm?.dataset["recaptchaSiteKey"];
+    const siteKey = matchForm?.dataset.recaptchaSiteKey;
     if (!siteKey) {
       throw new Error("reCAPTCHA site key not found");
     }

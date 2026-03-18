@@ -28,6 +28,8 @@ export const ERROR_IDS = {
     "stripe_webhook_welcome_email_notification_failed",
   STRIPE_WEBHOOK_REFERRAL_NOTIFICATION_FAILED:
     "stripe_webhook_referral_notification_failed",
+  STRIPE_WEBHOOK_NEW_MEMBER_ADMIN_NOTIFICATION_FAILED:
+    "stripe_webhook_new_member_admin_notification_failed",
   STRIPE_WEBHOOK_UNEXPECTED_ERROR: "stripe_webhook_unexpected_error",
 
   // Legacy member activation errors

@@ -150,7 +150,7 @@ function prepareForSubmit(): boolean {
 }
 
 async function getRecaptchaToken(): Promise<string> {
-  const siteKey = contactForm?.dataset["recaptchaSiteKey"];
+  const siteKey = contactForm?.dataset.recaptchaSiteKey;
   if (!siteKey) {
     throw new Error("reCAPTCHA site key not found");
   }
@@ -176,7 +176,7 @@ async function submitContactForm(): Promise<void> {
   });
 }
 
-async function handleSubmitError(error: unknown): Promise<void> {
+function handleSubmitError(error: unknown): void {
   console.error("Failed to send contact form:", error);
   showSubmissionError();
 }
@@ -202,7 +202,7 @@ async function sendContactForm({
   message: string;
   recaptchaToken: string;
 }): Promise<void> {
-  const url = contactForm?.dataset["apiUrl"];
+  const url = contactForm?.dataset.apiUrl;
   if (!url) {
     throw new Error("API URL not found");
   }
@@ -230,7 +230,7 @@ const doSubmit = async () => {
   try {
     await submitContactForm();
   } catch (error) {
-    await handleSubmitError(error);
+    handleSubmitError(error);
   }
 };
 
