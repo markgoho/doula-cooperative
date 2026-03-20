@@ -1,4 +1,4 @@
-##  (2026-03-18)
+##  (2026-03-20)
 
 ### Features
 
@@ -14,6 +14,7 @@
 * include next payment details in claim profile response ([0519f9f](https://github.com/markgoho/doula-cooperative/commit/0519f9f93defb26ecd8e51cfed7083070a905259))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate profile management to Elysia REST API ([#34](https://github.com/markgoho/doula-cooperative/issues/34)) ([e5cabeb](https://github.com/markgoho/doula-cooperative/commit/e5cabebf7f684403167a0e0c4b779fd93fafa743))
+* notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 * send email notification to admin when new profile is created ([433eb63](https://github.com/markgoho/doula-cooperative/commit/433eb637e46284f83656932e25420ea6944f68a2))
 
 ### Bug Fixes

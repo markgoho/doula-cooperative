@@ -1,10 +1,11 @@
-##  (2026-03-18)
+##  (2026-03-20)
 
 ### Features
 
 * add prefix option to Elysia apps for Firebase Hosting compatibility ([d1c25c1](https://github.com/markgoho/doula-cooperative/commit/d1c25c10b28889b39247a5dab7b0adcbaf9533f8))
 * add versioning and changelog infrastructure ([bb61cff](https://github.com/markgoho/doula-cooperative/commit/bb61cff47f85e7f7a5a0cdb8877345183ddd611f))
 * migrate admin messages functions to Elysia API ([#29](https://github.com/markgoho/doula-cooperative/issues/29)) ([79f7c41](https://github.com/markgoho/doula-cooperative/commit/79f7c41b9f94522f32dbf97f8726ea32cab5e01a)), closes [#23](https://github.com/markgoho/doula-cooperative/issues/23) [#23](https://github.com/markgoho/doula-cooperative/issues/23)
+* notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 
 ### Bug Fixes
 

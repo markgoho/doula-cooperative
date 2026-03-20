@@ -1,4 +1,4 @@
-##  (2026-03-18)
+##  (2026-03-20)
 
 ### Features
 
@@ -15,6 +15,7 @@
 * Implement MemberService with Firestore integration ([78be15a](https://github.com/markgoho/doula-cooperative/commit/78be15a0f4e2b396588e02393d9ccfcdb11f8b90))
 * implement newsletter preference update endpoint with tests ([391616c](https://github.com/markgoho/doula-cooperative/commit/391616c233854d20b78ae8ebaa784210b443d34d))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
+* notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 
 ### Bug Fixes
 

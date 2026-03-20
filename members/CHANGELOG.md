@@ -1,10 +1,12 @@
-##  (2026-03-18)
+##  (2026-03-20)
 
 ### Features
 
 * add 'Processing...' text to ConfirmDialog button during operations ([9624d80](https://github.com/markgoho/doula-cooperative/commit/9624d80a0cad670741548d5ee278980aabbabe22))
 * add 30-day refund window and member refund notification email ([7b454a0](https://github.com/markgoho/doula-cooperative/commit/7b454a0dd66041ec1e06a1a4c483b07b992ed21e))
+* add admin draft profile deletion flow ([9d9f18a](https://github.com/markgoho/doula-cooperative/commit/9d9f18a19c2ee3b6dfcb20709578da6809bb312f))
 * add admin member management features and improve API integration ([a3a3c53](https://github.com/markgoho/doula-cooperative/commit/a3a3c53c6f3aac56756384eaab80763f691b65b0))
+* add admin member profile editing flow ([fc88b51](https://github.com/markgoho/doula-cooperative/commit/fc88b5121eb774c4fe02f241df2a23c472ff0020))
 * add admin protection and improve error handling based on PR review ([#44](https://github.com/markgoho/doula-cooperative/issues/44)) ([5d961e4](https://github.com/markgoho/doula-cooperative/commit/5d961e419d37b92e1638e8c9e916d75c2de3262f))
 * add admin read profile endpoint to bypass draft access control ([805eff7](https://github.com/markgoho/doula-cooperative/commit/805eff73d29e9b6bba1a884bff4a30e0349e5f58))
 * add bulk refresh payment dates for unclaimed profiles ([dbb187c](https://github.com/markgoho/doula-cooperative/commit/dbb187c29ee1e11a2cd67e7ecc75633b22589c23))
@@ -43,6 +45,7 @@
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate profile management to Elysia REST API ([#34](https://github.com/markgoho/doula-cooperative/issues/34)) ([e5cabeb](https://github.com/markgoho/doula-cooperative/commit/e5cabebf7f684403167a0e0c4b779fd93fafa743))
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
+* notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 * show inactive membership banner on profile page and fix Firestore newsletter/expiry on refund ([d040764](https://github.com/markgoho/doula-cooperative/commit/d0407643398a9bc5d4801c4d1b04b095688c62c7))
 * show refunded status and hide newsletter toggle for refunded members ([f1cbecb](https://github.com/markgoho/doula-cooperative/commit/f1cbecbdcb3bfbc846118da2b85e37f06d2b68f8))
 * update Playwright test routes to use regex for matching members API with/without query params ([40cb5c2](https://github.com/markgoho/doula-cooperative/commit/40cb5c2d58260e7ae4affc41536cd842b5f40542))
