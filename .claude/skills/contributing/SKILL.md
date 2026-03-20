@@ -88,6 +88,39 @@ feat: add bio field to profiles
 
 A single commit touching multiple folders will appear in every matching changelog (since `--commit-path` includes any commit that touched files in the folder), but with a generic description instead of a targeted one.
 
+## Pre-commit checks
+
+Before creating a commit, inspect the staged and unstaged changed files to see whether `members/` and/or `functions/` changed, then run the relevant checks.
+
+### Members checks
+
+If any changed files are under `members/`, run these commands from `members/` in order:
+
+```bash
+bun run lint
+bun run test
+bun run build
+bun run e2e
+```
+
+### Functions checks
+
+If any changed files are under `functions/`, run these commands from `functions/` in order:
+
+```bash
+npm run lint
+bun test src/
+npm run build
+npm run typecheck:tests
+```
+
+### Rules
+
+- If both `members/` and `functions/` changed, run both sets of checks.
+- If neither `members/` nor `functions/` changed, skip these checks.
+- Fail fast: stop on the first failing command and do not create the commit until it passes.
+- Report the failing command and its error output to the user.
+
 ## Changelogs
 
 This repo uses `conventional-changelog-cli` to auto-generate per-folder `CHANGELOG.md` files from conventional commits. Run:
