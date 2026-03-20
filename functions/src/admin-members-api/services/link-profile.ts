@@ -1,6 +1,7 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
+  IMPORT_COLLECTION,
   MEMBERS_COLLECTION,
   PROFILES_COLLECTION,
   type ProfileDocument,
@@ -86,6 +87,32 @@ export async function linkProfile(options: {
     });
 
     await batch.commit();
+
+    try {
+      const importReference = firestore
+        .collection(IMPORT_COLLECTION)
+        .doc(member.email);
+      const importDocument = await importReference.get();
+
+      if (importDocument.exists) {
+        await importReference.delete();
+        logger.info("Deleted import record after admin link", {
+          email: member.email,
+          memberId,
+          slug,
+        });
+      }
+    } catch (deleteError) {
+      logger.error("Failed to delete import record after admin link", {
+        errorId: ERROR_IDS.API_ADMIN_LINK_PROFILE_IMPORT_DELETE_FAILED,
+        email: member.email,
+        memberId,
+        slug,
+        error: deleteError,
+        errorMessage:
+          deleteError instanceof Error ? deleteError.message : "Unknown error",
+      });
+    }
 
     // 6. Read and return the updated member document
     const updatedMemberDocument = await memberReference.get();
