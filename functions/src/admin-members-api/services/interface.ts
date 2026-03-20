@@ -2,6 +2,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
+import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
 import type { LinkProfileResult } from "./link-profile.js";
 import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";
 import type { ReadProfileResult } from "./read-profile.js";
@@ -167,6 +168,20 @@ export interface MemberAdminService {
   toggleProfileDraft(options: {
     memberId: string;
   }): Promise<ToggleProfileDraftResult>;
+
+  /**
+   * Delete a member's draft profile while preserving the member account.
+   * Removes the Firestore profile, clears member profile fields, and triggers a rebuild.
+   *
+   * @param options - Object containing member ID and optional email service
+   * @returns Promise resolving to deletion statuses
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ValidationError if member has no slug or profile is not draft
+   */
+  deleteDraftProfile(options: {
+    memberId: string;
+    emailService?: EmailServiceInterface;
+  }): Promise<DeleteDraftProfileResult>;
 
   /**
    * Read a member's profile directly from Firestore.

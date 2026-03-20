@@ -9,6 +9,7 @@ import {
   activateMembershipLogic,
   cancelMembershipLogic,
   cleanSlateDeleteLogic,
+  deleteDraftProfileLogic,
   extendMembershipLogic,
   getMemberLogic,
   linkProfileLogic,
@@ -25,6 +26,7 @@ import {
   ActivateMembershipBodySchema,
   CancelMembershipApiResponseSchema,
   CleanSlateApiResponseSchema,
+  DeleteDraftProfileApiResponseSchema,
   ExtendMembershipApiResponseSchema,
   ExtendMembershipBodySchema,
   GetMemberApiResponseSchema,
@@ -181,6 +183,29 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: ToggleProfileDraftApiResponseSchema,
+            },
+          )
+          // POST /:memberId/profile/delete-draft - Delete draft profile (served at /api/admin/members/:memberId/profile/delete-draft)
+          .post(
+            "/profile/delete-draft",
+            async ({
+              params,
+              adminToken,
+              memberAdminService,
+              emailService,
+              logger,
+              set,
+            }) =>
+              deleteDraftProfileLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                ...(emailService !== undefined && { emailService }),
+                logger,
+                set,
+              }),
+            {
+              response: DeleteDraftProfileApiResponseSchema,
             },
           )
           // GET /:memberId/profile - Read member profile (served at /api/admin/members/:memberId/profile)

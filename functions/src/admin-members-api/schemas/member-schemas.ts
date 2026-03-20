@@ -599,6 +599,46 @@ export type ToggleProfileDraftApiResponse = Static<
 >;
 
 /**
+ * Success response for deleting a draft profile.
+ */
+export const DeleteDraftProfileResponseSchema = t.Object({
+  success: t.Literal(true),
+  slug: t.String({
+    description: "The profile slug that was deleted",
+  }),
+  profileDeleted: t.Boolean({
+    description: "Whether the profile document was deleted",
+  }),
+  profileImageDeleted: t.Boolean({
+    description: "Whether the profile image was deleted from ImageKit",
+  }),
+  memberUpdated: t.Boolean({
+    description: "Whether the member document profile fields were cleared",
+  }),
+  warning: t.Optional(
+    t.String({
+      description: "Warning if non-critical steps failed",
+    }),
+  ),
+});
+
+export type DeleteDraftProfileResponse = Static<
+  typeof DeleteDraftProfileResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/profile/delete-draft response - union of success and error.
+ */
+export const DeleteDraftProfileApiResponseSchema = t.Union([
+  DeleteDraftProfileResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type DeleteDraftProfileApiResponse = Static<
+  typeof DeleteDraftProfileApiResponseSchema
+>;
+
+/**
  * Profile content schema for admin read profile response.
  * Includes all ProfileData fields plus metadata.
  */

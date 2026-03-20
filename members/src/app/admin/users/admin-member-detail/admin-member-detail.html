@@ -251,14 +251,6 @@
   @if (member.slug) {
     <section class="subscription-card">
       <h2>Profile</h2>
-      <dl class="info-grid">
-        <dt>Profile Slug:</dt>
-        <dd class="monospace">{{ member.slug }}</dd>
-
-        <dt>Has Profile:</dt>
-        <dd>Yes</dd>
-      </dl>
-
       @let profileResource = service.profileResource;
       @let profile = profileResource.value();
 
@@ -300,6 +292,17 @@
             >
               {{ service.actionInProgress() ? 'Processing...' : (isProfileDraft() ? 'Publish Profile' : 'Unpublish Profile') }}
             </button>
+
+            @if (isProfileDraft()) {
+              <button
+                type="button"
+                class="button button--danger"
+                (click)="showDeleteDraftConfirm()"
+                [disabled]="service.actionInProgress()"
+              >
+                {{ service.actionInProgress() ? 'Processing...' : 'Delete Draft Profile' }}
+              </button>
+            }
           </div>
 
           @if (profile.image) {

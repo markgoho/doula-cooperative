@@ -211,6 +211,12 @@ export const ERROR_IDS = {
   API_ADMIN_UPDATE_EMAIL_FAILED: "api_admin_update_email_failed",
   API_ADMIN_REFRESH_PAYMENT_DATES_FAILED:
     "api_admin_refresh_payment_dates_failed",
+  API_ADMIN_DELETE_DRAFT_PROFILE_FAILED:
+    "api_admin_delete_draft_profile_failed",
+  API_ADMIN_DELETE_DRAFT_PROFILE_IMAGE_FAILED:
+    "api_admin_delete_draft_profile_image_failed",
+  API_ADMIN_DELETE_DRAFT_PROFILE_NOTIFICATION_FAILED:
+    "api_admin_delete_draft_profile_notification_failed",
 
   // Admin update email errors
   ADMIN_UPDATE_EMAIL_INVALID_EMAIL: "admin_update_email_invalid_email",

@@ -310,6 +310,27 @@ export class AdminMembersService {
     );
   }
 
+  async deleteDraftProfile(uid: string): Promise<{
+    success: boolean;
+    slug: string;
+    profileDeleted: boolean;
+    profileImageDeleted: boolean;
+    memberUpdated: boolean;
+    warning?: string;
+  }> {
+    // Authorization header added automatically by authInterceptor
+    return firstValueFrom(
+      this.httpClient.post<{
+        success: boolean;
+        slug: string;
+        profileDeleted: boolean;
+        profileImageDeleted: boolean;
+        memberUpdated: boolean;
+        warning?: string;
+      }>(`/api/admin/members/${uid}/profile/delete-draft`, {}),
+    );
+  }
+
   async listUnlinkedProfiles(): Promise<UnlinkedProfile[]> {
     // Authorization header added automatically by authInterceptor
     const response = await firstValueFrom(

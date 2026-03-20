@@ -167,11 +167,11 @@ export class AdminMemberDetailService {
         : 'User completely removed from all systems';
 
       this.successMessage.set(message);
-      this.actionInProgress.set(false);
       // Note: Component should handle navigation after successful deletion
     } catch (error) {
       console.error('Error performing clean slate delete:', error);
       this.actionError.set('Failed to perform clean slate delete.');
+    } finally {
       this.actionInProgress.set(false);
     }
   }
@@ -197,6 +197,30 @@ export class AdminMemberDetailService {
     } catch (error) {
       console.error('Error toggling profile draft:', error);
       this.actionError.set('Failed to toggle profile draft status.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
+   * Delete a draft profile for the current member
+   */
+  async deleteDraftProfile(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.deleteDraftProfile(uid);
+      const message = result.warning
+        ? `Draft profile deleted. Warning: ${result.warning}`
+        : 'Draft profile deleted successfully. You can now link an existing profile.';
+      this.successMessage.set(message);
+      this.memberResource.reload();
+      this.profileUidSignal.set(undefined);
+    } catch (error) {
+      console.error('Error deleting draft profile:', error);
+      this.actionError.set('Failed to delete draft profile.');
     } finally {
       this.actionInProgress.set(false);
     }

@@ -77,6 +77,15 @@ export function createAdminTestPlugin(overrides?: {
         hugoRebuildTriggered: true,
       }),
     ),
+    deleteDraftProfile: mock(() =>
+      Promise.resolve({
+        slug: "test-slug",
+        profileDeleted: true,
+        profileImageDeleted: true,
+        memberUpdated: true,
+        hugoRebuildTriggered: true,
+      }),
+    ),
     readProfile: mock(() =>
       Promise.resolve({
         slug: "test-slug",

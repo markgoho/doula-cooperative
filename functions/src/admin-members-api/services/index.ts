@@ -1,6 +1,7 @@
 import { activateMembership } from "./activate-membership.js";
 import { cancelMembership } from "./cancel-membership.js";
 import { cleanSlateDelete } from "./clean-slate-delete.js";
+import { deleteDraftProfile } from "./delete-draft-profile.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
 import { linkProfile } from "./link-profile.js";
@@ -29,6 +30,7 @@ export const MemberAdminService = {
   refundMembership,
   cleanSlateDelete,
   toggleProfileDraft,
+  deleteDraftProfile,
   readProfile,
   listUnlinkedProfiles,
   linkProfile,
@@ -38,6 +40,7 @@ export const MemberAdminService = {
 export { activateMembership } from "./activate-membership.js";
 export { cancelMembership } from "./cancel-membership.js";
 export { cleanSlateDelete } from "./clean-slate-delete.js";
+export { deleteDraftProfile } from "./delete-draft-profile.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
 export { linkProfile } from "./link-profile.js";

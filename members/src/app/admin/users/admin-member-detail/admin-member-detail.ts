@@ -19,7 +19,14 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
-type ConfirmAction = 'activate' | 'cancel' | 'refund' | 'cleanSlate' | 'toggleDraft' | 'linkProfile';
+type ConfirmAction =
+  | 'activate'
+  | 'cancel'
+  | 'refund'
+  | 'cleanSlate'
+  | 'toggleDraft'
+  | 'deleteDraftProfile'
+  | 'linkProfile';
 
 interface DialogConfig {
   title: string;
@@ -180,6 +187,18 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
+  protected showDeleteDraftConfirm(): void {
+    this.pendingAction.set('deleteDraftProfile');
+    this.dialogConfig.set({
+      title: 'Confirm Delete Draft Profile',
+      message:
+        'This will permanently delete the draft profile and its image. The member will no longer have a profile, and you can then link an existing profile to this member. This action cannot be undone.',
+      confirmText: 'Delete Draft Profile',
+      variant: 'danger',
+    });
+    this.confirmDialog()?.showModal();
+  }
+
   protected confirmLinkProfile(profile: UnlinkedProfile): void {
     this.pendingAction.set('linkProfile');
     this.pendingLinkSlug.set(profile.slug);
@@ -221,6 +240,10 @@ export class AdminMemberDetail {
         }
         case 'toggleDraft': {
           await this.service.toggleProfileDraft(this.uid());
+          break;
+        }
+        case 'deleteDraftProfile': {
+          await this.service.deleteDraftProfile(this.uid());
           break;
         }
         case 'linkProfile': {
