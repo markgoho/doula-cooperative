@@ -18,7 +18,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}:trunk
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dependencies
         working-directory: members
         run: bun install
@@ -32,7 +32,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}:trunk
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dependencies
         working-directory: members
         run: bun install
@@ -46,7 +46,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}:trunk
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dependencies
         working-directory: members
         run: bun install
@@ -54,7 +54,7 @@ jobs:
         working-directory: members
         run: bun run build
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: members-build
           path: members/dist/members/browser
@@ -66,7 +66,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}:trunk
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install root dependencies
         run: bun install
       - name: Install functions dependencies
@@ -85,7 +85,7 @@ jobs:
         working-directory: members
         run: bun run e2e
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -97,9 +97,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: members-build
           path: members/dist/members/browser
