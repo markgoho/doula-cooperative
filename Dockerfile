@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set versions for our tools as arguments
 ARG HUGO_VERSION=0.158.0
 ARG DART_SASS_VERSION=1.98.0
-ARG BUN_VERSION=1.3.10
+ARG BUN_VERSION=1.3.11
 ARG PLAYWRIGHT_VERSION=1.58.2
 
 # 1. Install base dependencies and Java 21 (required for Firebase emulators - firebase-tools requires Java 21+)
