@@ -200,7 +200,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 memberId: params.memberId,
                 adminUid: getAdminUid(adminToken, logger),
                 memberAdminService,
-                ...(emailService !== undefined && { emailService }),
+                emailService,
                 logger,
                 set,
               }),

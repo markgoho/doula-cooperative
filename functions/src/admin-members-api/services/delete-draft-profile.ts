@@ -62,7 +62,7 @@ export async function deleteDraftProfile(options: {
 
     if (profileData.draft !== true) {
       throw new ValidationError(
-        `Profile for slug \"${slug}\" is published and cannot be deleted with this action.`,
+        `Profile for slug "${slug}" is published and cannot be deleted with this action.`,
       );
     }
 
