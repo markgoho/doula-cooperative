@@ -1,0 +1,11 @@
+:host {
+  display: grid;
+  gap: var(--space-m);
+  container: profileform / inline-size;
+}
+
+.page-nav {
+  display: flex;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}

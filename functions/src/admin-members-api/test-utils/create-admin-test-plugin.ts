@@ -98,6 +98,18 @@ export function createAdminTestPlugin(overrides?: {
         } as ProfileDocument,
       }),
     ),
+    updateProfile: mock(() =>
+      Promise.resolve({
+        slug: "test-slug",
+        profile: {
+          title: "Updated Doula",
+          bio: "Updated bio content",
+          draft: false,
+          createdAt: "2024-01-01T00:00:00.000Z",
+          updatedAt: "2024-02-01T00:00:00.000Z",
+        } as ProfileDocument,
+      }),
+    ),
     listUnlinkedProfiles: mock(() =>
       Promise.resolve({
         profiles: [],

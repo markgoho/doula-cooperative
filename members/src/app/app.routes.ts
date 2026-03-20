@@ -105,6 +105,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'members/:uid/profile',
+        loadComponent: () =>
+          import('./admin/users/admin-profile-preview/admin-profile-preview').then(
+            (m) => m.AdminProfilePreview,
+          ),
+      },
+      {
+        path: 'members/:uid/profile/edit',
+        loadComponent: () =>
+          import('./admin/users/admin-edit-profile/admin-edit-profile').then(
+            (m) => m.AdminEditProfile,
+          ),
+      },
+      {
         path: 'unclaimed',
         loadComponent: () =>
           import('./admin/unclaimed/admin-unclaimed').then((m) => m.AdminUnclaimed),

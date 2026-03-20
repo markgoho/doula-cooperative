@@ -1,0 +1,27 @@
+@let member = service.memberResource.value();
+@let memberLoading = service.memberResource.isLoading();
+@let memberError = service.errorMessage();
+@let profile = service.profileResource.value();
+@let profileLoading = service.profileResource.isLoading();
+@let profileError = service.profileErrorMessage();
+
+<nav class="page-nav">
+  <a [routerLink]="['/admin/members', uid()]">Back to Member</a>
+  <a [routerLink]="['/admin/members', uid(), 'profile', 'edit']">Edit Profile</a>
+</nav>
+
+<h1>Profile Preview</h1>
+
+@if (memberLoading) {
+  <p>Loading member details...</p>
+} @else if (memberError) {
+  <app-alert-banner variant="error">{{ memberError }}</app-alert-banner>
+} @else if (!member?.slug) {
+  <app-alert-banner variant="warning">This member does not have a linked profile.</app-alert-banner>
+} @else if (profileLoading && !profile) {
+  <p>Loading profile preview...</p>
+} @else if (profileError) {
+  <app-alert-banner variant="error">{{ profileError }}</app-alert-banner>
+} @else if (profile) {
+  <app-profile-preview [profile]="profile" [imageUrl]="profile.image" />
+}

@@ -1,0 +1,10 @@
+:host {
+  display: grid;
+  gap: var(--space-m);
+}
+
+.page-nav {
+  display: flex;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}

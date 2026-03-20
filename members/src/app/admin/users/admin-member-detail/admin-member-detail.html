@@ -261,7 +261,7 @@
           (click)="loadProfile()"
           [disabled]="profileResource.isLoading()"
         >
-          {{ profileResource.isLoading() ? 'Loading...' : 'View Profile Content' }}
+          {{ profileResource.isLoading() ? 'Loading...' : 'Load Profile Status' }}
         </button>
       }
 
@@ -271,88 +271,39 @@
       }
 
       @if (profile) {
-        <div class="profile-preview">
-          <h3>Profile Content</h3>
+        <dl class="info-grid">
+          <dt>Status:</dt>
+          <dd>
+            <span [class]="'status-badge ' + (isProfileDraft() ? 'inactive' : 'active')">
+              {{ isProfileDraft() ? 'Draft (Unpublished)' : 'Published' }}
+            </span>
+          </dd>
+        </dl>
 
-          <dl class="info-grid">
-            <dt>Status:</dt>
-            <dd>
-              <span [class]="'status-badge ' + (isProfileDraft() ? 'inactive' : 'active')">
-                {{ isProfileDraft() ? 'Draft (Unpublished)' : 'Published' }}
-              </span>
-            </dd>
-          </dl>
+        <div class="action-buttons">
+          <a [href]="'/admin/members/' + member.uid + '/profile'" class="button">View Profile</a>
+          <a [href]="'/admin/members/' + member.uid + '/profile/edit'" class="button">
+            Edit Profile
+          </a>
+          <button
+            type="button"
+            [class]="'button ' + (isProfileDraft() ? '' : 'button--danger')"
+            (click)="showToggleDraftConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : (isProfileDraft() ? 'Publish Profile' : 'Unpublish Profile') }}
+          </button>
 
-          <div class="action-buttons">
+          @if (isProfileDraft()) {
             <button
               type="button"
-              [class]="'button ' + (isProfileDraft() ? '' : 'button--danger')"
-              (click)="showToggleDraftConfirm()"
+              class="button button--danger"
+              (click)="showDeleteDraftConfirm()"
               [disabled]="service.actionInProgress()"
             >
-              {{ service.actionInProgress() ? 'Processing...' : (isProfileDraft() ? 'Publish Profile' : 'Unpublish Profile') }}
+              {{ service.actionInProgress() ? 'Processing...' : 'Delete Draft Profile' }}
             </button>
-
-            @if (isProfileDraft()) {
-              <button
-                type="button"
-                class="button button--danger"
-                (click)="showDeleteDraftConfirm()"
-                [disabled]="service.actionInProgress()"
-              >
-                {{ service.actionInProgress() ? 'Processing...' : 'Delete Draft Profile' }}
-              </button>
-            }
-          </div>
-
-          @if (profile.image) {
-            <div class="profile-image">
-              <img [src]="profile.image" [alt]="member.name || 'Profile image'" />
-            </div>
           }
-
-          <div class="profile-data">
-            <dl>
-              <dt>Title</dt>
-              <dd>{{ profile.title }}</dd>
-
-              <dt>Bio</dt>
-              <dd class="bio-content">{{ profile.bio }}</dd>
-
-              @if (profile.credentials) {
-                <dt>Credentials</dt>
-                <dd>{{ profile.credentials }}</dd>
-              }
-
-              @if (profile.pronouns) {
-                <dt>Pronouns</dt>
-                <dd>{{ profile.pronouns }}</dd>
-              }
-
-              @if (profile.tags && profile.tags.length > 0) {
-                <dt>Tags</dt>
-                <dd>{{ profile.tags.join(', ') }}</dd>
-              }
-
-              @if (profile.contact) {
-                <dt>Contact Information</dt>
-                <dd>
-                  @if (profile.contact.email) {
-                    <div><strong>Email:</strong> {{ profile.contact.email }}</div>
-                  }
-                  @if (profile.contact.phone) {
-                    <div><strong>Phone:</strong> {{ profile.contact.phone }}</div>
-                  }
-                  @if (profile.contact.website) {
-                    <div><strong>Website:</strong> {{ profile.contact.website }}</div>
-                  }
-                  @if (profile.contact.business_name) {
-                    <div><strong>Business Name:</strong> {{ profile.contact.business_name }}</div>
-                  }
-                </dd>
-              }
-            </dl>
-          </div>
         </div>
       }
     </section>

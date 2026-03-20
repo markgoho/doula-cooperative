@@ -5,9 +5,11 @@ import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
 import type { LinkProfileResult } from "./link-profile.js";
 import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";
+import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
 import type { ReadProfileResult } from "./read-profile.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";
+import type { UpdateProfileResult } from "./update-profile.js";
 
 /**
  * Service interface for admin member management operations.
@@ -193,6 +195,20 @@ export interface MemberAdminService {
    * @throws ValidationError if member has no slug
    */
   readProfile(options: { memberId: string }): Promise<ReadProfileResult>;
+
+  /**
+   * Update a member's profile directly in Firestore.
+   * Bypasses the public endpoint ownership checks so admins can edit any profile.
+   *
+   * @param options - Object containing the member ID and updated profile data
+   * @returns Promise resolving to the slug and updated profile data
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ValidationError if member has no slug
+   */
+  updateProfile(options: {
+    memberId: string;
+    data: ProfileData;
+  }): Promise<UpdateProfileResult>;
 
   /**
    * List all profiles that are not linked to a member account.

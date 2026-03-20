@@ -12,6 +12,7 @@ import { refundMembership } from "./refund-membership.js";
 import { toggleProfileDraft } from "./toggle-profile-draft.js";
 import { updateClaims } from "./update-claims.js";
 import { updateMember } from "./update-member.js";
+import { updateProfile } from "./update-profile.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 /**
@@ -32,6 +33,7 @@ export const MemberAdminService = {
   toggleProfileDraft,
   deleteDraftProfile,
   readProfile,
+  updateProfile,
   listUnlinkedProfiles,
   linkProfile,
 };
@@ -51,4 +53,5 @@ export { refundMembership } from "./refund-membership.js";
 export { toggleProfileDraft } from "./toggle-profile-draft.js";
 export { updateClaims } from "./update-claims.js";
 export { updateMember } from "./update-member.js";
+export { updateProfile } from "./update-profile.js";
 export { verifyMemberExists } from "./verify-member-exists.js";

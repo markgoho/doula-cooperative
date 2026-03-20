@@ -19,3 +19,9 @@ export interface ApiReadMemberProfileResponse {
   slug: string;
   profile: ApiAdminMemberProfileContent;
 }
+
+export interface ApiUpdateMemberProfileResponse {
+  success: true;
+  slug: string;
+  profile: ApiAdminMemberProfileContent;
+}

@@ -338,6 +338,7 @@ export const ERROR_IDS = {
 
   // Admin read profile errors
   API_ADMIN_READ_PROFILE_FAILED: "api_admin_read_profile_failed",
+  API_ADMIN_UPDATE_PROFILE_FAILED: "api_admin_update_profile_failed",
 
   // Admin link profile errors
   API_ADMIN_LIST_UNLINKED_PROFILES_FAILED:

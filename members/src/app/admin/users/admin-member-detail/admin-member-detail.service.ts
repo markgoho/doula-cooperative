@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+import type { ProfileData } from '../../../types/profile-data';
 
 import { AdminMembersService } from '../../services/admin-members.service';
 
@@ -221,6 +222,23 @@ export class AdminMemberDetailService {
     } catch (error) {
       console.error('Error deleting draft profile:', error);
       this.actionError.set('Failed to delete draft profile.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  async updateProfile(uid: string, profileData: ProfileData): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const updatedProfile = await this.adminMembersService.updateMemberProfile(uid, profileData);
+      this.profileResource.set(updatedProfile);
+      this.successMessage.set('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      this.actionError.set('Failed to update profile.');
     } finally {
       this.actionInProgress.set(false);
     }

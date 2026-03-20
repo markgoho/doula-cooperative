@@ -697,6 +697,31 @@ export type ReadProfileApiResponse = Static<
 >;
 
 /**
+ * Success response for updating a member's profile.
+ */
+export const UpdateProfileResponseSchema = t.Object({
+  success: t.Literal(true),
+  slug: t.String({
+    description: "The profile slug",
+  }),
+  profile: ProfileContentSchema,
+});
+
+export type UpdateProfileResponse = Static<typeof UpdateProfileResponseSchema>;
+
+/**
+ * PUT /api/admin/members/:memberId/profile response - union of success and error.
+ */
+export const UpdateProfileApiResponseSchema = t.Union([
+  UpdateProfileResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type UpdateProfileApiResponse = Static<
+  typeof UpdateProfileApiResponseSchema
+>;
+
+/**
  * Schema for an unlinked profile in list responses.
  */
 export const UnlinkedProfileSchema = t.Object({

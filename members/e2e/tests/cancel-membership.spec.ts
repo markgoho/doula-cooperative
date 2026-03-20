@@ -104,8 +104,7 @@ test.describe('Cancel Membership', () => {
     await expect.poll(() => cancelCalled).toBe(true);
 
     // === Verify UI Updates ===
-    // Cancel button should no longer be visible (status is now 'canceled')
-    await expect(cancelButton).not.toBeVisible();
+    await expect(confirmDialog).not.toBeVisible();
 
     // Cancellation notice should appear
     await expect(

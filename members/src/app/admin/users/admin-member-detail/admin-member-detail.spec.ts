@@ -128,16 +128,18 @@ function createMockAdminMembersService({
           memberDocumentDeleted: true,
           authUserDeleted: true,
         }),
-    readMemberProfile: vi.fn().mockResolvedValue({
-      title: 'Test Doula',
-      bio: 'Mock profile content',
-      credentials: 'CD(DONA)',
-      pronouns: 'she/her',
-      tags: ['birth-doula'],
-      image: 'https://example.com/image.jpg',
-      slug: 'test-slug',
-      draft: profileDraft,
-    }),
+    readMemberProfile: vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        title: 'Test Doula',
+        bio: 'Mock profile content',
+        credentials: 'CD(DONA)',
+        pronouns: 'she/her',
+        tags: ['birth-doula'],
+        image: 'https://example.com/image.jpg',
+        slug: 'test-slug',
+        draft: profileDraft,
+      }),
+    ),
     toggleProfileDraft: shouldFailToggleDraft
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue({
@@ -580,8 +582,8 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ slug: 'test-slug' });
     const { user } = await setup({ member, profileDraft: true });
 
-    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
-    await user.click(viewProfileButton);
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
 
     expect(await screen.findByText('Draft (Unpublished)')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Publish Profile' })).toBeVisible();
@@ -591,8 +593,8 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ slug: 'test-slug' });
     const { user } = await setup({ member, profileDraft: false });
 
-    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
-    await user.click(viewProfileButton);
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
 
     expect(await screen.findByText('Published')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Unpublish Profile' })).toBeVisible();
@@ -602,8 +604,8 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ slug: 'test-slug' });
     const { user } = await setup({ member, profileDraft: true });
 
-    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
-    await user.click(viewProfileButton);
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
 
     const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
     await user.click(publishButton);
@@ -617,8 +619,8 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ slug: 'test-slug' });
     const { user } = await setup({ member, profileDraft: true });
 
-    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
-    await user.click(viewProfileButton);
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
 
     const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
     await user.click(publishButton);
@@ -637,8 +639,8 @@ describe('AdminUserDetail', () => {
     const member = createMockMember({ slug: 'test-slug' });
     const { user } = await setup({ member, profileDraft: true, shouldFailToggleDraft: true });
 
-    const viewProfileButton = await screen.findByRole('button', { name: 'View Profile Content' });
-    await user.click(viewProfileButton);
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
 
     const publishButton = await screen.findByRole('button', { name: 'Publish Profile' });
     await user.click(publishButton);

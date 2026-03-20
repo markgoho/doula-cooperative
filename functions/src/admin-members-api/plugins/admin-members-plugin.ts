@@ -20,6 +20,7 @@ import {
   toggleProfileDraftLogic,
   updateClaimsLogic,
   updateMemberLogic,
+  updateProfileLogic,
 } from "../routes/index.js";
 import {
   ActivateMembershipApiResponseSchema,
@@ -43,7 +44,10 @@ import {
   UpdateClaimsBodySchema,
   UpdateMemberApiResponseSchema,
   UpdateMemberBodySchema,
+  UpdateProfileApiResponseSchema,
 } from "../schemas/member-schemas.js";
+import type { ProfileDataBody } from "../../profiles-api/schemas/profile-schemas.js";
+import { ProfileDataBodySchema } from "../../profiles-api/schemas/profile-schemas.js";
 import { MemberAdminService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
@@ -221,6 +225,31 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: ReadProfileApiResponseSchema,
+            },
+          )
+          .put(
+            "/profile",
+            async ({
+              params,
+              body,
+              adminToken,
+              memberAdminService,
+              logger,
+              set,
+            }) => {
+              const typedBody = body as ProfileDataBody;
+              return updateProfileLogic({
+                memberId: params.memberId,
+                profileData: typedBody,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              });
+            },
+            {
+              body: ProfileDataBodySchema,
+              response: UpdateProfileApiResponseSchema,
             },
           )
           // POST /:memberId/profile/link - Link an unlinked profile to member (served at /api/admin/members/:memberId/profile/link)

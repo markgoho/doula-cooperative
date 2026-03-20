@@ -13,7 +13,11 @@ import type {
   ApiListUnclaimedProfilesResponse,
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
-import type { ApiReadMemberProfileResponse } from '../api-types/admin-member-profile-api.types';
+import type {
+  ApiReadMemberProfileResponse,
+  ApiUpdateMemberProfileResponse,
+} from '../api-types/admin-member-profile-api.types';
+import type { ProfileData } from '../../types/profile-data';
 import type {
   ApiListUnlinkedProfilesResponse,
   ApiUnlinkedProfileResponse,
@@ -128,21 +132,22 @@ export class AdminMembersService {
   async readMemberProfile(uid: string): Promise<MemberProfile> {
     // Use dedicated admin endpoint that reads directly from Firestore,
     // bypassing the public endpoint's draft access control
-    const { profile, slug } = await firstValueFrom(
+    const response = await firstValueFrom(
       this.httpClient.get<ApiReadMemberProfileResponse>(`/api/admin/members/${uid}/profile`),
     );
 
-    return {
-      title: profile.title,
-      bio: profile.bio,
-      ...(profile.credentials !== undefined && { credentials: profile.credentials }),
-      ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
-      ...(profile.tags !== undefined && { tags: profile.tags }),
-      ...(profile.contact !== undefined && { contact: profile.contact }),
-      ...(profile.draft !== undefined && { draft: profile.draft }),
-      ...(profile.image !== undefined && { image: profile.image }),
-      slug,
-    };
+    return this.toMemberProfile(response.profile, response.slug);
+  }
+
+  async updateMemberProfile(uid: string, profileData: ProfileData): Promise<MemberProfile> {
+    const response = await firstValueFrom(
+      this.httpClient.put<ApiUpdateMemberProfileResponse>(
+        `/api/admin/members/${uid}/profile`,
+        profileData,
+      ),
+    );
+
+    return this.toMemberProfile(response.profile, response.slug);
   }
 
   async listUnclaimedProfiles(limit = 100, offset = 0): Promise<ListUnclaimedProfilesResponse> {
@@ -162,6 +167,20 @@ export class AdminMembersService {
     return {
       profiles,
       total: result.total,
+    };
+  }
+
+  private toMemberProfile(profile: ProfileData, slug: string): MemberProfile {
+    return {
+      title: profile.title,
+      bio: profile.bio,
+      ...(profile.credentials !== undefined && { credentials: profile.credentials }),
+      ...(profile.pronouns !== undefined && { pronouns: profile.pronouns }),
+      ...(profile.tags !== undefined && { tags: profile.tags }),
+      ...(profile.contact !== undefined && { contact: profile.contact }),
+      ...(profile.draft !== undefined && { draft: profile.draft }),
+      ...(profile.image !== undefined && { image: profile.image }),
+      slug,
     };
   }
 
