@@ -30,6 +30,7 @@ describe("POST /contact-us", () => {
       email: "john@example.com",
       message: "I need help with something",
       recaptchaToken: "valid-token",
+      formLoadedAt: Date.now() - 5000,
     },
     recaptchaSecretKey = "test-recaptcha-key",
     recaptchaVerificationFails = false,
@@ -203,6 +204,78 @@ describe("POST /contact-us", () => {
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("reCAPTCHA verification failed");
+    });
+  });
+
+  describe("Spam Detection", () => {
+    it("should return 400 when the honeypot field is filled", async () => {
+      const { plugin, request } = setup({
+        body: {
+          contactName: "John Doe",
+          email: "john@example.com",
+          message: "I need help with something",
+          recaptchaToken: "valid-token",
+          website: "https://spam.example.com",
+          formLoadedAt: Date.now() - 5000,
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Invalid form submission");
+    });
+
+    it("should return 400 when contact name looks like gibberish", async () => {
+      const { plugin, request } = setup({
+        body: {
+          contactName: "AisqdChFmjmacpKsLgjGNo",
+          email: "john@example.com",
+          message: "I need help with something",
+          recaptchaToken: "valid-token",
+          formLoadedAt: Date.now() - 5000,
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Invalid form submission");
+    });
+
+    it("should return 400 when submitted too quickly", async () => {
+      const { plugin, request } = setup({
+        body: {
+          contactName: "John Doe",
+          email: "john@example.com",
+          message: "I need help with something",
+          recaptchaToken: "valid-token",
+          formLoadedAt: Date.now(),
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Invalid form submission");
+    });
+
+    it("should allow submissions without formLoadedAt for cached pages", async () => {
+      const { plugin, request } = setup({
+        body: {
+          contactName: "John Doe",
+          email: "john@example.com",
+          message: "I need help with something",
+          recaptchaToken: "valid-token",
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(200);
     });
   });
 

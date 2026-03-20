@@ -54,7 +54,7 @@ export function createContactUsFormPlugin(services?: PartialServices) {
           return { success: false, error: "Server configuration error" };
         }
 
-        const { recaptchaToken, ...formData } = body;
+        const { recaptchaToken, website, formLoadedAt, ...formData } = body;
 
         if (!recaptchaToken) {
           set.status = 400;
@@ -64,6 +64,8 @@ export function createContactUsFormPlugin(services?: PartialServices) {
         return handleContactFormLogic({
           formData,
           recaptchaToken,
+          honeypotValue: website,
+          formLoadedAt,
           recaptchaSecretKey,
           recaptchaService,
           formStorageService,

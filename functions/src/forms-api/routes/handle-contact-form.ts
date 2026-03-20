@@ -4,13 +4,17 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { FormResponse } from "../schemas/form-response-schemas.js";
 import { buildContactFormNotification } from "../services/build-contact-form-notification.js";
+import { detectGibberish } from "../utils/detect-gibberish.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { ContactFormData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
+import { checkRecaptchaScore } from "../utils/check-recaptcha-score.js";
 
 export async function handleContactFormLogic({
   formData,
   recaptchaToken,
+  honeypotValue,
+  formLoadedAt,
   recaptchaSecretKey,
   recaptchaService,
   formStorageService,
@@ -20,6 +24,8 @@ export async function handleContactFormLogic({
 }: {
   formData: ContactFormData;
   recaptchaToken: string;
+  honeypotValue: string | undefined;
+  formLoadedAt: number | undefined;
   recaptchaSecretKey: string;
   recaptchaService: RecaptchaService;
   formStorageService: FormStorageService;
@@ -45,17 +51,59 @@ export async function handleContactFormLogic({
     }
 
     // Check reCAPTCHA score threshold to block bots
-    const MINIMUM_SCORE = 0.5;
-    if (verification.score < MINIMUM_SCORE) {
-      logger.warn("reCAPTCHA score below threshold for contact form", {
-        errorId: ERROR_IDS.RECAPTCHA_SCORE_TOO_LOW,
-        score: verification.score,
-        threshold: MINIMUM_SCORE,
+    const scoreRejection = checkRecaptchaScore({
+      score: verification.score,
+      submitterEmail: formData.email,
+      submitterName: formData.contactName,
+      formType: "contact form",
+      logger,
+      set,
+    });
+    if (scoreRejection !== undefined) {
+      return scoreRejection;
+    }
+
+    if (honeypotValue !== undefined && honeypotValue.trim() !== "") {
+      logger.warn("Contact form submission rejected by honeypot", {
+        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
+        reason: "honeypot_filled",
         submitterEmail: formData.email,
         submitterName: formData.contactName,
       });
       set.status = 400;
-      return { success: false, error: "reCAPTCHA verification failed" };
+      return { success: false, error: "Invalid form submission" };
+    }
+
+    const nameLooksLikeGibberish = detectGibberish({
+      text: formData.contactName,
+    });
+    const messageLooksLikeGibberish = detectGibberish({
+      text: formData.message,
+    });
+
+    if (nameLooksLikeGibberish || messageLooksLikeGibberish) {
+      logger.warn("Contact form submission rejected as gibberish", {
+        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
+        reason: "gibberish_detected",
+        submitterEmail: formData.email,
+        submitterName: formData.contactName,
+        nameLooksLikeGibberish,
+        messageLooksLikeGibberish,
+      });
+      set.status = 400;
+      return { success: false, error: "Invalid form submission" };
+    }
+
+    if (formLoadedAt !== undefined && Date.now() - formLoadedAt < 3000) {
+      logger.warn("Contact form submission rejected as too fast", {
+        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
+        reason: "submitted_too_fast",
+        submitterEmail: formData.email,
+        submitterName: formData.contactName,
+        formLoadedAt,
+      });
+      set.status = 400;
+      return { success: false, error: "Invalid form submission" };
     }
 
     // Try to send notification email first

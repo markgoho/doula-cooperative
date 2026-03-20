@@ -8,6 +8,8 @@ export const ContactFormBodySchema = t.Object({
   email: t.String({ format: "email", maxLength: 255 }),
   message: t.String({ minLength: 1, maxLength: 5000 }),
   recaptchaToken: t.Optional(t.String()),
+  website: t.Optional(t.String()),
+  formLoadedAt: t.Optional(t.Number()),
 });
 
 export type ContactFormBody = Static<typeof ContactFormBodySchema>;

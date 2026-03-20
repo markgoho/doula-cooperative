@@ -4,8 +4,10 @@ const contactForm: HTMLFormElement | null = document.querySelector(".form");
 const contactName: HTMLInputElement | null = document.querySelector("#name");
 const email: HTMLInputElement | null = document.querySelector("#email");
 const message: HTMLTextAreaElement | null = document.querySelector("#message");
+const website: HTMLInputElement | null = document.querySelector("#website");
 const submitButton: HTMLButtonElement | null =
   document.querySelector("#submit-button");
+const formLoadedAt = Date.now();
 const formError: HTMLDivElement | null = document.querySelector("#form-error");
 const doulaRedirectNotice: HTMLDivElement | null = document.querySelector(
   "#doula-redirect-notice",
@@ -173,6 +175,8 @@ async function submitContactForm(): Promise<void> {
     email: email.value,
     message: message.value,
     recaptchaToken,
+    website: website?.value ?? "",
+    formLoadedAt,
   });
 }
 
@@ -196,11 +200,15 @@ async function sendContactForm({
   email,
   message,
   recaptchaToken,
+  website,
+  formLoadedAt,
 }: {
   contactName: string;
   email: string;
   message: string;
   recaptchaToken: string;
+  website: string;
+  formLoadedAt: number;
 }): Promise<void> {
   const url = contactForm?.dataset.apiUrl;
   if (!url) {
@@ -209,7 +217,14 @@ async function sendContactForm({
 
   const response = await fetch(url, {
     method: "POST",
-    body: JSON.stringify({ contactName, email, message, recaptchaToken }),
+    body: JSON.stringify({
+      contactName,
+      email,
+      message,
+      recaptchaToken,
+      website,
+      formLoadedAt,
+    }),
     headers: {
       "Content-Type": "application/json",
     },

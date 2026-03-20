@@ -7,6 +7,7 @@ import { buildDoulaMatchNotification } from "../services/build-doula-match-notif
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { DoulaMatchData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
+import { checkRecaptchaScore } from "../utils/check-recaptcha-score.js";
 
 export async function handleMatchFormLogic({
   formData,
@@ -45,17 +46,16 @@ export async function handleMatchFormLogic({
     }
 
     // Check reCAPTCHA score threshold to block bots
-    const MINIMUM_SCORE = 0.5;
-    if (verification.score < MINIMUM_SCORE) {
-      logger.warn("reCAPTCHA score below threshold for doula match form", {
-        errorId: ERROR_IDS.RECAPTCHA_SCORE_TOO_LOW,
-        score: verification.score,
-        threshold: MINIMUM_SCORE,
-        submitterEmail: formData.email,
-        submitterName: formData.name,
-      });
-      set.status = 400;
-      return { success: false, error: "reCAPTCHA verification failed" };
+    const scoreRejection = checkRecaptchaScore({
+      score: verification.score,
+      submitterEmail: formData.email,
+      submitterName: formData.name,
+      formType: "doula match form",
+      logger,
+      set,
+    });
+    if (scoreRejection !== undefined) {
+      return scoreRejection;
     }
 
     // Try to send notification email first
