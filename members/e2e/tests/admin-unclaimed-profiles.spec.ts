@@ -87,37 +87,35 @@ test.describe('Admin Unclaimed Profiles', () => {
     const nameHeader = unclaimedTable.getByRole('columnheader', { name: /Name/ });
     const emailHeader = unclaimedTable.getByRole('columnheader', { name: /Email/ });
     const hasProfileHeader = unclaimedTable.getByRole('columnheader', { name: /Has Profile/ });
-    const subscriptionHeader = unclaimedTable.getByRole('columnheader', {
-      name: /Subscription Start/,
-    });
+    const nextPaymentHeader = unclaimedTable.getByRole('columnheader', { name: /Next Payment/ });
 
     await expect(nameHeader).toBeVisible();
     await expect(emailHeader).toBeVisible();
     await expect(hasProfileHeader).toBeVisible();
-    await expect(subscriptionHeader).toBeVisible();
+    await expect(nextPaymentHeader).toBeVisible();
 
-    // === Initial Data Display (default sort: subscription start descending) ===
+    // === Initial Data Display (default sort: next payment descending) ===
     const tableRows = unclaimedTable.locator('tbody tr');
     await expect(tableRows).toHaveCount(3);
 
-    // Charlie (Mar 10) newest, Bob (Feb 20) middle, Alice (Jan 15) oldest
+    // Charlie (Mar 10, 2025) latest, Bob (Feb 20, 2025) middle, Alice (Jan 15, 2025) earliest
     const row0 = tableRows.nth(0);
     await expect(row0).toContainText('charlie.unclaimed@example.com');
     await expect(row0).toContainText('Charlie Unclaimed');
     await expect(row0).toContainText('Yes'); // Has profile
-    await expect(row0).toContainText('Mar 10, 2024');
+    await expect(row0).toContainText('Mar 10, 2025');
 
     const row1 = tableRows.nth(1);
     await expect(row1).toContainText('bob.unclaimed@example.com');
     await expect(row1).toContainText('Bob Unclaimed');
     await expect(row1).toContainText('No'); // No profile
-    await expect(row1).toContainText('Feb 20, 2024');
+    await expect(row1).toContainText('Feb 20, 2025');
 
     const row2 = tableRows.nth(2);
     await expect(row2).toContainText('alice.unclaimed@example.com');
     await expect(row2).toContainText('Alice Unclaimed');
     await expect(row2).toContainText('Yes'); // Has profile
-    await expect(row2).toContainText('Jan 15, 2024');
+    await expect(row2).toContainText('Jan 15, 2025');
 
     // === Verify View Links ===
     await expect(row0.getByRole('link', { name: 'View' })).toBeVisible();

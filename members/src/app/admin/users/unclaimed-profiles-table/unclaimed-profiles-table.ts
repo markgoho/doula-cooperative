@@ -12,13 +12,7 @@ import type { ListUnclaimedProfilesResponse } from '../../admin.types';
 import { createTableSortState } from '../../../shared/create-table-sort-state';
 import { SortableHeader } from '../../../shared/sortable-header/sortable-header';
 
-type UnclaimedProfileSortColumn =
-  | 'name'
-  | 'email'
-  | 'hasProfile'
-  | 'subscriptionStart'
-  | 'lastPayment'
-  | 'nextPayment';
+type UnclaimedProfileSortColumn = 'name' | 'email' | 'hasProfile' | 'nextPayment';
 
 @Component({
   selector: 'app-unclaimed-profiles-table',
@@ -31,7 +25,7 @@ export class UnclaimedProfilesTable {
   profilesResource = input.required<ResourceRef<ListUnclaimedProfilesResponse | undefined>>();
 
   protected sortState = createTableSortState<UnclaimedProfileSortColumn>({
-    defaultColumn: 'subscriptionStart',
+    defaultColumn: 'nextPayment',
     defaultDirection: 'desc',
   });
   protected sortColumn = this.sortState.sortColumn;
@@ -67,16 +61,6 @@ export class UnclaimedProfilesTable {
           const aHasProfile = !!a.slug;
           const bHasProfile = !!b.slug;
           comparison = Number(bHasProfile) - Number(aHasProfile);
-          break;
-        }
-        case 'subscriptionStart': {
-          comparison = a.subscriptionStart.getTime() - b.subscriptionStart.getTime();
-          break;
-        }
-        case 'lastPayment': {
-          const aMilliseconds = a.lastPayment?.getTime() ?? 0;
-          const bMilliseconds = b.lastPayment?.getTime() ?? 0;
-          comparison = aMilliseconds - bMilliseconds;
           break;
         }
         case 'nextPayment': {

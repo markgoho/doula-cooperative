@@ -37,24 +37,6 @@
           </th>
           <th
             class="date-cell"
-            app-sortable-header="subscriptionStart"
-            [activeColumn]="sortColumn()"
-            [direction]="sortDirection()"
-            (sort)="handleSort($event)"
-          >
-            Subscription Start
-          </th>
-          <th
-            class="date-cell"
-            app-sortable-header="lastPayment"
-            [activeColumn]="sortColumn()"
-            [direction]="sortDirection()"
-            (sort)="handleSort($event)"
-          >
-            Last Payment
-          </th>
-          <th
-            class="date-cell"
             app-sortable-header="nextPayment"
             [activeColumn]="sortColumn()"
             [direction]="sortDirection()"
@@ -85,12 +67,6 @@
               }
             </td>
             <td class="date-cell">
-              {{ profile.subscriptionStart | date: 'MMM d, yyyy' }}
-            </td>
-            <td class="date-cell">
-              {{ profile.lastPayment ? (profile.lastPayment | date: 'MMM d, yyyy') : '—' }}
-            </td>
-            <td class="date-cell">
               {{ profile.nextPayment ? (profile.nextPayment | date: 'MMM d, yyyy') : '—' }}
             </td>
             <td>
@@ -117,7 +93,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="empty-state">No unclaimed profiles found</td>
+            <td colspan="5" class="empty-state">No unclaimed profiles found</td>
           </tr>
         }
       </tbody>

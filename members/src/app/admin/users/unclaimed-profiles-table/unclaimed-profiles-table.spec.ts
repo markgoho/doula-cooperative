@@ -121,43 +121,6 @@ describe('UnclaimedProfilesTable', () => {
       expect(noBadges.length).toBe(2);
     });
 
-    it('should sort by subscription start when Subscription Start header is clicked', async () => {
-      // Arrange
-      const profiles = [
-        createMockProfile({
-          email: '1@example.com',
-          name: 'User 1',
-          subscriptionStart: new Date('2024-06-01'),
-        }),
-        createMockProfile({
-          email: '2@example.com',
-          name: 'User 2',
-          subscriptionStart: new Date('2024-01-01'),
-        }),
-        createMockProfile({
-          email: '3@example.com',
-          name: 'User 3',
-          subscriptionStart: new Date('2024-03-01'),
-        }),
-      ];
-      const { user } = await setup({ profiles });
-
-      // Act - click a different header first, then click Subscription Start to sort ascending
-      const nameHeader = await screen.findByRole('columnheader', { name: /Name/i });
-      await user.click(nameHeader); // Switch to name column
-
-      const subscriptionHeader = await screen.findByRole('columnheader', {
-        name: /Subscription Start/i,
-      });
-      await user.click(subscriptionHeader); // Now click Subscription Start, which sets to ascending
-
-      // Assert - should be sorted by date ascending
-      const rows = screen.getAllByRole('row');
-      expect(within(rows[1]!).getByText('2@example.com')).toBeInTheDocument(); // User 2, Jan 1
-      expect(within(rows[2]!).getByText('3@example.com')).toBeInTheDocument(); // User 3, Mar 1
-      expect(within(rows[3]!).getByText('1@example.com')).toBeInTheDocument(); // User 1, Jun 1
-    });
-
     it('should display sort direction indicator on active column', async () => {
       // Arrange
       const { user } = await setup();
