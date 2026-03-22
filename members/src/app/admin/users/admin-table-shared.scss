@@ -81,29 +81,22 @@
     }
   }
 
-  // Email column - truncate with ellipsis
-  .email-cell {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  // Compact columns - prevent wrapping to give email more space
+  .has-profile-cell,
+  .actions-cell,
+  .date-cell {
     white-space: nowrap;
+    width: 1%;
   }
 
-  // Date columns - right align and prevent wrapping in body
+  // Date columns - right align
   .date-cell {
     text-align: right;
   }
 
-  tbody .date-cell {
-    white-space: nowrap;
-    width: max-content;
-  }
-
   // Actions column - center the icon
   .actions-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
   }
 
   // View link styling
