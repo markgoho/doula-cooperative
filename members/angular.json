@@ -67,6 +67,10 @@
             "e2e": {
               "buildTarget": "members:build:development",
               "proxyConfig": "proxy.conf.e2e.json"
+            },
+            "prod": {
+              "buildTarget": "members:build:development",
+              "proxyConfig": "proxy.conf.prod.json"
             }
           },
           "defaultConfiguration": "development"

@@ -18,7 +18,7 @@
     "angular:start": "cd members && bun start",
     "functions:start": "cd functions && bun run build:watch",
     "start": "bun run --parallel emulators:start functions:start angular:start hugo:dev",
-    "start:prod": "VITE_USE_PRODUCTION=true bun run angular:start",
+    "start:prod": "cd members && VITE_USE_PRODUCTION=true bun run start:prod",
     "e2e": "cd members && bun run e2e",
     "migrate:imagekit": "bun scripts/migrate-images-to-imagekit.ts",
     "migrate:imagekit:dry": "bun scripts/migrate-images-to-imagekit.ts --dry-run",
