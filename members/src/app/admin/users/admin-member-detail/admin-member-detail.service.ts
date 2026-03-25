@@ -50,7 +50,7 @@ export class AdminMemberDetailService {
     const profile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
 
     if (!member?.slug || !profile) {
-      return undefined;
+      return;
     }
 
     return buildImageKitDisplayUrl(member.slug, 300, 300);
