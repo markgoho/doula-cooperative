@@ -30,7 +30,7 @@ describe("POST /:memberId/profile/approve", () => {
       email: "member@example.com",
       createdAt: Timestamp.now(),
       membershipActive: true,
-      profileApprovedAt: Timestamp.now(),
+      allowProfileEditing: true,
     };
 
     const mockApproveProfile = mock(
@@ -68,7 +68,11 @@ describe("POST /:memberId/profile/approve", () => {
       `http://localhost/${memberId}/profile/approve`,
       {
         method: "POST",
-        headers,
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ allowProfileEditing: true }),
       },
     );
 
@@ -106,14 +110,14 @@ describe("POST /:memberId/profile/approve", () => {
       member?: {
         uid?: string;
         email?: string;
-        profileApprovedAt?: string;
+        allowProfileEditing?: boolean;
         isAdmin?: boolean;
       };
     };
     expect(body.success).toBe(true);
     expect(body.member?.uid).toBe("test-member-id");
     expect(body.member?.email).toBe("member@example.com");
-    expect(body.member?.profileApprovedAt).toBeDefined();
+    expect(body.member?.allowProfileEditing).toBe(true);
     expect(body.member?.isAdmin).toBe(false);
   });
 
@@ -126,12 +130,12 @@ describe("POST /:memberId/profile/approve", () => {
     const body = (await response.json()) as {
       success?: boolean;
       member?: {
-        profileApprovedAt?: string;
+        allowProfileEditing?: boolean;
         isAdmin?: boolean;
       };
     };
     expect(body.success).toBe(true);
-    expect(body.member?.profileApprovedAt).toBeDefined();
+    expect(body.member?.allowProfileEditing).toBe(true);
     expect(body.member?.isAdmin).toBe(false);
   });
 

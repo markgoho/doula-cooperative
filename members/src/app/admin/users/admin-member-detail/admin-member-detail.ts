@@ -29,6 +29,10 @@ type ConfirmAction =
   | 'deleteDraftProfile'
   | 'linkProfile';
 
+interface PendingProfileEditingAction {
+  allowProfileEditing: boolean;
+}
+
 interface DialogConfig {
   title: string;
   message: string;
@@ -82,14 +86,18 @@ export class AdminMemberDetail {
     return profile.draft;
   });
 
-  protected isProfileApproved = computed(() => {
+  protected allowProfileEditing = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) {
       return false;
     }
 
-    return (resource.value() as ApiMemberResponse).profileApprovedAt !== undefined;
+    return (resource.value() as ApiMemberResponse).allowProfileEditing;
   });
+
+  private pendingProfileEditingAction = signal<
+    PendingProfileEditingAction | undefined
+  >(undefined);
 
   protected profileSearchTerm = linkedSignal(() => {
     const member = this.service.memberResource.hasValue()
@@ -198,13 +206,18 @@ export class AdminMemberDetail {
   }
 
   protected showApproveProfileConfirm(): void {
+    const allowProfileEditing = !this.allowProfileEditing();
     this.pendingAction.set('approveProfile');
+    this.pendingProfileEditingAction.set({ allowProfileEditing });
     this.dialogConfig.set({
-      title: 'Confirm Profile Approval',
-      message:
-        'This will allow the member to create a new profile or edit an existing linked profile in the members app.',
-      confirmText: 'Approve Profile Approval',
-      variant: 'primary',
+      title: allowProfileEditing
+        ? 'Confirm Enable Profile Editing'
+        : 'Confirm Disable Profile Editing',
+      message: allowProfileEditing
+        ? 'This will allow the member to create a new profile or edit an existing linked profile in the members app.'
+        : 'This will prevent the member from creating a new profile or editing an existing linked profile in the members app.',
+      confirmText: allowProfileEditing ? 'Enable Profile Editing' : 'Disable Profile Editing',
+      variant: allowProfileEditing ? 'primary' : 'danger',
     });
     this.confirmDialog()?.showModal();
   }
@@ -237,6 +250,7 @@ export class AdminMemberDetail {
     this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
     this.pendingLinkSlug.set(undefined);
+    this.pendingProfileEditingAction.set(undefined);
   }
 
   protected async onConfirmDialog(): Promise<void> {
@@ -265,7 +279,15 @@ export class AdminMemberDetail {
           break;
         }
         case 'approveProfile': {
-          await this.service.approveProfile(this.uid());
+          const profileEditingAction = this.pendingProfileEditingAction();
+          if (profileEditingAction === undefined) {
+            this.service.actionError.set('Failed to update profile editing permission.');
+            break;
+          }
+          await this.service.approveProfile(
+            this.uid(),
+            profileEditingAction.allowProfileEditing,
+          );
           break;
         }
         case 'deleteDraftProfile': {
@@ -286,6 +308,7 @@ export class AdminMemberDetail {
       this.confirmDialog()?.close();
       this.pendingAction.set(undefined);
       this.pendingLinkSlug.set(undefined);
+      this.pendingProfileEditingAction.set(undefined);
     }
   }
 

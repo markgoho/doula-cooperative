@@ -55,7 +55,7 @@ export class Membership {
     const userDocument = this.userDocument();
     return (
       userDocument?.membershipActive &&
-      userDocument?.profileApprovedAt !== undefined &&
+      userDocument.allowProfileEditing &&
       !userDocument.slug &&
       !!userDocument.name
     );
@@ -67,7 +67,7 @@ export class Membership {
     const userDocument = this.userDocument();
     return (
       userDocument?.membershipActive &&
-      userDocument?.profileApprovedAt !== undefined &&
+      userDocument.allowProfileEditing &&
       !userDocument.slug &&
       !userDocument.name
     );
@@ -84,11 +84,11 @@ export class Membership {
     return userDocument?.name;
   });
 
-  protected showProfileApprovalPending = computed(() => {
+  protected showProfileEditingPending = computed(() => {
     const userDocument = this.userDocument();
     return (
       userDocument?.membershipActive &&
-      userDocument?.profileApprovedAt === undefined &&
+      !userDocument.allowProfileEditing &&
       !userDocument.slug
     );
   });

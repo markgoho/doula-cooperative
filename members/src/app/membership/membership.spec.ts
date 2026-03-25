@@ -214,7 +214,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -282,7 +282,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -299,7 +299,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -319,7 +319,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -339,7 +339,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -361,7 +361,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
@@ -387,7 +387,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
         updateMemberNameShouldFail: true,
       });
@@ -418,7 +418,7 @@ describe('Membership', () => {
       expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
     });
 
-    it('should not show welcome prompt without profile approval', async () => {
+    it('should not show welcome prompt without profile editing access', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
@@ -433,7 +433,7 @@ describe('Membership', () => {
       expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
     });
 
-    it('should show welcome prompt when profile approval exists and name is missing', async () => {
+    it('should show welcome prompt when profile editing is enabled and name is missing', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
@@ -442,14 +442,14 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 
       expect(screen.getByText('Welcome to the Rochester Doula Cooperative!')).toBeVisible();
     });
 
-    it('should show create profile banner when profile approval exists', async () => {
+    it('should show create profile banner when profile editing is enabled', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
@@ -464,10 +464,10 @@ describe('Membership', () => {
       });
 
       expect(screen.getByText('Create Your Doula Profile')).toBeVisible();
-      expect(screen.getByText(/active membership and admin approval/)).toBeVisible();
+      expect(screen.getByText(/active membership and profile editing access/)).toBeVisible();
     });
 
-    it('should show approval pending message when active member is not approved', async () => {
+    it('should show profile editing pending message when active member is not enabled', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
@@ -480,8 +480,8 @@ describe('Membership', () => {
         },
       });
 
-      expect(screen.getByText('Profile approval pending')).toBeVisible();
-      expect(screen.getByText(/profile creation is pending admin approval/)).toBeVisible();
+      expect(screen.getByText('Profile editing not enabled')).toBeVisible();
+      expect(screen.getByText(/profile editing has not been enabled yet/)).toBeVisible();
       expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
     });
   });

@@ -73,7 +73,7 @@ describe("POST /:slug (create profile)", () => {
       if (profileNotApproved) {
         return Promise.reject(
           new ForbiddenError(
-            "Profile work requires admin approval before creating or editing a profile.",
+            "Profile work requires profile editing to be enabled before creating or editing a profile.",
           ),
         );
       }
@@ -106,7 +106,7 @@ describe("POST /:slug (create profile)", () => {
 
     const testApp = createProfilesTestPlugin({
       profileMemberService: {
-        verifyProfileApproved: mockVerifyMembership,
+        verifyProfileEditingAllowed: mockVerifyMembership,
       },
       profileStoreService: {
         createProfile: mockCreateProfile,
@@ -212,7 +212,7 @@ describe("POST /:slug (create profile)", () => {
 
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("admin approval");
+      expect(body.error).toContain("profile editing to be enabled");
     });
 
     it("should return 403 when user has no slug", async () => {

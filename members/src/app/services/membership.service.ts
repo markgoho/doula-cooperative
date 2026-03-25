@@ -17,7 +17,7 @@ export interface Member {
   membershipExpiresAt?: Date;
   slug?: string;
   profileCreatedAt?: Date;
-  profileApprovedAt?: Date;
+  allowProfileEditing: boolean;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
@@ -72,6 +72,7 @@ export class MembershipService {
 
   // Computed properties for easy access to specific member document fields
   membershipActive = computed(() => this.userDocument()?.membershipActive ?? false);
+  allowProfileEditing = computed(() => this.userDocument()?.allowProfileEditing ?? false);
   hasProfile = computed(() => {
     return !!this.userDocument()?.profileCreatedAt;
   });
@@ -410,9 +411,7 @@ export class MembershipService {
       ...(apiResponse.profileCreatedAt !== undefined && {
         profileCreatedAt: new Date(apiResponse.profileCreatedAt),
       }),
-      ...(apiResponse.profileApprovedAt !== undefined && {
-        profileApprovedAt: new Date(apiResponse.profileApprovedAt),
-      }),
+      allowProfileEditing: apiResponse.allowProfileEditing,
       ...(apiResponse.stripeCustomerId !== undefined && {
         stripeCustomerId: apiResponse.stripeCustomerId,
       }),

@@ -45,11 +45,25 @@ describe('Header', () => {
     expect(screen.queryByRole('link', { name: 'Edit Profile' })).not.toBeInTheDocument();
   });
 
+  it('should not show profile button when profile editing is disabled', async () => {
+    await setup({
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isMembershipActive: true,
+      allowProfileEditing: false,
+      hasProfile: true,
+    });
+
+    expect(screen.queryByRole('link', { name: 'Edit Profile' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Create Profile' })).not.toBeInTheDocument();
+  });
+
   it('should show edit profile button when user has a profile', async () => {
     await setup({
       isAuthenticated: true,
       isEmailVerified: true,
       isMembershipActive: true,
+      allowProfileEditing: true,
       hasProfile: true,
     });
 
@@ -63,6 +77,7 @@ describe('Header', () => {
       isAuthenticated: true,
       isEmailVerified: true,
       isMembershipActive: true,
+      allowProfileEditing: true,
       hasProfile: false,
     });
 
@@ -76,6 +91,7 @@ interface SetupOptions {
   isAuthenticated?: boolean;
   isEmailVerified?: boolean;
   isMembershipActive?: boolean;
+  allowProfileEditing?: boolean;
   hasProfile?: boolean;
 }
 
@@ -90,6 +106,7 @@ async function setup({
   isAuthenticated = false,
   isEmailVerified = false,
   isMembershipActive = false,
+  allowProfileEditing = true,
   hasProfile = false,
 }: SetupOptions = {}) {
   // eslint-disable-next-line unicorn/no-null
@@ -104,6 +121,7 @@ async function setup({
 
   const mockMembershipService = {
     membershipActive: signal(isMembershipActive),
+    allowProfileEditing: signal(allowProfileEditing),
     userDocument: signal(mockUserDocument),
   };
 

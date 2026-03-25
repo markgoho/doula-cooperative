@@ -64,14 +64,14 @@ async function verifyActiveMembership(uid: string): Promise<MemberDocument> {
 }
 
 /**
- * Verify user has been approved to create or edit a profile.
+ * Verify user has permission to create or edit a profile.
  */
-async function verifyProfileApproved(uid: string): Promise<MemberDocument> {
+async function verifyProfileEditingAllowed(uid: string): Promise<MemberDocument> {
   const member = await verifyActiveMembership(uid);
 
-  if (member.profileApprovedAt === undefined) {
+  if (member.allowProfileEditing !== true) {
     throw new ForbiddenError(
-      "Profile work requires admin approval before creating or editing a profile.",
+      "Profile work requires profile editing to be enabled before creating or editing a profile.",
     );
   }
 
@@ -200,7 +200,7 @@ async function getMemberBySlug(
 export const ProfileMemberService: ProfileMemberServiceInterface = {
   getMemberByUid,
   verifyActiveMembership,
-  verifyProfileApproved,
+  verifyProfileEditingAllowed,
   checkSlugAvailable,
   setSlug,
   setProfileCreatedAt,

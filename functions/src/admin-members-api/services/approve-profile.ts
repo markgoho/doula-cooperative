@@ -1,4 +1,3 @@
-import { FieldValue } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import { MEMBERS_COLLECTION } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
@@ -7,28 +6,29 @@ import { MemberFirestoreService } from "../../shared-api/services/member-firesto
 import type { MemberDocument } from "../../types/member-document.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
-export interface ApproveProfileResult {
+export interface SetProfileEditingPermissionResult {
   member: MemberDocument;
 }
 
 /**
- * Approve a member to create or edit a profile.
- * Sets profileApprovedAt to the current server timestamp.
+ * Set whether a member can create or edit a profile.
  *
  * @param options.memberId - The Firestore document ID of the member
+ * @param options.allowProfileEditing - Whether profile editing is allowed
  * @returns The updated member document
  * @throws NotFoundError if member does not exist
  */
 export async function approveProfile(options: {
   memberId: string;
-}): Promise<ApproveProfileResult> {
-  const { memberId } = options;
+  allowProfileEditing: boolean;
+}): Promise<SetProfileEditingPermissionResult> {
+  const { memberId, allowProfileEditing } = options;
 
   try {
     await verifyMemberExists(memberId);
 
     await MemberFirestoreService.updateMember(memberId, {
-      profileApprovedAt: FieldValue.serverTimestamp(),
+      allowProfileEditing,
     });
 
     const updatedMemberDocument = await MemberFirestoreService.getMemberByUid(
@@ -48,7 +48,10 @@ export async function approveProfile(options: {
       uid: updatedMemberDocument.id,
     };
 
-    logger.info("Approved member for profile work", { memberId });
+    logger.info("Updated member profile editing permission", {
+      memberId,
+      allowProfileEditing,
+    });
 
     return {
       member,
@@ -58,12 +61,13 @@ export async function approveProfile(options: {
       throw error;
     }
 
-    logger.error("Failed to approve member for profile work", {
+    logger.error("Failed to update member profile editing permission", {
       errorId: ERROR_IDS.API_ADMIN_UPDATE_MEMBER_FAILED,
       memberId,
+      allowProfileEditing,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
-    throw new HttpError("Failed to approve member for profile work", 500);
+    throw new HttpError("Failed to update member profile editing permission", 500);
   }
 }

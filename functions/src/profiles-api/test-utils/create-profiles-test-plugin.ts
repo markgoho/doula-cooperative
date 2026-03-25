@@ -26,6 +26,7 @@ export const mockMemberDocument: MemberDocument = {
   membershipExpiresAt: Timestamp.now(),
   slug: "test-user",
   profileCreatedAt: Timestamp.now(),
+  allowProfileEditing: true,
 };
 
 /**
@@ -96,7 +97,7 @@ export function createProfilesTestPlugin(overrides?: {
     verifyActiveMembership: mock(() =>
       Promise.resolve({ ...mockMemberDocument }),
     ),
-    verifyProfileApproved: mock(() =>
+    verifyProfileEditingAllowed: mock(() =>
       Promise.resolve({ ...mockMemberDocument }),
     ),
     checkSlugAvailable: mock(() => Promise.resolve({ available: true })),

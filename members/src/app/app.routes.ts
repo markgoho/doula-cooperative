@@ -1,6 +1,7 @@
 import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
 import { type Routes } from '@angular/router';
 import { redirectNonAdminToMembership } from './guards/admin.guard';
+import { profileEditingGuard } from './guards/profile-editing.guard';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 
 // Guards for different authentication states
@@ -19,6 +20,7 @@ export const routes: Routes = [
   {
     path: 'profile/create',
     ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [profileEditingGuard],
     loadComponent: () =>
       import('./create-profile-wizard/create-profile-wizard').then((m) => m.CreateProfileWizard),
     children: [
@@ -76,12 +78,14 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
     ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [profileEditingGuard],
   },
   {
     path: 'profile/image',
     loadComponent: () =>
       import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
     ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [profileEditingGuard],
   },
 
   // Admin routes (require authentication and admin claim)
