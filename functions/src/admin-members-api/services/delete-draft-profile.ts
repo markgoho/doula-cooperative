@@ -89,6 +89,7 @@ export async function deleteDraftProfile(options: {
     batch.update(memberReference, {
       slug: FieldValue.delete(),
       profileCreatedAt: FieldValue.delete(),
+      profileApprovedAt: FieldValue.delete(),
     });
     await batch.commit();
 

@@ -7,6 +7,7 @@ import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   activateMembershipLogic,
+  approveProfileLogic,
   cancelMembershipLogic,
   cleanSlateDeleteLogic,
   deleteDraftProfileLogic,
@@ -25,6 +26,7 @@ import {
 import {
   ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
+  ApproveProfileApiResponseSchema,
   CancelMembershipApiResponseSchema,
   CleanSlateApiResponseSchema,
   DeleteDraftProfileApiResponseSchema,
@@ -187,6 +189,21 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               }),
             {
               response: ToggleProfileDraftApiResponseSchema,
+            },
+          )
+          // POST /:memberId/profile/approve - Approve member for profile work (served at /api/admin/members/:memberId/profile/approve)
+          .post(
+            "/profile/approve",
+            async ({ params, adminToken, memberAdminService, logger, set }) =>
+              approveProfileLogic({
+                memberId: params.memberId,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              }),
+            {
+              response: ApproveProfileApiResponseSchema,
             },
           )
           // POST /:memberId/profile/delete-draft - Delete draft profile (served at /api/admin/members/:memberId/profile/delete-draft)

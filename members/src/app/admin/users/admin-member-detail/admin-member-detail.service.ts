@@ -206,6 +206,23 @@ export class AdminMemberDetailService {
   /**
    * Delete a draft profile for the current member
    */
+  async approveProfile(uid: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.approveProfile(uid);
+      this.successMessage.set('Profile work approved successfully');
+      this.memberResource.reload();
+    } catch (error) {
+      console.error('Error approving profile work:', error);
+      this.actionError.set('Failed to approve profile work.');
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
   async deleteDraftProfile(uid: string): Promise<void> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
@@ -254,7 +271,7 @@ export class AdminMemberDetailService {
 
     try {
       await this.adminMembersService.linkProfile(uid, slug);
-      this.successMessage.set(`Profile "${slug}" linked successfully`);
+      this.successMessage.set(`Profile "${slug}" linked and approved successfully`);
       this.memberResource.reload();
     } catch (error) {
       console.error('Error linking profile:', error);

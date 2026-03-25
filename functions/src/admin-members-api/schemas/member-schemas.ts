@@ -88,6 +88,12 @@ export const MemberResponseSchema = t.Object({
       description: "Profile creation timestamp (ISO 8601)",
     }),
   ),
+  profileApprovedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "Profile approval timestamp (ISO 8601)",
+    }),
+  ),
   stripeCustomerId: t.Optional(
     t.String({
       description: "Stripe customer ID",
@@ -182,6 +188,9 @@ export function toMemberResponse(
     ...(document.slug !== undefined && { slug: document.slug }),
     ...(document.profileCreatedAt !== undefined && {
       profileCreatedAt: timestampToIso(document.profileCreatedAt),
+    }),
+    ...(document.profileApprovedAt !== undefined && {
+      profileApprovedAt: timestampToIso(document.profileApprovedAt),
     }),
     ...(document.stripeCustomerId !== undefined && {
       stripeCustomerId: document.stripeCustomerId,
@@ -383,6 +392,18 @@ export const UpdateMemberApiResponseSchema = t.Union([
 
 export type UpdateMemberApiResponse = Static<
   typeof UpdateMemberApiResponseSchema
+>;
+
+/**
+ * POST /api/admin/members/:memberId/profile/approve response - union of success and error.
+ */
+export const ApproveProfileApiResponseSchema = t.Union([
+  MemberSuccessResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ApproveProfileApiResponse = Static<
+  typeof ApproveProfileApiResponseSchema
 >;
 
 /**

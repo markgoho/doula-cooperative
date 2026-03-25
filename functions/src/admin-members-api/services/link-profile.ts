@@ -1,4 +1,4 @@
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
   IMPORT_COLLECTION,
@@ -84,20 +84,36 @@ export async function linkProfile(options: {
     batch.update(memberReference, {
       slug,
       profileCreatedAt,
+      profileApprovedAt: FieldValue.serverTimestamp(),
     });
 
     await batch.commit();
 
     try {
-      const importReference = firestore
-        .collection(IMPORT_COLLECTION)
-        .doc(member.email);
-      const importDocument = await importReference.get();
+      const importCollection = firestore.collection(IMPORT_COLLECTION);
+      const importSlugSnapshot = await importCollection
+        .where("slug", "==", slug)
+        .limit(1)
+        .get();
 
-      if (importDocument.exists) {
-        await importReference.delete();
+      const importSlugDocument = importSlugSnapshot.docs[0];
+
+      if (importSlugDocument === undefined) {
+        const importReference = importCollection.doc(member.email);
+        const importDocument = await importReference.get();
+
+        if (importDocument.exists) {
+          await importReference.delete();
+          logger.info("Deleted import record after admin link", {
+            email: member.email,
+            memberId,
+            slug,
+          });
+        }
+      } else {
+        await importSlugDocument.ref.delete();
         logger.info("Deleted import record after admin link", {
-          email: member.email,
+          email: importSlugDocument.id,
           memberId,
           slug,
         });

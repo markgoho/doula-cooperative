@@ -145,6 +145,20 @@ describe("POST /:memberId/profile/delete-draft", () => {
       expect(body.warning).toBeUndefined();
     });
 
+    it("should return success when approval is cleared along with the draft profile", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        memberUpdated?: boolean;
+      };
+      expect(body.success).toBe(true);
+      expect(body.memberUpdated).toBe(true);
+    });
+
     it("should include warning when Hugo rebuild fails", async () => {
       const { testApp, request } = setup({
         deleteResult: {

@@ -17,6 +17,7 @@ export interface Member {
   membershipExpiresAt?: Date;
   slug?: string;
   profileCreatedAt?: Date;
+  profileApprovedAt?: Date;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;
@@ -408,6 +409,9 @@ export class MembershipService {
       ...(apiResponse.slug !== undefined && { slug: apiResponse.slug }),
       ...(apiResponse.profileCreatedAt !== undefined && {
         profileCreatedAt: new Date(apiResponse.profileCreatedAt),
+      }),
+      ...(apiResponse.profileApprovedAt !== undefined && {
+        profileApprovedAt: new Date(apiResponse.profileApprovedAt),
       }),
       ...(apiResponse.stripeCustomerId !== undefined && {
         stripeCustomerId: apiResponse.stripeCustomerId,

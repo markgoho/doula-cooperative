@@ -43,6 +43,11 @@ export interface MemberDocument {
    * - Undefined if member has no public profile
    */
   profileCreatedAt?: Timestamp;
+  /**
+   * Timestamp when an admin approved the member to create or edit a public doula profile.
+   * Undefined if the member has not been approved for profile work.
+   */
+  profileApprovedAt?: Timestamp;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;

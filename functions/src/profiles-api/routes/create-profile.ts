@@ -95,7 +95,7 @@ export async function createProfileLogic({
   set: { status?: number | string };
 }): Promise<CreateProfileResponse> {
   try {
-    const member = await profileMemberService.verifyActiveMembership(uid);
+    const member = await profileMemberService.verifyProfileApproved(uid);
 
     const slug = member.slug;
     if (!slug) {

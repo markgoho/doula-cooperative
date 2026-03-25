@@ -8,8 +8,8 @@
           <p>Welcome, {{ name }}!</p>
         }
         <p>
-          You have an active membership! Create your public doula profile to appear in our directory
-          and connect with families.
+          You have an active membership and admin approval. Create your public doula profile to
+          appear in our directory and connect with families.
         </p>
 
         <button
@@ -29,6 +29,16 @@
           <p class="error-message">{{ error }}</p>
         }
       </div>
+    }
+
+    @if (showProfileApprovalPending()) {
+      <section class="create-profile-banner" aria-labelledby="profile-approval-pending-heading">
+        <h3 id="profile-approval-pending-heading">Profile approval pending</h3>
+        <p>
+          Your membership is active, but profile creation is pending admin approval. Once approved,
+          you'll be able to create or edit your profile here.
+        </p>
+      </section>
     }
 
     @if (showWelcomeNamePrompt()) {

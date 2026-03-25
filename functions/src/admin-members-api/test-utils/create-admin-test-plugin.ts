@@ -115,6 +115,11 @@ export function createAdminTestPlugin(overrides?: {
         profiles: [],
       }),
     ),
+    approveProfile: mock(() =>
+      Promise.resolve({
+        member: {} as MemberDocument,
+      }),
+    ),
     linkProfile: mock(() =>
       Promise.resolve({
         member: {} as MemberDocument,

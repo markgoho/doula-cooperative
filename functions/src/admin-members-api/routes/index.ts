@@ -1,4 +1,5 @@
 export { activateMembershipLogic } from "./activate-membership.js";
+export { approveProfileLogic } from "./approve-profile.js";
 export { cancelMembershipLogic } from "./cancel-membership.js";
 export { cleanSlateDeleteLogic } from "./clean-slate-delete.js";
 export { deleteDraftProfileLogic } from "./delete-draft-profile.js";

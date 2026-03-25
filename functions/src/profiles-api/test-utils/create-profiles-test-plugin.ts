@@ -96,6 +96,9 @@ export function createProfilesTestPlugin(overrides?: {
     verifyActiveMembership: mock(() =>
       Promise.resolve({ ...mockMemberDocument }),
     ),
+    verifyProfileApproved: mock(() =>
+      Promise.resolve({ ...mockMemberDocument }),
+    ),
     checkSlugAvailable: mock(() => Promise.resolve({ available: true })),
     setSlug: mock(() => Promise.resolve({ slug: "test-user" })),
     setProfileCreatedAt: mock(() => Promise.resolve()),

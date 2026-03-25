@@ -214,6 +214,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -281,6 +282,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -297,6 +299,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -316,6 +319,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -335,6 +339,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -356,6 +361,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
       });
 
@@ -381,6 +387,7 @@ describe('Membership', () => {
           email: 'jane@example.com',
           uid: 'user123',
           membershipActive: true,
+          profileApprovedAt: new Date(),
         },
         updateMemberNameShouldFail: true,
       });
@@ -408,6 +415,73 @@ describe('Membership', () => {
         },
       });
 
+      expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
+    });
+
+    it('should not show welcome prompt without profile approval', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      expect(screen.queryByText('Welcome to the Rochester Doula Cooperative!')).toBeNull();
+    });
+
+    it('should show welcome prompt when profile approval exists and name is missing', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          profileApprovedAt: new Date(),
+        },
+      });
+
+      expect(screen.getByText('Welcome to the Rochester Doula Cooperative!')).toBeVisible();
+    });
+
+    it('should show create profile banner when profile approval exists', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          name: 'Jane Doe',
+          profileApprovedAt: new Date(),
+        },
+      });
+
+      expect(screen.getByText('Create Your Doula Profile')).toBeVisible();
+      expect(screen.getByText(/active membership and admin approval/)).toBeVisible();
+    });
+
+    it('should show approval pending message when active member is not approved', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+          name: 'Jane Doe',
+        },
+      });
+
+      expect(screen.getByText('Profile approval pending')).toBeVisible();
+      expect(screen.getByText(/profile creation is pending admin approval/)).toBeVisible();
       expect(screen.queryByText('Create Your Doula Profile')).toBeNull();
     });
   });

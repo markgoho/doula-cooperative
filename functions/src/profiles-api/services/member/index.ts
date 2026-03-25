@@ -64,6 +64,21 @@ async function verifyActiveMembership(uid: string): Promise<MemberDocument> {
 }
 
 /**
+ * Verify user has been approved to create or edit a profile.
+ */
+async function verifyProfileApproved(uid: string): Promise<MemberDocument> {
+  const member = await verifyActiveMembership(uid);
+
+  if (member.profileApprovedAt === undefined) {
+    throw new ForbiddenError(
+      "Profile work requires admin approval before creating or editing a profile.",
+    );
+  }
+
+  return member;
+}
+
+/**
  * Check if a slug is available (no profile document exists with that ID).
  */
 async function checkSlugAvailable(
@@ -185,6 +200,7 @@ async function getMemberBySlug(
 export const ProfileMemberService: ProfileMemberServiceInterface = {
   getMemberByUid,
   verifyActiveMembership,
+  verifyProfileApproved,
   checkSlugAvailable,
   setSlug,
   setProfileCreatedAt,

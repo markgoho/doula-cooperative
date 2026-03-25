@@ -70,7 +70,7 @@ export function createProfileRouteHandler<TResponse>(
     set: { status?: number | string };
   }): Promise<TResponse> => {
     try {
-      const member = await profileMemberService.verifyActiveMembership(uid);
+      const member = await profileMemberService.verifyProfileApproved(uid);
 
       const slug = member.slug;
       if (!slug) {

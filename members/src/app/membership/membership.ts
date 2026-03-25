@@ -53,14 +53,24 @@ export class Membership {
   // the profile creation banner takes its place.
   protected showCreateProfileBanner = computed(() => {
     const userDocument = this.userDocument();
-    return userDocument?.membershipActive && !userDocument?.slug && !!userDocument?.name;
+    return (
+      userDocument?.membershipActive &&
+      userDocument?.profileApprovedAt !== undefined &&
+      !userDocument.slug &&
+      !!userDocument.name
+    );
   });
 
   // Show welcome prompt for active members who need to set their name
   // before they can create a profile (profile creation requires a name to generate a slug)
   protected showWelcomeNamePrompt = computed(() => {
     const userDocument = this.userDocument();
-    return userDocument?.membershipActive && !userDocument?.slug && !userDocument?.name;
+    return (
+      userDocument?.membershipActive &&
+      userDocument?.profileApprovedAt !== undefined &&
+      !userDocument.slug &&
+      !userDocument.name
+    );
   });
 
   // Computed signals for formatted user data
@@ -72,6 +82,15 @@ export class Membership {
   protected userFullName = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.name;
+  });
+
+  protected showProfileApprovalPending = computed(() => {
+    const userDocument = this.userDocument();
+    return (
+      userDocument?.membershipActive &&
+      userDocument?.profileApprovedAt === undefined &&
+      !userDocument.slug
+    );
   });
 
   protected userDisplayName = computed(() => {

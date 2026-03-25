@@ -51,6 +51,7 @@ describe("POST /:memberId/profile/link", () => {
       membershipExpiresAt: Timestamp.now(),
       slug: "unlinked-doula-profile",
       profileCreatedAt: Timestamp.now(),
+      profileApprovedAt: Timestamp.now(),
     };
 
     const mockLinkProfile = mock(
@@ -163,6 +164,7 @@ describe("POST /:memberId/profile/link", () => {
           email?: string;
           membershipActive?: boolean;
           slug?: string;
+          profileApprovedAt?: string;
           isAdmin?: boolean;
         };
       };
@@ -170,6 +172,7 @@ describe("POST /:memberId/profile/link", () => {
       expect(body.member?.uid).toBe("test-member-id");
       expect(body.member?.email).toBe("member@example.com");
       expect(body.member?.slug).toBe("unlinked-doula-profile");
+      expect(body.member?.profileApprovedAt).toBeDefined();
       expect(body.member?.isAdmin).toBe(false);
     });
 
