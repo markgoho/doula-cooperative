@@ -1,18 +1,11 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { buildImageKitDisplayUrl } from '../shared/profile-image-url';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
 
 const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
-
-/**
- * Build an ImageKit display URL with transformations and default image fallback.
- * Matches the Hugo site's URL pattern so missing images show a default placeholder.
- */
-function buildImageKitDisplayUrl(slug: string, width: number, height: number): string {
-  return `${IMAGEKIT_BASE_URL}/tr:w-${width},h-${height},fo-face,z-0.5,di-default-profile.png/doulas/${slug}/${slug}-profile`;
-}
 
 interface ProfileResponse {
   success: true;

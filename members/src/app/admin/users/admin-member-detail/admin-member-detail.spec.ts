@@ -318,6 +318,27 @@ describe('AdminUserDetail', () => {
     });
   });
 
+  it('should build the admin profile image URL after loading profile status', async () => {
+    const member = createMockMember({ slug: 'jane-doe' });
+    const { user, component } = await setup({ member });
+
+    const loadStatusButton = await screen.findByRole('button', { name: 'Load Profile Status' });
+    await user.click(loadStatusButton);
+
+    const service = component.fixture.componentRef.injector.get(AdminMemberDetailService);
+    expect(service.profileImageUrl()).toBe(
+      'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
+    );
+  });
+
+  it('should leave the admin profile image URL undefined before profile status loads', async () => {
+    const member = createMockMember({ slug: 'jane-doe' });
+    const { component } = await setup({ member });
+
+    const service = component.fixture.componentRef.injector.get(AdminMemberDetailService);
+    expect(service.profileImageUrl()).toBeUndefined();
+  });
+
   it('should display loading state initially', async () => {
     const { resolveMemberPromise } = await setup({ shouldKeepLoading: true });
 

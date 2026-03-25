@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+import { buildImageKitDisplayUrl } from '../../../shared/profile-image-url';
 import type { ProfileData } from '../../../types/profile-data';
 
 import { AdminMembersService } from '../../services/admin-members.service';
@@ -42,6 +43,17 @@ export class AdminMemberDetailService {
   readonly profileErrorMessage = computed(() => {
     const error = this.profileResource.error();
     return error ? 'Failed to load profile content. Please try again.' : undefined;
+  });
+
+  readonly profileImageUrl = computed(() => {
+    const member = this.memberResource.hasValue() ? this.memberResource.value() : undefined;
+    const profile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
+
+    if (!member?.slug || !profile) {
+      return undefined;
+    }
+
+    return buildImageKitDisplayUrl(member.slug, 300, 300);
   });
 
   // Unlinked profiles resource — loads when member has no slug

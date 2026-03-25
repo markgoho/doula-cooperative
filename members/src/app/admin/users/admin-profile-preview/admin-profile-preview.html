@@ -23,5 +23,5 @@
 } @else if (profileError) {
   <app-alert-banner variant="error">{{ profileError }}</app-alert-banner>
 } @else if (profile) {
-  <app-profile-preview [profile]="profile" [imageUrl]="profile.image" />
+  <app-profile-preview [profile]="profile" [imageUrl]="service.profileImageUrl()" />
 }
