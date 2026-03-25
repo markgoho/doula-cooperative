@@ -1,5 +1,5 @@
 import { test } from '../fixtures/regular-user-auth.fixture';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import type { ProfileData } from '../../src/app/types/profile-data';
 import { EditProfilePage } from '../pages/edit-profile.page';
 import type { ApiMemberResponse } from '../../src/app/api-types/members-api.types';
@@ -37,8 +37,38 @@ const mockMemberDocument: ApiMemberResponse = {
   isAdmin: false,
   subscriptionStart: '2024-01-01T00:00:00.000Z',
   membershipActive: true,
+  allowProfileEditing: true,
   slug: 'test-user',
+  profileCreatedAt: '2024-01-02T00:00:00.000Z',
 };
+
+function setupApiMocks(page: Page, userSlug: string) {
+  return Promise.all([
+    page.route('**/api/members/*', async (route) => {
+      await (route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockMemberDocument),
+          })
+        : route.continue());
+    }),
+    page.route(`**/api/profiles/${userSlug}`, async (route) => {
+      await (route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfileData),
+          })
+        : route.continue());
+    }),
+  ]);
+}
+
+async function goToEditProfile(page: Page) {
+  await page.goto('/membership');
+  await page.getByRole('link', { name: 'Edit Profile' }).click();
+}
 
 test.describe('View Profile', () => {
   /**
@@ -53,30 +83,10 @@ test.describe('View Profile', () => {
   test('user views their profile page', async ({ authenticatedUserPage }) => {
     const userSlug = 'test-user';
 
-    // Mock GET /api/members/:memberId for member document lookup
-    await authenticatedUserPage.route('**/api/members/*', async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockMemberDocument),
-          })
-        : route.continue());
-    });
-
-    // Mock GET /api/profiles/:slug
-    await authenticatedUserPage.route(`**/api/profiles/${userSlug}`, async (route) => {
-      await (route.request().method() === 'GET'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(mockProfileData),
-          })
-        : route.continue());
-    });
+    await setupApiMocks(authenticatedUserPage, userSlug);
 
     const editProfilePage = new EditProfilePage(authenticatedUserPage);
-    await editProfilePage.goto();
+    await goToEditProfile(authenticatedUserPage);
     await editProfilePage.waitForProfileForm();
 
     // === Verify Page Structure ===
