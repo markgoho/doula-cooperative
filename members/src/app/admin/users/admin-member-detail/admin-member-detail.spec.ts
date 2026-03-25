@@ -153,7 +153,10 @@ function createMockAdminMembersService({
         }),
     approveProfile: shouldFailApproveProfile
       ? vi.fn().mockRejectedValue(new Error('Failed'))
-      : vi.fn().mockResolvedValue(memberToUse),
+      : vi.fn().mockImplementation(async (_uid: string, allowProfileEditing: boolean) => ({
+          ...memberToUse,
+          allowProfileEditing,
+        })),
     listUnlinkedProfiles:
       overrideListUnlinkedProfiles ??
       (shouldFailUnlinkedProfilesLoad
@@ -567,7 +570,7 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByText('test-slug')).toBeVisible();
   });
 
-  it('should keep profile approval state independent from lazy profile controls', async () => {
+  it('should keep profile editing state independent from lazy profile controls', async () => {
     const member = createMockMember({
       slug: 'test-slug',
       membershipActive: true,
@@ -576,7 +579,7 @@ describe('AdminUserDetail', () => {
 
     await setup({ member });
 
-    expect(await screen.findByText(/Approved on Mar 15, 2024/)).toBeVisible();
+    expect(await screen.findByText('Enabled')).toBeVisible();
     expect(await screen.findByRole('button', { name: 'Load Profile Status' })).toBeVisible();
   });
 
@@ -744,7 +747,7 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByText('Disabled')).toBeVisible();
   });
 
-  it('should show profile approval timestamp for approved linked members before profile load', async () => {
+  it('should show enabled profile editing state for approved linked members before profile load', async () => {
     const member = createMockMember({
       slug: 'test-slug',
       allowProfileEditing: true,
@@ -752,7 +755,7 @@ describe('AdminUserDetail', () => {
 
     await setup({ member });
 
-    expect(await screen.findByText(/Approved on Mar 15, 2024/)).toBeVisible();
+    expect(await screen.findByText('Enabled')).toBeVisible();
   });
 
   it('should still show link section approval helper for unlinked members without approval', async () => {
@@ -833,7 +836,7 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByText('Disabled')).toBeVisible();
   });
 
-  it('should display approved status for linked profile members', async () => {
+  it('should display enabled status for linked profile members', async () => {
     const member = createMockMember({
       slug: 'test-slug',
       allowProfileEditing: true,
@@ -841,7 +844,7 @@ describe('AdminUserDetail', () => {
 
     await setup({ member });
 
-    expect(await screen.findByText(/Approved on Mar 15, 2024/)).toBeVisible();
+    expect(await screen.findByText('Enabled')).toBeVisible();
   });
 
   it('should show no profile approval pending message for approved members', async () => {
@@ -1037,7 +1040,7 @@ describe('AdminUserDetail', () => {
     const { user, mockAdminMembersService } = await setup({ member });
 
     await user.click(await screen.findByRole('button', { name: 'Enable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Enable Profile Editing' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
 
     expect(mockAdminMembersService.approveProfile).toHaveBeenCalledWith('test-uid-123', true);
     expect(await screen.findByText('Profile editing enabled successfully')).toBeVisible();
@@ -1049,7 +1052,7 @@ describe('AdminUserDetail', () => {
     const { user, mockAdminMembersService } = await setup({ member });
 
     await user.click(await screen.findByRole('button', { name: 'Disable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Disable Profile Editing' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
 
     expect(mockAdminMembersService.approveProfile).toHaveBeenCalledWith('test-uid-123', false);
     expect(await screen.findByText('Profile editing disabled successfully')).toBeVisible();
@@ -1065,7 +1068,7 @@ describe('AdminUserDetail', () => {
     });
 
     await user.click(await screen.findByRole('button', { name: 'Enable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Enable Profile Editing' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
 
     expect(await screen.findByText('Failed to update profile editing permission.')).toBeVisible();
   });

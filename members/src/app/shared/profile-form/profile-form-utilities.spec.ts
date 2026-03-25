@@ -108,6 +108,7 @@ describe('Profile Form Utilities', () => {
         createdAt: new Date(0),
         isAdmin: false,
         membershipActive: true,
+        allowProfileEditing: false,
         slug: 'test-user',
       };
 
@@ -126,6 +127,7 @@ describe('Profile Form Utilities', () => {
         createdAt: new Date(0),
         isAdmin: false,
         membershipActive: true,
+        allowProfileEditing: false,
       };
 
       initializeCreateProfileForm(form, member);
@@ -146,6 +148,7 @@ describe('Profile Form Utilities', () => {
         createdAt: new Date(0),
         isAdmin: false,
         membershipActive: true,
+        allowProfileEditing: false,
       };
 
       initializeCreateProfileForm(form, member);
@@ -166,6 +169,7 @@ describe('Profile Form Utilities', () => {
         createdAt: new Date(0),
         isAdmin: false,
         membershipActive: false,
+        allowProfileEditing: false,
       };
 
       initializeCreateProfileForm(form, member);

@@ -65,6 +65,7 @@ async function setup() {
     createdAt: new Date(0),
     isAdmin: false,
     membershipActive: true,
+    allowProfileEditing: true,
     slug: 'test-user',
   };
 

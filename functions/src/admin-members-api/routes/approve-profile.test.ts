@@ -6,7 +6,7 @@ import {
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
-import type { ApproveProfileResult } from "../services/approve-profile.js";
+import type { SetProfileEditingPermissionResult } from "../services/approve-profile.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
 describe("POST /:memberId/profile/approve", () => {
@@ -34,7 +34,7 @@ describe("POST /:memberId/profile/approve", () => {
     };
 
     const mockApproveProfile = mock(
-      (): Promise<ApproveProfileResult> => {
+      (): Promise<SetProfileEditingPermissionResult> => {
         if (memberNotFound) {
           return Promise.reject(
             new NotFoundError(`Member with ID ${memberId} not found`),

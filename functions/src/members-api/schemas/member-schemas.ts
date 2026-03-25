@@ -88,6 +88,9 @@ export const MemberResponseSchema = t.Object({
       description: "Profile creation timestamp (ISO 8601)",
     }),
   ),
+  allowProfileEditing: t.Boolean({
+    description: "Whether the member can currently create or edit a profile",
+  }),
   stripeCustomerId: t.Optional(
     t.String({
       description: "Stripe customer ID",
@@ -195,6 +198,7 @@ export function toMemberResponse(
     ...(document.profileCreatedAt !== undefined && {
       profileCreatedAt: timestampToIso(document.profileCreatedAt),
     }),
+    allowProfileEditing: document.allowProfileEditing ?? false,
     ...(document.stripeCustomerId !== undefined && {
       stripeCustomerId: document.stripeCustomerId,
     }),

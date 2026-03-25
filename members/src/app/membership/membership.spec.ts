@@ -459,7 +459,7 @@ describe('Membership', () => {
           uid: 'user123',
           membershipActive: true,
           name: 'Jane Doe',
-          profileApprovedAt: new Date(),
+          allowProfileEditing: true,
         },
       });
 

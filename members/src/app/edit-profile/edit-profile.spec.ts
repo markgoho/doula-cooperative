@@ -356,6 +356,7 @@ async function setup({
       slug: 'jane-doe',
       profileCreatedAt: new Date(0),
       membershipActive: true,
+      allowProfileEditing: true,
     };
   } else {
     mockMemberDocument = {
@@ -364,6 +365,7 @@ async function setup({
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
     };
   }
 
