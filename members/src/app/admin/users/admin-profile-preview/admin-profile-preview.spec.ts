@@ -1,5 +1,6 @@
+import { inputBinding } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import { AdminMembersService } from '../../services/admin-members.service';
@@ -36,7 +37,7 @@ async function setup({
   };
 
   await render(AdminProfilePreview, {
-    inputs: { uid },
+    bindings: [inputBinding('uid', () => uid)],
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       provideRouter([]),

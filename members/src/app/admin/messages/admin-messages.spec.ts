@@ -1,5 +1,5 @@
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import type { Message } from '../admin.types';
 import { AdminMessagesService } from '../services/admin-messages.service';
@@ -27,17 +27,12 @@ async function setup({
     }),
   };
 
-  const view = await render(AdminMessages, {
+  await render(AdminMessages, {
     providers: [
       { provide: AdminMessagesService, useValue: mockAdminMessagesService },
       provideRouter([]),
     ],
   });
-
-  return {
-    ...view,
-    mockAdminMessagesService,
-  };
 }
 
 describe('AdminMessages', () => {

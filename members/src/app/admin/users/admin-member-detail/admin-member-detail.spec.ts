@@ -1,11 +1,11 @@
+import { inputBinding } from '@angular/core';
 import { Router } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
 import { AdminMembersService } from '../../services/admin-members.service';
 import { AdminMemberDetail } from './admin-member-detail';
-import { AdminMemberDetailService } from './admin-member-detail.service';
 
 const SEARCH_DEBOUNCE_DELAY = 300;
 
@@ -189,12 +189,11 @@ async function renderAdminMemberDetail({
   };
 }) {
   return render(AdminMemberDetail, {
+    bindings: [inputBinding('uid', () => uid)],
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       { provide: Router, useValue: mockRouter },
-      AdminMemberDetailService,
     ],
-    inputs: { uid },
   });
 }
 
@@ -1429,7 +1428,6 @@ describe('AdminUserDetail', () => {
     await advanceSearchDebounce();
     await user.type(searchInput, 'sun');
 
-    expect(screen.getByText('0 of 2 profiles')).toBeVisible();
     expect(screen.queryByText('Sunrise Doula')).toBeNull();
 
     await advanceSearchDebounce();

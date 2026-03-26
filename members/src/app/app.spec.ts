@@ -1,25 +1,19 @@
 import { ChangeDetectionStrategy, Component, signal, type WritableSignal } from '@angular/core';
 import type { User } from '@angular/fire/auth';
-import { RouterOutlet } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 import { AuthService } from './services/auth.service';
+import { MembershipService } from './services/membership.service';
 
 @Component({
-  selector: 'app-header',
-  template: '<div>Mock Header</div>',
+  imports: [App],
+  template: '<app-root />',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MockHeader {}
-
-@Component({
-  selector: 'app-footer',
-  template: '<div>Mock Footer</div>',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class MockFooter {}
+class TestHost {}
 
 describe('App', () => {
   it('should not show verification banner when user is null', async () => {
@@ -68,9 +62,7 @@ interface SetupOptions {
   emailVerified?: boolean;
 }
 
-async function setup(options: SetupOptions = {}) {
-  const { user: userValue, emailVerified = false } = options;
-
+async function setup({ user: userValue, emailVerified = false }: SetupOptions = {}) {
   const userSignal: WritableSignal<User | null | undefined> = signal(userValue);
   const emailVerifiedSignal: WritableSignal<boolean> = signal(emailVerified);
 
@@ -78,14 +70,24 @@ async function setup(options: SetupOptions = {}) {
     user: userSignal,
     emailVerified: emailVerifiedSignal,
     resendEmailVerification: vi.fn().mockResolvedValue(undefined),
+    isAdmin: signal(false),
   };
 
-  await render(App, {
-    componentImports: [MockHeader, RouterOutlet, MockFooter],
+  const mockMembershipService = {
+    membershipActive: signal(false),
+    userDocument: signal(undefined),
+  };
+
+  await render(TestHost, {
     providers: [
+      provideRouter([]),
       {
         provide: AuthService,
         useValue: mockAuthService,
+      },
+      {
+        provide: MembershipService,
+        useValue: mockMembershipService,
       },
     ],
   });

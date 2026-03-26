@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ProfileService } from '../../../services/profile.service';
@@ -172,7 +172,7 @@ async function setup({
     navigate: vi.fn().mockResolvedValue(true),
   };
 
-  const result = await render(PreviewStep, {
+  await render(PreviewStep, {
     providers: [
       { provide: ProfileService, useValue: mockProfileService },
       { provide: Router, useValue: mockRouter },
@@ -192,5 +192,5 @@ async function setup({
   const wizardService = TestBed.inject(CreateProfileWizardService);
   const user = userEvent.setup();
 
-  return { ...result, user, mockRouter, wizardService, mockProfileService };
+  return { user, mockRouter, wizardService, mockProfileService };
 }

@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
-import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -819,6 +820,7 @@ async function setup({
         provide: MembershipService,
         useValue: mockMembershipService,
       },
+      provideRouter([]),
     ],
   });
 

@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -126,16 +127,20 @@ interface SetupOptions {
   signInImplementation?: () => Promise<void>;
 }
 
-async function setup(options: SetupOptions = {}) {
+async function setup({
+  signInError,
+  signInDelay,
+  signInImplementation,
+}: SetupOptions = {}) {
   const mockAuthService = {
     signInWithEmail: vi.fn().mockImplementation(
-      options.signInImplementation ||
+      signInImplementation ||
         (async () => {
-          if (options.signInDelay) {
-            await new Promise((resolve) => setTimeout(resolve, options.signInDelay));
+          if (signInDelay) {
+            await new Promise((resolve) => setTimeout(resolve, signInDelay));
           }
-          if (options.signInError) {
-            throw options.signInError;
+          if (signInError) {
+            throw signInError;
           }
         }),
     ),
@@ -147,6 +152,7 @@ async function setup(options: SetupOptions = {}) {
         provide: AuthService,
         useValue: mockAuthService,
       },
+      provideRouter([]),
     ],
   });
 

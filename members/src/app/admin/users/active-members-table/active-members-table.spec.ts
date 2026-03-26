@@ -1,5 +1,6 @@
-import { signal, type ResourceRef } from '@angular/core';
-import { render, screen, within } from '@testing-library/angular';
+import { inputBinding, signal, type ResourceRef } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { render, screen, within } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
@@ -39,7 +40,8 @@ async function setup({
   } as unknown as ResourceRef<ListMembersResponse | undefined>;
 
   await render(ActiveMembersTable, {
-    inputs: { membersResource: mockResource },
+    bindings: [inputBinding('membersResource', () => mockResource)],
+    providers: [provideRouter([])],
   });
   const user = userEvent.setup();
   return { user };

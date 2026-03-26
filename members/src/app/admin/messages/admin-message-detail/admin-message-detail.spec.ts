@@ -1,5 +1,5 @@
-import { computed, signal } from '@angular/core';
-import { render, screen, within } from '@testing-library/angular';
+import { computed, inputBinding, signal } from '@angular/core';
+import { render, screen, within } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Message } from '../../admin.types';
@@ -38,12 +38,18 @@ async function setup({ id = '123', message, isLoading = false, error }: SetupOpt
   mockService.messageResource.isLoading.set(isLoading);
   mockService.messageResource.error.set(error);
 
-  const user = userEvent.setup();
-
-  const view = await render(AdminMessageDetail, {
-    componentInputs: { id },
-    componentProviders: [{ provide: AdminMessageDetailService, useValue: mockService }],
+  await render(AdminMessageDetail, {
+    bindings: [inputBinding('id', () => id)],
+    configureTestBed: (testBed) => {
+      testBed.overrideComponent(AdminMessageDetail, {
+        set: {
+          providers: [{ provide: AdminMessageDetailService, useValue: mockService }],
+        },
+      });
+    },
   });
+
+  const user = userEvent.setup();
 
   // Mock dialog showModal/close since jsdom doesn't fully support it
   // Use spread operator to convert NodeList to Array
@@ -53,11 +59,7 @@ async function setup({ id = '123', message, isLoading = false, error }: SetupOpt
     dialog.close = vi.fn(() => dialog.removeAttribute('open'));
   }
 
-  return {
-    ...view,
-    user,
-    mockService,
-  };
+  return { user, mockService };
 }
 
 const mockMessage: Message = {

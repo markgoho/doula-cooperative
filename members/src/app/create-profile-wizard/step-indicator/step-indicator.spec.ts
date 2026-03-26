@@ -1,4 +1,6 @@
-import { render, screen } from '@testing-library/angular';
+import { inputBinding } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it } from 'vitest';
 import { StepIndicator } from './step-indicator';
 
@@ -50,9 +52,10 @@ interface SetupOptions {
 
 async function setup({ currentStep = 'personal', completedSteps = new Set() }: SetupOptions = {}) {
   return render(StepIndicator, {
-    inputs: {
-      currentStep,
-      completedSteps,
-    },
+    bindings: [
+      inputBinding('currentStep', () => currentStep),
+      inputBinding('completedSteps', () => completedSteps),
+    ],
+    providers: [provideRouter([])],
   });
 }

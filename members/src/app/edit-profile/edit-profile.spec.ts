@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MembershipService, type Member } from '../services/membership.service';
@@ -411,7 +411,7 @@ async function setup({
     }),
   };
 
-  const result = await render(EditProfile, {
+  await render(EditProfile, {
     providers: [
       {
         provide: ProfileService,
@@ -427,5 +427,5 @@ async function setup({
   // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
-  return { ...result, user, mockProfileService, mockMembershipService };
+  return { user, mockProfileService };
 }

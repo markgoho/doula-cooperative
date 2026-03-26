@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/angular';
+import { inputBinding, outputBinding } from '@angular/core';
+import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { type ProfileData } from '../../types/profile-data';
@@ -114,13 +115,11 @@ async function setup({
   onEditSection,
 }: SetupOptions = {}) {
   return render(ProfilePreview, {
-    inputs: {
-      profile,
-      ...(imageUrl !== undefined && { imageUrl }),
-      showEditLinks,
-    },
-    on: {
-      ...(onEditSection && { editSection: onEditSection }),
-    },
+    bindings: [
+      inputBinding('profile', () => profile),
+      inputBinding('showEditLinks', () => showEditLinks),
+      ...(imageUrl !== undefined ? [inputBinding('imageUrl', () => imageUrl)] : []),
+      ...(onEditSection ? [outputBinding('editSection', onEditSection)] : []),
+    ],
   });
 }

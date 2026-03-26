@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { provideRouter, RouterOutlet } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it } from 'vitest';
 import { CreateProfileWizardService, type WizardStep } from '../create-profile-wizard.service';
 import { wizardStepGuard } from './wizard-step.guard';
@@ -160,12 +161,17 @@ async function setup({ completedSteps = [] }: SetupOptions = {}) {
     wizardService.completeStep(step);
   }
 
-  const { navigate } = await render(MockApp, {
+  await render(MockApp, {
     providers: [
       provideRouter(routes),
       { provide: CreateProfileWizardService, useValue: wizardService },
     ],
   });
+
+  const router = TestBed.inject(Router);
+  const navigate = async (path: string) => {
+    await router.navigateByUrl(path);
+  };
 
   return { navigate };
 }

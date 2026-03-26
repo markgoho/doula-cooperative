@@ -1,6 +1,6 @@
-import { signal, type ResourceRef } from '@angular/core';
+import { inputBinding, signal, type ResourceRef } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it } from 'vitest';
 import type { ListMessagesResponse, Message } from '../../admin.types';
 import { MessagesTable } from './messages-table';
@@ -24,16 +24,10 @@ async function setup({ messages = [], isLoading = false, error }: SetupOptions =
     hasValue: signal(messages.length > 0),
   } as unknown as ResourceRef<ListMessagesResponse | undefined>;
 
-  const view = await render(MessagesTable, {
-    inputs: {
-      messagesResource: mockResource,
-    },
+  await render(MessagesTable, {
+    bindings: [inputBinding('messagesResource', () => mockResource)],
     providers: [provideRouter([])],
   });
-
-  return {
-    ...view,
-  };
 }
 
 const mockMessages: Message[] = [

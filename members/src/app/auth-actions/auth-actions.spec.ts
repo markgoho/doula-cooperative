@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/angular';
+import { inputBinding } from '@angular/core';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
@@ -471,12 +472,12 @@ async function setup({
       { provide: AuthService, useValue: mockAuthService },
       { provide: MembershipService, useValue: mockMembershipService },
     ],
-    inputs: {
-      mode,
-      oobCode,
-      continueUrl,
-      lang,
-    },
+    bindings: [
+      inputBinding('mode', () => mode),
+      inputBinding('oobCode', () => oobCode),
+      inputBinding('continueUrl', () => continueUrl),
+      inputBinding('lang', () => lang),
+    ],
   });
 
   const router = TestBed.inject(Router);

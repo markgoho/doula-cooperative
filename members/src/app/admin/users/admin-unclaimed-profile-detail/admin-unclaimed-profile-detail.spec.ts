@@ -1,10 +1,9 @@
-import { computed, signal } from '@angular/core';
+import { computed, inputBinding, signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { UnclaimedProfile } from '../../admin.types';
-import { AdminMembersService } from '../../services/admin-members.service';
 import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
@@ -15,14 +14,9 @@ describe('AdminUnclaimedProfileDetail', () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
   });
   it('should display loading state initially', async () => {
-    // Arrange & Act
-    const { resolveProfilePromise } = await setup({ shouldKeepLoading: true });
+    await setup({ shouldKeepLoading: true });
 
-    // Assert - loading state should be visible
     expect(await screen.findByText('Loading details...')).toBeVisible();
-
-    // Clean up - resolve the promise to avoid hanging test
-    resolveProfilePromise(createMockUnclaimedProfile());
   });
 
   it('should display unclaimed profile information', async () => {
@@ -164,10 +158,10 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should navigate to new email route after successful update email', async () => {
     // Arrange
-    const { component, router, mockService } = await setup();
+    const { fixture, router, mockService } = await setup();
     mockService.updateEmail.mockResolvedValue('updated@example.com');
 
-    const instance = component.fixture.componentInstance as unknown as {
+    const instance = fixture.componentInstance as unknown as {
       updateEmailValue: { set(value: string): void };
       updateEmail(): Promise<void>;
     };
@@ -182,9 +176,9 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should not navigate when update email fails', async () => {
     // Arrange
-    const { component, router } = await setup({ shouldFailUpdateEmail: true });
+    const { fixture, router } = await setup({ shouldFailUpdateEmail: true });
 
-    const instance = component.fixture.componentInstance as unknown as {
+    const instance = fixture.componentInstance as unknown as {
       updateEmailValue: { set(value: string): void };
       updateEmail(): Promise<void>;
     };
@@ -210,7 +204,7 @@ interface SetupOptions {
   errorMessage?: string;
 }
 
-async function setup(options: SetupOptions = {}) {
+async function setup(rawOptions: SetupOptions = {}) {
   const {
     email = 'test@example.com',
     profile,
@@ -221,7 +215,11 @@ async function setup(options: SetupOptions = {}) {
     shouldFailUpdateEmail = false,
     shouldKeepLoading = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
-  } = options;
+  } = rawOptions;
+
+  const hasSlugOverride = 'slug' in rawOptions;
+  const hasLastPaymentOverride = 'lastPayment' in rawOptions;
+  const hasNextPaymentOverride = 'nextPayment' in rawOptions;
 
   // Build the profile with defaults and overrides
   const baseProfile = createMockUnclaimedProfile({ email });
@@ -229,40 +227,10 @@ async function setup(options: SetupOptions = {}) {
     profile ??
     ({
       ...baseProfile,
-      ...('slug' in options ? { slug } : {}),
-      ...('lastPayment' in options ? { lastPayment } : {}),
-      ...('nextPayment' in options ? { nextPayment } : {}),
+      ...(hasSlugOverride ? { slug } : {}),
+      ...(hasLastPaymentOverride ? { lastPayment } : {}),
+      ...(hasNextPaymentOverride ? { nextPayment } : {}),
     } as UnclaimedProfile);
-
-  let resolveProfilePromise: (value: UnclaimedProfile) => void;
-  const pendingProfilePromise = new Promise<UnclaimedProfile>((resolve) => {
-    resolveProfilePromise = resolve;
-  });
-
-  let getProfileCallCount = 0;
-  const getUnclaimedProfile = vi.fn().mockImplementation(() => {
-    getProfileCallCount++;
-
-    if (shouldKeepLoading) {
-      return pendingProfilePromise;
-    }
-
-    if (shouldFailLoad && getProfileCallCount === 1) {
-      return Promise.reject(new Error(errorMessage));
-    }
-
-    return Promise.resolve(finalProfile);
-  });
-
-  const mockAdminMembersService = {
-    getUnclaimedProfile,
-    updateEmail: vi.fn().mockImplementation(() => {
-      if (shouldFailUpdateEmail) {
-        return Promise.reject(new Error('Failed'));
-      }
-      return Promise.resolve({ success: true });
-    }),
-  };
 
   // Mock the service to avoid resource() lifecycle issues in CI
   const mockService = {
@@ -292,27 +260,22 @@ async function setup(options: SetupOptions = {}) {
 
   const router = { navigate: vi.fn().mockResolvedValue(true) };
 
-  const component = await render(AdminUnclaimedProfileDetail, {
-    providers: [
-      provideRouter([]),
-      { provide: Router, useValue: router },
-      { provide: AdminMembersService, useValue: mockAdminMembersService },
-      { provide: AdminUnclaimedProfileDetailService, useValue: mockService },
-    ],
-    inputs: { email },
+  const { fixture } = await render(AdminUnclaimedProfileDetail, {
+    bindings: [inputBinding('email', () => email)],
+    providers: [provideRouter([]), { provide: Router, useValue: router }],
+    configureTestBed: (testBed) => {
+      testBed.overrideComponent(AdminUnclaimedProfileDetail, {
+        set: {
+          providers: [{ provide: AdminUnclaimedProfileDetailService, useValue: mockService }],
+        },
+      });
+    },
   });
 
   // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
-  return {
-    user,
-    component,
-    resolveProfilePromise: resolveProfilePromise!,
-    mockAdminMembersService,
-    mockService,
-    router,
-  };
+  return { user, fixture, mockService, router };
 }
 
 function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {

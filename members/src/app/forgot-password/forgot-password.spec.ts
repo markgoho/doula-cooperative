@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -174,16 +175,20 @@ interface SetupOptions {
   sendEmailImplementation?: () => Promise<void>;
 }
 
-async function setup(options: SetupOptions = {}) {
+async function setup({
+  sendEmailError,
+  sendEmailDelay,
+  sendEmailImplementation,
+}: SetupOptions = {}) {
   const mockAuthService = {
     sendPasswordResetEmail: vi.fn().mockImplementation(
-      options.sendEmailImplementation ||
+      sendEmailImplementation ||
         (async () => {
-          if (options.sendEmailDelay) {
-            await new Promise((resolve) => setTimeout(resolve, options.sendEmailDelay));
+          if (sendEmailDelay) {
+            await new Promise((resolve) => setTimeout(resolve, sendEmailDelay));
           }
-          if (options.sendEmailError) {
-            throw options.sendEmailError;
+          if (sendEmailError) {
+            throw sendEmailError;
           }
         }),
     ),
@@ -195,6 +200,7 @@ async function setup(options: SetupOptions = {}) {
         provide: AuthService,
         useValue: mockAuthService,
       },
+      provideRouter([]),
     ],
   });
 

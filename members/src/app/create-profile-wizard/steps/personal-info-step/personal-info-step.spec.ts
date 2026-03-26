@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MembershipService, type Member } from '../../../services/membership.service';
@@ -99,7 +99,7 @@ async function setup() {
     navigate: vi.fn().mockResolvedValue(true),
   };
 
-  const result = await render(PersonalInfoStep, {
+  await render(PersonalInfoStep, {
     providers: [
       { provide: CreateProfileWizardService, useValue: mockWizardService },
       { provide: MembershipService, useValue: mockMembershipService },
@@ -109,5 +109,5 @@ async function setup() {
 
   const user = userEvent.setup();
 
-  return { ...result, user, mockRouter, mockWizardService, mockMembershipService };
+  return { user, mockRouter, mockWizardService, mockMembershipService };
 }

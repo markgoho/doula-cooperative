@@ -1,5 +1,6 @@
-import { signal, type ResourceRef } from '@angular/core';
-import { render, screen, within } from '@testing-library/angular';
+import { inputBinding, signal, type ResourceRef } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { render, screen, within } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ListUnclaimedProfilesResponse, UnclaimedProfile } from '../../admin.types';
@@ -38,7 +39,8 @@ async function setup({
   } as unknown as ResourceRef<ListUnclaimedProfilesResponse | undefined>;
 
   await render(UnclaimedProfilesTable, {
-    inputs: { profilesResource: mockResource },
+    bindings: [inputBinding('profilesResource', () => mockResource)],
+    providers: [provideRouter([])],
   });
   const user = userEvent.setup();
   return { user };

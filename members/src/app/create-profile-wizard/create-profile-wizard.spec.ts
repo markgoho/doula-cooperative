@@ -1,7 +1,7 @@
 import { signal, type WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import { MembershipService, type Member } from '../services/membership.service';
 import { CreateProfileWizardService } from './create-profile-wizard.service';
@@ -21,8 +21,7 @@ describe('CreateProfileWizard', () => {
   });
 
   it('should redirect to /profile if user already has a profile', async () => {
-    const { router, mockMembershipService } = await setup({ userDocumentLoading: true });
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const { navigateSpy, mockMembershipService } = await setup({ userDocumentLoading: true });
 
     const memberWithProfile: Member = {
       uid: 'test-uid',
@@ -154,10 +153,9 @@ describe('CreateProfileWizard', () => {
   });
 
   it('should not redirect to /profile when profileCreatedAt is not set', async () => {
-    const { mockMembershipService, router } = await setup({
+    const { mockMembershipService, navigateSpy } = await setup({
       userDocumentLoading: true,
     });
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const member: Member = {
       uid: 'test-uid',
@@ -176,10 +174,9 @@ describe('CreateProfileWizard', () => {
   });
 
   it('should allow direct entry to the wizard when member has a slug but no profileCreatedAt', async () => {
-    const { mockMembershipService, router, wizardService } = await setup({
+    const { mockMembershipService, navigateSpy, wizardService } = await setup({
       userDocumentLoading: true,
     });
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const member: Member = {
       uid: 'test-uid',
@@ -253,15 +250,16 @@ async function setup({ userDocumentLoading = false }: SetupOptions = {}) {
     hasProfile: signal(false),
   };
 
-  const result = await render(CreateProfileWizard, {
+  const { fixture } = await render(CreateProfileWizard, {
     providers: [provideRouter([]), { provide: MembershipService, useValue: mockMembershipService }],
   });
 
   const router = TestBed.inject(Router);
+  const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
   const wizardService = TestBed.inject(CreateProfileWizardService);
 
   // Reset wizard service state for clean test isolation
   wizardService.reset();
 
-  return { ...result, router, wizardService, mockMembershipService };
+  return { fixture, navigateSpy, wizardService, mockMembershipService };
 }

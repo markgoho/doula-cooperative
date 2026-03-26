@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminDashboard } from './admin-dashboard';
 import { AdminMatchRequestsService } from './services/admin-match-requests.service';
@@ -45,20 +46,14 @@ async function setup({
     }),
   };
 
-  const view = await render(AdminDashboard, {
+  await render(AdminDashboard, {
     providers: [
       { provide: AdminMembersService, useValue: mockAdminMembersService },
       { provide: AdminMatchRequestsService, useValue: mockAdminMatchRequestsService },
       { provide: AdminMessagesService, useValue: mockAdminMessagesService },
+      provideRouter([]),
     ],
   });
-
-  return {
-    ...view,
-    mockAdminMembersService,
-    mockAdminMatchRequestsService,
-    mockAdminMessagesService,
-  };
 }
 
 describe('AdminDashboard', () => {

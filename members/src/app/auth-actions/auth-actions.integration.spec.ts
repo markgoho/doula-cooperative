@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet, withComponentInputBinding } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -295,7 +296,7 @@ async function setup({
     { path: 'sign-in', component: MockSignIn },
   ];
 
-  const view = await render(MockApp, {
+  await render(MockApp, {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
       { provide: AuthService, useValue: mockAuthService },
@@ -306,11 +307,10 @@ async function setup({
   // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
-  const router = view.fixture.debugElement.injector.get(Router);
+  const router = TestBed.inject(Router);
 
   // Navigate to the initial route
   await router.navigateByUrl(initialRoute);
-  view.fixture.detectChanges();
 
-  return { user, mockAuthService, router };
+  return { user };
 }
