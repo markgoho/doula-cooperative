@@ -1,11 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { buildImageKitDisplayUrl } from '../shared/profile-image-url';
+import { buildImageKitDisplayUrl, IMAGEKIT_BASE_URL } from '../shared/profile-image-url';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
-
-const IMAGEKIT_BASE_URL = 'https://ik.imagekit.io/doulacoop';
 
 interface ProfileResponse {
   success: true;
