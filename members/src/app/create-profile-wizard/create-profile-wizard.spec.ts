@@ -175,6 +175,32 @@ describe('CreateProfileWizard', () => {
     expect(navigateSpy).not.toHaveBeenCalledWith(['/profile']);
   });
 
+  it('should allow direct entry to the wizard when member has a slug but no profileCreatedAt', async () => {
+    const { mockMembershipService, router, wizardService } = await setup({
+      userDocumentLoading: true,
+    });
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const member: Member = {
+      uid: 'test-uid',
+      email: 'test@example.com',
+      name: 'Test User',
+      createdAt: new Date(0),
+      isAdmin: false,
+      membershipActive: true,
+      slug: 'test-user',
+    };
+
+    mockMembershipService.userDocument.set(member);
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(wizardService.initialized()).toBe(true);
+      expect(wizardService.resolvedSlug()).toBe('test-user');
+    });
+    expect(navigateSpy).not.toHaveBeenCalledWith(['/profile']);
+  });
+
   it('should reset wizard state on destroy', async () => {
     const { wizardService, fixture } = await setup();
 

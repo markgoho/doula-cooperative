@@ -793,6 +793,9 @@ async function setup({
     ? vi.fn().mockRejectedValue(new Error('Failed to save name'))
     : vi.fn().mockResolvedValue(undefined);
 
+  const updateMemberSlugMock = vi.fn().mockResolvedValue(undefined);
+  const checkSlugExistsMock = vi.fn().mockResolvedValue(false);
+
   const cancelMembershipMock = cancelMembershipShouldFail
     ? vi.fn().mockRejectedValue(new Error('Failed to cancel membership'))
     : vi.fn().mockResolvedValue(undefined);
@@ -801,6 +804,8 @@ async function setup({
     userDocument: signal(mockUserDocument),
     reloadUserDocument: vi.fn(),
     updateMemberName: updateMemberNameMock,
+    updateMemberSlug: updateMemberSlugMock,
+    checkSlugExists: checkSlugExistsMock,
     cancelMembership: cancelMembershipMock,
   };
 
@@ -824,6 +829,8 @@ async function setup({
     user,
     signOutMock,
     updateMemberNameMock,
+    updateMemberSlugMock,
+    checkSlugExistsMock,
     cancelMembershipMock,
   };
 }

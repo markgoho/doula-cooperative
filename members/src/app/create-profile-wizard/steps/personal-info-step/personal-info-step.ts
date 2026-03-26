@@ -88,9 +88,8 @@ export class PersonalInfoStep {
   }
 
   private createSlugValidator(): AsyncValidatorFn {
-    const currentSlug = this.membershipService.userDocument()?.slug;
-
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      const currentSlug = this.membershipService.userDocument()?.slug;
       const name = control.value?.trim();
       // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
       if (!name) return of(null);

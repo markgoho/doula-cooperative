@@ -55,6 +55,17 @@ describe('PersonalInfoStep', () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile/create/tags']);
     });
   });
+
+  it('should not update the member slug when the generated slug matches the current slug', async () => {
+    const { user, mockMembershipService } = await setup();
+
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockMembershipService.updateMemberSlug).not.toHaveBeenCalled();
+    });
+  });
 });
 
 async function setup() {

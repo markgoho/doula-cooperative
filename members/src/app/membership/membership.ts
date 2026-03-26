@@ -174,6 +174,11 @@ export class Membership {
 
     try {
       const userDocument = this.userDocument();
+      if (userDocument?.slug) {
+        await this.router.navigate(['/profile/create']);
+        return;
+      }
+
       if (!userDocument?.name) {
         throw new Error('Name is required to create profile');
       }
