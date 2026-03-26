@@ -118,7 +118,7 @@ async function setup({
     bindings: [
       inputBinding('profile', () => profile),
       inputBinding('showEditLinks', () => showEditLinks),
-      ...(imageUrl !== undefined ? [inputBinding('imageUrl', () => imageUrl)] : []),
+      ...(imageUrl === undefined ? [] : [inputBinding('imageUrl', () => imageUrl)]),
       ...(onEditSection ? [outputBinding('editSection', onEditSection)] : []),
     ],
   });
