@@ -1,4 +1,4 @@
-import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import {
   IMPORT_COLLECTION,
@@ -84,7 +84,7 @@ export async function linkProfile(options: {
     batch.update(memberReference, {
       slug,
       profileCreatedAt,
-      profileApprovedAt: FieldValue.serverTimestamp(),
+      allowProfileEditing: true,
     });
 
     await batch.commit();

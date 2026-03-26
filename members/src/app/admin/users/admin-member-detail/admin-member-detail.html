@@ -94,13 +94,9 @@
         <dd class="monospace">{{ member.slug }}</dd>
       }
 
-      <dt>Profile Approval:</dt>
+      <dt>Profile Editing:</dt>
       <dd>
-        @if (member.profileApprovedAt) {
-          Approved on {{ member.profileApprovedAt | date: 'MMM d, yyyy h:mm a' }}
-        } @else {
-          Not approved
-        }
+        {{ member.allowProfileEditing ? 'Enabled' : 'Disabled' }}
       </dd>
     </dl>
 
@@ -114,16 +110,18 @@
       }
 
       <div class="action-buttons">
-        @if (!isProfileApproved()) {
-          <button
-            type="button"
-            class="button"
-            (click)="showApproveProfileConfirm()"
-            [disabled]="service.actionInProgress()"
-          >
-            {{ service.actionInProgress() ? 'Processing...' : 'Approve Profile Work' }}
-          </button>
-        }
+        <button
+          type="button"
+          [class]="'button ' + (allowProfileEditing() ? 'button--danger' : '')"
+          (click)="showApproveProfileConfirm()"
+          [disabled]="service.actionInProgress()"
+        >
+          {{
+            service.actionInProgress()
+              ? 'Processing...'
+              : (allowProfileEditing() ? 'Disable Profile Editing' : 'Enable Profile Editing')
+          }}
+        </button>
 
         @if (member.membershipActive) {
           <button
@@ -172,7 +170,7 @@
   @if (!member.slug) {
     <section class="subscription-card">
       <h2>Link Existing Profile</h2>
-      <p>Linking an existing profile will also approve this member to edit that profile.</p>
+      <p>Linking an existing profile will also enable profile editing for this member.</p>
 
       @if (service.unlinkedProfilesResource.isLoading()) {
         <p>Loading unlinked profiles...</p>

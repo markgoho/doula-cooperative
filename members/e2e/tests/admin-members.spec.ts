@@ -18,6 +18,7 @@ const mockMembers: ApiMemberResponse[] = [
     createdAt: '2024-01-15T10:30:00.000Z',
     isAdmin: false,
     membershipActive: true,
+    allowProfileEditing: false,
     subscriptionStart: '2024-01-15T10:30:00.000Z',
     membershipExpiresAt: '2025-01-15T10:30:00.000Z',
   },
@@ -28,6 +29,7 @@ const mockMembers: ApiMemberResponse[] = [
     createdAt: '2024-02-20T14:15:00.000Z',
     isAdmin: false,
     membershipActive: false,
+    allowProfileEditing: false,
     subscriptionStart: '2024-02-20T14:15:00.000Z',
     membershipExpiresAt: '2024-08-20T14:15:00.000Z',
   },
@@ -37,6 +39,7 @@ const mockMembers: ApiMemberResponse[] = [
     createdAt: '2024-03-10T09:00:00.000Z',
     isAdmin: false,
     membershipActive: true,
+    allowProfileEditing: false,
     subscriptionStart: '2024-03-10T09:00:00.000Z',
   },
 ];

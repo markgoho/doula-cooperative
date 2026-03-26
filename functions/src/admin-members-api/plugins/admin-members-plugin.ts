@@ -27,6 +27,7 @@ import {
   ActivateMembershipApiResponseSchema,
   ActivateMembershipBodySchema,
   ApproveProfileApiResponseSchema,
+  ApproveProfileBodySchema,
   CancelMembershipApiResponseSchema,
   CleanSlateApiResponseSchema,
   DeleteDraftProfileApiResponseSchema,
@@ -191,18 +192,20 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               response: ToggleProfileDraftApiResponseSchema,
             },
           )
-          // POST /:memberId/profile/approve - Approve member for profile work (served at /api/admin/members/:memberId/profile/approve)
+          // POST /:memberId/profile/approve - Enable or disable profile editing permission (served at /api/admin/members/:memberId/profile/approve)
           .post(
             "/profile/approve",
-            async ({ params, adminToken, memberAdminService, logger, set }) =>
+            async ({ params, body, adminToken, memberAdminService, logger, set }) =>
               approveProfileLogic({
                 memberId: params.memberId,
+                allowProfileEditing: body.allowProfileEditing,
                 adminUid: getAdminUid(adminToken, logger),
                 memberAdminService,
                 logger,
                 set,
               }),
             {
+              body: ApproveProfileBodySchema,
               response: ApproveProfileApiResponseSchema,
             },
           )

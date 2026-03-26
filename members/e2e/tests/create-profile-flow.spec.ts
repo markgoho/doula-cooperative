@@ -1,5 +1,5 @@
 import { test } from '../fixtures/regular-user-auth.fixture';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import type { ProfileData } from '../../src/app/types/profile-data';
 import { EditProfilePage } from '../pages/edit-profile.page';
 import type { ApiMemberResponse } from '../../src/app/api-types/members-api.types';
@@ -12,7 +12,13 @@ const mockMemberDocument: ApiMemberResponse = {
   isAdmin: false,
   subscriptionStart: '2024-01-01T00:00:00.000Z',
   membershipActive: true,
+  allowProfileEditing: true,
+};
+
+const mockCreatedMemberDocument: ApiMemberResponse = {
+  ...mockMemberDocument,
   slug: 'test-user',
+  profileCreatedAt: '2024-01-02T00:00:00.000Z',
 };
 
 const mockProfileData: ProfileData = {
@@ -25,20 +31,25 @@ const mockProfileData: ProfileData = {
   draft: true,
 };
 
-function setupApiMocks(page: import('@playwright/test').Page) {
+function createCurrentMemberDocument(): ApiMemberResponse {
+  return { ...mockMemberDocument };
+}
+
+let currentMemberDocument = createCurrentMemberDocument();
+
+function setupApiMocks(page: Page) {
+  currentMemberDocument = createCurrentMemberDocument();
+
   return Promise.all([
-    // Mock member document (no profileCreatedAt so wizard doesn't redirect)
     page.route('**/api/members/*', async (route) => {
       await (route.request().method() === 'GET'
         ? route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(mockMemberDocument),
+            body: JSON.stringify(currentMemberDocument),
           })
         : route.continue());
     }),
-
-    // Mock slug availability check (slug is available)
     page.route(/\/api\/profiles\/slugs\/check(\?|$)/, async (route) => {
       await route.fulfill({
         status: 200,
@@ -46,57 +57,64 @@ function setupApiMocks(page: import('@playwright/test').Page) {
         body: JSON.stringify({ available: true }),
       });
     }),
-
-    // Mock slug update
     page.route('**/api/profiles/slugs', async (route) => {
-      await (route.request().method() === 'POST'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, slug: 'test-user' }),
-          })
-        : route.continue());
-    }),
+      if (route.request().method() === 'POST') {
+        currentMemberDocument = {
+          ...currentMemberDocument,
+          slug: 'test-user',
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, slug: 'test-user' }),
+        });
+        return;
+      }
 
-    // Mock profile creation (POST) and profile fetch (GET)
+      await route.continue();
+    }),
     page.route('**/api/profiles/test-user', async (route) => {
       const method = route.request().method();
       if (method === 'POST') {
+        currentMemberDocument = mockCreatedMemberDocument;
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
           body: JSON.stringify({ success: true, profile: mockProfileData }),
         });
-      } else if (method === 'GET') {
+        return;
+      }
+
+      if (method === 'GET') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(mockProfileData),
         });
-      } else {
-        await route.continue();
+        return;
       }
+
+      await route.continue();
     }),
   ]);
 }
 
-async function walkThroughWizard(page: import('@playwright/test').Page) {
-  await page.goto('/profile/create');
+async function walkThroughWizard(page: Page) {
+  await page.goto('/membership');
+  await page.getByRole('button', { name: 'Create Profile' }).click();
 
   // === Step 1: Personal Info ===
-  await page
-    .getByRole('heading', { name: /Personal Information/i, level: 2 })
-    .waitFor({ state: 'visible' });
-  // Name is pre-filled from member document, but we clear and type to trigger slug validator
+  await page.getByRole('heading', { name: /Personal Information/i, level: 2 }).waitFor({
+    state: 'visible',
+  });
   await page.getByLabel(/^Name/i).fill('Test User');
-  // Wait for async slug validator to resolve (shows URL preview)
   await expect(page.getByText(/Your profile URL/i)).toBeVisible({ timeout: 10_000 });
   await page.getByRole('button', { name: 'Next' }).click();
 
   // === Step 2: Tags ===
-  await page
-    .getByRole('heading', { name: /Services & Specialties/i, level: 2 })
-    .waitFor({ state: 'visible' });
+  await page.getByRole('heading', { name: /Services & Specialties/i, level: 2 }).waitFor({
+    state: 'visible',
+  });
   await page.getByLabel('Birth Doula').check();
   await page.getByRole('button', { name: 'Next' }).click();
 
@@ -106,25 +124,24 @@ async function walkThroughWizard(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'Next' }).click();
 
   // === Step 4: Contact ===
-  await page
-    .getByRole('heading', { name: /Contact Information/i, level: 2 })
-    .waitFor({ state: 'visible' });
+  await page.getByRole('heading', { name: /Contact Information/i, level: 2 }).waitFor({
+    state: 'visible',
+  });
   await page.getByRole('button', { name: 'Next' }).click();
 
   // === Step 5: Image (skip) ===
-  await page
-    .getByRole('heading', { name: /Profile Photo/i, level: 2 })
-    .waitFor({ state: 'visible' });
+  await page.getByRole('heading', { name: /Profile Photo/i, level: 2 }).waitFor({
+    state: 'visible',
+  });
   await page.getByRole('button', { name: /Skip for now/i }).click();
 
-  // === Step 6: Preview (triggers profile creation POST on Finish) ===
-  await page
-    .getByRole('heading', { name: /Preview Your Profile/i, level: 2 })
-    .waitFor({ state: 'visible' });
+  // === Step 6: Preview ===
+  await page.getByRole('heading', { name: /Preview Your Profile/i, level: 2 }).waitFor({
+    state: 'visible',
+  });
   await page.getByRole('button', { name: 'Finish' }).click();
 
-  // Wait for navigation to the edit profile page
-  await page.waitForURL('/profile', { timeout: 10_000 });
+  await expect(page).toHaveURL(/\/profile$/);
 }
 
 test.describe('Create Profile → Edit Profile Flow', () => {
@@ -132,11 +149,8 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     authenticatedUserPage,
   }) => {
     await setupApiMocks(authenticatedUserPage);
-
-    // === Walk through the 6-step wizard ===
     await walkThroughWizard(authenticatedUserPage);
 
-    // === Profile form should load with data from the created profile ===
     const editProfilePage = new EditProfilePage(authenticatedUserPage);
     await editProfilePage.waitForProfileForm();
     await expect(editProfilePage.titleInput).toHaveValue('Test User');
@@ -147,11 +161,8 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     authenticatedUserPage,
   }) => {
     await setupApiMocks(authenticatedUserPage);
-
-    // === Walk through the 6-step wizard ===
     await walkThroughWizard(authenticatedUserPage);
 
-    // === Profile form should load immediately with correct data ===
     const editProfilePage = new EditProfilePage(authenticatedUserPage);
     await editProfilePage.waitForProfileForm();
     await expect(editProfilePage.titleInput).toHaveValue('Test User');

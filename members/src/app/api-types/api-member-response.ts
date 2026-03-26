@@ -12,7 +12,7 @@ export interface ApiMemberResponse {
   membershipExpiresAt?: string;
   slug?: string;
   profileCreatedAt?: string;
-  profileApprovedAt?: string;
+  allowProfileEditing: boolean;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: SubscriptionStatus;

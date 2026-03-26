@@ -23,7 +23,11 @@ export class Header {
   });
 
   protected readonly canEditProfile = computed(() => {
-    return this.isEmailVerified() && this.membershipService.membershipActive();
+    return (
+      this.isEmailVerified() &&
+      this.membershipService.membershipActive() &&
+      this.membershipService.allowProfileEditing()
+    );
   });
 
   protected readonly hasProfile = computed(() => {

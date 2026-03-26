@@ -47,6 +47,7 @@ describe("GET /:memberId (authenticated)", () => {
         createdAt: Timestamp.now(),
         name: "Test Member",
         membershipActive: true,
+        allowProfileEditing: true,
       });
     });
 
@@ -158,9 +159,12 @@ describe("GET /:memberId (authenticated)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as MemberDocument;
+      const body = (await response.json()) as MemberDocument & {
+        allowProfileEditing: boolean;
+      };
       expect(body.uid).toBe("test-member-id");
       expect(body.name).toBe("Test Member");
+      expect(body.allowProfileEditing).toBe(true);
     });
 
     it("should return 404 when member does not exist", async () => {

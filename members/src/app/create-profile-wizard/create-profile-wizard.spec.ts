@@ -31,6 +31,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
       profileCreatedAt: new Date(),
     };
@@ -52,6 +53,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     };
     mockMembershipService.userDocument.set(member);
@@ -72,6 +74,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     };
     mockMembershipService.userDocument.set(member);
@@ -92,6 +95,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     };
     mockMembershipService.userDocument.set(member);
@@ -112,6 +116,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     };
     mockMembershipService.userDocument.set(member);
@@ -141,6 +146,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     } as Member;
     mockMembershipService.userDocument.set(member);
@@ -166,6 +172,7 @@ describe('CreateProfileWizard', () => {
       createdAt: new Date(0),
       isAdmin: false,
       membershipActive: true,
+      allowProfileEditing: true,
       slug: 'test-user',
     };
     mockMembershipService.userDocument.set(member);
@@ -219,6 +226,7 @@ async function setup({ userDocumentLoading = false }: SetupOptions = {}) {
         createdAt: new Date(0),
         isAdmin: false,
         membershipActive: true,
+        allowProfileEditing: true,
         slug: 'test-user',
       };
 

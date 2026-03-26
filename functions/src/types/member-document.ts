@@ -44,8 +44,13 @@ export interface MemberDocument {
    */
   profileCreatedAt?: Timestamp;
   /**
-   * Timestamp when an admin approved the member to create or edit a public doula profile.
-   * Undefined if the member has not been approved for profile work.
+   * Whether an admin currently allows the member to create or edit a public doula profile.
+   * Defaults to false when unset.
+   */
+  allowProfileEditing?: boolean;
+  /**
+   * Legacy timestamp when an admin approved the member for profile work.
+   * Kept only for migration/backfill purposes.
    */
   profileApprovedAt?: Timestamp;
   stripeCustomerId?: string;

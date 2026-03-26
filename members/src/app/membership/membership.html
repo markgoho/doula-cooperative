@@ -8,8 +8,8 @@
           <p>Welcome, {{ name }}!</p>
         }
         <p>
-          You have an active membership and admin approval. Create your public doula profile to
-          appear in our directory and connect with families.
+          You have an active membership and profile editing access. Create your public doula profile
+          to appear in our directory and connect with families.
         </p>
 
         <button
@@ -31,11 +31,11 @@
       </div>
     }
 
-    @if (showProfileApprovalPending()) {
-      <section class="create-profile-banner" aria-labelledby="profile-approval-pending-heading">
-        <h3 id="profile-approval-pending-heading">Profile approval pending</h3>
+    @if (showProfileEditingPending()) {
+      <section class="create-profile-banner" aria-labelledby="profile-editing-pending-heading">
+        <h3 id="profile-editing-pending-heading">Profile editing not enabled</h3>
         <p>
-          Your membership is active, but profile creation is pending admin approval. Once approved,
+          Your membership is active, but profile editing has not been enabled yet. Once enabled,
           you'll be able to create or edit your profile here.
         </p>
       </section>

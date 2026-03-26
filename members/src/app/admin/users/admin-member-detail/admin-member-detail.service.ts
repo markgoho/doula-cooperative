@@ -204,20 +204,24 @@ export class AdminMemberDetailService {
   }
 
   /**
-   * Delete a draft profile for the current member
+   * Set whether the current member can create or edit a profile.
    */
-  async approveProfile(uid: string): Promise<void> {
+  async approveProfile(uid: string, allowProfileEditing: boolean): Promise<void> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
-      await this.adminMembersService.approveProfile(uid);
-      this.successMessage.set('Profile work approved successfully');
+      await this.adminMembersService.approveProfile(uid, allowProfileEditing);
+      this.successMessage.set(
+        allowProfileEditing
+          ? 'Profile editing enabled successfully'
+          : 'Profile editing disabled successfully',
+      );
       this.memberResource.reload();
     } catch (error) {
-      console.error('Error approving profile work:', error);
-      this.actionError.set('Failed to approve profile work.');
+      console.error('Error updating profile editing permission:', error);
+      this.actionError.set('Failed to update profile editing permission.');
     } finally {
       this.actionInProgress.set(false);
     }
@@ -271,7 +275,7 @@ export class AdminMemberDetailService {
 
     try {
       await this.adminMembersService.linkProfile(uid, slug);
-      this.successMessage.set(`Profile "${slug}" linked and approved successfully`);
+      this.successMessage.set(`Profile "${slug}" linked and profile editing enabled successfully`);
       this.memberResource.reload();
     } catch (error) {
       console.error('Error linking profile:', error);

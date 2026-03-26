@@ -25,6 +25,7 @@ test.describe('Claim Profile Flow', () => {
     isAdmin: false,
     subscriptionStart: '2024-01-01T00:00:00.000Z',
     membershipActive: true,
+    allowProfileEditing: false,
     // No slug - profile not set up yet
   };
 

@@ -6,7 +6,7 @@ import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
 import type { LinkProfileResult } from "./link-profile.js";
 import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";
 import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
-import type { ApproveProfileResult } from "./approve-profile.js";
+import type { SetProfileEditingPermissionResult } from "./approve-profile.js";
 import type { ReadProfileResult } from "./read-profile.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";
@@ -121,6 +121,18 @@ export interface MemberAdminService {
   }): Promise<void>;
 
   /**
+   * Set whether a member can create or edit a profile.
+   *
+   * @param options - Member ID and desired permission state
+   * @returns Promise resolving to updated member document
+   * @throws NotFoundError if member does not exist
+   */
+  approveProfile(options: {
+    memberId: string;
+    allowProfileEditing: boolean;
+  }): Promise<SetProfileEditingPermissionResult>;
+
+  /**
    * Check if a user has admin privileges.
    *
    * @param uid - The user's UID
@@ -218,15 +230,6 @@ export interface MemberAdminService {
    * @returns Promise resolving to array of unlinked profiles
    */
   listUnlinkedProfiles(): Promise<ListUnlinkedProfilesResult>;
-
-  /**
-   * Approve a member to create or edit a profile.
-   *
-   * @param options - Object containing memberId
-   * @returns Promise resolving to updated member document
-   * @throws NotFoundError if member does not exist
-   */
-  approveProfile(options: { memberId: string }): Promise<ApproveProfileResult>;
 
   /**
    * Link an unlinked profile to a member account.

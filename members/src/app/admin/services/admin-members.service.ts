@@ -33,6 +33,10 @@ interface ApiMemberSuccessResponse {
 }
 
 type ApiApproveProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
+
+interface ApproveProfileRequestBody {
+  allowProfileEditing: boolean;
+}
 type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
 type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;
 
@@ -130,9 +134,11 @@ export class AdminMembersService {
     );
   }
 
-  async approveProfile(uid: string): Promise<ApiMemberResponse> {
+  async approveProfile(uid: string, allowProfileEditing: boolean): Promise<ApiMemberResponse> {
     const response = await firstValueFrom(
-      this.httpClient.post<ApiApproveProfileResponse>(`/api/admin/members/${uid}/profile/approve`, {}),
+      this.httpClient.post<ApiApproveProfileResponse>(`/api/admin/members/${uid}/profile/approve`, {
+        allowProfileEditing,
+      } satisfies ApproveProfileRequestBody),
     );
 
     return toLinkedMember(response);
