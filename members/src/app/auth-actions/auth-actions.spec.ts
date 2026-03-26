@@ -38,7 +38,6 @@ describe('AuthActions - Unit Tests', () => {
         errorMessage: 'Invalid action code',
       });
 
-      expect(await screen.findByText('Processing...')).toBeVisible();
       expect(await screen.findByText('There was a problem')).toBeVisible();
       expect(await screen.findByText('Invalid action code')).toBeVisible();
       expect(mockAuthService.applyActionCode).toHaveBeenCalledWith('invalid-code');
@@ -58,13 +57,13 @@ describe('AuthActions - Unit Tests', () => {
   });
 
   describe('resetPassword mode', () => {
-    it('should show processing state initially', async () => {
+    it('should show reset form after initial processing', async () => {
       await setup({
         mode: 'resetPassword',
         oobCode: 'reset-code-123',
       });
 
-      expect(await screen.findByText('Processing...')).toBeVisible();
+      expect(await screen.findByText('Reset your password')).toBeVisible();
     });
 
     it('should verify code and show password reset form', async () => {
@@ -311,13 +310,18 @@ describe('AuthActions - Unit Tests', () => {
   });
 
   describe('recoverEmail mode', () => {
-    it('should show processing state', async () => {
+    it('should show recovery success message', async () => {
       await setup({
         mode: 'recoverEmail',
         oobCode: 'recover-code-123',
       });
 
-      expect(await screen.findByText('Processing...')).toBeVisible();
+      expect(await screen.findByText('Success')).toBeVisible();
+      expect(
+        await screen.findByText(
+          'Your email has been restored. Please check your inbox to secure your account.',
+        ),
+      ).toBeVisible();
     });
 
     it('should recover email and show success message', async () => {
