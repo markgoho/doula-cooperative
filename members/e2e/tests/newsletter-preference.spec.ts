@@ -14,6 +14,7 @@ const mockMemberDocumentBase: ApiMemberResponse = {
   isAdmin: false,
   subscriptionStart: '2024-01-01T00:00:00.000Z',
   membershipActive: true,
+  allowProfileEditing: true,
   slug: 'test-user',
 };
 

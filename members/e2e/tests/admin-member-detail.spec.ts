@@ -14,6 +14,7 @@ const mockMember: ApiMemberResponse = {
   createdAt: '2024-01-15T10:30:00.000Z',
   isAdmin: false,
   membershipActive: true,
+  allowProfileEditing: false,
   subscriptionStart: '2024-01-15T10:30:00.000Z',
   membershipExpiresAt: '2025-01-15T10:30:00.000Z',
   slug: 'test-member',

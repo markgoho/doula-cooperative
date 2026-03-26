@@ -19,6 +19,7 @@ const mockActiveStripeMember: ApiMemberResponse = {
   isAdmin: false,
   subscriptionStart: '2024-01-15T00:00:00.000Z',
   membershipActive: true,
+  allowProfileEditing: true,
   stripeCustomerId: 'cus_test123',
   stripeSubscriptionId: 'sub_test456',
   subscriptionStatus: 'active',
