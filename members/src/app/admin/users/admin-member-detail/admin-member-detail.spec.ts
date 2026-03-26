@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
@@ -1040,10 +1040,11 @@ describe('AdminUserDetail', () => {
     const { user, mockAdminMembersService } = await setup({ member });
 
     await user.click(await screen.findByRole('button', { name: 'Enable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Enable Profile Editing' }));
 
     expect(mockAdminMembersService.approveProfile).toHaveBeenCalledWith('test-uid-123', true);
-    expect(await screen.findByText('Profile editing enabled successfully')).toBeVisible();
+    expect(await screen.findByRole('status')).toHaveTextContent('Profile editing enabled successfully');
   });
 
   it('should disable profile editing after confirmation', async () => {
@@ -1052,10 +1053,11 @@ describe('AdminUserDetail', () => {
     const { user, mockAdminMembersService } = await setup({ member });
 
     await user.click(await screen.findByRole('button', { name: 'Disable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Disable Profile Editing' }));
 
     expect(mockAdminMembersService.approveProfile).toHaveBeenCalledWith('test-uid-123', false);
-    expect(await screen.findByText('Profile editing disabled successfully')).toBeVisible();
+    expect(await screen.findByRole('status')).toHaveTextContent('Profile editing disabled successfully');
   });
 
   it('should show error when updating profile editing permission fails', async () => {
@@ -1068,9 +1070,10 @@ describe('AdminUserDetail', () => {
     });
 
     await user.click(await screen.findByRole('button', { name: 'Enable Profile Editing' }));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }).nextElementSibling as HTMLButtonElement);
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Enable Profile Editing' }));
 
-    expect(await screen.findByText('Failed to update profile editing permission.')).toBeVisible();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed to update profile editing permission.');
   });
 
   it('should display subscription dates', async () => {

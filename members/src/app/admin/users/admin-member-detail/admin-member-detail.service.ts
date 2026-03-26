@@ -204,7 +204,7 @@ export class AdminMemberDetailService {
   }
 
   /**
-   * Delete a draft profile for the current member
+   * Set whether the current member can create or edit a profile.
    */
   async approveProfile(uid: string, allowProfileEditing: boolean): Promise<void> {
     this.actionInProgress.set(true);

@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, type WritableSignal } from '@angular/core';
 import { provideRouter, RouterOutlet } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular';
 import { describe, expect, it } from 'vitest';
+import type { ResourceStatus } from '@angular/core';
 import { MembershipService } from '../services/membership.service';
 import { profileEditingGuard } from './profile-editing.guard';
 
@@ -28,6 +28,13 @@ class MockEditProfilePage {}
 class MockCreateProfilePage {}
 
 @Component({
+  selector: 'app-mock-edit-profile-image-page',
+  template: '<h1>Edit Profile Image Page</h1>',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+class MockEditProfileImagePage {}
+
+@Component({
   selector: 'app-mock-root',
   template: '<router-outlet></router-outlet>',
   imports: [RouterOutlet],
@@ -45,6 +52,11 @@ const routes = [
   {
     path: 'profile/create',
     component: MockCreateProfilePage,
+    canActivate: [profileEditingGuard],
+  },
+  {
+    path: 'profile/image',
+    component: MockEditProfileImagePage,
     canActivate: [profileEditingGuard],
   },
 ];
@@ -81,26 +93,94 @@ describe('profileEditingGuard - Integration Tests', () => {
 
     expect(screen.getByText('Create Profile Page')).toBeVisible();
   });
+
+  it('should wait for member document loading before allowing guarded routes', async () => {
+    const { navigate, resourceStatus } = await setup({
+      membershipActive: true,
+      allowProfileEditing: true,
+      resourceStatus: 'loading',
+    });
+
+    const navigation = navigate('/profile');
+
+    expect(screen.queryByText('Edit Profile Page')).toBeNull();
+    expect(screen.queryByText('Membership Page')).toBeNull();
+
+    resourceStatus.set('resolved');
+    await navigation;
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Profile Page')).toBeVisible();
+    });
+  });
+
+  it('should redirect when member document finishes loading without editing permission', async () => {
+    const { navigate, resourceStatus, memberDocument } = await setup({
+      membershipActive: true,
+      allowProfileEditing: true,
+      resourceStatus: 'loading',
+    });
+
+    const navigation = navigate('/profile');
+    memberDocument.set({
+      uid: 'user123',
+      email: 'jane@example.com',
+      createdAt: new Date(),
+      isAdmin: false,
+      membershipActive: true,
+      allowProfileEditing: false,
+    });
+    resourceStatus.set('resolved');
+    await navigation;
+
+    await waitFor(() => {
+      expect(screen.getByText('Membership Page')).toBeVisible();
+    });
+  });
+
+  it('should redirect guarded routes when member document load errors', async () => {
+    const { navigate } = await setup({ resourceStatus: 'error' });
+
+    await navigate('/profile');
+
+    expect(screen.getByText('Membership Page')).toBeVisible();
+  });
+
+  it('should guard the profile image route', async () => {
+    const { navigate } = await setup({ membershipActive: true, allowProfileEditing: true });
+
+    await navigate('/profile/image');
+
+    expect(screen.getByText('Edit Profile Image Page')).toBeVisible();
+  });
 });
 
 interface SetupOptions {
   membershipActive?: boolean;
   allowProfileEditing?: boolean;
+  resourceStatus?: ResourceStatus;
 }
 
 async function setup({
   membershipActive = false,
   allowProfileEditing = false,
+  resourceStatus = 'resolved',
 }: SetupOptions = {}) {
+  const memberDocument = signal({
+    uid: 'user123',
+    email: 'jane@example.com',
+    createdAt: new Date(),
+    isAdmin: false,
+    membershipActive,
+    allowProfileEditing,
+  });
+  const statusSignal: WritableSignal<ResourceStatus> = signal(resourceStatus);
+
   const mockMembershipService = {
-    userDocument: signal({
-      uid: 'user123',
-      email: 'jane@example.com',
-      createdAt: new Date(),
-      isAdmin: false,
-      membershipActive,
-      allowProfileEditing,
-    }),
+    userDocument: memberDocument,
+    userDocumentResource: {
+      status: statusSignal,
+    },
   };
 
   const { navigate } = await render(MockApp, {
@@ -110,5 +190,5 @@ async function setup({
     ],
   });
 
-  return { navigate };
+  return { navigate, resourceStatus: statusSignal, memberDocument };
 }

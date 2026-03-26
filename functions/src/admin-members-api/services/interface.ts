@@ -125,6 +125,7 @@ export interface MemberAdminService {
    *
    * @param options - Member ID and desired permission state
    * @returns Promise resolving to updated member document
+   * @throws NotFoundError if member does not exist
    */
   approveProfile(options: {
     memberId: string;
