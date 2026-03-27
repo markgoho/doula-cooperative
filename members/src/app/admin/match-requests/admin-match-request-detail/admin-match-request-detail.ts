@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   signal,
@@ -55,10 +54,7 @@ export class AdminMatchRequestDetail {
   });
 
   constructor() {
-    // Sync route id parameter to service signal
-    effect(() => {
-      this.service.idSignal.set(this.id());
-    });
+    this.service.init(this.id);
   }
 
   protected parseDueDate(dueDate: DueDate): Date | undefined {

@@ -69,6 +69,7 @@ export class AdminUnclaimedProfileDetailService {
 
     try {
       await this.adminMembersService.updateEmail(oldEmail, newEmail);
+      this.unclaimedState.invalidate();
       this.successMessage.set(`Email updated to ${newEmail}`);
       return newEmail;
     } catch (error) {
