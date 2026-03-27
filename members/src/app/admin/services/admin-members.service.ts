@@ -32,7 +32,6 @@ interface ApiMemberSuccessResponse {
   member: ApiMemberResponse;
 }
 
-type ApiApproveProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
 type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
 type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;
 
@@ -128,14 +127,6 @@ export class AdminMembersService {
         newExpirationDate,
       }),
     );
-  }
-
-  async approveProfile(uid: string): Promise<ApiMemberResponse> {
-    const response = await firstValueFrom(
-      this.httpClient.post<ApiApproveProfileResponse>(`/api/admin/members/${uid}/profile/approve`, {}),
-    );
-
-    return toLinkedMember(response);
   }
 
   async readMemberProfile(uid: string): Promise<MemberProfile> {

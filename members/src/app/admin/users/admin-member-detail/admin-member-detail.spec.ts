@@ -24,7 +24,6 @@ interface SetupOptions {
   shouldFailCancel?: boolean;
   shouldFailCleanSlate?: boolean;
   shouldFailToggleDraft?: boolean;
-  shouldFailApproveProfile?: boolean;
   shouldFailLinkProfile?: boolean;
   shouldFailUnlinkedProfilesLoad?: boolean;
   shouldKeepLoading?: boolean;
@@ -66,7 +65,6 @@ function createMockAdminMembersService({
   uid,
   profileDraft,
   shouldFailToggleDraft,
-  shouldFailApproveProfile,
   shouldFailUnlinkedProfilesLoad,
   unlinkedProfiles,
   shouldFailLinkProfile,
@@ -82,7 +80,6 @@ function createMockAdminMembersService({
   uid: string;
   profileDraft: boolean;
   shouldFailToggleDraft: boolean;
-  shouldFailApproveProfile: boolean;
   shouldFailUnlinkedProfilesLoad: boolean;
   unlinkedProfiles: UnlinkedProfileFixture[];
   shouldFailLinkProfile: boolean;
@@ -95,7 +92,6 @@ function createMockAdminMembersService({
     cleanSlateDelete: ReturnType<typeof vi.fn>;
     readMemberProfile: ReturnType<typeof vi.fn>;
     toggleProfileDraft: ReturnType<typeof vi.fn>;
-    approveProfile: ReturnType<typeof vi.fn>;
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
   };
@@ -151,9 +147,6 @@ function createMockAdminMembersService({
           slug: 'test-slug',
           draft: !profileDraft,
         }),
-    approveProfile: shouldFailApproveProfile
-      ? vi.fn().mockRejectedValue(new Error('Failed'))
-      : vi.fn().mockResolvedValue(memberToUse),
     listUnlinkedProfiles:
       overrideListUnlinkedProfiles ??
       (shouldFailUnlinkedProfilesLoad
@@ -180,7 +173,6 @@ async function renderAdminMemberDetail({
     cleanSlateDelete: ReturnType<typeof vi.fn>;
     readMemberProfile: ReturnType<typeof vi.fn>;
     toggleProfileDraft: ReturnType<typeof vi.fn>;
-    approveProfile: ReturnType<typeof vi.fn>;
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
   };
@@ -218,7 +210,6 @@ async function setup({
   shouldFailCancel = false,
   shouldFailCleanSlate = false,
   shouldFailToggleDraft = false,
-  shouldFailApproveProfile = false,
   shouldFailLinkProfile = false,
   shouldFailUnlinkedProfilesLoad = false,
   shouldKeepLoading = false,
@@ -246,7 +237,6 @@ async function setup({
     uid,
     profileDraft,
     shouldFailToggleDraft,
-    shouldFailApproveProfile,
     shouldFailUnlinkedProfilesLoad,
     unlinkedProfiles,
     shouldFailLinkProfile,
@@ -395,25 +385,6 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByText('Not approved')).toBeVisible();
   });
 
-  it('should show approve profile action when member is not approved', async () => {
-    const member = createMockMember();
-    delete member.profileApprovedAt;
-
-    await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Approve Profile Work' })).toBeVisible();
-  });
-
-  it('should hide approve profile action when member is already approved', async () => {
-    const member = createMockMember({
-      profileApprovedAt: '2024-03-15T14:30:00.000Z',
-    });
-
-    await setup({ member });
-
-    expect(screen.queryByRole('button', { name: 'Approve Profile Work' })).toBeNull();
-  });
-
   it('should explain that linking also approves profile editing', async () => {
     const member = createMockMemberWithoutSlug({
       membershipActive: true,
@@ -556,46 +527,6 @@ describe('AdminUserDetail', () => {
     expect(await screen.findByRole('button', { name: 'Load Profile Status' })).toBeVisible();
   });
 
-  it('should hide approve profile work for already approved linked members', async () => {
-    const member = createMockMember({
-      slug: 'test-slug',
-      membershipActive: true,
-      profileApprovedAt: '2024-03-15T14:30:00.000Z',
-    });
-
-    await setup({ member });
-
-    expect(screen.queryByRole('button', { name: 'Approve Profile Work' })).toBeNull();
-  });
-
-  it('should still allow approval action for inactive linked members without approval', async () => {
-    const member = createMockMember({
-      slug: 'test-slug',
-      membershipActive: false,
-    });
-    delete member.profileApprovedAt;
-
-    await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Approve Profile Work' })).toBeVisible();
-  });
-
-  it('should keep success banner test aligned with approval-aware link copy', async () => {
-    const member = createMockMemberWithoutSlug({
-      membershipActive: true,
-    });
-    const { user } = await setup({
-      member,
-      useFakeTimers: true,
-      unlinkedProfiles: [createUnlinkedProfile()],
-    });
-
-    await user.click(await screen.findByRole('button', { name: 'Link' }));
-    await user.click(screen.getByRole('button', { name: 'Link Profile' }));
-
-    expect(await screen.findByText(/linked and approved successfully/)).toBeVisible();
-  });
-
   it('should preserve inactive member link helper copy', async () => {
     const member = createMockMemberWithoutSlug({
       membershipActive: false,
@@ -626,17 +557,6 @@ describe('AdminUserDetail', () => {
     });
 
     expect(await screen.findByRole('heading', { name: 'Link Existing Profile' })).toBeVisible();
-  });
-
-  it('should keep approval button text stable for unapproved members', async () => {
-    const member = createMockMember({
-      membershipActive: true,
-    });
-    delete member.profileApprovedAt;
-
-    await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Approve Profile Work' })).toBeVisible();
   });
 
   it('should keep load profile status text stable for linked members', async () => {
@@ -829,25 +749,6 @@ describe('AdminUserDetail', () => {
     expect(screen.queryByText('Not approved')).toBeNull();
   });
 
-  it('should not show approve button when member already has profile approval', async () => {
-    const member = createMockMember({
-      profileApprovedAt: '2024-03-15T14:30:00.000Z',
-    });
-
-    await setup({ member });
-
-    expect(screen.queryByRole('button', { name: 'Approve Profile Work' })).toBeNull();
-  });
-
-  it('should show approve button when member has no profile approval timestamp', async () => {
-    const member = createMockMember();
-    delete member.profileApprovedAt;
-
-    await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Approve Profile Work' })).toBeVisible();
-  });
-
   it('should show link profile section for members without slug', async () => {
     const member = createMockMemberWithoutSlug();
 
@@ -978,58 +879,6 @@ describe('AdminUserDetail', () => {
     });
 
     expect(screen.queryByRole('heading', { name: 'Profile' })).toBeNull();
-  });
-
-  it('should keep approve profile action available independently of membership activation action', async () => {
-    const member = createMockMember({
-      membershipActive: false,
-    });
-    delete member.profileApprovedAt;
-
-    await setup({ member });
-
-    expect(await screen.findByRole('button', { name: 'Approve Profile Work' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Activate Membership' })).toBeVisible();
-  });
-
-  it('should keep publish and approval actions independent', async () => {
-    const member = createMockMember({
-      slug: 'test-slug',
-      profileApprovedAt: '2024-03-15T14:30:00.000Z',
-    });
-
-    await setup({ member, profileDraft: true });
-
-    expect(await screen.findByRole('button', { name: 'Load Profile Status' })).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Approve Profile Work' })).toBeNull();
-  });
-
-  it('should approve profile work after confirmation', async () => {
-    const member = createMockMember();
-    delete member.profileApprovedAt;
-
-    const { user, mockAdminMembersService } = await setup({ member });
-
-    await user.click(await screen.findByRole('button', { name: 'Approve Profile Work' }));
-    await user.click(screen.getByRole('button', { name: 'Approve Profile Approval' }));
-
-    expect(mockAdminMembersService.approveProfile).toHaveBeenCalledWith('test-uid-123');
-    expect(await screen.findByText('Profile work approved successfully')).toBeVisible();
-  });
-
-  it('should show error when approving profile work fails', async () => {
-    const member = createMockMember();
-    delete member.profileApprovedAt;
-
-    const { user } = await setup({
-      member,
-      shouldFailApproveProfile: true,
-    });
-
-    await user.click(await screen.findByRole('button', { name: 'Approve Profile Work' }));
-    await user.click(screen.getByRole('button', { name: 'Approve Profile Approval' }));
-
-    expect(await screen.findByText('Failed to approve profile work.')).toBeVisible();
   });
 
   it('should display subscription dates', async () => {

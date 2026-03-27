@@ -25,7 +25,6 @@ type ConfirmAction =
   | 'refund'
   | 'cleanSlate'
   | 'toggleDraft'
-  | 'approveProfile'
   | 'deleteDraftProfile'
   | 'linkProfile';
 
@@ -80,15 +79,6 @@ export class AdminMemberDetail {
     const profile = this.service.profileResource.value();
     if (!profile) return;
     return profile.draft;
-  });
-
-  protected isProfileApproved = computed(() => {
-    const resource = this.service.memberResource;
-    if (!resource.hasValue()) {
-      return false;
-    }
-
-    return (resource.value() as ApiMemberResponse).profileApprovedAt !== undefined;
   });
 
   protected profileSearchTerm = linkedSignal(() => {
@@ -197,18 +187,6 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
-  protected showApproveProfileConfirm(): void {
-    this.pendingAction.set('approveProfile');
-    this.dialogConfig.set({
-      title: 'Confirm Profile Approval',
-      message:
-        'This will allow the member to create a new profile or edit an existing linked profile in the members app.',
-      confirmText: 'Approve Profile Approval',
-      variant: 'primary',
-    });
-    this.confirmDialog()?.showModal();
-  }
-
   protected showDeleteDraftConfirm(): void {
     this.pendingAction.set('deleteDraftProfile');
     this.dialogConfig.set({
@@ -262,10 +240,6 @@ export class AdminMemberDetail {
         }
         case 'toggleDraft': {
           await this.service.toggleProfileDraft(this.uid());
-          break;
-        }
-        case 'approveProfile': {
-          await this.service.approveProfile(this.uid());
           break;
         }
         case 'deleteDraftProfile': {
