@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { AdminMembersService } from '../services/admin-members.service';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { AdminMembersStateService } from '../state/admin-members-state.service';
 import { ActiveMembersTable } from '../users/active-members-table/active-members-table';
 
 @Component({
@@ -9,11 +9,13 @@ import { ActiveMembersTable } from '../users/active-members-table/active-members
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminMembers {
-  private adminMembersService = inject(AdminMembersService);
+  private membersState = inject(AdminMembersStateService);
 
-  protected membersResource = resource({
-    loader: () => this.adminMembersService.listMembers(),
-  });
+  protected membersResource = this.membersState.membersResource;
+
+  constructor() {
+    this.membersState.initialize();
+  }
 
   protected totalMembers = computed(() => {
     return this.membersResource.hasValue() ? (this.membersResource.value()?.total ?? 0) : 0;

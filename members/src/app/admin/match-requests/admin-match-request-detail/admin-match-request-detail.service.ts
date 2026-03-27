@@ -1,9 +1,11 @@
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { AdminMatchRequestsService } from '../../services/admin-match-requests.service';
+import { AdminMatchRequestsStateService } from '../../state/admin-match-requests-state.service';
 
 @Injectable()
 export class AdminMatchRequestDetailService {
   private adminMatchRequestsService = inject(AdminMatchRequestsService);
+  private matchRequestsState = inject(AdminMatchRequestsStateService);
 
   // Signal for the current match request id (set from component via effect)
   readonly idSignal = signal<string>('');
@@ -36,7 +38,8 @@ export class AdminMatchRequestDetailService {
     try {
       await this.adminMatchRequestsService.updateMatchRequestStatus(id, sent);
       this.successMessage.set(`Match request marked as ${sent ? 'processed' : 'pending'}`);
-      this.matchRequestResource.reload(); // Reload to get updated data
+      this.matchRequestResource.reload();
+      this.matchRequestsState.invalidate();
     } catch (error) {
       console.error('Error updating match request status:', error);
       this.actionError.set('Failed to update match request status.');

@@ -1,9 +1,11 @@
 import { Injectable, computed, inject, resource, signal } from '@angular/core';
 import { AdminMessagesService } from '../../services/admin-messages.service';
+import { AdminMessagesStateService } from '../../state/admin-messages-state.service';
 
 @Injectable()
 export class AdminMessageDetailService {
   private adminMessagesService = inject(AdminMessagesService);
+  private messagesState = inject(AdminMessagesStateService);
 
   // Signal for the current message id (set from component via effect)
   readonly idSignal = signal<string>('');
@@ -36,7 +38,8 @@ export class AdminMessageDetailService {
     try {
       await this.adminMessagesService.updateMessageStatus(id, sent);
       this.successMessage.set(`Message marked as ${sent ? 'processed' : 'pending'}`);
-      this.messageResource.reload(); // Reload to get updated data
+      this.messageResource.reload();
+      this.messagesState.invalidate();
     } catch (error) {
       console.error('Error updating message status:', error);
       this.actionError.set('Failed to update message status.');

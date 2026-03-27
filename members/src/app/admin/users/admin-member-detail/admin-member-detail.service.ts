@@ -4,17 +4,22 @@ import { buildImageKitDisplayUrl } from '../../../shared/profile-image-url';
 import type { ProfileData } from '../../../types/profile-data';
 
 import { AdminMembersService } from '../../services/admin-members.service';
+import { AdminMembersStateService } from '../../state/admin-members-state.service';
 
 @Injectable()
 export class AdminMemberDetailService {
   private adminMembersService = inject(AdminMembersService);
+  private membersState = inject(AdminMembersStateService);
 
   // Signal for the current member uid (set from component input)
-  private uidSignal!: Signal<string>;
+  private uidSignal = signal<Signal<string> | undefined>(undefined);
 
   // Resource automatically loads member based on uid
   readonly memberResource = resource({
-    params: () => ({ uid: this.uidSignal() }),
+    params: () => {
+      const uidSignal = this.uidSignal();
+      return uidSignal ? { uid: uidSignal() } : undefined;
+    },
     loader: ({ params }) => this.adminMembersService.getMember(params.uid),
   });
 
@@ -81,7 +86,7 @@ export class AdminMemberDetailService {
    * Initialize the service with the uid signal from component input
    */
   init(uidSignal: Signal<string>): void {
-    this.uidSignal = uidSignal;
+    this.uidSignal.set(uidSignal);
   }
 
   /**
@@ -95,7 +100,8 @@ export class AdminMemberDetailService {
     try {
       await this.adminMembersService.activateMembership(uid);
       this.successMessage.set('Membership activated successfully');
-      this.memberResource.reload(); // Reload to get updated data
+      this.memberResource.reload();
+      this.membersState.invalidate();
     } catch (error) {
       console.error('Error activating membership:', error);
       this.actionError.set('Failed to activate membership.');
@@ -115,7 +121,8 @@ export class AdminMemberDetailService {
     try {
       await this.adminMembersService.cancelMembership(uid);
       this.successMessage.set('Membership cancellation scheduled');
-      this.memberResource.reload(); // Reload to get updated data
+      this.memberResource.reload();
+      this.membersState.invalidate();
     } catch (error) {
       console.error('Error canceling membership:', error);
       this.actionError.set('Failed to cancel membership.');
@@ -156,6 +163,7 @@ export class AdminMemberDetailService {
 
       this.successMessage.set(message);
       this.memberResource.reload();
+      this.membersState.invalidate();
     } catch (error) {
       console.error('Error refunding membership:', error);
       this.actionError.set('Failed to refund membership.');
@@ -180,6 +188,7 @@ export class AdminMemberDetailService {
         : 'User completely removed from all systems';
 
       this.successMessage.set(message);
+      this.membersState.invalidate();
       // Note: Component should handle navigation after successful deletion
     } catch (error) {
       console.error('Error performing clean slate delete:', error);
@@ -227,6 +236,7 @@ export class AdminMemberDetailService {
         : 'Draft profile deleted successfully. You can now link an existing profile.';
       this.successMessage.set(message);
       this.memberResource.reload();
+      this.membersState.invalidate();
       this.profileUidSignal.set(undefined);
     } catch (error) {
       console.error('Error deleting draft profile:', error);
@@ -265,6 +275,7 @@ export class AdminMemberDetailService {
       await this.adminMembersService.linkProfile(uid, slug);
       this.successMessage.set(`Profile "${slug}" linked and approved successfully`);
       this.memberResource.reload();
+      this.membersState.invalidate();
     } catch (error) {
       console.error('Error linking profile:', error);
       this.actionError.set('Failed to link profile.');

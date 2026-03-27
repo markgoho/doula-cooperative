@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AdminMembersService } from './services/admin-members.service';
-import { AdminMatchRequestsService } from './services/admin-match-requests.service';
-import { AdminMessagesService } from './services/admin-messages.service';
+import { AdminMatchRequestsStateService } from './state/admin-match-requests-state.service';
+import { AdminMembersStateService } from './state/admin-members-state.service';
+import { AdminMessagesStateService } from './state/admin-messages-state.service';
+import { AdminUnclaimedStateService } from './state/admin-unclaimed-state.service';
 
 @Component({
   imports: [RouterLink],
@@ -11,26 +12,22 @@ import { AdminMessagesService } from './services/admin-messages.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboard {
-  private adminMembersService = inject(AdminMembersService);
-  private adminMatchRequestsService = inject(AdminMatchRequestsService);
-  private adminMessagesService = inject(AdminMessagesService);
+  private membersState = inject(AdminMembersStateService);
+  private unclaimedState = inject(AdminUnclaimedStateService);
+  private matchRequestsState = inject(AdminMatchRequestsStateService);
+  private messagesState = inject(AdminMessagesStateService);
 
-  // Load stats for the dashboard cards
-  protected membersResource = resource({
-    loader: () => this.adminMembersService.listMembers(),
-  });
+  protected membersResource = this.membersState.membersResource;
+  protected unclaimedResource = this.unclaimedState.unclaimedResource;
+  protected matchRequestsResource = this.matchRequestsState.matchRequestsResource;
+  protected messagesResource = this.messagesState.messagesResource;
 
-  protected unclaimedResource = resource({
-    loader: () => this.adminMembersService.listUnclaimedProfiles(),
-  });
-
-  protected matchRequestsResource = resource({
-    loader: () => this.adminMatchRequestsService.listMatchRequests(),
-  });
-
-  protected messagesResource = resource({
-    loader: () => this.adminMessagesService.listMessages(),
-  });
+  constructor() {
+    this.membersState.initialize();
+    this.unclaimedState.initialize();
+    this.matchRequestsState.initialize();
+    this.messagesState.initialize();
+  }
 
   protected totalMembers = computed(() => {
     return this.membersResource.hasValue() ? (this.membersResource.value()?.total ?? 0) : 0;
