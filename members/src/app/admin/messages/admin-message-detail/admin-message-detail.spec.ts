@@ -8,7 +8,7 @@ import { AdminMessageDetailService } from './admin-message-detail.service';
 
 // Mock the service
 class MockAdminMessageDetailService {
-  idSignal = signal<string>('');
+  init = vi.fn();
   messageResource = {
     value: signal<Message | undefined>(undefined),
     isLoading: signal(false),

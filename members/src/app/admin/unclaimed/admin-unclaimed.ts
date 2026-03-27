@@ -1,12 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  resource,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AdminMembersService } from '../services/admin-members.service';
+import { AdminUnclaimedStateService } from '../state/admin-unclaimed-state.service';
 import { UnclaimedProfilesTable } from '../users/unclaimed-profiles-table/unclaimed-profiles-table';
 
 @Component({
@@ -17,10 +11,13 @@ import { UnclaimedProfilesTable } from '../users/unclaimed-profiles-table/unclai
 })
 export class AdminUnclaimed {
   private adminMembersService = inject(AdminMembersService);
+  private unclaimedState = inject(AdminUnclaimedStateService);
 
-  protected unclaimedResource = resource({
-    loader: () => this.adminMembersService.listUnclaimedProfiles(),
-  });
+  protected unclaimedResource = this.unclaimedState.unclaimedResource;
+
+  constructor() {
+    this.unclaimedState.initialize();
+  }
 
   protected totalUnclaimed = computed(() => this.unclaimedResource.value()?.total ?? 0);
 
@@ -34,7 +31,7 @@ export class AdminUnclaimed {
     try {
       const result = await this.adminMembersService.refreshPaymentDates();
       this.refreshResult.set(`Updated ${result.updatedCount} of ${result.totalCount} profiles`);
-      this.unclaimedResource.reload();
+      this.unclaimedState.invalidate();
     } catch {
       this.refreshResult.set('Failed to refresh payment dates');
     } finally {

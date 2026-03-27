@@ -1,13 +1,5 @@
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  input,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, viewChild } from '@angular/core';
 import { Tag } from '../../../tag/tag';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
@@ -46,10 +38,7 @@ export class AdminMessageDetail {
   });
 
   constructor() {
-    // Sync route id parameter to service signal
-    effect(() => {
-      this.service.idSignal.set(this.id());
-    });
+    this.service.init(this.id);
   }
 
   protected showMarkProcessedConfirm(): void {

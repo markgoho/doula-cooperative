@@ -1,16 +1,21 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
 import { AdminMembersService } from '../../services/admin-members.service';
+import { AdminUnclaimedStateService } from '../../state/admin-unclaimed-state.service';
 
 @Injectable()
 export class AdminUnclaimedProfileDetailService {
   private adminMembersService = inject(AdminMembersService);
+  private unclaimedState = inject(AdminUnclaimedStateService);
 
   // Signal for the current unclaimed profile email (set from component input)
-  private emailSignal!: Signal<string>;
+  private emailSignal = signal<Signal<string> | undefined>(undefined);
 
   // Resource automatically loads unclaimed profile based on email
   readonly unclaimedProfileResource = resource({
-    params: () => ({ email: this.emailSignal() }),
+    params: () => {
+      const emailSignal = this.emailSignal();
+      return emailSignal ? { email: emailSignal() } : undefined;
+    },
     loader: ({ params }) => this.adminMembersService.getUnclaimedProfile(params.email),
   });
 
@@ -30,7 +35,7 @@ export class AdminUnclaimedProfileDetailService {
    * Initialize the service with the email signal from component input
    */
   init(emailSignal: Signal<string>): void {
-    this.emailSignal = emailSignal;
+    this.emailSignal.set(emailSignal);
   }
 
   /**
@@ -42,6 +47,7 @@ export class AdminUnclaimedProfileDetailService {
 
     try {
       await this.adminMembersService.deleteUnclaimedProfile(email);
+      this.unclaimedState.invalidate();
       // Success - component will handle navigation
     } catch (error) {
       console.error('Error deleting unclaimed profile:', error);
@@ -63,6 +69,7 @@ export class AdminUnclaimedProfileDetailService {
 
     try {
       await this.adminMembersService.updateEmail(oldEmail, newEmail);
+      this.unclaimedState.invalidate();
       this.successMessage.set(`Email updated to ${newEmail}`);
       return newEmail;
     } catch (error) {

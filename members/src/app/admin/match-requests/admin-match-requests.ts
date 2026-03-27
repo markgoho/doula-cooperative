@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { AdminMatchRequestsService } from '../services/admin-match-requests.service';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { AdminMatchRequestsStateService } from '../state/admin-match-requests-state.service';
 import { MatchRequestsTable } from './match-requests-table/match-requests-table';
 
 @Component({
@@ -9,11 +9,13 @@ import { MatchRequestsTable } from './match-requests-table/match-requests-table'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminMatchRequests {
-  private adminMatchRequestsService = inject(AdminMatchRequestsService);
+  private matchRequestsState = inject(AdminMatchRequestsStateService);
 
-  protected matchRequestsResource = resource({
-    loader: () => this.adminMatchRequestsService.listMatchRequests(100, 0, 'all'),
-  });
+  protected matchRequestsResource = this.matchRequestsState.matchRequestsResource;
+
+  constructor() {
+    this.matchRequestsState.initialize();
+  }
 
   protected totalRequests = computed(() => {
     return this.matchRequestsResource.hasValue()

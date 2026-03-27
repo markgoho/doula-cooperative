@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { AdminMessagesService } from '../services/admin-messages.service';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { AdminMessagesStateService } from '../state/admin-messages-state.service';
 import { MessagesTable } from './messages-table/messages-table';
 
 @Component({
@@ -9,11 +9,13 @@ import { MessagesTable } from './messages-table/messages-table';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminMessages {
-  private adminMessagesService = inject(AdminMessagesService);
+  private messagesState = inject(AdminMessagesStateService);
 
-  protected messagesResource = resource({
-    loader: () => this.adminMessagesService.listMessages(100, 0, 'all'),
-  });
+  protected messagesResource = this.messagesState.messagesResource;
+
+  constructor() {
+    this.messagesState.initialize();
+  }
 
   protected totalMessages = computed(() => {
     return this.messagesResource.hasValue() ? (this.messagesResource.value()?.total ?? 0) : 0;
