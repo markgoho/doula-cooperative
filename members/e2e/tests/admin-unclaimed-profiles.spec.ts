@@ -73,7 +73,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Page Structure and Stats ===
     await expect(adminUnclaimedPage.pageHeading).toBeVisible();
-    await expect(adminUnclaimedPage.pageHeading).toHaveText('Unclaimed Profiles');
+    await expect(adminUnclaimedPage.pageHeading).toHaveText('Legacy Membership');
 
     // Verify header stats
     const headerStats = authenticatedAdminPage.locator('.header-stats');

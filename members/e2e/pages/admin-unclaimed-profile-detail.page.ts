@@ -32,9 +32,9 @@ export class AdminUnclaimedProfileDetailPage {
     this.page = page;
 
     // Page structure
-    this.pageHeading = page.getByRole('heading', { name: 'Unclaimed Profile Details', level: 1 });
+    this.pageHeading = page.getByRole('heading', { name: 'Legacy Membership Details', level: 1 });
     this.sectionHeading = page.getByRole('heading', {
-      name: 'Unclaimed Profile Information',
+      name: 'Legacy Membership Information',
       level: 2,
     });
 

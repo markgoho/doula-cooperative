@@ -43,9 +43,9 @@ export class AdminUnclaimedPage {
     this.page = page;
 
     // Headings - use role-based selectors
-    this.pageHeading = page.getByRole('heading', { name: 'Unclaimed Profiles', level: 1 });
+    this.pageHeading = page.getByRole('heading', { name: 'Legacy Membership', level: 1 });
     this.unclaimedProfilesHeading = page.getByRole('heading', {
-      name: 'Unclaimed Profiles',
+      name: 'Legacy Membership',
       level: 2,
     });
 

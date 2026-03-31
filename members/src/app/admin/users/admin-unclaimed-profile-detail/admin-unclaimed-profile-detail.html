@@ -1,4 +1,4 @@
-<h1>Unclaimed Profile Details</h1>
+<h1>Legacy Membership Details</h1>
 
 @let profileResource = service.unclaimedProfileResource;
 
@@ -16,7 +16,7 @@
   <p class="error" role="alert">{{ errorMessage }}</p>
 } @else if (profileResource.value(); as profile) {
   <section class="user-info-card">
-    <h2>Unclaimed Profile Information</h2>
+    <h2>Legacy Membership Information</h2>
     <app-alert-banner variant="info">
       This profile has not yet been claimed by the member. They will need to create an account with
       this email address to claim it.
@@ -100,9 +100,27 @@
       <dd>
         {{ profile.nextPayment ? (profile.nextPayment | date: 'MMM d, yyyy') : '—' }}
       </dd>
-
     </dl>
   </section>
+
+  @if (profile.slug) {
+    <section class="subscription-card">
+      <h2>Profile Actions</h2>
+      <p>Hide the public doula profile without deleting this legacy membership record.</p>
+      <button
+        type="button"
+        class="button button--secondary"
+        [disabled]="service.draftInProgress()"
+        (click)="showDraftConfirm()"
+      >
+        @if (service.draftInProgress()) {
+          Processing...
+        } @else {
+          Set Profile to Draft
+        }
+      </button>
+    </section>
+  }
 
   <section class="danger-zone">
     <h2>Danger Zone</h2>
@@ -131,6 +149,7 @@
 }
 
 <app-confirm-dialog
+  #deleteConfirmDialog
   title="Confirm Deletion"
   [message]="deleteConfirmMessage()"
   confirmButtonText="Delete Profile"
@@ -138,4 +157,14 @@
   [disabled]="service.deleteInProgress()"
   (confirmed)="onConfirmDelete()"
   (cancelled)="onCancelDelete()"
+/>
+
+<app-confirm-dialog
+  #draftConfirmDialog
+  title="Set Profile to Draft"
+  message="This will hide the public doula profile from the website without deleting this legacy membership record."
+  confirmButtonText="Set to Draft"
+  [disabled]="service.draftInProgress()"
+  (confirmed)="onConfirmDraft()"
+  (cancelled)="onCancelDraft()"
 />

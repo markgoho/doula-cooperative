@@ -30,6 +30,7 @@ export class AdminUnclaimedProfileDetailService {
   readonly successMessage = signal<string | undefined>(undefined);
   readonly actionError = signal<string | undefined>(undefined);
   readonly deleteInProgress = signal(false);
+  readonly draftInProgress = signal(false);
 
   /**
    * Initialize the service with the email signal from component input
@@ -78,6 +79,27 @@ export class AdminUnclaimedProfileDetailService {
       return undefined;
     } finally {
       this.actionInProgress.set(false);
+    }
+  }
+
+  async draftProfile(email: string): Promise<void> {
+    this.draftInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.draftUnclaimedProfile(email);
+      this.unclaimedState.invalidate();
+      await this.unclaimedProfileResource.reload();
+      this.successMessage.set(
+        result.warning ?? `Profile ${result.slug} was set to draft.`,
+      );
+    } catch (error) {
+      console.error('Error drafting profile:', error);
+      this.actionError.set('Failed to set profile to draft.');
+      throw error;
+    } finally {
+      this.draftInProgress.set(false);
     }
   }
 }

@@ -2,12 +2,21 @@ import { computed, inputBinding, signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { UnclaimedProfile } from '../../admin.types';
 import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 describe('AdminUnclaimedProfileDetail', () => {
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.open = true;
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.open = false;
+    });
+  });
+
   // Wait for resource() operations to complete before test cleanup
   // resource.reload() needs time to settle in CI environment
   afterEach(async () => {
@@ -32,6 +41,33 @@ describe('AdminUnclaimedProfileDetail', () => {
     // Assert
     expect(await screen.findByText('Jane Doula')).toBeVisible();
     expect(screen.getByText('jane@example.com')).toBeVisible();
+  });
+
+  it('should display Legacy Membership Details heading', async () => {
+    await setup();
+
+    expect(await screen.findByRole('heading', { name: 'Legacy Membership Details' })).toBeVisible();
+  });
+
+  it('should show Set Profile to Draft button when slug exists', async () => {
+    await setup({ slug: 'jane-doula' });
+
+    expect(await screen.findByRole('button', { name: 'Set Profile to Draft' })).toBeVisible();
+  });
+
+  it('should not show Set Profile to Draft button when no slug exists', async () => {
+    await setup({ slug: undefined });
+
+    expect(screen.queryByRole('button', { name: 'Set Profile to Draft' })).not.toBeInTheDocument();
+  });
+
+  it('should call draftProfile when draft is confirmed', async () => {
+    const { user, mockService } = await setup({ slug: 'jane-doula' });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
+
+    expect(mockService.draftProfile).toHaveBeenCalledWith('test@example.com');
   });
 
   it('should display profile link when slug exists', async () => {
@@ -158,17 +194,12 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should navigate to new email route after successful update email', async () => {
     // Arrange
-    const { fixture, router, mockService } = await setup();
-    mockService.updateEmail.mockResolvedValue('updated@example.com');
-
-    const instance = fixture.componentInstance as unknown as {
-      updateEmailValue: { set(value: string): void };
-      updateEmail(): Promise<void>;
-    };
-    instance.updateEmailValue.set('updated@example.com');
+    const { user, router } = await setup();
 
     // Act
-    await instance.updateEmail();
+    await user.click(await screen.findByRole('button', { name: 'Update Email' }));
+    await user.type(screen.getByLabelText('New Email Address'), 'updated@example.com');
+    await user.click(screen.getByRole('button', { name: 'Confirm Update' }));
 
     // Assert
     expect(router.navigate).toHaveBeenCalledWith(['/admin/unclaimed', 'updated@example.com']);
@@ -176,19 +207,16 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should not navigate when update email fails', async () => {
     // Arrange
-    const { fixture, router } = await setup({ shouldFailUpdateEmail: true });
-
-    const instance = fixture.componentInstance as unknown as {
-      updateEmailValue: { set(value: string): void };
-      updateEmail(): Promise<void>;
-    };
-    instance.updateEmailValue.set('updated@example.com');
+    const { user, router } = await setup({ shouldFailUpdateEmail: true });
 
     // Act
-    await instance.updateEmail();
+    await user.click(await screen.findByRole('button', { name: 'Update Email' }));
+    await user.type(screen.getByLabelText('New Email Address'), 'updated@example.com');
+    await user.click(screen.getByRole('button', { name: 'Confirm Update' }));
 
     // Assert
     expect(router.navigate).not.toHaveBeenCalled();
+    expect(screen.getByText('Failed to update email.')).toBeVisible();
   });
 });
 
@@ -255,7 +283,9 @@ async function setup(rawOptions: SetupOptions = {}) {
       return newEmail;
     }),
     deleteInProgress: signal(false),
+    draftInProgress: signal(false),
     deleteProfile: vi.fn().mockResolvedValue(undefined),
+    draftProfile: vi.fn().mockResolvedValue(undefined),
   };
 
   const router = { navigate: vi.fn().mockResolvedValue(true) };

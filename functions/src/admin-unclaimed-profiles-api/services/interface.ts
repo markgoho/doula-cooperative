@@ -2,6 +2,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type {
   DeleteUnclaimedProfileSuccessResponse,
+  DraftUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   RefreshPaymentDatesSuccessResponse,
   UnclaimedProfileSuccessResponse,
@@ -31,6 +32,11 @@ export interface UnclaimedProfileAdminService {
     emailService: EmailServiceInterface;
     logger: Logger;
   }): Promise<DeleteUnclaimedProfileSuccessResponse>;
+
+  draftUnclaimedProfile(options: {
+    email: string;
+    logger: Logger;
+  }): Promise<DraftUnclaimedProfileSuccessResponse & { rebuildTriggered: boolean }>;
 
   refreshPaymentDates(options: {
     logger: Logger;
