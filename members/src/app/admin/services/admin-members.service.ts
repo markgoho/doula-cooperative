@@ -10,6 +10,8 @@ import type {
 } from '../admin.types';
 import type { ApiMemberResponse } from '../../api-types/api-member-response';
 import type {
+  ApiDraftUnclaimedProfileResponse,
+  ApiDraftUnclaimedProfileSuccessResponse,
   ApiListUnclaimedProfilesResponse,
   ApiUnclaimedProfileResponse,
 } from '../api-types/admin-unclaimed-profiles-api.types';
@@ -234,6 +236,18 @@ export class AdminMembersService {
         newEmail,
       }),
     );
+  }
+
+  async draftUnclaimedProfile(email: string): Promise<ApiDraftUnclaimedProfileSuccessResponse> {
+    // Authorization header added automatically by authInterceptor
+    const result = await firstValueFrom(
+      this.httpClient.post<ApiDraftUnclaimedProfileResponse>(
+        `/api/admin/unclaimed-profiles/${email}/draft`,
+        {},
+      ),
+    );
+
+    return assertApiSuccess(result);
   }
 
   async refreshPaymentDates(): Promise<{

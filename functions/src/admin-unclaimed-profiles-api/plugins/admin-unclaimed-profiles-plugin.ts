@@ -7,6 +7,7 @@ import { adminGuard } from "../../shared-api/utils/admin-guard.js";
 import { getAdminUid } from "../../shared-api/utils/get-admin-uid.js";
 import {
   deleteUnclaimedProfileLogic,
+  draftUnclaimedProfileLogic,
   getUnclaimedProfileLogic,
   listUnclaimedProfilesLogic,
   refreshPaymentDatesLogic,
@@ -15,6 +16,7 @@ import {
 import {
   ChangeEmailBodySchema,
   DeleteUnclaimedProfileResponseSchema,
+  DraftUnclaimedProfileResponseSchema,
   EmailParameterSchema,
   ListUnclaimedProfilesQuerySchema,
   ListUnclaimedProfilesResponseSchema,
@@ -132,6 +134,28 @@ export function createAdminUnclaimedProfilesPlugin(services?: PartialServices) {
           params: EmailParameterSchema,
           body: ChangeEmailBodySchema,
           response: UpdateEmailResponseSchema,
+        },
+      )
+      // POST /:email/draft - Set linked public profile to draft without deleting legacy membership
+      .post(
+        "/:email/draft",
+        async ({
+          params,
+          adminToken,
+          unclaimedProfileAdminService,
+          logger,
+          set,
+        }) =>
+          draftUnclaimedProfileLogic({
+            email: params.email,
+            adminUid: getAdminUid(adminToken, logger),
+            unclaimedProfileAdminService,
+            logger,
+            set,
+          }),
+        {
+          params: EmailParameterSchema,
+          response: DraftUnclaimedProfileResponseSchema,
         },
       )
       // DELETE /:email - Delete unclaimed profile

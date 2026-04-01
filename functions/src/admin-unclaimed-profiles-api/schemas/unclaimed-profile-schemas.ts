@@ -99,6 +99,25 @@ export type DeleteUnclaimedProfileResponse = Static<
   typeof DeleteUnclaimedProfileResponseSchema
 >;
 
+const DraftUnclaimedProfileSuccessSchema = t.Object({
+  success: t.Literal(true),
+  slug: t.String({ minLength: 1 }),
+  warning: t.Optional(t.String()),
+});
+
+export type DraftUnclaimedProfileSuccessResponse = Static<
+  typeof DraftUnclaimedProfileSuccessSchema
+>;
+
+export const DraftUnclaimedProfileResponseSchema = t.Union([
+  DraftUnclaimedProfileSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type DraftUnclaimedProfileResponse = Static<
+  typeof DraftUnclaimedProfileResponseSchema
+>;
+
 const RefreshPaymentDatesSuccessSchema = t.Object({
   success: t.Literal(true),
   updatedCount: t.Number(),

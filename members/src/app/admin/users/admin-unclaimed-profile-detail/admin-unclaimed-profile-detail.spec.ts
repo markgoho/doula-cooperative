@@ -1,18 +1,23 @@
 import { computed, inputBinding, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { UnclaimedProfile } from '../../admin.types';
 import { AdminUnclaimedProfileDetail } from './admin-unclaimed-profile-detail';
 import { AdminUnclaimedProfileDetailService } from './admin-unclaimed-profile-detail.service';
 
 describe('AdminUnclaimedProfileDetail', () => {
-  // Wait for resource() operations to complete before test cleanup
-  // resource.reload() needs time to settle in CI environment
-  afterEach(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.open = true;
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.open = false;
+    });
   });
+
   it('should display loading state initially', async () => {
     await setup({ shouldKeepLoading: true });
 
@@ -32,6 +37,80 @@ describe('AdminUnclaimedProfileDetail', () => {
     // Assert
     expect(await screen.findByText('Jane Doula')).toBeVisible();
     expect(screen.getByText('jane@example.com')).toBeVisible();
+  });
+
+  it('should display Legacy Membership Details heading', async () => {
+    await setup();
+
+    expect(await screen.findByRole('heading', { name: 'Legacy Membership Details' })).toBeVisible();
+  });
+
+  it('should show Set Profile to Draft button when slug exists', async () => {
+    await setup({ slug: 'jane-doula' });
+
+    expect(await screen.findByRole('button', { name: 'Set Profile to Draft' })).toBeVisible();
+  });
+
+  it('should not show Set Profile to Draft button when no slug exists', async () => {
+    await setup({ slug: undefined });
+
+    expect(screen.queryByRole('button', { name: 'Set Profile to Draft' })).not.toBeInTheDocument();
+  });
+
+  it('should show success message when draft is confirmed', async () => {
+    const { user } = await setup({ slug: 'jane-doula' });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Profile jane-doula was set to draft.');
+  });
+
+  it('should show error message when draft fails', async () => {
+    const { user } = await setup({ slug: 'jane-doula', shouldFailDraft: true });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed to set profile to draft.');
+  });
+
+  it('should show warning message when draft succeeds with warning', async () => {
+    const { user } = await setup({
+      slug: 'jane-doula',
+      draftWarning:
+        'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
+
+    expect(
+      await screen.findByText(
+        'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+      ),
+    ).toBeVisible();
+  });
+
+  it('should close draft dialog without drafting when Cancel is clicked', async () => {
+    const { user } = await setup({ slug: 'jane-doula' });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('button', { name: 'Set to Draft' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Set Profile to Draft' })).toBeVisible();
+  });
+
+  it('should show loading state while draft is in progress', async () => {
+    await setup({ slug: 'jane-doula', draftInProgress: true });
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Processing...' })).toBeDisabled();
+    });
   });
 
   it('should display profile link when slug exists', async () => {
@@ -158,17 +237,12 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should navigate to new email route after successful update email', async () => {
     // Arrange
-    const { fixture, router, mockService } = await setup();
-    mockService.updateEmail.mockResolvedValue('updated@example.com');
-
-    const instance = fixture.componentInstance as unknown as {
-      updateEmailValue: { set(value: string): void };
-      updateEmail(): Promise<void>;
-    };
-    instance.updateEmailValue.set('updated@example.com');
+    const { user, router } = await setup();
 
     // Act
-    await instance.updateEmail();
+    await user.click(await screen.findByRole('button', { name: 'Update Email' }));
+    await user.type(screen.getByLabelText('New Email Address'), 'updated@example.com');
+    await user.click(screen.getByRole('button', { name: 'Confirm Update' }));
 
     // Assert
     expect(router.navigate).toHaveBeenCalledWith(['/admin/unclaimed', 'updated@example.com']);
@@ -176,19 +250,16 @@ describe('AdminUnclaimedProfileDetail', () => {
 
   it('should not navigate when update email fails', async () => {
     // Arrange
-    const { fixture, router } = await setup({ shouldFailUpdateEmail: true });
-
-    const instance = fixture.componentInstance as unknown as {
-      updateEmailValue: { set(value: string): void };
-      updateEmail(): Promise<void>;
-    };
-    instance.updateEmailValue.set('updated@example.com');
+    const { user, router } = await setup({ shouldFailUpdateEmail: true });
 
     // Act
-    await instance.updateEmail();
+    await user.click(await screen.findByRole('button', { name: 'Update Email' }));
+    await user.type(screen.getByLabelText('New Email Address'), 'updated@example.com');
+    await user.click(screen.getByRole('button', { name: 'Confirm Update' }));
 
     // Assert
     expect(router.navigate).not.toHaveBeenCalled();
+    expect(screen.getByText('Failed to update email.')).toBeVisible();
   });
 });
 
@@ -200,7 +271,10 @@ interface SetupOptions {
   nextPayment?: Date | undefined;
   shouldFailLoad?: boolean;
   shouldFailUpdateEmail?: boolean;
+  shouldFailDraft?: boolean;
   shouldKeepLoading?: boolean;
+  draftWarning?: string;
+  draftInProgress?: boolean;
   errorMessage?: string;
 }
 
@@ -213,7 +287,10 @@ async function setup(rawOptions: SetupOptions = {}) {
     nextPayment,
     shouldFailLoad = false,
     shouldFailUpdateEmail = false,
+    shouldFailDraft = false,
     shouldKeepLoading = false,
+    draftWarning,
+    draftInProgress = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
   } = rawOptions;
 
@@ -244,6 +321,7 @@ async function setup(rawOptions: SetupOptions = {}) {
     errorMessage: computed(() => (shouldFailLoad ? errorMessage : undefined)),
     actionInProgress: signal(false),
     successMessage: signal<string | undefined>(undefined),
+    warningMessage: signal<string | undefined>(undefined),
     actionError: signal<string | undefined>(undefined),
     init: vi.fn(),
     updateEmail: vi.fn().mockImplementation(async (_oldEmail: string, newEmail: string) => {
@@ -255,12 +333,23 @@ async function setup(rawOptions: SetupOptions = {}) {
       return newEmail;
     }),
     deleteInProgress: signal(false),
+    draftInProgress: signal(draftInProgress),
     deleteProfile: vi.fn().mockResolvedValue(undefined),
+    draftProfile: vi.fn().mockImplementation(async () => {
+      if (shouldFailDraft) {
+        mockService.actionError.set('Failed to set profile to draft.');
+        throw new Error('Draft failed');
+      }
+      mockService.successMessage.set(`Profile ${finalProfile.slug ?? 'test-user'} was set to draft.`);
+      if (draftWarning !== undefined) {
+        mockService.warningMessage.set(draftWarning);
+      }
+    }),
   };
 
   const router = { navigate: vi.fn().mockResolvedValue(true) };
 
-  const { fixture } = await render(AdminUnclaimedProfileDetail, {
+  await render(AdminUnclaimedProfileDetail, {
     bindings: [inputBinding('email', () => email)],
     providers: [provideRouter([]), { provide: Router, useValue: router }],
     configureTestBed: (testBed) => {
@@ -275,7 +364,7 @@ async function setup(rawOptions: SetupOptions = {}) {
   // IMPORTANT: Call userEvent.setup() AFTER render() to avoid ApplicationRef destroyed warnings
   const user = userEvent.setup();
 
-  return { user, fixture, mockService, router };
+  return { user, router };
 }
 
 function createMockUnclaimedProfile(overrides: Partial<UnclaimedProfile> = {}): UnclaimedProfile {

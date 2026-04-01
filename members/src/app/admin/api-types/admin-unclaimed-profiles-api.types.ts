@@ -31,3 +31,13 @@ export interface ApiListUnclaimedProfilesResponse {
   profiles: ApiUnclaimedProfileResponse[];
   total: number;
 }
+
+export interface ApiDraftUnclaimedProfileSuccessResponse {
+  success: true;
+  slug: string;
+  warning?: string;
+}
+
+export type ApiDraftUnclaimedProfileResponse =
+  | ApiDraftUnclaimedProfileSuccessResponse
+  | { error: string };

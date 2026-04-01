@@ -27,7 +27,8 @@ export class AdminUnclaimedProfileDetail {
 
   email = input.required<string>();
 
-  protected confirmDialog = viewChild(ConfirmDialog);
+  protected deleteConfirmDialog = viewChild<ConfirmDialog>('deleteConfirmDialog');
+  protected draftConfirmDialog = viewChild<ConfirmDialog>('draftConfirmDialog');
 
   protected deleteConfirmMessage = computed(() => {
     const resource = this.service.unclaimedProfileResource;
@@ -45,22 +46,40 @@ export class AdminUnclaimedProfileDetail {
   }
 
   protected showDeleteConfirm(): void {
-    this.confirmDialog()?.showModal();
+    this.deleteConfirmDialog()?.showModal();
+  }
+
+  protected showDraftConfirm(): void {
+    this.draftConfirmDialog()?.showModal();
   }
 
   protected async onConfirmDelete(): Promise<void> {
     try {
       await this.service.deleteProfile(this.email());
-      this.confirmDialog()?.close();
+      this.deleteConfirmDialog()?.close();
       await this.router.navigateByUrl('/admin/unclaimed');
     } catch {
       // Error already handled in service (sets actionError signal)
-      this.confirmDialog()?.close();
+      this.deleteConfirmDialog()?.close();
+    }
+  }
+
+  protected async onConfirmDraft(): Promise<void> {
+    try {
+      await this.service.draftProfile(this.email());
+    } catch {
+      // Error already handled in service (sets actionError signal)
+    } finally {
+      this.draftConfirmDialog()?.close();
     }
   }
 
   protected onCancelDelete(): void {
-    this.confirmDialog()?.close();
+    this.deleteConfirmDialog()?.close();
+  }
+
+  protected onCancelDraft(): void {
+    this.draftConfirmDialog()?.close();
   }
 
   protected async updateEmail(): Promise<void> {

@@ -10,6 +10,7 @@ import {
 import { createAdminUnclaimedProfilesPlugin } from "../plugins/admin-unclaimed-profiles-plugin.js";
 import type {
   DeleteUnclaimedProfileSuccessResponse,
+  DraftUnclaimedProfileSuccessResponse,
   ListUnclaimedProfilesSuccessResponse,
   RefreshPaymentDatesSuccessResponse,
   UnclaimedProfileSuccessResponse,
@@ -41,6 +42,12 @@ export function createAdminTestPlugin(overrides?: {
       Promise.resolve({
         success: true,
       } as DeleteUnclaimedProfileSuccessResponse),
+    ),
+    draftUnclaimedProfile: mock(() =>
+      Promise.resolve({
+        success: true,
+        slug: "test-slug",
+      } as DraftUnclaimedProfileSuccessResponse),
     ),
     refreshPaymentDates: mock(() =>
       Promise.resolve({
