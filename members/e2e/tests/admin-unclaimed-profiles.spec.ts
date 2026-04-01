@@ -563,4 +563,114 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.updateEmailInput).not.toBeVisible();
     await expect(unclaimedProfilePage.updateEmailButton).toBeVisible();
   });
+
+  test('admin sets profile to draft successfully', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!;
+    let draftRequestMade = false;
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          draftRequestMade = true;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, slug: 'alice-unclaimed' }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Open and confirm draft dialog ===
+    await expect(unclaimedProfilePage.draftProfileButton).toBeVisible();
+    await unclaimedProfilePage.confirmDraftProfile();
+
+    // === Verify success state ===
+    await expect(unclaimedProfilePage.successMessage).toBeVisible({ timeout: 5000 });
+    await expect(unclaimedProfilePage.successMessage).toContainText(
+      'Profile alice-unclaimed was set to draft.',
+    );
+    expect(draftRequestMade).toBe(true);
+  });
+
+  test('admin sees rebuild warning after setting profile to draft', async ({
+    authenticatedAdminPage,
+  }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!;
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              success: true,
+              slug: 'alice-unclaimed',
+              warning:
+                'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+            }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Open and confirm draft dialog ===
+    await expect(unclaimedProfilePage.draftProfileButton).toBeVisible();
+    await unclaimedProfilePage.confirmDraftProfile();
+
+    // === Verify success and warning states ===
+    await expect(unclaimedProfilePage.successMessage).toBeVisible({ timeout: 5000 });
+    await expect(unclaimedProfilePage.successMessage).toContainText(
+      'Profile alice-unclaimed was set to draft.',
+    );
+    await expect(unclaimedProfilePage.warningMessage).toBeVisible({ timeout: 5000 });
+    await expect(unclaimedProfilePage.warningMessage).toContainText(
+      'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+    );
+  });
 });

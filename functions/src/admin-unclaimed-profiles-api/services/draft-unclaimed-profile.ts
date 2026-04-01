@@ -9,11 +9,12 @@ import {
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type { DraftUnclaimedProfileSuccessResponse } from "../schemas/unclaimed-profile-schemas.js";
 
 export async function draftUnclaimedProfile(options: {
   email: string;
   logger: Logger;
-}): Promise<{ success: true; slug: string; rebuildTriggered: boolean }> {
+}): Promise<DraftUnclaimedProfileSuccessResponse> {
   const { email, logger } = options;
 
   try {
@@ -57,6 +58,7 @@ export async function draftUnclaimedProfile(options: {
     } catch (rebuildError) {
       rebuildTriggered = false;
       logger.error("Failed to trigger Hugo rebuild after drafting unclaimed profile", {
+        errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
         email,
         slug,
         error: rebuildError,
@@ -68,7 +70,10 @@ export async function draftUnclaimedProfile(options: {
     return {
       success: true,
       slug,
-      rebuildTriggered,
+      ...(!rebuildTriggered && {
+        warning:
+          "Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.",
+      }),
     };
   } catch (error) {
     if (error instanceof HttpError) {
@@ -76,7 +81,7 @@ export async function draftUnclaimedProfile(options: {
     }
 
     logger.error("Failed to draft unclaimed profile", {
-      errorId: ERROR_IDS.API_FIRESTORE_UPDATE_FAILED,
+      errorId: ERROR_IDS.API_ADMIN_DRAFT_UNCLAIMED_PROFILE_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,

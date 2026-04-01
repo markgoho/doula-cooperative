@@ -6,6 +6,10 @@
   <app-alert-banner variant="success">{{ message }}</app-alert-banner>
 }
 
+@if (service.warningMessage(); as message) {
+  <app-alert-banner variant="warning">{{ message }}</app-alert-banner>
+}
+
 @if (service.actionError(); as message) {
   <app-alert-banner variant="error">{{ message }}</app-alert-banner>
 }

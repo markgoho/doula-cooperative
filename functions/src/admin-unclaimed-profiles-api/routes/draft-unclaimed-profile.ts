@@ -1,6 +1,7 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
+import type { DraftUnclaimedProfileResponse } from "../schemas/unclaimed-profile-schemas.js";
 import type { UnclaimedProfileAdminService } from "../services/interface.js";
 
 export async function draftUnclaimedProfileLogic({
@@ -15,7 +16,7 @@ export async function draftUnclaimedProfileLogic({
   unclaimedProfileAdminService: UnclaimedProfileAdminService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<{ success: true; slug: string; warning?: string } | { error: string }> {
+}): Promise<DraftUnclaimedProfileResponse> {
   try {
     logger.info("Admin draft unclaimed profile request", {
       adminUid,
@@ -31,19 +32,10 @@ export async function draftUnclaimedProfileLogic({
       adminUid,
       email,
       slug: result.slug,
-      rebuildTriggered: result.rebuildTriggered,
+      warning: result.warning,
     });
 
-    return {
-      success: true,
-      slug: result.slug,
-      ...(result.rebuildTriggered
-        ? {}
-        : {
-            warning:
-              "Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.",
-          }),
-    };
+    return result;
   } catch (error: unknown) {
     return handleRouteError({
       error,

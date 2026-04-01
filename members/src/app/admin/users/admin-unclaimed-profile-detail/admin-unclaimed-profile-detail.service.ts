@@ -28,6 +28,7 @@ export class AdminUnclaimedProfileDetailService {
   // Action state signals
   readonly actionInProgress = signal(false);
   readonly successMessage = signal<string | undefined>(undefined);
+  readonly warningMessage = signal<string | undefined>(undefined);
   readonly actionError = signal<string | undefined>(undefined);
   readonly deleteInProgress = signal(false);
   readonly draftInProgress = signal(false);
@@ -44,6 +45,7 @@ export class AdminUnclaimedProfileDetailService {
    */
   async deleteProfile(email: string): Promise<void> {
     this.deleteInProgress.set(true);
+    this.warningMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
@@ -66,6 +68,7 @@ export class AdminUnclaimedProfileDetailService {
   async updateEmail(oldEmail: string, newEmail: string): Promise<string | undefined> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
+    this.warningMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
@@ -85,15 +88,17 @@ export class AdminUnclaimedProfileDetailService {
   async draftProfile(email: string): Promise<void> {
     this.draftInProgress.set(true);
     this.successMessage.set(undefined);
+    this.warningMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
       const result = await this.adminMembersService.draftUnclaimedProfile(email);
       this.unclaimedState.invalidate();
       await this.unclaimedProfileResource.reload();
-      this.successMessage.set(
-        result.warning ?? `Profile ${result.slug} was set to draft.`,
-      );
+      this.successMessage.set(`Profile ${result.slug} was set to draft.`);
+      if (result.warning !== undefined) {
+        this.warningMessage.set(result.warning);
+      }
     } catch (error) {
       console.error('Error drafting profile:', error);
       this.actionError.set('Failed to set profile to draft.');

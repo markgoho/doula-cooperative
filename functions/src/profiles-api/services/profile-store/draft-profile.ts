@@ -2,7 +2,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import { PROFILES_COLLECTION } from "../../../collections/index.js";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError } from "../../../shared-api/errors/http-error.js";
+import { HttpError, NotFoundError } from "../../../shared-api/errors/http-error.js";
 import type { WriteProfileResponse } from "./interface.js";
 
 /**
@@ -22,8 +22,11 @@ export async function draftProfile(options: {
 
     const existing = await documentReference.get();
     if (!existing.exists) {
-      logger.info("Profile not found in Firestore, skipping draft", { slug });
-      return { success: true };
+      logger.warn("Profile not found in Firestore", {
+        errorId: ERROR_IDS.API_PROFILE_NOT_FOUND,
+        slug,
+      });
+      throw new NotFoundError(`Profile with slug ${slug} not found`);
     }
 
     await documentReference.update({

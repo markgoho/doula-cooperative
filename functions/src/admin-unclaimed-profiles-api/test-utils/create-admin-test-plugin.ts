@@ -47,8 +47,7 @@ export function createAdminTestPlugin(overrides?: {
       Promise.resolve({
         success: true,
         slug: "test-slug",
-        rebuildTriggered: true,
-      } as DraftUnclaimedProfileSuccessResponse & { rebuildTriggered: boolean }),
+      } as DraftUnclaimedProfileSuccessResponse),
     ),
     refreshPaymentDates: mock(() =>
       Promise.resolve({

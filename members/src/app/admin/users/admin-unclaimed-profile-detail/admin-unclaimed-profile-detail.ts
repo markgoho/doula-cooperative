@@ -67,6 +67,8 @@ export class AdminUnclaimedProfileDetail {
   protected async onConfirmDraft(): Promise<void> {
     try {
       await this.service.draftProfile(this.email());
+    } catch {
+      // Error already handled in service (sets actionError signal)
     } finally {
       this.draftConfirmDialog()?.close();
     }

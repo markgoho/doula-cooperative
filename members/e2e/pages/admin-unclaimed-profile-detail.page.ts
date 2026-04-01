@@ -16,6 +16,7 @@ export class AdminUnclaimedProfileDetailPage {
 
   // Actions (reused across tests)
   readonly deleteProfileButton: Locator;
+  readonly draftProfileButton: Locator;
   readonly updateEmailButton: Locator;
 
   // Update email form
@@ -27,6 +28,7 @@ export class AdminUnclaimedProfileDetailPage {
   readonly loadingText: Locator;
   readonly errorMessage: Locator;
   readonly successMessage: Locator;
+  readonly warningMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -39,6 +41,7 @@ export class AdminUnclaimedProfileDetailPage {
     });
 
     this.deleteProfileButton = page.getByRole('button', { name: /Delete Profile/ });
+    this.draftProfileButton = page.getByRole('button', { name: 'Set Profile to Draft' });
     // Update email form
     this.updateEmailButton = page.getByRole('button', { name: 'Update Email' });
     this.updateEmailInput = page.getByLabel('New Email Address');
@@ -49,6 +52,7 @@ export class AdminUnclaimedProfileDetailPage {
     this.loadingText = page.getByText('Loading details...');
     this.errorMessage = page.getByRole('alert');
     this.successMessage = page.getByRole('status');
+    this.warningMessage = page.locator('app-alert-banner.warning');
   }
 
   async goto(email: string): Promise<void> {
@@ -63,5 +67,11 @@ export class AdminUnclaimedProfileDetailPage {
     await this.updateEmailButton.click();
     await this.updateEmailInput.fill(newEmail);
     await this.confirmUpdateButton.click();
+  }
+
+  async confirmDraftProfile(): Promise<void> {
+    await this.draftProfileButton.click();
+    const dialog = this.page.locator('dialog[open]');
+    await dialog.getByRole('button', { name: 'Set to Draft' }).click();
   }
 }

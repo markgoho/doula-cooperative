@@ -36,7 +36,7 @@ export interface UnclaimedProfileAdminService {
   draftUnclaimedProfile(options: {
     email: string;
     logger: Logger;
-  }): Promise<DraftUnclaimedProfileSuccessResponse & { rebuildTriggered: boolean }>;
+  }): Promise<DraftUnclaimedProfileSuccessResponse>;
 
   refreshPaymentDates(options: {
     logger: Logger;

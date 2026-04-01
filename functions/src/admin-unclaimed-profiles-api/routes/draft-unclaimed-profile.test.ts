@@ -26,7 +26,7 @@ describe("POST /:email/draft", () => {
       ({ email: requestEmail }: { email: string }): Promise<{
         success: true;
         slug: string;
-        rebuildTriggered: boolean;
+        warning?: string;
       }> => {
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(
@@ -45,7 +45,10 @@ describe("POST /:email/draft", () => {
         return Promise.resolve({
           success: true,
           slug: "test-slug",
-          rebuildTriggered,
+          ...(!rebuildTriggered && {
+            warning:
+              "Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.",
+          }),
         });
       },
     );
