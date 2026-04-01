@@ -52,7 +52,9 @@ export class AdminUnclaimedProfileDetailPage {
     this.loadingText = page.getByText('Loading details...');
     this.errorMessage = page.getByRole('alert');
     this.successMessage = page.getByRole('status');
-    this.warningMessage = page.locator('app-alert-banner.warning');
+    this.warningMessage = page
+      .locator('app-alert-banner')
+      .filter({ hasText: /change may not appear immediately/i });
   }
 
   async goto(email: string): Promise<void> {

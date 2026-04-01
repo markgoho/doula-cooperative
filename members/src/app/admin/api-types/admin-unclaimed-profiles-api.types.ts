@@ -32,10 +32,6 @@ export interface ApiListUnclaimedProfilesResponse {
   total: number;
 }
 
-interface ApiErrorResponse {
-  error: string;
-}
-
 export interface ApiDraftUnclaimedProfileSuccessResponse {
   success: true;
   slug: string;
@@ -44,4 +40,4 @@ export interface ApiDraftUnclaimedProfileSuccessResponse {
 
 export type ApiDraftUnclaimedProfileResponse =
   | ApiDraftUnclaimedProfileSuccessResponse
-  | ApiErrorResponse;
+  | { error: string };

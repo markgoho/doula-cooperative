@@ -1,6 +1,7 @@
 import { computed, inputBinding, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { UnclaimedProfile } from '../../admin.types';
@@ -72,6 +73,44 @@ describe('AdminUnclaimedProfileDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Failed to set profile to draft.');
+  });
+
+  it('should show warning message when draft succeeds with warning', async () => {
+    const { user } = await setup({
+      slug: 'jane-doula',
+      draftWarning:
+        'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
+
+    expect(
+      await screen.findByText(
+        'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
+      ),
+    ).toBeVisible();
+  });
+
+  it('should close draft dialog without drafting when Cancel is clicked', async () => {
+    const { user } = await setup({ slug: 'jane-doula' });
+
+    await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('button', { name: 'Set to Draft' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Set Profile to Draft' })).toBeVisible();
+  });
+
+  it('should show loading state while draft is in progress', async () => {
+    await setup({ slug: 'jane-doula', draftInProgress: true });
+    TestBed.flushEffects();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Processing...' })).toBeDisabled();
+    });
   });
 
   it('should display profile link when slug exists', async () => {
@@ -234,6 +273,8 @@ interface SetupOptions {
   shouldFailUpdateEmail?: boolean;
   shouldFailDraft?: boolean;
   shouldKeepLoading?: boolean;
+  draftWarning?: string;
+  draftInProgress?: boolean;
   errorMessage?: string;
 }
 
@@ -248,6 +289,8 @@ async function setup(rawOptions: SetupOptions = {}) {
     shouldFailUpdateEmail = false,
     shouldFailDraft = false,
     shouldKeepLoading = false,
+    draftWarning,
+    draftInProgress = false,
     errorMessage = 'Failed to load unclaimed profile details. Please try again.',
   } = rawOptions;
 
@@ -290,7 +333,7 @@ async function setup(rawOptions: SetupOptions = {}) {
       return newEmail;
     }),
     deleteInProgress: signal(false),
-    draftInProgress: signal(false),
+    draftInProgress: signal(draftInProgress),
     deleteProfile: vi.fn().mockResolvedValue(undefined),
     draftProfile: vi.fn().mockImplementation(async () => {
       if (shouldFailDraft) {
@@ -298,6 +341,9 @@ async function setup(rawOptions: SetupOptions = {}) {
         throw new Error('Draft failed');
       }
       mockService.successMessage.set(`Profile ${finalProfile.slug ?? 'test-user'} was set to draft.`);
+      if (draftWarning !== undefined) {
+        mockService.warningMessage.set(draftWarning);
+      }
     }),
   };
 

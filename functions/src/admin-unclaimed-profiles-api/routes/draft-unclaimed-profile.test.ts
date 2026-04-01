@@ -13,6 +13,7 @@ describe("POST /:email/draft", () => {
     profileNotFound?: boolean;
     missingSlug?: boolean;
     rebuildTriggered?: boolean;
+    serviceError?: boolean;
   }
 
   function setup({
@@ -21,6 +22,7 @@ describe("POST /:email/draft", () => {
     profileNotFound = false,
     missingSlug = false,
     rebuildTriggered = true,
+    serviceError = false,
   }: SetupOptions = {}) {
     const mockDraftUnclaimedProfile = mock(
       ({ email: requestEmail }: { email: string }): Promise<{
@@ -28,6 +30,10 @@ describe("POST /:email/draft", () => {
         slug: string;
         warning?: string;
       }> => {
+        if (serviceError) {
+          return Promise.reject(new Error("Unexpected database error"));
+        }
+
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(
             new NotFoundError("Unclaimed profile not found"),
@@ -161,6 +167,16 @@ describe("POST /:email/draft", () => {
       expect(body.error).toBe(
         "Unclaimed profile with email test@example.com does not have a profile slug",
       );
+    });
+
+    it("should return 500 on unexpected service error", async () => {
+      const { testApp, request } = setup({ serviceError: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBeTruthy();
     });
   });
 });

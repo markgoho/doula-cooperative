@@ -673,4 +673,109 @@ test.describe('Admin Unclaimed Profiles', () => {
       'Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.',
     );
   });
+
+  test('admin cancels draft confirmation dialog', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!;
+    let draftRequestMade = false;
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          draftRequestMade = true;
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, slug: 'alice-unclaimed' }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Open draft confirmation dialog ===
+    await unclaimedProfilePage.draftProfileButton.click();
+    const dialog = authenticatedAdminPage.locator('dialog[open]');
+    await expect(dialog).toBeVisible();
+
+    // === Cancel draft ===
+    await dialog.getByRole('button', { name: /cancel/i }).click();
+
+    // === Verify draft request was not made ===
+    await expect(dialog).not.toBeVisible();
+    expect(draftRequestMade).toBe(false);
+
+    // === Verify still on detail page ===
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/alice\.unclaimed@example\.com/);
+    await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
+  });
+
+  test('handles draft failure with error message', async ({ authenticatedAdminPage }) => {
+    const mockProfile = mockUnclaimedProfiles[0]!;
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockProfile),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    await authenticatedAdminPage.route(
+      '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
+      async (route) => {
+        if (route.request().method() === 'POST') {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to draft profile' }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
+
+    const unclaimedProfilePage = new AdminUnclaimedProfileDetailPage(authenticatedAdminPage);
+    await unclaimedProfilePage.goto('alice.unclaimed@example.com');
+    await unclaimedProfilePage.waitForProfileDetails();
+
+    // === Open and confirm draft dialog ===
+    await unclaimedProfilePage.confirmDraftProfile();
+
+    // === Verify error state ===
+    await expect(unclaimedProfilePage.errorMessage).toBeVisible({ timeout: 5000 });
+    await expect(unclaimedProfilePage.errorMessage).toContainText('Failed to set profile to draft.');
+
+    // === Verify still on detail page ===
+    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/alice\.unclaimed@example\.com/);
+    await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
+  });
 });

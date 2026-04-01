@@ -101,7 +101,7 @@ export type DeleteUnclaimedProfileResponse = Static<
 
 const DraftUnclaimedProfileSuccessSchema = t.Object({
   success: t.Literal(true),
-  slug: t.String(),
+  slug: t.String({ minLength: 1 }),
   warning: t.Optional(t.String()),
 });
 
