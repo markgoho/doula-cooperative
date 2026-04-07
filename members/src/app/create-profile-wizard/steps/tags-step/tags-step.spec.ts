@@ -12,6 +12,8 @@ describe('TagsStep', () => {
 
     expect(screen.getByRole('checkbox', { name: 'Birth Doula' })).toBeVisible();
     expect(screen.getByRole('checkbox', { name: 'Postpartum Doula' })).toBeVisible();
+    expect(screen.getByRole('checkbox', { name: 'Body Ready Birth Instructor' })).toBeVisible();
+    expect(screen.getByRole('checkbox', { name: 'Spinning Babies Parent Educator' })).toBeVisible();
   });
 
   it('should pre-select tags from wizard service', async () => {

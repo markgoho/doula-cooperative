@@ -6,6 +6,7 @@ export const PROFILE_TAGS = [
   'Birth Doula',
   'Birth Photography',
   'Birth Planning',
+  'Body Ready Birth Instructor',
   'Breastfeeding Consultant',
   'Breastfeeding Educator',
   'Breastmilk jewelry',
@@ -36,4 +37,5 @@ export const PROFILE_TAGS = [
   'Reiki Healing',
   'Returning to Work Support Group',
   'Spinning Babies Aware Practitioner',
+  'Spinning Babies Parent Educator',
 ] as const;
