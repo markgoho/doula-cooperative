@@ -1,8 +1,8 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import type { ProfileMemberService } from "../services/member/interface.js";
 import { deleteProfileImage } from "../services/imagekit/delete-profile-image.js";
+import type { ProfileMemberService } from "../services/member/interface.js";
 
 export async function deleteImageLogic({
   uid,

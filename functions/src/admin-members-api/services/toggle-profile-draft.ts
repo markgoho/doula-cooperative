@@ -5,12 +5,12 @@ import {
   type ProfileDocument,
 } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
+import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import {
   HttpError,
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
-import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 export interface ToggleProfileDraftResult {
@@ -46,7 +46,9 @@ export async function toggleProfileDraft(options: {
 
   try {
     const firestore = getFirestore();
-    const profileReference = firestore.collection(PROFILES_COLLECTION).doc(slug);
+    const profileReference = firestore
+      .collection(PROFILES_COLLECTION)
+      .doc(slug);
     const profileDocument = await profileReference.get();
 
     if (!profileDocument.exists) {

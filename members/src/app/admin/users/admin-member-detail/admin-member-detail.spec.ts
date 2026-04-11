@@ -417,7 +417,9 @@ describe('AdminUserDetail', () => {
     await user.click(linkButton);
     await user.click(screen.getByRole('button', { name: 'Link Profile' }));
 
-    expect(await screen.findByText('Profile "matching-doula" linked and approved successfully')).toBeVisible();
+    expect(
+      await screen.findByText('Profile "matching-doula" linked and approved successfully'),
+    ).toBeVisible();
   });
 
   it('should keep existing link success behavior visible to admins', async () => {
@@ -710,7 +712,9 @@ describe('AdminUserDetail', () => {
     await user.click(await screen.findByRole('button', { name: 'Link' }));
     await user.click(screen.getByRole('button', { name: 'Link Profile' }));
 
-    expect(await screen.findByText('Profile "matching-doula" linked and approved successfully')).toBeVisible();
+    expect(
+      await screen.findByText('Profile "matching-doula" linked and approved successfully'),
+    ).toBeVisible();
   });
 
   it('should display approval pending when member has no profile approval yet', async () => {
@@ -1296,7 +1300,9 @@ describe('AdminUserDetail', () => {
     const linkButton = await screen.findByRole('button', { name: 'Link' });
     await user.click(linkButton);
 
-    expect(screen.getByText(/Link profile "Test User Doula" \(matching-doula\) to this member/)).toBeVisible();
+    expect(
+      screen.getByText(/Link profile "Test User Doula" \(matching-doula\) to this member/),
+    ).toBeVisible();
     expect(screen.getByRole('button', { name: 'Link Profile' })).toBeVisible();
   });
 
@@ -1314,7 +1320,9 @@ describe('AdminUserDetail', () => {
     const confirmButton = screen.getByRole('button', { name: 'Link Profile' });
     await user.click(confirmButton);
 
-    expect(await screen.findByText('Profile "matching-doula" linked and approved successfully')).toBeVisible();
+    expect(
+      await screen.findByText('Profile "matching-doula" linked and approved successfully'),
+    ).toBeVisible();
   });
 
   it('should show error banner when linking a profile fails', async () => {
@@ -1359,7 +1367,9 @@ describe('AdminUserDetail', () => {
       overrideListUnlinkedProfiles: listUnlinkedProfiles,
     });
 
-    expect(await screen.findByText('Failed to load unlinked profiles. Please try again.')).toBeVisible();
+    expect(
+      await screen.findByText('Failed to load unlinked profiles. Please try again.'),
+    ).toBeVisible();
 
     const retryButton = screen.getByRole('button', { name: 'Retry' });
     await user.click(retryButton);
@@ -1369,7 +1379,6 @@ describe('AdminUserDetail', () => {
 
     consoleErrorSpy.mockRestore();
   });
-
 
   it('should cancel link dialog without linking', async () => {
     const member = createMockMemberWithoutSlug();

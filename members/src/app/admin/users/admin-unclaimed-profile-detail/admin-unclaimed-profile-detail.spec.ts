@@ -63,7 +63,9 @@ describe('AdminUnclaimedProfileDetail', () => {
     await user.click(await screen.findByRole('button', { name: 'Set Profile to Draft' }));
     await user.click(screen.getByRole('button', { name: 'Set to Draft' }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Profile jane-doula was set to draft.');
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Profile jane-doula was set to draft.',
+    );
   });
 
   it('should show error message when draft fails', async () => {
@@ -340,7 +342,9 @@ async function setup(rawOptions: SetupOptions = {}) {
         mockService.actionError.set('Failed to set profile to draft.');
         throw new Error('Draft failed');
       }
-      mockService.successMessage.set(`Profile ${finalProfile.slug ?? 'test-user'} was set to draft.`);
+      mockService.successMessage.set(
+        `Profile ${finalProfile.slug ?? 'test-user'} was set to draft.`,
+      );
       if (draftWarning !== undefined) {
         mockService.warningMessage.set(draftWarning);
       }

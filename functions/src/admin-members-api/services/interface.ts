@@ -1,12 +1,12 @@
+import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { ApproveProfileResult } from "./approve-profile.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
 import type { LinkProfileResult } from "./link-profile.js";
 import type { ListUnlinkedProfilesResult } from "./list-unlinked-profiles.js";
-import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
-import type { ApproveProfileResult } from "./approve-profile.js";
 import type { ReadProfileResult } from "./read-profile.js";
 import type { RefundMembershipResult } from "./refund-membership.js";
 import type { ToggleProfileDraftResult } from "./toggle-profile-draft.js";

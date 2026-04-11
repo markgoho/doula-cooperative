@@ -1,11 +1,13 @@
-##  (2026-03-20)
+##  (2026-04-11)
 
 ### Features
 
 * add draft profile banner and improve profile 404 debugging ([2b30a45](https://github.com/markgoho/doula-cooperative/commit/2b30a45c2f91f8e96188991b98e698d7f3e635c1))
 * add health check tests for profiles API ([164938c](https://github.com/markgoho/doula-cooperative/commit/164938c8af94a682cddcdac92bc66e7a46b6e485))
+* add legacy membership draft action ([#83](https://github.com/markgoho/doula-cooperative/issues/83)) ([416fafa](https://github.com/markgoho/doula-cooperative/commit/416fafa2be5b5812cca598427818050dfa102fa1))
 * add playwriter skill documentation and tests for markdown serialization ([5441c9d](https://github.com/markgoho/doula-cooperative/commit/5441c9de513b5793010802941adc6e924c633f46))
 * add versioning and changelog infrastructure ([bb61cff](https://github.com/markgoho/doula-cooperative/commit/bb61cff47f85e7f7a5a0cdb8877345183ddd611f))
+* **admin-members:** add profile approval flow ([524a91e](https://github.com/markgoho/doula-cooperative/commit/524a91eb0cb52c3532d8931e736071708a56cb5c))
 * clean slate delete with GitHub profile deletion and ImageKit cleanup ([#63](https://github.com/markgoho/doula-cooperative/issues/63)) ([bc84389](https://github.com/markgoho/doula-cooperative/commit/bc84389d9adc6a2bcd439b21142f2d5d46d67fbc))
 * complete profile API migration with E2E tests ([#35](https://github.com/markgoho/doula-cooperative/issues/35)) ([19436b2](https://github.com/markgoho/doula-cooperative/commit/19436b2282a66658ee701e7d2320d023414aff0e))
 * draft Hugo profile when deleting unclaimed profile ([8fb13ba](https://github.com/markgoho/doula-cooperative/commit/8fb13ba279d885a7663974ade3ab7ae8235d00e6))

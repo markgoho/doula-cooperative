@@ -79,7 +79,9 @@ export async function linkProfile(options: {
       .doc(memberId);
 
     batch.update(profileReference, { ownerUid: memberId });
-    const profileCreatedAt = Timestamp.fromDate(new Date(profileData.createdAt));
+    const profileCreatedAt = Timestamp.fromDate(
+      new Date(profileData.createdAt),
+    );
 
     batch.update(memberReference, {
       slug,

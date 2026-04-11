@@ -184,7 +184,9 @@
             [(ngModel)]="profileSearchTerm"
             placeholder="Search by name, email, or slug"
           />
-          <p class="result-count">{{ filteredUnlinkedProfiles().length }} of {{ profiles.length }} profiles</p>
+          <p class="result-count">
+            {{ filteredUnlinkedProfiles().length }} of {{ profiles.length }} profiles
+          </p>
 
           @if (filteredUnlinkedProfiles().length > 0) {
             <table>
@@ -301,7 +303,13 @@
             (click)="showToggleDraftConfirm()"
             [disabled]="service.actionInProgress()"
           >
-            {{ service.actionInProgress() ? 'Processing...' : (isProfileDraft() ? 'Publish Profile' : 'Unpublish Profile') }}
+            {{
+              service.actionInProgress()
+                ? 'Processing...'
+                : isProfileDraft()
+                  ? 'Publish Profile'
+                  : 'Unpublish Profile'
+            }}
           </button>
 
           @if (isProfileDraft()) {

@@ -97,17 +97,13 @@ export async function sendAdminFailureNotification({
     await emailService.sendEmail({ message: notificationEmail }, logger);
     logger.info("Sent failure notification email", { memberId });
   } catch (emailError) {
-    logger.error(
-      "CRITICAL: Failed to send failure notification email",
-      {
-        errorId,
-        memberId,
-        error: emailError,
-        severity: "CRITICAL",
-        context:
-          "Cascading actions failed AND notification email failed",
-        failures,
-      },
-    );
+    logger.error("CRITICAL: Failed to send failure notification email", {
+      errorId,
+      memberId,
+      error: emailError,
+      severity: "CRITICAL",
+      context: "Cascading actions failed AND notification email failed",
+      failures,
+    });
   }
 }

@@ -42,8 +42,8 @@ const COMMON_MESSAGE_WORDS = new Set([
 function getWords({ text }: { text: string }): string[] {
   return text
     .split(/[^A-Za-z]+/)
-    .map((word) => word.trim())
-    .filter((word) => word.length > 0);
+    .map(word => word.trim())
+    .filter(word => word.length > 0);
 }
 
 function getVowelRatio({ text }: { text: string }): number | undefined {
@@ -93,7 +93,7 @@ function hasRecognizableWord({
   words: string[];
   dictionary: Set<string>;
 }): boolean {
-  return words.some((word) => dictionary.has(word.toLowerCase()));
+  return words.some(word => dictionary.has(word.toLowerCase()));
 }
 
 function getConsonantClusterRatio({ words }: { words: string[] }): number {
@@ -101,7 +101,7 @@ function getConsonantClusterRatio({ words }: { words: string[] }): number {
     return 0;
   }
 
-  const clusteredWords = words.filter((word) =>
+  const clusteredWords = words.filter(word =>
     /[bcdfghjklmnpqrstvwxyz]{3,}/i.test(word),
   );
   return clusteredWords.length / words.length;
@@ -120,7 +120,7 @@ export function detectGibberish({ text }: { text: string }): boolean {
 
   const consonantClusterRatio = getConsonantClusterRatio({ words });
   const vowelRatio = getVowelRatio({ text: normalizedText });
-  const mixedCaseWordCount = words.filter((word) =>
+  const mixedCaseWordCount = words.filter(word =>
     hasMixedCaseMidWord({ word }),
   ).length;
   const hasNameWord = hasRecognizableWord({
@@ -135,11 +135,7 @@ export function detectGibberish({ text }: { text: string }): boolean {
   const longSingleWord =
     words.length === 1 && firstWord !== undefined && firstWord.length >= 12;
 
-  if (
-    longSingleWord &&
-    mixedCaseWordCount > 0 &&
-    consonantClusterRatio >= 1
-  ) {
+  if (longSingleWord && mixedCaseWordCount > 0 && consonantClusterRatio >= 1) {
     return true;
   }
 

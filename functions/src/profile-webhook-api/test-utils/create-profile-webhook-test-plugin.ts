@@ -45,14 +45,13 @@ export function createProfileWebhookTestPlugin(overrides?: {
         };
       },
     ),
-    findMemberBySlug: mock(
-      ({ slug }: { slug: string }) =>
-        Promise.resolve({
-          uid: "member-123",
-          email: "jane@example.com",
-          name: "Jane Doe",
-          slug,
-        } satisfies MemberInfo),
+    findMemberBySlug: mock(({ slug }: { slug: string }) =>
+      Promise.resolve({
+        uid: "member-123",
+        email: "jane@example.com",
+        name: "Jane Doe",
+        slug,
+      } satisfies MemberInfo),
     ),
     sendNotificationEmail: mock(() => Promise.resolve()),
     ...overrides?.profileWebhookService,

@@ -1,8 +1,8 @@
 import { getAuth } from "firebase-admin/auth";
 import { logger } from "firebase-functions/v2";
 import { ERROR_IDS } from "../../constants/index.js";
-import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
+import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
 import {
   ForbiddenError,
   ValidationError,
@@ -235,9 +235,11 @@ export async function cleanSlateDelete({
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
     await sendAdminFailureNotification({
-      subject: "Clean Slate Delete - Action Required for Failed Follow-up Actions",
+      subject:
+        "Clean Slate Delete - Action Required for Failed Follow-up Actions",
       title: "Clean Slate Delete - Cascading Action Failures",
-      description: "A clean slate delete was performed, but some follow-up actions failed.",
+      description:
+        "A clean slate delete was performed, but some follow-up actions failed.",
       email: member.email,
       memberId,
       failures,

@@ -1,8 +1,8 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import type { Logger } from "../types/logger.js";
-import { removeNewsletterSubscriber } from "./mailerlite.js";
 import { updateMemberWithValidation } from "./firestore-helpers.js";
+import { removeNewsletterSubscriber } from "./mailerlite.js";
 
 /**
  * Unsubscribe a member from the MailerLite newsletter as a non-critical action.
@@ -69,19 +69,14 @@ export async function unsubscribeNewsletter({
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    logger.error(
-      `Failed to unsubscribe from newsletter during ${action}`,
-      {
-        errorId,
-        memberId,
-        email,
-        error,
-        errorMessage,
-      },
-    );
-    failures.push(
-      `Newsletter unsubscribe (${email}): ${errorMessage}`,
-    );
+    logger.error(`Failed to unsubscribe from newsletter during ${action}`, {
+      errorId,
+      memberId,
+      email,
+      error,
+      errorMessage,
+    });
+    failures.push(`Newsletter unsubscribe (${email}): ${errorMessage}`);
     return false;
   }
 }

@@ -1,5 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Tag } from '../../../tag/tag';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';

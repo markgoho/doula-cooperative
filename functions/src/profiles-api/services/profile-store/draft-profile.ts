@@ -2,7 +2,10 @@ import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import { PROFILES_COLLECTION } from "../../../collections/index.js";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError, NotFoundError } from "../../../shared-api/errors/http-error.js";
+import {
+  HttpError,
+  NotFoundError,
+} from "../../../shared-api/errors/http-error.js";
 import type { WriteProfileResponse } from "./interface.js";
 
 /**

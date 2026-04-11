@@ -64,12 +64,7 @@
 
 <section class="bio">
   @if (showEditLinks()) {
-    <button
-      type="button"
-      class="edit-link"
-      (click)="editSection.emit('bio')"
-      aria-label="Edit bio"
-    >
+    <button type="button" class="edit-link" (click)="editSection.emit('bio')" aria-label="Edit bio">
       Edit
     </button>
   }

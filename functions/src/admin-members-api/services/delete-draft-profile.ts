@@ -1,6 +1,10 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { MEMBERS_COLLECTION, PROFILES_COLLECTION, type ProfileDocument } from "../../collections/index.js";
+import {
+  MEMBERS_COLLECTION,
+  PROFILES_COLLECTION,
+  type ProfileDocument,
+} from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { deleteProfileImage } from "../../profiles-api/services/imagekit/delete-profile-image.js";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
@@ -49,8 +53,12 @@ export async function deleteDraftProfile(options: {
 
     const { slug } = member;
     const firestore = getFirestore();
-    const profileReference = firestore.collection(PROFILES_COLLECTION).doc(slug);
-    const memberReference = firestore.collection(MEMBERS_COLLECTION).doc(memberId);
+    const profileReference = firestore
+      .collection(PROFILES_COLLECTION)
+      .doc(slug);
+    const memberReference = firestore
+      .collection(MEMBERS_COLLECTION)
+      .doc(memberId);
 
     const profileDocument = await profileReference.get();
 

@@ -170,7 +170,11 @@
 
     <div class="form-actions">
       <button type="button" class="button button--secondary" (click)="onCancel()">Cancel</button>
-      <button type="submit" class="button button--primary" [disabled]="loading() || profileForm.invalid">
+      <button
+        type="submit"
+        class="button button--primary"
+        [disabled]="loading() || profileForm.invalid"
+      >
         @if (loading()) {
           <span>Saving...</span>
         } @else {

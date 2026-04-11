@@ -10,7 +10,7 @@ export { listMembersLogic } from "./list-members.js";
 export { listUnlinkedProfilesLogic } from "./list-unlinked-profiles.js";
 export { readProfileLogic } from "./read-profile.js";
 export { refundMembershipLogic } from "./refund-membership.js";
-export { updateProfileLogic } from "./update-profile.js";
 export { toggleProfileDraftLogic } from "./toggle-profile-draft.js";
 export { updateClaimsLogic } from "./update-claims.js";
 export { updateMemberLogic } from "./update-member.js";
+export { updateProfileLogic } from "./update-profile.js";

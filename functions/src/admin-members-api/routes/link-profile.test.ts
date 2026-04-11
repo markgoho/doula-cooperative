@@ -61,9 +61,7 @@ describe("POST /:memberId/profile/link", () => {
       }): Promise<LinkProfileResult> => {
         if (memberNotFound) {
           return Promise.reject(
-            new NotFoundError(
-              `Member with ID ${options.memberId} not found`,
-            ),
+            new NotFoundError(`Member with ID ${options.memberId} not found`),
           );
         }
         if (memberAlreadyHasSlug) {
@@ -75,9 +73,7 @@ describe("POST /:memberId/profile/link", () => {
         }
         if (profileNotFound) {
           return Promise.reject(
-            new NotFoundError(
-              `Profile not found for slug: ${options.slug}`,
-            ),
+            new NotFoundError(`Profile not found for slug: ${options.slug}`),
           );
         }
         if (profileAlreadyLinked) {
@@ -116,14 +112,11 @@ describe("POST /:memberId/profile/link", () => {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
 
-    const request = new Request(
-      `http://localhost/${memberId}/profile/link`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      },
-    );
+    const request = new Request(`http://localhost/${memberId}/profile/link`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
 
     return { testApp, request };
   }

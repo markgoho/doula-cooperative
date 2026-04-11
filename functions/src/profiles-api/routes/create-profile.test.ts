@@ -289,12 +289,15 @@ describe("POST /:slug (create profile)", () => {
       expect(mockSendEmail).toHaveBeenCalledTimes(1);
 
       // Verify the email includes the admin dashboard link
-      const emailArgument = mockSendEmail.mock
-        .calls[0] as unknown as [{ message: { html: string } }];
+      const emailArgument = mockSendEmail.mock.calls[0] as unknown as [
+        { message: { html: string } },
+      ];
       expect(emailArgument[0].message.html).toContain(
         "members.doulacooperative.com/admin/members/",
       );
-      expect(emailArgument[0].message.html).toContain("Review in Admin Dashboard");
+      expect(emailArgument[0].message.html).toContain(
+        "Review in Admin Dashboard",
+      );
     });
 
     it("should return 201 even when notification email fails", async () => {

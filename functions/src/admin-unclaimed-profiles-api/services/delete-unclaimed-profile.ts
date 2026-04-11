@@ -140,8 +140,7 @@ async function sendDraftFailureNotification({
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
-      subject:
-        "Profile Draft Failed During Profile Deletion - Action Required",
+      subject: "Profile Draft Failed During Profile Deletion - Action Required",
       html: createDraftFailureEmailHtml({
         email,
         slug,
@@ -256,33 +255,39 @@ export async function deleteUnclaimedProfile(options: {
 
         // NON-CRITICAL: Trigger Hugo rebuild after drafting
         try {
-          await triggerHugoRebuild({ slug, action: "unclaimed profile deleted" });
+          await triggerHugoRebuild({
+            slug,
+            action: "unclaimed profile deleted",
+          });
         } catch (rebuildError: unknown) {
           const rebuildErrorMessage =
-            rebuildError instanceof Error ? rebuildError.message : "Unknown error";
-          logger.error("Failed to trigger Hugo rebuild after unclaimed profile draft", {
-            email,
-            slug,
-            error: rebuildError,
-            errorMessage: rebuildErrorMessage,
-          });
+            rebuildError instanceof Error
+              ? rebuildError.message
+              : "Unknown error";
+          logger.error(
+            "Failed to trigger Hugo rebuild after unclaimed profile draft",
+            {
+              email,
+              slug,
+              error: rebuildError,
+              errorMessage: rebuildErrorMessage,
+            },
+          );
         }
       } catch (draftError) {
         profileDrafted = false;
         const draftErrorMessage =
           draftError instanceof Error ? draftError.message : "Unknown error";
 
-        logger.error(
-          "Failed to set profile to draft during profile deletion",
-          {
-            errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
-            email,
-            slug,
-            error: draftError,
-            errorMessage: draftErrorMessage,
-            actionRequired: "Manually set draft: true on the Firestore profiles document",
-          },
-        );
+        logger.error("Failed to set profile to draft during profile deletion", {
+          errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
+          email,
+          slug,
+          error: draftError,
+          errorMessage: draftErrorMessage,
+          actionRequired:
+            "Manually set draft: true on the Firestore profiles document",
+        });
 
         await sendDraftFailureNotification({
           email,

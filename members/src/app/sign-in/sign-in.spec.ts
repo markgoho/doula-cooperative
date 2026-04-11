@@ -127,11 +127,7 @@ interface SetupOptions {
   signInImplementation?: () => Promise<void>;
 }
 
-async function setup({
-  signInError,
-  signInDelay,
-  signInImplementation,
-}: SetupOptions = {}) {
+async function setup({ signInError, signInDelay, signInImplementation }: SetupOptions = {}) {
   const mockAuthService = {
     signInWithEmail: vi.fn().mockImplementation(
       signInImplementation ||

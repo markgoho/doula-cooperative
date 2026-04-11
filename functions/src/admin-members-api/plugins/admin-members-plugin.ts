@@ -1,5 +1,7 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
+import type { ProfileDataBody } from "../../profiles-api/schemas/profile-schemas.js";
+import { ProfileDataBodySchema } from "../../profiles-api/schemas/profile-schemas.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { adminDerive } from "../../shared-api/utils/admin-derive.js";
@@ -48,8 +50,6 @@ import {
   UpdateMemberBodySchema,
   UpdateProfileApiResponseSchema,
 } from "../schemas/member-schemas.js";
-import type { ProfileDataBody } from "../../profiles-api/schemas/profile-schemas.js";
-import { ProfileDataBodySchema } from "../../profiles-api/schemas/profile-schemas.js";
 import { MemberAdminService } from "../services/index.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 

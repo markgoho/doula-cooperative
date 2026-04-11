@@ -19,7 +19,9 @@ export async function draftUnclaimedProfile(options: {
 
   try {
     const firestore = getFirestore();
-    const documentReference = firestore.collection(IMPORT_COLLECTION).doc(email);
+    const documentReference = firestore
+      .collection(IMPORT_COLLECTION)
+      .doc(email);
     const document = await documentReference.get();
 
     if (!document.exists) {
@@ -27,7 +29,9 @@ export async function draftUnclaimedProfile(options: {
         errorId: ERROR_IDS.API_UNCLAIMED_PROFILE_NOT_FOUND,
         email,
       });
-      throw new NotFoundError(`Unclaimed profile with email ${email} not found`);
+      throw new NotFoundError(
+        `Unclaimed profile with email ${email} not found`,
+      );
     }
 
     const documentData = document.data();
@@ -57,14 +61,19 @@ export async function draftUnclaimedProfile(options: {
       });
     } catch (rebuildError) {
       rebuildTriggered = false;
-      logger.error("Failed to trigger Hugo rebuild after drafting unclaimed profile", {
-        errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
-        email,
-        slug,
-        error: rebuildError,
-        errorMessage:
-          rebuildError instanceof Error ? rebuildError.message : "Unknown error",
-      });
+      logger.error(
+        "Failed to trigger Hugo rebuild after drafting unclaimed profile",
+        {
+          errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
+          email,
+          slug,
+          error: rebuildError,
+          errorMessage:
+            rebuildError instanceof Error
+              ? rebuildError.message
+              : "Unknown error",
+        },
+      );
     }
 
     return {

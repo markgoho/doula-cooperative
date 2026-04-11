@@ -25,7 +25,11 @@ describe("POST /:email/draft", () => {
     serviceError = false,
   }: SetupOptions = {}) {
     const mockDraftUnclaimedProfile = mock(
-      ({ email: requestEmail }: { email: string }): Promise<{
+      ({
+        email: requestEmail,
+      }: {
+        email: string;
+      }): Promise<{
         success: true;
         slug: string;
         warning?: string;

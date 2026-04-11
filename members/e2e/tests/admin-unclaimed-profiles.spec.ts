@@ -189,9 +189,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     // === Verify membership details (ad-hoc selectors) ===
     await expect(authenticatedAdminPage.getByText('Jan 15, 2024').first()).toBeVisible();
     await expect(authenticatedAdminPage.getByText('Jan 15, 2025')).toBeVisible();
-
   });
-
 
   test('handles profile not found error', async ({ authenticatedAdminPage }) => {
     // Mock 404 response for specific profile
@@ -385,10 +383,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
   });
 
-
-  test('update email button visible for unclaimed profile', async ({
-    authenticatedAdminPage,
-  }) => {
+  test('update email button visible for unclaimed profile', async ({ authenticatedAdminPage }) => {
     const bobProfile = mockUnclaimedProfiles[1]!;
 
     await authenticatedAdminPage.route(
@@ -411,9 +406,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.updateEmailButton).toBeVisible();
   });
 
-  test('admin updates email successfully', async ({
-    authenticatedAdminPage,
-  }) => {
+  test('admin updates email successfully', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[1]!; // Bob
     let patchRequestMade = false;
 
@@ -726,7 +719,9 @@ test.describe('Admin Unclaimed Profiles', () => {
     expect(draftRequestMade).toBe(false);
 
     // === Verify still on detail page ===
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/alice\.unclaimed@example\.com/);
+    await expect(authenticatedAdminPage).toHaveURL(
+      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
+    );
     await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
   });
 
@@ -772,10 +767,14 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Verify error state ===
     await expect(unclaimedProfilePage.errorMessage).toBeVisible({ timeout: 5000 });
-    await expect(unclaimedProfilePage.errorMessage).toContainText('Failed to set profile to draft.');
+    await expect(unclaimedProfilePage.errorMessage).toContainText(
+      'Failed to set profile to draft.',
+    );
 
     // === Verify still on detail page ===
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/alice\.unclaimed@example\.com/);
+    await expect(authenticatedAdminPage).toHaveURL(
+      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
+    );
     await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
   });
 });

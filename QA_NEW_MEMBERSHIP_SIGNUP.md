@@ -1,6 +1,6 @@
 # QA Script: New Membership Sign-Up
 
-**Test Date**: ******\_******
+**Test Date**: **\*\***\_**\*\***
 **Tester**: Nella
 **Email to Use**: doulanella@gmail.com
 

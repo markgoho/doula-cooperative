@@ -33,19 +33,17 @@ describe("POST /:memberId/profile/approve", () => {
       profileApprovedAt: Timestamp.now(),
     };
 
-    const mockApproveProfile = mock(
-      (): Promise<ApproveProfileResult> => {
-        if (memberNotFound) {
-          return Promise.reject(
-            new NotFoundError(`Member with ID ${memberId} not found`),
-          );
-        }
-        if (serverError) {
-          return Promise.reject(new Error("Firestore unavailable"));
-        }
-        return Promise.resolve({ member: defaultMember });
-      },
-    );
+    const mockApproveProfile = mock((): Promise<ApproveProfileResult> => {
+      if (memberNotFound) {
+        return Promise.reject(
+          new NotFoundError(`Member with ID ${memberId} not found`),
+        );
+      }
+      if (serverError) {
+        return Promise.reject(new Error("Firestore unavailable"));
+      }
+      return Promise.resolve({ member: defaultMember });
+    });
 
     const testApp = createAdminTestPlugin({
       memberAdminService: {

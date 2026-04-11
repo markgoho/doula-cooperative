@@ -4,11 +4,11 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { FormResponse } from "../schemas/form-response-schemas.js";
 import { buildContactFormNotification } from "../services/build-contact-form-notification.js";
-import { detectGibberish } from "../utils/detect-gibberish.js";
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { ContactFormData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
 import { checkRecaptchaScore } from "../utils/check-recaptcha-score.js";
+import { detectGibberish } from "../utils/detect-gibberish.js";
 
 export async function handleContactFormLogic({
   formData,

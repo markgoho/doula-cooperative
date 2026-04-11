@@ -5,7 +5,10 @@ import {
   type ProfileDocument,
 } from "../../../collections/index.js";
 import { ERROR_IDS } from "../../../constants/error-ids.js";
-import { HttpError, NotFoundError } from "../../../shared-api/errors/http-error.js";
+import {
+  HttpError,
+  NotFoundError,
+} from "../../../shared-api/errors/http-error.js";
 import type { ProfileData } from "../../schemas/profile-schemas.js";
 import type { WriteProfileResponse } from "./interface.js";
 

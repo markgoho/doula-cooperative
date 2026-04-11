@@ -43,8 +43,7 @@ export async function optionalUserDerive({
   authService: AuthService;
   logger: Logger;
 }): Promise<OptionalUserAuthResult> {
-  const authorizationHeader =
-    request.headers.get("authorization") ?? undefined;
+  const authorizationHeader = request.headers.get("authorization") ?? undefined;
 
   // No auth header — anonymous access (not an error)
   if (!authorizationHeader) {

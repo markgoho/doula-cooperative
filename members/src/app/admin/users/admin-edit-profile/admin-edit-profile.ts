@@ -2,7 +2,10 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, signal } fro
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
-import { createProfileFormGroup, PROFILE_TAGS } from '../../../shared/profile-form/profile-form-config';
+import {
+  createProfileFormGroup,
+  PROFILE_TAGS,
+} from '../../../shared/profile-form/profile-form-config';
 import {
   extractProfileData,
   initializeEditProfileForm,

@@ -62,6 +62,7 @@ Firebase Hosting does NOT strip the path prefix, so Elysia apps must use the `pr
   - Elysia `prefix` strips it: matches `GET /`
 
 - **Local development** (proxy.conf.json): Must NOT use `pathRewrite`
+
   ```json
   {
     "/api/admin/members": {

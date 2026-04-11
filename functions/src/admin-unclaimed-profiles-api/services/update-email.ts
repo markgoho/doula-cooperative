@@ -1,7 +1,11 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { IMPORT_COLLECTION } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/index.js";
-import { ConflictError, HttpError, NotFoundError } from "../../shared-api/errors/http-error.js";
+import {
+  ConflictError,
+  HttpError,
+  NotFoundError,
+} from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 
 interface UpdateEmailOptions {

@@ -47,7 +47,8 @@ describe("PUT /:memberId/profile", () => {
       createdAt: "2024-01-15T10:00:00.000Z",
       updatedAt: "2024-06-01T14:30:00.000Z",
       ownerUid: "test-member-id",
-      image: "https://ik.imagekit.io/doulacoop/doulas/jane-doe/jane-doe-profile",
+      image:
+        "https://ik.imagekit.io/doulacoop/doulas/jane-doe/jane-doe-profile",
     };
 
     const defaultResult: UpdateProfileResult = {

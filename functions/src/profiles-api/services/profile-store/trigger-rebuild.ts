@@ -43,7 +43,11 @@ export async function triggerHugoRebuild(options: {
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       event_type: "profile-update",
-      client_payload: { slug, action, ...(notificationType && { notificationType }) },
+      client_payload: {
+        slug,
+        action,
+        ...(notificationType && { notificationType }),
+      },
     });
 
     logger.info("Triggered Hugo rebuild via repository_dispatch", {

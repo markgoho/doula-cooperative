@@ -46,7 +46,9 @@ function isApiErrorResponse(response: unknown): response is ApiErrorResponse {
   );
 }
 
-function assertApiSuccess<TResponse extends object>(response: TResponse | ApiErrorResponse): TResponse {
+function assertApiSuccess<TResponse extends object>(
+  response: TResponse | ApiErrorResponse,
+): TResponse {
   if (isApiErrorResponse(response)) {
     throw new Error(response.error);
   }

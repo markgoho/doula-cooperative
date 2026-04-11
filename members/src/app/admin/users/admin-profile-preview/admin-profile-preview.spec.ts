@@ -73,9 +73,7 @@ describe('AdminProfilePreview', () => {
     await setup({ member: memberWithoutSlug });
 
     await waitFor(() => {
-      expect(
-        screen.getByText('This member does not have a linked profile.'),
-      ).toBeVisible();
+      expect(screen.getByText('This member does not have a linked profile.')).toBeVisible();
     });
   });
 });

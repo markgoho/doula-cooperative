@@ -214,7 +214,9 @@ test.describe('Admin Member Detail Page', () => {
     // === Navigate to edit page from detail page ===
     await editProfileLink.click();
     await authenticatedAdminPage.waitForURL('**/admin/members/test-member-123/profile/edit');
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Edit Profile' })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Edit Profile' }),
+    ).toBeVisible();
 
     // === Navigate to preview page from detail page ===
     await authenticatedAdminPage.goBack();
@@ -233,9 +235,7 @@ test.describe('Admin Member Detail Page', () => {
     await expect(
       authenticatedAdminPage.getByRole('link', { name: 'Back to Member' }),
     ).toBeVisible();
-    await expect(
-      authenticatedAdminPage.getByRole('link', { name: 'Edit Profile' }),
-    ).toBeVisible();
+    await expect(authenticatedAdminPage.getByRole('link', { name: 'Edit Profile' })).toBeVisible();
 
     const profileImage = authenticatedAdminPage.getByRole('img', {
       name: /Test Member|Birth Doula/i,
@@ -255,7 +255,9 @@ test.describe('Admin Member Detail Page', () => {
     // === Navigate between preview and edit ===
     await authenticatedAdminPage.getByRole('link', { name: 'Edit Profile' }).click();
     await authenticatedAdminPage.waitForURL('**/admin/members/test-member-123/profile/edit');
-    await expect(authenticatedAdminPage.getByRole('heading', { name: 'Edit Profile' })).toBeVisible();
+    await expect(
+      authenticatedAdminPage.getByRole('heading', { name: 'Edit Profile' }),
+    ).toBeVisible();
 
     await authenticatedAdminPage.goBack();
     await authenticatedAdminPage.waitForURL('**/admin/members/test-member-123/profile');

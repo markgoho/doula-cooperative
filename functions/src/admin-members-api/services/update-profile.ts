@@ -6,12 +6,12 @@ import {
 } from "../../collections/index.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { buildProfileImageUrl } from "../../constants/imagekit.js";
+import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
 import {
   HttpError,
   NotFoundError,
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
-import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
 
 const NOT_FOUND_CODE = 5;

@@ -31,9 +31,8 @@ export async function approveProfile(options: {
       profileApprovedAt: FieldValue.serverTimestamp(),
     });
 
-    const updatedMemberDocument = await MemberFirestoreService.getMemberByUid(
-      memberId,
-    );
+    const updatedMemberDocument =
+      await MemberFirestoreService.getMemberByUid(memberId);
     if (!updatedMemberDocument.exists) {
       throw new HttpError(
         `Member with ID ${memberId} not found in ${MEMBERS_COLLECTION}`,

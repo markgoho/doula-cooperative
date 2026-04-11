@@ -138,9 +138,11 @@ export async function processRefundActions({
   // NON-CRITICAL: Send admin notification if any cascading action failed
   if (failures.length > 0 && emailService !== undefined) {
     await sendAdminFailureNotification({
-      subject: "Refund Processing - Action Required for Failed Follow-up Actions",
+      subject:
+        "Refund Processing - Action Required for Failed Follow-up Actions",
       title: "Refund Processing - Cascading Action Failures",
-      description: "A membership refund was processed, but some follow-up actions failed.",
+      description:
+        "A membership refund was processed, but some follow-up actions failed.",
       email: member.email,
       memberId,
       failures,

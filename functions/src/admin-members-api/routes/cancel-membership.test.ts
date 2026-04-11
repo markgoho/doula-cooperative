@@ -30,33 +30,31 @@ describe("POST /:memberId/membership/cancel", () => {
     stripeCancelFails = false,
   }: SetupOptions = {}) {
     // Configure mock based on scenario
-    const mockCancelMembership = mock(
-      (id: string): Promise<MemberDocument> => {
-        if (memberNotFound || id === "non-existent-id") {
-          return Promise.reject(new NotFoundError("Member not found"));
-        }
-        if (stripeCancelFails) {
-          return Promise.reject(new Error("Stripe API error"));
-        }
-        if (hasStripeData) {
-          return Promise.resolve({
-            uid: id,
-            email: "test@example.com",
-            createdAt: Timestamp.now(),
-            membershipActive: true,
-            stripeCustomerId: "cus_123",
-            stripeSubscriptionId: "sub_456",
-            subscriptionStatus: "canceled",
-          });
-        }
+    const mockCancelMembership = mock((id: string): Promise<MemberDocument> => {
+      if (memberNotFound || id === "non-existent-id") {
+        return Promise.reject(new NotFoundError("Member not found"));
+      }
+      if (stripeCancelFails) {
+        return Promise.reject(new Error("Stripe API error"));
+      }
+      if (hasStripeData) {
         return Promise.resolve({
           uid: id,
           email: "test@example.com",
           createdAt: Timestamp.now(),
-          membershipActive: false,
+          membershipActive: true,
+          stripeCustomerId: "cus_123",
+          stripeSubscriptionId: "sub_456",
+          subscriptionStatus: "canceled",
         });
-      },
-    );
+      }
+      return Promise.resolve({
+        uid: id,
+        email: "test@example.com",
+        createdAt: Timestamp.now(),
+        membershipActive: false,
+      });
+    });
 
     const testApp = createAdminTestPlugin({
       memberAdminService: {
