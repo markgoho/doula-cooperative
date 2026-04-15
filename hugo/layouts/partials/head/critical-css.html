@@ -1,5 +1,14 @@
 <!-- Load Critical CSS Inline -->
-{{ $applicationCSS := "scss/styles.scss" }}
-{{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-{{ $appInlineCSS := resources.Get $applicationCSS | css.Sass $options }}
-<style>{{ $appInlineCSS.Content | safeCSS }}</style>
+{{ $css := slice
+  (resources.Get "css/base.css")
+  (resources.Get "css/colors.css")
+  (resources.Get "css/typography.css")
+  (resources.Get "css/spacing.css")
+  (resources.Get "css/header.css")
+  (resources.Get "css/footer.css")
+  (resources.Get "css/button.css")
+  (resources.Get "css/styles.css")
+  | resources.Concat "styles.css"
+  | resources.Minify
+}}
+<style>{{ $css.Content | safeCSS }}</style>

@@ -35,7 +35,7 @@ fieldset {
   border: 3px solid var(--brown-400);
   border-radius: var(--border-radius-md);
 
-  legend {
+  & legend {
     font-size: var(--step-0);
   }
 }
@@ -58,7 +58,7 @@ fieldset {
 .form__input[type="radio"] {
   width: var(--space-l);
   height: var(--space-l);
-  accent-color: var(--brown-400); // Modern browsers, for color
+  accent-color: var(--brown-400); /* Modern browsers, for color */
   margin-inline-end: var(--space-2xs);
   background-color: var(--brown-000);
 }

@@ -1,11 +1,3 @@
-@use "components/callout";
-@use "components/nav-card";
-@use "components/forms";
-@use "components/tag";
-@use "partials/search";
-@use "partials/browse";
-@use "partials/match";
-
 section > p:first-child {
   text-align: center;
   margin-block: var(--space-m);

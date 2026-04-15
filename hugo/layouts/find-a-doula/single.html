@@ -1,8 +1,17 @@
 {{ define "head-styles" }}
-  {{ $pageCSS := "scss/find-a-doula.scss" }}
-  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
-  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+  {{ $css := slice
+    (resources.Get "css/components/callout.css")
+    (resources.Get "css/components/nav-card.css")
+    (resources.Get "css/components/forms.css")
+    (resources.Get "css/components/tag.css")
+    (resources.Get "css/partials/search.css")
+    (resources.Get "css/partials/browse.css")
+    (resources.Get "css/partials/match.css")
+    (resources.Get "css/find-a-doula.css")
+    | resources.Concat "find-a-doula.css"
+    | resources.Minify
+  }}
+  <style>{{ $css.Content | safeCSS }}</style>
 {{ end }}
 
 {{ define "main" }}

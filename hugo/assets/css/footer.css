@@ -47,13 +47,13 @@
   flex-direction: column;
   gap: var(--space-s);
 
-  a {
+  & a {
     font-size: var(--step--1);
     font-weight: var(--font-weight-semibold);
     text-decoration: none;
   }
 
-  a:hover {
+  & a:hover {
     color: var(--brown-400);
   }
 }
@@ -63,7 +63,7 @@
   gap: var(--space-xs);
   margin-block-start: var(--space-xs);
 
-  .footer__social-link {
+  & .footer__social-link {
     display: grid;
     place-content: center;
 
@@ -71,11 +71,11 @@
       color: var(--brown-400);
     }
   }
-  .twitter {
+  & .twitter {
     display: none;
   }
 
-  .footer-icon {
+  & .footer-icon {
     width: 44px;
     height: 44px;
     color: var(--brown-500);

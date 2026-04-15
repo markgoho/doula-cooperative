@@ -7,7 +7,7 @@
   font-variation-settings: "slnt" 0;
 }
 
-// Typography Design Tokens (already present)
+/* Typography Design Tokens (already present) */
 :root {
   /* Typography */
   --font-family-main: "Geologica", sans-serif;
@@ -32,7 +32,7 @@
   --step-6: clamp(2.2807rem, 1.5924rem + 3.4413vw, 5.722rem);
 }
 
-// Global Typography Styles
+/* Global Typography Styles */
 body {
   font-family: var(--font-family-main);
   font-size: var(--step-0);

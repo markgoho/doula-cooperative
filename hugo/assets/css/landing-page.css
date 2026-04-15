@@ -1,6 +1,3 @@
-@use "components/nav-card";
-@use "button";
-
 .hero {
   position: relative;
   padding: var(--space-m);
@@ -40,13 +37,13 @@
     z-index: -1;
   }
 
-  .hero-cta {
+  & .hero-cta {
     display: none;
     align-self: start;
     justify-self: start;
   }
 
-  .tagline {
+  & .tagline {
     font-size: var(--step-6);
     font-weight: var(--font-weight-boldest);
     line-height: 1.2;
@@ -57,17 +54,17 @@
     margin-block-end: var(--space-xs);
   }
 
-  .org-container {
+  & .org-container {
     display: none;
     flex-direction: column;
     color: var(--brown-200);
   }
 
-  .org-name {
+  & .org-name {
     font-weight: var(--font-weight-boldest);
   }
 
-  .org-location {
+  & .org-location {
     font-size: var(--step--2);
   }
 }
@@ -82,7 +79,7 @@
     padding: var(--space-xs);
     row-gap: var(--space-xs);
 
-    .tagline {
+    & .tagline {
       margin-block-end: 0;
     }
   }

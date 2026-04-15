@@ -9,7 +9,7 @@
   align-items: center;
   background: var(--brown-300);
   padding: var(--space-xs);
-  // column-gap: var(--space-l);
+  /* column-gap: var(--space-l); */
   row-gap: var(--space-xs);
 }
 

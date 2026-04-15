@@ -1,5 +1,5 @@
 .callout {
-  // Outer container
+  /* Outer container */
   border: var(--border-width-md) solid var(--brown-400);
   border-radius: var(--border-radius-md);
   padding: var(--space-s) var(--space-m);
@@ -7,7 +7,7 @@
   max-width: max-content;
   margin-inline: auto;
 
-  // Inner content
+  /* Inner content */
   display: flex;
   align-items: center;
   gap: var(--space-s);

@@ -1,9 +1,12 @@
 {{ define "head-styles" }}
-  {{ $pageCSS := "scss/join-cooperative.scss" }}
-  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  {{ $css := slice
+    (resources.Get "css/components/callout.css")
+    (resources.Get "css/join-cooperative.css")
+    | resources.Concat "join-cooperative.css"
+    | resources.Minify
+  }}
   <style>
-    {{ $inlineCSS.Content | safeCSS }}
+    {{ $css.Content | safeCSS }}
     .pricing-visible { display: block; }
     .pricing-hidden { display: none; }
   </style>

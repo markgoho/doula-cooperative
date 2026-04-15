@@ -1,12 +1,10 @@
-@use "components/callout";
-
 .benefits,
 .membership-join {
   margin-bottom: var(--space-xl);
 }
 
 .benefits {
-  ul {
+  & ul {
     list-style: none;
     padding: 0;
     display: grid;
@@ -17,7 +15,7 @@
       gap: var(--space-l);
     }
 
-    li {
+    & li {
       background-color: var(--brown-100);
       padding: var(--space-s);
       border-radius: var(--border-radius-md);
@@ -36,12 +34,12 @@
   max-width: max-content;
   margin-inline: auto;
 
-  h2 {
+  & h2 {
     margin: 0;
     text-align: center;
   }
 
-  .price {
+  & .price {
     font-size: var(--step-6);
     color: var(--color-text-main);
     font-weight: var(--font-weight-boldest);
@@ -49,7 +47,7 @@
     margin-block: 0;
   }
 
-  .membership-cta {
+  & .membership-cta {
     display: inline-block;
     margin-inline: auto;
     background-color: var(--teal-600);

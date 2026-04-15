@@ -1,7 +1,6 @@
 {{ define "head-styles" }}
-  {{ $pageCSS := "scss/about-doulas.scss" }}
-  {{ $options := (dict "transpiler" "dartsass" "outputStyle" "compressed") }}
-  {{ $inlineCSS := resources.Get $pageCSS | css.Sass $options }}
+  {{ $pageCSS := "css/about-doulas.css" }}
+  {{ $inlineCSS := resources.Get $pageCSS | resources.Minify }}
   <style>{{ $inlineCSS.Content | safeCSS }}</style>
 {{ end }}
 

@@ -1,6 +1,5 @@
 <!-- Load Non-Critical Styles Asynchronously -->
-{{ $options := (dict "transpiler" "dartsass" "targetPath" "non-critical.css" "outputStyle" "compressed") }}
-{{ $nonCriticalCSS := resources.Get "scss/non-critical.scss" | css.Sass $options | resources.Fingerprint }}
+{{ $nonCriticalCSS := resources.Get "css/non-critical.css" | resources.Minify | resources.Fingerprint }}
 <link
   rel="preload"
   href="{{ $nonCriticalCSS.RelPermalink }}"

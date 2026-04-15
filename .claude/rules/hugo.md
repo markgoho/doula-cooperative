@@ -10,7 +10,7 @@ Project-specific guidance for the Hugo static site at https://doulacooperative.c
 
 ## Project Overview
 
-Hugo static site connecting families with professional birth and postpartum doulas in Rochester, NY area. Tech stack: Hugo (extended v0.129.0+), SCSS/Sass, TypeScript, Firebase Functions integration.
+Hugo static site connecting families with professional birth and postpartum doulas in Rochester, NY area. Tech stack: Hugo (extended v0.129.0+), native CSS, TypeScript, Firebase Functions integration.
 
 ## Commands
 
@@ -48,7 +48,7 @@ contact:
 
 ### Asset Files
 
-**SCSS:** Component-based structure with page-specific files (landing-page.scss, doula-profile.scss, find-a-doula.scss, etc.)
+**CSS:** Component-based structure with page-specific files under `assets/css/` (landing-page.css, doula-profile.css, find-a-doula.css, etc.)
 
 **TypeScript:** Form handlers in `assets/ts/`:
 

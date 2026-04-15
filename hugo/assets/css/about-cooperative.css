@@ -17,7 +17,7 @@
 .board-member-card__image {
   margin-bottom: var(--space-s);
 
-  img {
+  & img {
     aspect-ratio: 1 / 1;
     object-fit: cover;
     width: var(--board-member-card-width);
