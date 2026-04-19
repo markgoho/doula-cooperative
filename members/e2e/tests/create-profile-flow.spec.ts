@@ -12,7 +12,6 @@ const mockMemberDocument: ApiMemberResponse = {
   isAdmin: false,
   subscriptionStart: '2024-01-01T00:00:00.000Z',
   membershipActive: true,
-  slug: 'test-user',
 };
 
 const mockProfileData: ProfileData = {
@@ -26,6 +25,8 @@ const mockProfileData: ProfileData = {
 };
 
 function setupApiMocks(page: import('@playwright/test').Page) {
+  let memberDocument = { ...mockMemberDocument };
+
   return Promise.all([
     // Mock member document (no profileCreatedAt so wizard doesn't redirect)
     page.route('**/api/members/*', async (route) => {
@@ -33,7 +34,7 @@ function setupApiMocks(page: import('@playwright/test').Page) {
         ? route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(mockMemberDocument),
+            body: JSON.stringify(memberDocument),
           })
         : route.continue());
     }),
@@ -49,13 +50,20 @@ function setupApiMocks(page: import('@playwright/test').Page) {
 
     // Mock slug update
     page.route('**/api/profiles/slugs', async (route) => {
-      await (route.request().method() === 'POST'
-        ? route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, slug: 'test-user' }),
-          })
-        : route.continue());
+      if (route.request().method() === 'POST') {
+        memberDocument = {
+          ...memberDocument,
+          slug: 'test-user',
+        };
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, slug: 'test-user' }),
+        });
+      } else {
+        await route.continue();
+      }
     }),
 
     // Mock profile creation (POST) and profile fetch (GET)
@@ -81,8 +89,6 @@ function setupApiMocks(page: import('@playwright/test').Page) {
 }
 
 async function walkThroughWizard(page: import('@playwright/test').Page) {
-  await page.goto('/profile/create');
-
   // === Step 1: Personal Info ===
   await page
     .getByRole('heading', { name: /Personal Information/i, level: 2 })
@@ -124,14 +130,31 @@ async function walkThroughWizard(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'Finish' }).click();
 
   // Wait for navigation to the edit profile page
-  await page.waitForURL('/profile', { timeout: 10_000 });
+  await page.waitForURL(/\/profile($|\/)/, { timeout: 10_000 });
 }
 
 test.describe('Create Profile → Edit Profile Flow', () => {
-  test('walks through wizard and loads edit profile form with created data', async ({
+  test('active member without profile approval can create a profile immediately after joining', async ({
     authenticatedUserPage,
   }) => {
     await setupApiMocks(authenticatedUserPage);
+
+    // === Membership page shows the immediate next step ===
+    await authenticatedUserPage.goto('/membership');
+    await expect(
+      authenticatedUserPage.getByRole('heading', { name: 'Create Your Doula Profile' }),
+    ).toBeVisible();
+    await expect(authenticatedUserPage.getByText(/You have an active membership\./)).toBeVisible();
+    await expect(
+      authenticatedUserPage.getByRole('heading', { name: 'Profile approval pending' }),
+    ).toHaveCount(0);
+    await expect(
+      authenticatedUserPage.getByText(/profile creation is pending admin approval/i),
+    ).toHaveCount(0);
+
+    // === Member can start profile creation with no blocker ===
+    await authenticatedUserPage.getByRole('button', { name: 'Create Profile' }).click();
+    await authenticatedUserPage.waitForURL(/\/profile\/create($|\/)/, { timeout: 10_000 });
 
     // === Walk through the 6-step wizard ===
     await walkThroughWizard(authenticatedUserPage);
@@ -147,6 +170,7 @@ test.describe('Create Profile → Edit Profile Flow', () => {
     authenticatedUserPage,
   }) => {
     await setupApiMocks(authenticatedUserPage);
+    await authenticatedUserPage.goto('/profile/create');
 
     // === Walk through the 6-step wizard ===
     await walkThroughWizard(authenticatedUserPage);

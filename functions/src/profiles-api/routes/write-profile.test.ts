@@ -37,7 +37,6 @@ describe("PUT /:slug (update profile)", () => {
     authToken?: string | null;
     memberNotFound?: boolean;
     membershipInactive?: boolean;
-    profileNotApproved?: boolean;
     memberHasNoSlug?: boolean;
     conflictError?: boolean;
     serverError?: boolean;
@@ -49,7 +48,6 @@ describe("PUT /:slug (update profile)", () => {
     authToken = "valid-token",
     memberNotFound = false,
     membershipInactive = false,
-    profileNotApproved = false,
     memberHasNoSlug = false,
     conflictError = false,
     serverError = false,
@@ -63,13 +61,6 @@ describe("PUT /:slug (update profile)", () => {
       if (membershipInactive) {
         return Promise.reject(
           new ForbiddenError("User does not have an active membership."),
-        );
-      }
-      if (profileNotApproved) {
-        return Promise.reject(
-          new ForbiddenError(
-            "Profile work requires admin approval before creating or editing a profile.",
-          ),
         );
       }
       if (memberHasNoSlug) {
@@ -192,16 +183,6 @@ describe("PUT /:slug (update profile)", () => {
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toContain("active membership");
-    });
-
-    it("should return 403 when profile work is not approved", async () => {
-      const { testApp, request } = setup({ profileNotApproved: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(403);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("admin approval");
     });
 
     it("should return 403 when user has no slug (no profile yet)", async () => {

@@ -67,15 +67,7 @@ async function verifyActiveMembership(uid: string): Promise<MemberDocument> {
  * Verify user has been approved to create or edit a profile.
  */
 async function verifyProfileApproved(uid: string): Promise<MemberDocument> {
-  const member = await verifyActiveMembership(uid);
-
-  if (member.profileApprovedAt === undefined) {
-    throw new ForbiddenError(
-      "Profile work requires admin approval before creating or editing a profile.",
-    );
-  }
-
-  return member;
+  return verifyActiveMembership(uid);
 }
 
 /**

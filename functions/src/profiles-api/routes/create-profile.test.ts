@@ -39,7 +39,6 @@ describe("POST /:slug (create profile)", () => {
     // Scenario flags
     memberNotFound?: boolean;
     membershipNotActive?: boolean;
-    profileNotApproved?: boolean;
     memberHasNoSlug?: boolean;
     profileAlreadyExists?: boolean;
     storeError?: boolean;
@@ -52,7 +51,6 @@ describe("POST /:slug (create profile)", () => {
     authToken = "valid-token",
     memberNotFound = false,
     membershipNotActive = false,
-    profileNotApproved = false,
     memberHasNoSlug = false,
     profileAlreadyExists = false,
     storeError = false,
@@ -68,13 +66,6 @@ describe("POST /:slug (create profile)", () => {
       if (membershipNotActive) {
         return Promise.reject(
           new ForbiddenError("User does not have an active membership."),
-        );
-      }
-      if (profileNotApproved) {
-        return Promise.reject(
-          new ForbiddenError(
-            "Profile work requires admin approval before creating or editing a profile.",
-          ),
         );
       }
       if (memberHasNoSlug) {
@@ -203,16 +194,6 @@ describe("POST /:slug (create profile)", () => {
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(403);
-    });
-
-    it("should return 403 when profile work is not approved", async () => {
-      const { testApp, request } = setup({ profileNotApproved: true });
-
-      const response = await handleRequest(testApp, request);
-
-      expect(response.status).toBe(403);
-      const body = (await response.json()) as { error?: string };
-      expect(body.error).toContain("admin approval");
     });
 
     it("should return 403 when user has no slug", async () => {

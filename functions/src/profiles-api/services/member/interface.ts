@@ -39,12 +39,12 @@ export interface ProfileMemberService {
   verifyActiveMembership(uid: string): Promise<MemberDocument>;
 
   /**
-   * Verify user has been approved to create or edit a profile.
+   * Verify user can create or edit a profile.
    *
    * @param uid - Firebase Auth user ID
    * @returns Promise with member document
    * @throws NotFoundError if member not found
-   * @throws ForbiddenError if profile work is not approved
+   * @throws ForbiddenError if membership not active
    */
   verifyProfileApproved(uid: string): Promise<MemberDocument>;
 
