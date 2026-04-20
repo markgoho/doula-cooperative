@@ -57,6 +57,7 @@
 ### Bug Fixes
 
 * add z-0.5 zoom to face crop, cache-bust ImageKit URLs, fix banner layout ([aaf4c8e](https://github.com/markgoho/doula-cooperative/commit/aaf4c8e46e54c513320f7924f41bea2dc5ec7280))
+* **change-email:** address PR review findings ([80e0799](https://github.com/markgoho/doula-cooperative/commit/80e07995957a7af8ab619ab4e1347ea146654dc0))
 * clear optimistic profile data when all retries are exhausted ([dc6d906](https://github.com/markgoho/doula-cooperative/commit/dc6d90679d534381b2d26e5566b0b0a3da036f10))
 * defer profile creation to preview step to prevent 409 on back navigation ([17150f2](https://github.com/markgoho/doula-cooperative/commit/17150f2bb31252486781bc2a4cc861b68b014ca7))
 * **dependencies:** update Angular packages to version 21.1.4 and testing-library/angular to version 19.1.0 ([04013a1](https://github.com/markgoho/doula-cooperative/commit/04013a1ac6a4174add0bd8329526b9edea520ad6))

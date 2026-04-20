@@ -148,7 +148,7 @@ export async function syncEmailLogic({
       },
     );
 
-    if (isDivergence) {
+    if (isDivergence && authEmail !== undefined) {
       await sendEmailDivergenceAdminNotification({
         emailService,
         memberId,
