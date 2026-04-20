@@ -418,6 +418,17 @@ export class MembershipService {
           case 504: {
             throw new Error('Request timed out. Please check your connection and try again.');
           }
+          case 500: {
+            const serverMessage =
+              typeof error.error === 'object' &&
+              error.error !== null &&
+              typeof (error.error as { error?: unknown }).error === 'string'
+                ? (error.error as { error: string }).error
+                : undefined;
+            if (serverMessage) {
+              throw new Error(serverMessage);
+            }
+          }
         }
       }
 

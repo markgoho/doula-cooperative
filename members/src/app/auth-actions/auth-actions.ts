@@ -195,7 +195,12 @@ export class AuthActions {
 
     if (restoredEmail && restoredEmail !== '') {
       // best-effort password reset recommendation
-      void this.authService.sendPasswordResetEmail(restoredEmail);
+      this.authService.sendPasswordResetEmail(restoredEmail).catch((resetError: unknown) => {
+        console.error('Failed to send post-recovery password reset email:', {
+          email: restoredEmail,
+          error: resetError instanceof Error ? resetError.message : String(resetError),
+        });
+      });
     }
 
     this.processingState.set('success');

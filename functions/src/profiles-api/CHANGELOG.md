@@ -24,6 +24,7 @@
 
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
 * check slug availability against profiles collection instead of members ([489e845](https://github.com/markgoho/doula-cooperative/commit/489e84586359680682c86147f1a1626c14121201))
+* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * preserve aspect ratio on upload and remove optimistic image layer ([55025e8](https://github.com/markgoho/doula-cooperative/commit/55025e82dcbdfc5edcfe5f4befc962d1f9fb06fc))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))

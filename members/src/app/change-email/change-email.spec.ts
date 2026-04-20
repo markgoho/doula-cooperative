@@ -125,6 +125,72 @@ describe('ChangeEmail', () => {
     });
     expect(screen.getByRole('button', { name: 'Send Verification Link' })).toBeEnabled();
   });
+
+  it('should surface the "not signed in" error from the auth service', async () => {
+    const { user } = await setup({
+      sendEmailImplementation: async () => {
+        throw new Error('You must be signed in to change your email.');
+      },
+    });
+
+    await user.type(screen.getByLabelText('New Email Address'), 'new@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send Verification Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('You must be signed in to change your email.')).toBeVisible();
+    });
+  });
+
+  it('should display the mapped requires-recent-login message', async () => {
+    const { user } = await setup({
+      sendEmailImplementation: async () => {
+        throw new Error(
+          'For security, please sign out and sign back in before changing your email.',
+        );
+      },
+    });
+
+    await user.type(screen.getByLabelText('New Email Address'), 'new@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send Verification Link' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'For security, please sign out and sign back in before changing your email.',
+        ),
+      ).toBeVisible();
+    });
+  });
+
+  it('should display the mapped email-already-in-use message', async () => {
+    const { user } = await setup({
+      sendEmailImplementation: async () => {
+        throw new Error('An account with this email already exists.');
+      },
+    });
+
+    await user.type(screen.getByLabelText('New Email Address'), 'taken@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send Verification Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('An account with this email already exists.')).toBeVisible();
+    });
+  });
+
+  it('should display the mapped invalid-email message', async () => {
+    const { user } = await setup({
+      sendEmailImplementation: async () => {
+        throw new Error('Invalid email address.');
+      },
+    });
+
+    await user.type(screen.getByLabelText('New Email Address'), 'good@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send Verification Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid email address.')).toBeVisible();
+    });
+  });
 });
 
 interface SetupOptions {

@@ -65,6 +65,7 @@
 * keep confirmation dialogs open until async operations complete ([b2433cf](https://github.com/markgoho/doula-cooperative/commit/b2433cf371f0cf52e3230a404ed7dc2b4553529b))
 * keep optimistic profile data during GitHub sync delay ([#69](https://github.com/markgoho/doula-cooperative/issues/69)) ([bcd2d11](https://github.com/markgoho/doula-cooperative/commit/bcd2d11cc8242f87f3ab2d90243cd9bf8ec27f4c))
 * match profile preview styling to Hugo doula profile pages ([#74](https://github.com/markgoho/doula-cooperative/issues/74)) ([aab4eee](https://github.com/markgoho/doula-cooperative/commit/aab4eee58692fddcd6dbe0e382b495f66b5dcaff))
+* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * **members:** add new doula profile service tags ([1dc1f0f](https://github.com/markgoho/doula-cooperative/commit/1dc1f0f7096e935a455a20da876b896c3040d508))
 * **members:** detect missing custom images via client-side HEAD request ([54df134](https://github.com/markgoho/doula-cooperative/commit/54df1345af2706038cdae0ce2967048ef0fc4386))
 * **members:** persist admin state across navigation ([#82](https://github.com/markgoho/doula-cooperative/issues/82)) ([86a6036](https://github.com/markgoho/doula-cooperative/commit/86a603606cffeef64426ca83de1a1bb987ac17d8))

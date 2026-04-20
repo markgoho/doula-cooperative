@@ -11,6 +11,7 @@
 
 ### Bug Fixes
 
+* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * Update import paths for constants and utility functions in send-notification-email service ([610b1f5](https://github.com/markgoho/doula-cooperative/commit/610b1f5a6ff55dc03b921cc2a66647d378f1e656))

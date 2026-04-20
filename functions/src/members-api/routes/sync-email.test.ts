@@ -11,11 +11,12 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     memberId?: string;
     authToken?: string | null;
     authEmail?: string;
-    firestoreEmail?: string;
+    firestoreEmail?: string | number | null;
     memberExists?: boolean;
     forbidden?: boolean;
     tokenHasNoEmail?: boolean;
     unauthorized?: boolean;
+    firestoreReadError?: Error | null;
     firestoreUpdateError?: Error | null;
     sendEmailError?: Error | null;
   }
@@ -29,14 +30,17 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     forbidden = false,
     tokenHasNoEmail = false,
     unauthorized = false,
+    firestoreReadError = null,
     firestoreUpdateError = null,
     sendEmailError = null,
   }: SetupOptions = {}) {
     const getMemberByUid = mock(() =>
-      Promise.resolve({
-        exists: memberExists,
-        data: () => ({ email: firestoreEmail }),
-      } as unknown as DocumentSnapshot),
+      firestoreReadError
+        ? Promise.reject(firestoreReadError)
+        : Promise.resolve({
+            exists: memberExists,
+            data: () => ({ email: firestoreEmail }),
+          } as unknown as DocumentSnapshot),
     );
     const updateMember = mock(() =>
       firestoreUpdateError
@@ -201,5 +205,36 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
       error:
         "Your sign-in email was updated, but we could not refresh your membership email. Our team has been notified.",
     });
+  });
+
+  it("should return 500 and notify admins when Firestore read fails after Auth change", async () => {
+    const { testApp, request, sendEmail } = setup({
+      firestoreReadError: new Error("Firestore read unavailable"),
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error:
+        "Your sign-in email was updated, but we could not refresh your membership email. Our team has been notified.",
+    });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("should update Firestore when stored email is a non-string value", async () => {
+    const { testApp, request, updateMember } = setup({
+      firestoreEmail: null,
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      success: true,
+      synced: true,
+      email: "new@example.com",
+    });
+    expect(updateMember).toHaveBeenCalled();
   });
 });

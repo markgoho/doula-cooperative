@@ -60,7 +60,9 @@ export async function syncEmailLogic({
     }
 
     const member = document.data() as { email?: unknown };
-    if (member.email === email) {
+    const storedEmail =
+      typeof member.email === "string" ? member.email : undefined;
+    if (storedEmail === email) {
       return { success: true, synced: false, email };
     }
 
@@ -88,8 +90,7 @@ export async function syncEmailLogic({
           errorType: firestoreError?.constructor?.name,
           memberId,
           authEmail: email,
-          firestoreEmail:
-            typeof member.email === "string" ? member.email : undefined,
+          firestoreEmail: storedEmail,
           severity: "CRITICAL",
           actionRequired:
             "Member's Firebase Auth email diverged from Firestore. Manually update the member document email to match their sign-in email.",
@@ -100,8 +101,7 @@ export async function syncEmailLogic({
         emailService,
         memberId,
         authEmail: email,
-        firestoreEmail:
-          typeof member.email === "string" ? member.email : "(unknown)",
+        firestoreEmail: storedEmail ?? "(unknown)",
         logger,
       });
 
@@ -119,16 +119,49 @@ export async function syncEmailLogic({
       return { error: error.message };
     }
 
-    logger.error("Failed to sync member email", {
-      errorId: ERROR_IDS.SYNC_MEMBER_EMAIL_ROUTE_FAILED,
-      error,
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      errorStack: error instanceof Error ? error.stack : undefined,
-      errorType: error?.constructor?.name,
-      memberId,
-      authEmail,
-      hasAuthorizationHeader: Boolean(authorizationHeader),
-    });
+    // If authEmail is defined, auth verification succeeded and the caller's
+    // Firebase Auth email has already been updated to `authEmail`. Any failure
+    // past that point (e.g., the Firestore read) leaves Auth and Firestore
+    // diverged — treat it with the same CRITICAL severity + admin alert path
+    // as a Firestore write failure.
+    const isDivergence = authEmail !== undefined;
+    logger.error(
+      isDivergence
+        ? "Failed to sync member email after Auth update (divergence)"
+        : "Failed to sync member email",
+      {
+        errorId: ERROR_IDS.SYNC_MEMBER_EMAIL_ROUTE_FAILED,
+        error,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        errorStack: error instanceof Error ? error.stack : undefined,
+        errorType: error?.constructor?.name,
+        memberId,
+        authEmail,
+        hasAuthorizationHeader: Boolean(authorizationHeader),
+        ...(isDivergence
+          ? {
+              severity: "CRITICAL",
+              actionRequired:
+                "Member's Firebase Auth email may have diverged from Firestore. Verify and reconcile manually.",
+            }
+          : {}),
+      },
+    );
+
+    if (isDivergence) {
+      await sendEmailDivergenceAdminNotification({
+        emailService,
+        memberId,
+        authEmail,
+        firestoreEmail: "(unknown — Firestore read failed)",
+        logger,
+      });
+      set.status = 500;
+      return {
+        error:
+          "Your sign-in email was updated, but we could not refresh your membership email. Our team has been notified.",
+      };
+    }
 
     set.status = 500;
     return { error: "Failed to sync member email" };
