@@ -8,7 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 import { AuthActions } from './auth-actions';
 
-type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+type AuthActionMode = 'verifyAndChangeEmail' | 'verifyEmail' | 'resetPassword' | 'recoverEmail';
 
 describe('AuthActions - Unit Tests', () => {
   describe('verifyEmail mode', () => {
@@ -54,6 +54,29 @@ describe('AuthActions - Unit Tests', () => {
 
       expect(await screen.findByText('There was a problem')).toBeVisible();
       expect(await screen.findByText('Network request failed')).toBeVisible();
+    });
+
+    it('should sync the member email after verifyAndChangeEmail', async () => {
+      const { navigateSpy, syncAuthEmailToMember } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-code',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+      });
+      expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+    });
+
+    it('should skip sync for verifyEmail', async () => {
+      const { syncAuthEmailToMember } = await setup({
+        mode: 'verifyEmail',
+        oobCode: 'verify-email-code',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -456,6 +479,8 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
+  const syncAuthEmailToMember = vi.fn().mockResolvedValue(undefined);
+
   const mockMembershipService = {
     verifyEmail: vi
       .fn()
@@ -464,6 +489,7 @@ async function setup({
           ? Promise.resolve()
           : Promise.reject(new Error('Unable to verify email. Please try again.')),
       ),
+    syncAuthEmailToMember,
   };
 
   await render(AuthActions, {
@@ -485,5 +511,5 @@ async function setup({
 
   const user = userEvent.setup();
 
-  return { user, mockAuthService, mockMembershipService, navigateSpy };
+  return { user, mockAuthService, mockMembershipService, navigateSpy, syncAuthEmailToMember };
 }

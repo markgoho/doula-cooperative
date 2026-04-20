@@ -387,6 +387,46 @@ export class MembershipService {
     }
   }
 
+  async syncAuthEmailToMember(): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to update your email.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post<{ success: boolean }>(`/api/members/${uid}/sync-email`, {}),
+      );
+      this.reloadUserDocument();
+    } catch (error: unknown) {
+      console.error('Failed to sync auth email to member document:', {
+        uid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401: {
+            throw new Error('You must be signed in to update your email.');
+          }
+          case 403: {
+            throw new Error('You do not have permission to update your email.');
+          }
+          case 404: {
+            throw new Error('Member account not found. Please contact support.');
+          }
+          case 504: {
+            throw new Error('Request timed out. Please check your connection and try again.');
+          }
+        }
+      }
+
+      throw new Error(
+        'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+      );
+    }
+  }
+
   /**
    * Convert API response (ISO string dates) to Member interface (Date objects)
    */

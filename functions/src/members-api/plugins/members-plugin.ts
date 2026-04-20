@@ -2,8 +2,10 @@ import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
+import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { cancelMembershipLogic } from "../routes/cancel-membership.js";
 import { getMemberLogic } from "../routes/members.js";
+import { syncEmailLogic } from "../routes/sync-email.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
 import { verifyEmailLogic } from "../routes/verify-email.js";
@@ -53,6 +55,10 @@ export function createMembersPlugin(services?: PartialServices) {
       .decorate(
         SERVICE_KEYS.VERIFY_EMAIL_SERVICE,
         services?.verifyEmailService ?? VerifyEmailServiceImpl,
+      )
+      .decorate(
+        SERVICE_KEYS.MEMBER_FIRESTORE_SERVICE,
+        services?.memberFirestoreService ?? MemberFirestoreService,
       )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
@@ -125,6 +131,30 @@ export function createMembersPlugin(services?: PartialServices) {
         {
           params: MemberIdParameterSchema,
           response: VerifyEmailResponseSchema,
+        },
+      )
+      // POST /:memberId/sync-email - Sync auth email to member doc (owner only) - Served at /api/members/:memberId/sync-email
+      .post(
+        "/:memberId/sync-email",
+        async ({
+          params,
+          authService,
+          memberFirestoreService,
+          logger,
+          request,
+          set,
+        }) =>
+          syncEmailLogic({
+            memberId: params.memberId,
+            authService,
+            memberFirestoreService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
         },
       )
       // PATCH /:memberId/name - Update member name (owner or admin) - Served at /api/members/:memberId/name

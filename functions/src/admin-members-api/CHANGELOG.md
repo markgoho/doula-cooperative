@@ -1,4 +1,4 @@
-##  (2026-04-19)
+##  (2026-04-20)
 
 ### Features
 
@@ -29,4 +29,5 @@
 * **admin-members-api:** resolve lint errors in draft profile deletion ([50c841c](https://github.com/markgoho/doula-cooperative/commit/50c841cca3175534913b05ee7000791cbf236271))
 * include memberNotified in refund API response schema and mapping ([43ea4b2](https://github.com/markgoho/doula-cooperative/commit/43ea4b2ababb315478e4c49573649001c430e418))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
+* remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))

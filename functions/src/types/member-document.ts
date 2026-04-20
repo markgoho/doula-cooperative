@@ -30,6 +30,7 @@ export interface MemberDocument {
   createdAt: Timestamp;
   email: string;
   uid: string;
+  updatedAt?: Timestamp;
   name?: string;
   subscriptionStart?: Timestamp;
   membershipActive?: boolean;

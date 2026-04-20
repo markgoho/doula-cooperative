@@ -1,4 +1,4 @@
-##  (2026-04-19)
+##  (2026-04-20)
 
 ### Features
 
@@ -83,6 +83,7 @@
 * reload user document after profile creation so header shows Edit Profile ([479e8e2](https://github.com/markgoho/doula-cooperative/commit/479e8e2fcd46e4019de233623bb8b9e223ece82f))
 * remove max-width from wizard step components for full-width layout ([acc7000](https://github.com/markgoho/doula-cooperative/commit/acc7000abedb52d2a7593b1cd6f994865d26020c))
 * remove production logs for Auth and Firestore in app configuration ([73e8d41](https://github.com/markgoho/doula-cooperative/commit/73e8d41bf767e8ac1bdee7b16d2c2ae166ec10f0))
+* remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * remove useless undefined to satisfy unicorn lint rule ([b98f3e3](https://github.com/markgoho/doula-cooperative/commit/b98f3e341d2ad5e2492aa76558702ab0b857039d))
 * remove vi.mock() from admin-messages test for Angular 21.2 compatibility ([52e1f18](https://github.com/markgoho/doula-cooperative/commit/52e1f18e516a80ccf75c20c3e2a2d5859af3f582))
 * resolve 'Profile Load Error' after creating a new profile ([2cd4d7f](https://github.com/markgoho/doula-cooperative/commit/2cd4d7fff2359aa914d0043ce7e37b9618bd9753))

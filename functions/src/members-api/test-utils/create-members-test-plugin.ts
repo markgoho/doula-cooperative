@@ -1,7 +1,9 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
+import type { DocumentSnapshot } from "firebase-admin/firestore";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
+import type { MemberFirestoreService } from "../../shared-api/services/member-firestore/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
@@ -26,6 +28,7 @@ export function createMembersTestPlugin(overrides?: {
   authService?: Partial<AuthService>;
   emailService?: EmailServiceInterface;
   verifyEmailService?: Partial<VerifyEmailService>;
+  memberFirestoreService?: Partial<MemberFirestoreService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -59,12 +62,27 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.verifyEmailService,
   };
 
+  const defaultMemberFirestoreService: MemberFirestoreService = {
+    getMemberByUid: mock(() =>
+      Promise.resolve({
+        exists: true,
+        data: () => ({ email: "test@example.com" }),
+      } as unknown as DocumentSnapshot),
+    ),
+    memberExists: mock(() => Promise.resolve(true)),
+    writeMember: mock(() => Promise.resolve()),
+    updateMember: mock(() => Promise.resolve()),
+    deleteMember: mock(() => Promise.resolve()),
+    ...overrides?.memberFirestoreService,
+  };
+
   return createMembersPlugin({
     memberService: defaultMemberService,
     newsletterService: defaultNewsletterService,
     authService: defaultAuthService,
     emailService: defaultEmailService,
     verifyEmailService: defaultVerifyEmailService,
+    memberFirestoreService: defaultMemberFirestoreService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

@@ -13,6 +13,7 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  verifyBeforeUpdateEmail,
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
@@ -29,6 +30,8 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/invalid-credential': 'Invalid email or password.',
   'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
   'auth/network-request-failed': 'Network error. Please check your connection and try again.',
+  'auth/requires-recent-login':
+    'For security, please sign out and sign back in before changing your email.',
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
@@ -221,6 +224,23 @@ export class AuthService {
     try {
       await sendPasswordResetEmail(this.auth, email, {
         url: `${globalThis.window.location.origin}/auth-actions?mode=resetPassword`,
+        handleCodeInApp: true,
+      });
+    } catch (error) {
+      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+    }
+  }
+
+  async verifyBeforeUpdateEmail(newEmail: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      throw new Error('You must be signed in to change your email.');
+    }
+
+    try {
+      await verifyBeforeUpdateEmail(user, newEmail, {
+        url: `${globalThis.location.origin}/auth-actions`,
         handleCodeInApp: true,
       });
     } catch (error) {

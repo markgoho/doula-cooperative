@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 
 // Firebase Auth action modes
-type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+type AuthActionMode = 'verifyAndChangeEmail' | 'verifyEmail' | 'resetPassword' | 'recoverEmail';
 
 @Component({
   imports: [RouterLink, ReactiveFormsModule],
@@ -54,6 +54,10 @@ export class AuthActions {
 
     try {
       switch (currentMode) {
+        case 'verifyAndChangeEmail': {
+          await this.handleVerifyEmail(code, true);
+          break;
+        }
         case 'verifyEmail': {
           await this.handleVerifyEmail(code);
           break;
@@ -78,11 +82,14 @@ export class AuthActions {
     }
   }
 
-  private async handleVerifyEmail(code: string): Promise<void> {
+  private async handleVerifyEmail(code: string, shouldSyncMemberEmail = false): Promise<void> {
     await this.authService.applyActionCode(code);
     await this.authService.reloadUser();
 
-    // After applying the action code, navigate to the my membership page
+    if (shouldSyncMemberEmail) {
+      await this.membershipService.syncAuthEmailToMember();
+    }
+
     await this.router.navigate(['/membership']);
     this.processingState.set('success');
   }
