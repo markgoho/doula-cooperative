@@ -277,6 +277,12 @@ export const ERROR_IDS = {
   // Member name update errors
   UPDATE_MEMBER_NAME_ROUTE_FAILED: "update_member_name_route_failed",
 
+  // Member email sync errors (after Firebase Auth email change)
+  SYNC_MEMBER_EMAIL_ROUTE_FAILED: "sync_member_email_route_failed",
+  SYNC_MEMBER_EMAIL_FIRESTORE_FAILED: "sync_member_email_firestore_failed",
+  SYNC_MEMBER_EMAIL_ADMIN_NOTIFICATION_FAILED:
+    "sync_member_email_admin_notification_failed",
+
   // Stripe webhook refund errors
   STRIPE_WEBHOOK_REFUND_MEMBER_LOOKUP_FAILED:
     "stripe_webhook_refund_member_lookup_failed",

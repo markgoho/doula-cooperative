@@ -14,6 +14,7 @@
 * Implement GitHub batch operations utility ([23f3633](https://github.com/markgoho/doula-cooperative/commit/23f36333a76de4e1ef4064f049e01f0a7a7f7f2d))
 * implement MemberFirestoreService for Firestore operations on members ([0c194b8](https://github.com/markgoho/doula-cooperative/commit/0c194b80287e5c64c5122665626380fb08c41cea))
 * include next payment details in claim profile response ([0519f9f](https://github.com/markgoho/doula-cooperative/commit/0519f9f93defb26ecd8e51cfed7083070a905259))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate profile management to Elysia REST API ([#34](https://github.com/markgoho/doula-cooperative/issues/34)) ([e5cabeb](https://github.com/markgoho/doula-cooperative/commit/e5cabebf7f684403167a0e0c4b779fd93fafa743))
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))

@@ -64,8 +64,29 @@ describe('AuthActions - Unit Tests', () => {
 
       await waitFor(() => {
         expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+        expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
       });
-      expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+    });
+
+    it('should surface an error and stay on the action page when sync fails after Auth update', async () => {
+      const { navigateSpy, syncAuthEmailToMember } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-sync-fail',
+        syncEmailShouldSucceed: false,
+        errorMessage:
+          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(
+        await screen.findByText(
+          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+        ),
+      ).toBeVisible();
+      expect(navigateSpy).not.toHaveBeenCalledWith(['/membership']);
     });
 
     it('should skip sync for verifyEmail', async () => {
@@ -426,6 +447,7 @@ interface SetupOptions {
   confirmResetShouldSucceed?: boolean;
   signInShouldSucceed?: boolean;
   verifyEmailShouldSucceed?: boolean;
+  syncEmailShouldSucceed?: boolean;
   errorMessage?: string;
   restoredEmail?: string;
   userEmail?: string;
@@ -441,6 +463,7 @@ async function setup({
   confirmResetShouldSucceed = shouldSucceed,
   signInShouldSucceed = true,
   verifyEmailShouldSucceed = true,
+  syncEmailShouldSucceed = true,
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
   userEmail = 'user@example.com',
@@ -479,7 +502,11 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
-  const syncAuthEmailToMember = vi.fn().mockResolvedValue(undefined);
+  const syncAuthEmailToMember = vi
+    .fn()
+    .mockImplementation(() =>
+      syncEmailShouldSucceed ? Promise.resolve() : Promise.reject(new Error(errorMessage)),
+    );
 
   const mockMembershipService = {
     verifyEmail: vi

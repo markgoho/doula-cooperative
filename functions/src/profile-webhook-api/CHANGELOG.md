@@ -5,6 +5,7 @@
 * add prefix option to Elysia apps for Firebase Hosting compatibility ([d1c25c1](https://github.com/markgoho/doula-cooperative/commit/d1c25c10b28889b39247a5dab7b0adcbaf9533f8))
 * add versioning and changelog infrastructure ([bb61cff](https://github.com/markgoho/doula-cooperative/commit/bb61cff47f85e7f7a5a0cdb8877345183ddd611f))
 * Implement Stripe webhook service with idempotency checks and response schemas ([a8825b4](https://github.com/markgoho/doula-cooperative/commit/a8825b41bdb1704937970c46391a00e1f2c756e3))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 

@@ -10,6 +10,7 @@
 * handle Stripe refunds via webhook and admin UI ([#62](https://github.com/markgoho/doula-cooperative/issues/62)) ([014a036](https://github.com/markgoho/doula-cooperative/commit/014a0361bef0241de65e186fa7f3484d01788aed))
 * Implement GitHub batch operations utility ([23f3633](https://github.com/markgoho/doula-cooperative/commit/23f36333a76de4e1ef4064f049e01f0a7a7f7f2d))
 * Implement Stripe webhook service with idempotency checks and response schemas ([a8825b4](https://github.com/markgoho/doula-cooperative/commit/a8825b41bdb1704937970c46391a00e1f2c756e3))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))

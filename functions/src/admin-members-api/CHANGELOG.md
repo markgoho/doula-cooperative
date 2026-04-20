@@ -17,6 +17,7 @@
 * handle Stripe refunds via webhook and admin UI ([#62](https://github.com/markgoho/doula-cooperative/issues/62)) ([014a036](https://github.com/markgoho/doula-cooperative/commit/014a0361bef0241de65e186fa7f3484d01788aed))
 * Implement admin membership management service ([4753ff5](https://github.com/markgoho/doula-cooperative/commit/4753ff507004b9674e91fe4739a01e82209b8f7f))
 * implement MemberFirestoreService for Firestore operations on members ([0c194b8](https://github.com/markgoho/doula-cooperative/commit/0c194b80287e5c64c5122665626380fb08c41cea))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate admin claim functions to Elysia API with generic claims endpoint ([#33](https://github.com/markgoho/doula-cooperative/issues/33)) ([8670eea](https://github.com/markgoho/doula-cooperative/commit/8670eeafb5d66baf861ceced2348fbccb311869d)), closes [#25](https://github.com/markgoho/doula-cooperative/issues/25)
 * migrate admin match requests functions to Elysia API ([#28](https://github.com/markgoho/doula-cooperative/issues/28)) ([5ef51a3](https://github.com/markgoho/doula-cooperative/commit/5ef51a3f2bcacdc165244d2b125765f26c8236be)), closes [#22](https://github.com/markgoho/doula-cooperative/issues/22) [#22](https://github.com/markgoho/doula-cooperative/issues/22)
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))

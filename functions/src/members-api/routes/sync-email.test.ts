@@ -2,6 +2,7 @@ import { describe, expect, it, mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
+import { AuthError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
@@ -13,6 +14,10 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     firestoreEmail?: string;
     memberExists?: boolean;
     forbidden?: boolean;
+    tokenHasNoEmail?: boolean;
+    unauthorized?: boolean;
+    firestoreUpdateError?: Error | null;
+    sendEmailError?: Error | null;
   }
 
   function setup({
@@ -22,6 +27,10 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     firestoreEmail = "old@example.com",
     memberExists = true,
     forbidden = false,
+    tokenHasNoEmail = false,
+    unauthorized = false,
+    firestoreUpdateError = null,
+    sendEmailError = null,
   }: SetupOptions = {}) {
     const getMemberByUid = mock(() =>
       Promise.resolve({
@@ -29,11 +38,23 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
         data: () => ({ email: firestoreEmail }),
       } as unknown as DocumentSnapshot),
     );
-    const updateMember = mock(() => Promise.resolve());
+    const updateMember = mock(() =>
+      firestoreUpdateError
+        ? Promise.reject(firestoreUpdateError)
+        : Promise.resolve(),
+    );
+    const sendEmail = mock(() =>
+      sendEmailError ? Promise.reject(sendEmailError) : Promise.resolve(),
+    );
 
     const testApp = createMembersTestPlugin({
       authService: {
         verifyOwnerOrAdmin: mock(() => {
+          if (unauthorized) {
+            return Promise.reject(
+              new AuthError("Missing Authorization header"),
+            );
+          }
           if (forbidden) {
             return Promise.resolve({
               uid: "someone-else",
@@ -43,13 +64,16 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
 
           return Promise.resolve({
             uid: memberId,
-            email: authEmail,
+            ...(tokenHasNoEmail ? {} : { email: authEmail }),
           } as DecodedIdToken);
         }),
       },
       memberFirestoreService: {
         getMemberByUid,
         updateMember,
+      },
+      emailService: {
+        sendEmail,
       },
     });
 
@@ -66,7 +90,7 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
       body: JSON.stringify({}),
     });
 
-    return { testApp, request, getMemberByUid, updateMember };
+    return { testApp, request, updateMember, sendEmail };
   }
 
   it("should sync the member email for the owner", async () => {
@@ -75,7 +99,11 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     const response = await handleRequest(testApp, request);
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ success: true });
+    expect(await response.json()).toEqual({
+      success: true,
+      synced: true,
+      email: "new@example.com",
+    });
     expect(updateMember).toHaveBeenCalledWith(
       "test-member-id",
       expect.objectContaining({
@@ -94,8 +122,23 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     const response = await handleRequest(testApp, request);
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ success: true });
+    expect(await response.json()).toEqual({
+      success: true,
+      synced: false,
+      email: "same@example.com",
+    });
     expect(updateMember).not.toHaveBeenCalled();
+  });
+
+  it("should return 401 when no auth header is provided", async () => {
+    const { testApp, request } = setup({
+      authToken: null,
+      unauthorized: true,
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(401);
   });
 
   it("should return 403 when token owner does not match the member", async () => {
@@ -109,6 +152,18 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
     });
   });
 
+  it("should return 403 when the token has no email claim", async () => {
+    const { testApp, request, updateMember } = setup({ tokenHasNoEmail: true });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({
+      error: "Authenticated user does not have an email address",
+    });
+    expect(updateMember).not.toHaveBeenCalled();
+  });
+
   it("should return 404 when member document does not exist", async () => {
     const { testApp, request } = setup({ memberExists: false });
 
@@ -116,5 +171,35 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: "Member not found" });
+  });
+
+  it("should return 500 and notify admins when Firestore update fails after Auth change", async () => {
+    const { testApp, request, sendEmail } = setup({
+      firestoreUpdateError: new Error("Firestore unavailable"),
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error:
+        "Your sign-in email was updated, but we could not refresh your membership email. Our team has been notified.",
+    });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("should still return 500 when both Firestore update and admin notification fail", async () => {
+    const { testApp, request } = setup({
+      firestoreUpdateError: new Error("Firestore unavailable"),
+      sendEmailError: new Error("Mailgun down"),
+    });
+
+    const response = await handleRequest(testApp, request);
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error:
+        "Your sign-in email was updated, but we could not refresh your membership email. Our team has been notified.",
+    });
   });
 });

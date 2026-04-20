@@ -105,6 +105,26 @@ describe('ChangeEmail', () => {
       expect(screen.getByText('Failed to send verification email')).toBeVisible();
     });
   });
+
+  it('should display a fallback error message when a non-Error value is thrown', async () => {
+    const { user } = await setup({
+      sendEmailImplementation: async () => {
+        throw 'string rejection';
+      },
+    });
+
+    await user.type(screen.getByLabelText('New Email Address'), 'new@example.com');
+    await user.click(screen.getByRole('button', { name: 'Send Verification Link' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Something went wrong while sending the verification email. Please try again.',
+        ),
+      ).toBeVisible();
+    });
+    expect(screen.getByRole('button', { name: 'Send Verification Link' })).toBeEnabled();
+  });
 });
 
 interface SetupOptions {

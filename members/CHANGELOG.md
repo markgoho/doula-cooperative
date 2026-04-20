@@ -39,6 +39,7 @@
 * improve confirmation dialog with responsive CSS and loading spinner ([71d133d](https://github.com/markgoho/doula-cooperative/commit/71d133d54e33380b9db60200bcc87be8f1778c31))
 * integrate Cropper.js for image cropping functionality ([6c79e03](https://github.com/markgoho/doula-cooperative/commit/6c79e03ea0c4f8b72fd7ac72cf96f26367621694))
 * **members:** add prod proxy configuration for local development ([523cbd2](https://github.com/markgoho/doula-cooperative/commit/523cbd26043fe1ba44ccf210e240aa0e98523999))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * **members:** overhaul image cropper UX with zoom, rotate, and live preview ([1240c47](https://github.com/markgoho/doula-cooperative/commit/1240c47be3c7c24b5b4807246beb188ac45a7cdc))
 * **members:** replace profile linking table with search UI ([48417e3](https://github.com/markgoho/doula-cooperative/commit/48417e375d347c3c739613d924c16968512a9bd7))
 * migrate admin claim functions to Elysia API with generic claims endpoint ([#33](https://github.com/markgoho/doula-cooperative/issues/33)) ([8670eea](https://github.com/markgoho/doula-cooperative/commit/8670eeafb5d66baf861ceced2348fbccb311869d)), closes [#25](https://github.com/markgoho/doula-cooperative/issues/25)

@@ -140,6 +140,7 @@ export function createMembersPlugin(services?: PartialServices) {
           params,
           authService,
           memberFirestoreService,
+          emailService,
           logger,
           request,
           set,
@@ -148,6 +149,7 @@ export function createMembersPlugin(services?: PartialServices) {
             memberId: params.memberId,
             authService,
             memberFirestoreService,
+            emailService,
             logger,
             authorizationHeader:
               request.headers.get("authorization") ?? undefined,

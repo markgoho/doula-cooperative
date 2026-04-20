@@ -15,7 +15,7 @@ export class ChangeEmail {
   private fb = inject(FormBuilder);
 
   changeEmailForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
+    email: ['', [Validators.required, Validators.email]],
   });
 
   isLoading = signal(false);
@@ -38,9 +38,11 @@ export class ChangeEmail {
         );
         this.changeEmailForm.reset();
       } catch (error) {
-        if (error instanceof Error) {
-          this.errorMessage.set(error.message);
-        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Something went wrong while sending the verification email. Please try again.';
+        this.errorMessage.set(message);
       } finally {
         this.isLoading.set(false);
       }
@@ -54,9 +56,5 @@ export class ChangeEmail {
       const control = this.changeEmailForm.get(key);
       control?.markAsTouched();
     }
-  }
-
-  get email() {
-    return this.changeEmailForm.get('email');
   }
 }

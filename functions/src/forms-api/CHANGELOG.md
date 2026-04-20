@@ -9,6 +9,7 @@
 * enhance E2E tests with user-facing selectors and improved API mocking ([40acae1](https://github.com/markgoho/doula-cooperative/commit/40acae160075d92813e45cc9ce44dbbd8d9875ce))
 * **forms-api:** implement contact and doula match form notifications with email service integration ([5a0bb0e](https://github.com/markgoho/doula-cooperative/commit/5a0bb0e4939e993fe96f6c5af2426e5055e1c991))
 * Implement Stripe webhook service with idempotency checks and response schemas ([a8825b4](https://github.com/markgoho/doula-cooperative/commit/a8825b41bdb1704937970c46391a00e1f2c756e3))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
 
