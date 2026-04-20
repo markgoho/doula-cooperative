@@ -172,6 +172,11 @@ export const routes: Routes = [
     loadComponent: () => import('./forgot-password/forgot-password').then((m) => m.ForgotPassword),
     ...canActivate(redirectToMembership),
   },
+  {
+    path: 'change-email',
+    loadComponent: () => import('./change-email/change-email').then((m) => m.ChangeEmail),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
 
   // Firebase Auth action handler entry points
   {

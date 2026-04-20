@@ -102,7 +102,10 @@
             }
 
             <dt>Email</dt>
-            <dd>{{ userDoc.email }}</dd>
+            <dd>
+              {{ userDoc.email }}
+              <a routerLink="/change-email">Change email address</a>
+            </dd>
 
             <dt>Email Verified</dt>
             <dd>{{ user.emailVerified ? 'Yes' : 'No' }}</dd>

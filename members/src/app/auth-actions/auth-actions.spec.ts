@@ -8,7 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
 import { AuthActions } from './auth-actions';
 
-type AuthActionMode = 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+type AuthActionMode = 'verifyAndChangeEmail' | 'verifyEmail' | 'resetPassword' | 'recoverEmail';
 
 describe('AuthActions - Unit Tests', () => {
   describe('verifyEmail mode', () => {
@@ -54,6 +54,50 @@ describe('AuthActions - Unit Tests', () => {
 
       expect(await screen.findByText('There was a problem')).toBeVisible();
       expect(await screen.findByText('Network request failed')).toBeVisible();
+    });
+
+    it('should sync the member email after verifyAndChangeEmail', async () => {
+      const { navigateSpy, syncAuthEmailToMember } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-code',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+        expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+      });
+    });
+
+    it('should surface an error and stay on the action page when sync fails after Auth update', async () => {
+      const { navigateSpy, syncAuthEmailToMember } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-sync-fail',
+        syncEmailShouldSucceed: false,
+        errorMessage:
+          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+      });
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(
+        await screen.findByText(
+          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+        ),
+      ).toBeVisible();
+      expect(navigateSpy).not.toHaveBeenCalledWith(['/membership']);
+    });
+
+    it('should skip sync for verifyEmail', async () => {
+      const { syncAuthEmailToMember } = await setup({
+        mode: 'verifyEmail',
+        oobCode: 'verify-email-code',
+      });
+
+      await waitFor(() => {
+        expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -403,6 +447,7 @@ interface SetupOptions {
   confirmResetShouldSucceed?: boolean;
   signInShouldSucceed?: boolean;
   verifyEmailShouldSucceed?: boolean;
+  syncEmailShouldSucceed?: boolean;
   errorMessage?: string;
   restoredEmail?: string;
   userEmail?: string;
@@ -418,6 +463,7 @@ async function setup({
   confirmResetShouldSucceed = shouldSucceed,
   signInShouldSucceed = true,
   verifyEmailShouldSucceed = true,
+  syncEmailShouldSucceed = true,
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
   userEmail = 'user@example.com',
@@ -456,6 +502,12 @@ async function setup({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
   };
 
+  const syncAuthEmailToMember = vi
+    .fn()
+    .mockImplementation(() =>
+      syncEmailShouldSucceed ? Promise.resolve() : Promise.reject(new Error(errorMessage)),
+    );
+
   const mockMembershipService = {
     verifyEmail: vi
       .fn()
@@ -464,6 +516,7 @@ async function setup({
           ? Promise.resolve()
           : Promise.reject(new Error('Unable to verify email. Please try again.')),
       ),
+    syncAuthEmailToMember,
   };
 
   await render(AuthActions, {
@@ -485,5 +538,5 @@ async function setup({
 
   const user = userEvent.setup();
 
-  return { user, mockAuthService, mockMembershipService, navigateSpy };
+  return { user, mockAuthService, mockMembershipService, navigateSpy, syncAuthEmailToMember };
 }

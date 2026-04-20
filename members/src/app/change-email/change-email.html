@@ -1,0 +1,54 @@
+<h1>Change Email Address</h1>
+<p class="subtitle">Enter your new email address and we'll send you a link to confirm the change</p>
+
+@if (errorMessage(); as error) {
+  <app-alert-banner variant="error">
+    {{ error }}
+  </app-alert-banner>
+}
+
+@if (successMessage(); as success) {
+  <app-alert-banner variant="success">
+    {{ success }}
+  </app-alert-banner>
+}
+
+<form [formGroup]="changeEmailForm" (ngSubmit)="onSubmit()" class="form">
+  <div class="form-group">
+    <label for="email" class="form__label">New Email Address</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      placeholder="Enter your new email"
+      class="form__input"
+      [class.error]="changeEmailForm.get('email')?.invalid && changeEmailForm.get('email')?.touched"
+    />
+    @if (changeEmailForm.get('email')?.invalid && changeEmailForm.get('email')?.touched) {
+      <div class="form__error-message">
+        @if (changeEmailForm.get('email')?.errors?.['required']) {
+          Email is required
+        } @else if (changeEmailForm.get('email')?.errors?.['email']) {
+          Please enter a valid email address
+        }
+      </div>
+    }
+  </div>
+
+  <div class="full-width">
+    <button type="submit" class="button" [disabled]="isLoading() || changeEmailForm.invalid">
+      @if (isLoading()) {
+        Sending...
+      } @else {
+        Send Verification Link
+      }
+    </button>
+  </div>
+</form>
+
+<div class="sign-in-link">
+  <p>
+    Changed your mind?
+    <a routerLink="/membership">Back to Membership</a>
+  </p>
+</div>

@@ -13,6 +13,7 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  verifyBeforeUpdateEmail,
   verifyPasswordResetCode,
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
@@ -29,6 +30,8 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/invalid-credential': 'Invalid email or password.',
   'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
   'auth/network-request-failed': 'Network error. Please check your connection and try again.',
+  'auth/requires-recent-login':
+    'For security, please sign out and sign back in before changing your email.',
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
@@ -68,8 +71,7 @@ export class AuthService {
     try {
       return await signInWithEmailAndPassword(this.auth, email, password);
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'signInWithEmail');
     }
   }
 
@@ -153,14 +155,10 @@ export class AuthService {
         handleCodeInApp: true,
       });
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      console.error('Failed to send verification email:', {
+      throw this.translateAuthError(error, 'resendEmailVerification', {
         uid: user.uid,
         email: user.email,
-        errorCode,
-        error: error instanceof Error ? error.message : String(error),
       });
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
     }
   }
 
@@ -173,8 +171,7 @@ export class AuthService {
     try {
       await applyActionCode(this.auth, code);
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'applyActionCode');
     }
   }
 
@@ -185,8 +182,7 @@ export class AuthService {
     try {
       return await checkActionCode(this.auth, code);
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'checkActionCode');
     }
   }
 
@@ -197,8 +193,7 @@ export class AuthService {
     try {
       return await verifyPasswordResetCode(this.auth, code);
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'verifyPasswordResetCode');
     }
   }
 
@@ -209,8 +204,7 @@ export class AuthService {
     try {
       await confirmPasswordReset(this.auth, code, newPassword);
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'confirmPasswordReset');
     }
   }
 
@@ -224,8 +218,41 @@ export class AuthService {
         handleCodeInApp: true,
       });
     } catch (error) {
-      const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
-      throw new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
+      throw this.translateAuthError(error, 'sendPasswordResetEmail', { email });
     }
+  }
+
+  async verifyBeforeUpdateEmail(newEmail: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      throw new Error('You must be signed in to change your email.');
+    }
+
+    try {
+      await verifyBeforeUpdateEmail(user, newEmail, {
+        url: `${globalThis.location.origin}/auth-actions`,
+        handleCodeInApp: true,
+      });
+    } catch (error) {
+      throw this.translateAuthError(error, 'verifyBeforeUpdateEmail', {
+        uid: user.uid,
+        newEmail,
+      });
+    }
+  }
+
+  private translateAuthError(
+    error: unknown,
+    method: string,
+    context: Record<string, unknown> = {},
+  ): Error {
+    const errorCode = (error as { code?: string }).code ?? 'auth/unknown-error';
+    console.error(`AuthService.${method} failed:`, {
+      method,
+      errorCode,
+      error: error instanceof Error ? error.message : String(error),
+      ...context,
+    });
+    return new Error(AUTH_ERROR_MESSAGES[errorCode] ?? AUTH_ERROR_MESSAGES['auth/unknown-error']);
   }
 }

@@ -1,4 +1,4 @@
-##  (2026-04-19)
+##  (2026-04-20)
 
 ### Features
 
@@ -12,6 +12,7 @@
 * draft Hugo profile when deleting unclaimed profile ([8fb13ba](https://github.com/markgoho/doula-cooperative/commit/8fb13ba279d885a7663974ade3ab7ae8235d00e6))
 * implement change-email-and-resend service for unclaimed profiles ([f96c27a](https://github.com/markgoho/doula-cooperative/commit/f96c27a7fbf1d16718dc44d044f2fea643f68e6e))
 * implement delete unclaimed profile functionality with tests and UI integration ([45e74fa](https://github.com/markgoho/doula-cooperative/commit/45e74fa9a607d984d09e950f68c84417d031d449))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate admin unclaimed profiles functions to Elysia API ([#30](https://github.com/markgoho/doula-cooperative/issues/30)) ([51cd7f2](https://github.com/markgoho/doula-cooperative/commit/51cd7f221c391e839f5a39c5e0336071c4094a6e)), closes [#24](https://github.com/markgoho/doula-cooperative/issues/24) [#24](https://github.com/markgoho/doula-cooperative/issues/24)
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate to invitation-based user creation and fix critical error handling ([#50](https://github.com/markgoho/doula-cooperative/issues/50)) ([6ef45a8](https://github.com/markgoho/doula-cooperative/commit/6ef45a83983a02f7349add07756ed77d8e854ea4))
@@ -21,5 +22,8 @@
 ### Bug Fixes
 
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
+* **change-email:** address PR review findings ([80e0799](https://github.com/markgoho/doula-cooperative/commit/80e07995957a7af8ab619ab4e1347ea146654dc0))
+* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
+* remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))

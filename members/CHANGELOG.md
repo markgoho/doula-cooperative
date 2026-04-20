@@ -1,4 +1,4 @@
-##  (2026-04-19)
+##  (2026-04-20)
 
 ### Features
 
@@ -39,6 +39,7 @@
 * improve confirmation dialog with responsive CSS and loading spinner ([71d133d](https://github.com/markgoho/doula-cooperative/commit/71d133d54e33380b9db60200bcc87be8f1778c31))
 * integrate Cropper.js for image cropping functionality ([6c79e03](https://github.com/markgoho/doula-cooperative/commit/6c79e03ea0c4f8b72fd7ac72cf96f26367621694))
 * **members:** add prod proxy configuration for local development ([523cbd2](https://github.com/markgoho/doula-cooperative/commit/523cbd26043fe1ba44ccf210e240aa0e98523999))
+* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * **members:** overhaul image cropper UX with zoom, rotate, and live preview ([1240c47](https://github.com/markgoho/doula-cooperative/commit/1240c47be3c7c24b5b4807246beb188ac45a7cdc))
 * **members:** replace profile linking table with search UI ([48417e3](https://github.com/markgoho/doula-cooperative/commit/48417e375d347c3c739613d924c16968512a9bd7))
 * migrate admin claim functions to Elysia API with generic claims endpoint ([#33](https://github.com/markgoho/doula-cooperative/issues/33)) ([8670eea](https://github.com/markgoho/doula-cooperative/commit/8670eeafb5d66baf861ceced2348fbccb311869d)), closes [#25](https://github.com/markgoho/doula-cooperative/issues/25)
@@ -56,6 +57,7 @@
 ### Bug Fixes
 
 * add z-0.5 zoom to face crop, cache-bust ImageKit URLs, fix banner layout ([aaf4c8e](https://github.com/markgoho/doula-cooperative/commit/aaf4c8e46e54c513320f7924f41bea2dc5ec7280))
+* **change-email:** address PR review findings ([80e0799](https://github.com/markgoho/doula-cooperative/commit/80e07995957a7af8ab619ab4e1347ea146654dc0))
 * clear optimistic profile data when all retries are exhausted ([dc6d906](https://github.com/markgoho/doula-cooperative/commit/dc6d90679d534381b2d26e5566b0b0a3da036f10))
 * defer profile creation to preview step to prevent 409 on back navigation ([17150f2](https://github.com/markgoho/doula-cooperative/commit/17150f2bb31252486781bc2a4cc861b68b014ca7))
 * **dependencies:** update Angular packages to version 21.1.4 and testing-library/angular to version 19.1.0 ([04013a1](https://github.com/markgoho/doula-cooperative/commit/04013a1ac6a4174add0bd8329526b9edea520ad6))
@@ -64,6 +66,7 @@
 * keep confirmation dialogs open until async operations complete ([b2433cf](https://github.com/markgoho/doula-cooperative/commit/b2433cf371f0cf52e3230a404ed7dc2b4553529b))
 * keep optimistic profile data during GitHub sync delay ([#69](https://github.com/markgoho/doula-cooperative/issues/69)) ([bcd2d11](https://github.com/markgoho/doula-cooperative/commit/bcd2d11cc8242f87f3ab2d90243cd9bf8ec27f4c))
 * match profile preview styling to Hugo doula profile pages ([#74](https://github.com/markgoho/doula-cooperative/issues/74)) ([aab4eee](https://github.com/markgoho/doula-cooperative/commit/aab4eee58692fddcd6dbe0e382b495f66b5dcaff))
+* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * **members:** add new doula profile service tags ([1dc1f0f](https://github.com/markgoho/doula-cooperative/commit/1dc1f0f7096e935a455a20da876b896c3040d508))
 * **members:** detect missing custom images via client-side HEAD request ([54df134](https://github.com/markgoho/doula-cooperative/commit/54df1345af2706038cdae0ce2967048ef0fc4386))
 * **members:** persist admin state across navigation ([#82](https://github.com/markgoho/doula-cooperative/issues/82)) ([86a6036](https://github.com/markgoho/doula-cooperative/commit/86a603606cffeef64426ca83de1a1bb987ac17d8))
@@ -83,6 +86,7 @@
 * reload user document after profile creation so header shows Edit Profile ([479e8e2](https://github.com/markgoho/doula-cooperative/commit/479e8e2fcd46e4019de233623bb8b9e223ece82f))
 * remove max-width from wizard step components for full-width layout ([acc7000](https://github.com/markgoho/doula-cooperative/commit/acc7000abedb52d2a7593b1cd6f994865d26020c))
 * remove production logs for Auth and Firestore in app configuration ([73e8d41](https://github.com/markgoho/doula-cooperative/commit/73e8d41bf767e8ac1bdee7b16d2c2ae166ec10f0))
+* remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * remove useless undefined to satisfy unicorn lint rule ([b98f3e3](https://github.com/markgoho/doula-cooperative/commit/b98f3e341d2ad5e2492aa76558702ab0b857039d))
 * remove vi.mock() from admin-messages test for Angular 21.2 compatibility ([52e1f18](https://github.com/markgoho/doula-cooperative/commit/52e1f18e516a80ccf75c20c3e2a2d5859af3f582))
 * resolve 'Profile Load Error' after creating a new profile ([2cd4d7f](https://github.com/markgoho/doula-cooperative/commit/2cd4d7fff2359aa914d0043ce7e37b9618bd9753))
