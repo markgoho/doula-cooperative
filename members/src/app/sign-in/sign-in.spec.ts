@@ -1,8 +1,10 @@
+import { inputBinding } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 import { SignIn } from './sign-in';
 
 describe('SignIn', () => {
@@ -111,7 +113,6 @@ describe('SignIn', () => {
 
     expect(screen.getByText('Invalid credentials')).toBeVisible();
 
-    // Fix credentials and try again
     shouldFail = false;
     await user.clear(screen.getByLabelText('Password'));
     await user.type(screen.getByLabelText('Password'), 'correct-password');
@@ -119,15 +120,50 @@ describe('SignIn', () => {
 
     expect(screen.queryByText('Invalid credentials')).toBeNull();
   });
+
+  it('should sync member email after sign-in when redirected from email change flow', async () => {
+    const { user, syncAuthEmailToMember } = await setup({
+      emailChanged: 'true',
+    });
+
+    await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+
+    await waitFor(() => {
+      expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('should show sync errors after sign-in when email recovery sync fails', async () => {
+    const { user } = await setup({
+      emailChanged: 'true',
+      syncEmailError: new Error('You must be signed in to update your email.'),
+    });
+
+    await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+
+    expect(await screen.findByText('You must be signed in to update your email.')).toBeVisible();
+  });
 });
 
 interface SetupOptions {
   signInError?: Error;
   signInDelay?: number;
   signInImplementation?: () => Promise<void>;
+  emailChanged?: string;
+  syncEmailError?: Error;
 }
 
-async function setup({ signInError, signInDelay, signInImplementation }: SetupOptions = {}) {
+async function setup({
+  signInError,
+  signInDelay,
+  signInImplementation,
+  emailChanged,
+  syncEmailError,
+}: SetupOptions = {}) {
   const mockAuthService = {
     signInWithEmail: vi.fn().mockImplementation(
       signInImplementation ||
@@ -142,17 +178,28 @@ async function setup({ signInError, signInDelay, signInImplementation }: SetupOp
     ),
   };
 
+  const syncAuthEmailToMember = vi.fn().mockImplementation(async () => {
+    if (syncEmailError) {
+      throw syncEmailError;
+    }
+  });
+
   await render(SignIn, {
     providers: [
       {
         provide: AuthService,
         useValue: mockAuthService,
       },
+      {
+        provide: MembershipService,
+        useValue: { syncAuthEmailToMember },
+      },
       provideRouter([]),
     ],
+    bindings: [inputBinding('emailChanged', () => emailChanged)],
   });
 
   const user = userEvent.setup();
 
-  return { user };
+  return { user, syncAuthEmailToMember };
 }

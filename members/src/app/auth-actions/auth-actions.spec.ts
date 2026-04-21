@@ -56,19 +56,29 @@ describe('AuthActions - Unit Tests', () => {
       expect(await screen.findByText('Network request failed')).toBeVisible();
     });
 
-    it('should sync the member email after verifyAndChangeEmail', async () => {
-      const { navigateSpy, syncAuthEmailToMember } = await setup({
+    it('should redirect to sign-in after verifyAndChangeEmail', async () => {
+      const {
+        navigateSpy,
+        mockAuthService: { reloadUser },
+        syncAuthEmailToMember,
+      } = await setup({
         mode: 'verifyAndChangeEmail',
         oobCode: 'change-email-code',
       });
 
       await waitFor(() => {
-        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
-        expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+        expect(reloadUser).toHaveBeenCalledOnce();
+        expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
+          queryParams: {
+            emailChanged: 'true',
+            message: 'Your email was updated. Please sign in again with your new email.',
+          },
+        });
       });
     });
 
-    it('should continue syncing after verifyAndChangeEmail when reload tolerates an expired session', async () => {
+    it('should redirect to sign-in after verifyAndChangeEmail when reload tolerates an expired session', async () => {
       const {
         navigateSpy,
         mockAuthService: { reloadUser },
@@ -80,8 +90,13 @@ describe('AuthActions - Unit Tests', () => {
 
       await waitFor(() => {
         expect(reloadUser).toHaveBeenCalledOnce();
-        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
-        expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+        expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
+          queryParams: {
+            emailChanged: 'true',
+            message: 'Your email was updated. Please sign in again with your new email.',
+          },
+        });
       });
     });
 
@@ -99,25 +114,23 @@ describe('AuthActions - Unit Tests', () => {
       expect(navigateSpy).not.toHaveBeenCalledWith(['/membership']);
     });
 
-    it('should surface an error and stay on the action page when sync fails after Auth update', async () => {
+    it('should redirect to sign-in instead of syncing on the action page after Auth update', async () => {
       const { navigateSpy, syncAuthEmailToMember } = await setup({
         mode: 'verifyAndChangeEmail',
         oobCode: 'change-email-sync-fail',
         syncEmailShouldSucceed: false,
-        errorMessage:
-          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
       });
 
       await waitFor(() => {
-        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+        expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
+          queryParams: {
+            emailChanged: 'true',
+            message: 'Your email was updated. Please sign in again with your new email.',
+          },
+        });
       });
-      expect(await screen.findByText('There was a problem')).toBeVisible();
-      expect(
-        await screen.findByText(
-          'We updated your sign-in email, but could not refresh your membership email. Please try again.',
-        ),
-      ).toBeVisible();
-      expect(navigateSpy).not.toHaveBeenCalledWith(['/membership']);
+      expect(screen.queryByText('There was a problem')).toBeNull();
     });
 
     it('should skip sync for verifyEmail', async () => {

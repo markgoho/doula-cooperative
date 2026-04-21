@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angu
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { MembershipService } from '../services/membership.service';
 
 @Component({
   imports: [RouterLink, ReactiveFormsModule],
@@ -11,11 +12,12 @@ import { AuthService } from '../services/auth.service';
 })
 export class SignIn {
   private authService = inject(AuthService);
+  private membershipService = inject(MembershipService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
-  // Query param input from router
   message = input<string>();
+  emailChanged = input<string>();
 
   signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
@@ -33,10 +35,12 @@ export class SignIn {
       try {
         const { email, password } = this.signInForm.value as { email: string; password: string };
 
-        // Sign in user
         await this.authService.signInWithEmail(email, password);
 
-        // Always navigate to membership page
+        if (this.emailChanged() === 'true') {
+          await this.membershipService.syncAuthEmailToMember();
+        }
+
         await this.router.navigate(['/membership']);
       } catch (error) {
         if (error instanceof Error) {

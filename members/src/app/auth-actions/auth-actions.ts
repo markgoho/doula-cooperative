@@ -87,7 +87,14 @@ export class AuthActions {
     await this.authService.reloadUser();
 
     if (shouldSyncMemberEmail) {
-      await this.membershipService.syncAuthEmailToMember();
+      await this.router.navigate(['/sign-in'], {
+        queryParams: {
+          emailChanged: 'true',
+          message: 'Your email was updated. Please sign in again with your new email.',
+        },
+      });
+      this.processingState.set('success');
+      return;
     }
 
     await this.router.navigate(['/membership']);

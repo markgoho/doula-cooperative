@@ -43,6 +43,15 @@ describe('AuthActions - Integration Tests', () => {
       expect(await screen.findByText('Membership Page')).toBeVisible();
     });
 
+    it('should redirect to sign-in after verifyAndChangeEmail', async () => {
+      await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-code',
+      });
+
+      expect(await screen.findByText('Sign In Page')).toBeVisible();
+    });
+
     it('should stay on auth-actions page when verification fails', async () => {
       await setup({
         mode: 'verifyEmail',
@@ -210,7 +219,7 @@ describe('AuthActions - Integration Tests', () => {
 });
 
 interface SetupIntegrationOptions {
-  mode?: 'verifyEmail' | 'resetPassword' | 'recoverEmail';
+  mode?: 'verifyAndChangeEmail' | 'verifyEmail' | 'resetPassword' | 'recoverEmail';
   oobCode?: string;
   continueUrl?: string;
   // Behavior options - describe what should happen, not how
