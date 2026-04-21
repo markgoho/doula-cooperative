@@ -95,12 +95,35 @@ export class AuthService {
   async reloadUser(): Promise<void> {
     const current = this.auth.currentUser;
     if (!current) return;
+
     try {
       await current.reload();
+    } catch (error) {
+      if (this.isExpiredSessionError(error)) {
+        console.warn('User session expired after auth state change', {
+          uid: current.uid,
+          code: (error as { code?: string }).code,
+        });
+        return;
+      }
+
+      console.error('Error reloading user:', error);
+      throw new Error('Failed to reload user data.');
+    }
+
+    try {
       // Force ID token refresh so downstream listeners (onIdTokenChanged) re-emit
       await current.getIdToken(true);
     } catch (error) {
-      console.error('Error reloading user:', error);
+      if (this.isExpiredSessionError(error)) {
+        console.warn('User token expired after auth state change', {
+          uid: current.uid,
+          code: (error as { code?: string }).code,
+        });
+        return;
+      }
+
+      console.error('Error refreshing user token:', error);
       throw new Error('Failed to reload user data.');
     }
   }
@@ -239,6 +262,11 @@ export class AuthService {
         newEmail,
       });
     }
+  }
+
+  private isExpiredSessionError(error: unknown): boolean {
+    const errorCode = (error as { code?: string }).code;
+    return errorCode === 'auth/user-token-expired' || errorCode === 'auth/user-disabled';
   }
 
   private translateAuthError(

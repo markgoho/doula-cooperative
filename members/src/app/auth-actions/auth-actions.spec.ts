@@ -68,6 +68,37 @@ describe('AuthActions - Unit Tests', () => {
       });
     });
 
+    it('should continue syncing after verifyAndChangeEmail when reload tolerates an expired session', async () => {
+      const {
+        navigateSpy,
+        mockAuthService: { reloadUser },
+        syncAuthEmailToMember,
+      } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-token-expired',
+      });
+
+      await waitFor(() => {
+        expect(reloadUser).toHaveBeenCalledOnce();
+        expect(syncAuthEmailToMember).toHaveBeenCalledOnce();
+        expect(navigateSpy).toHaveBeenCalledWith(['/membership']);
+      });
+    });
+
+    it('should surface an error when reload fails before sync can run', async () => {
+      const { navigateSpy, syncAuthEmailToMember } = await setup({
+        mode: 'verifyAndChangeEmail',
+        oobCode: 'change-email-reload-fail',
+        reloadUserShouldSucceed: false,
+        reloadUserError: new Error('Failed to reload user data.'),
+      });
+
+      expect(await screen.findByText('There was a problem')).toBeVisible();
+      expect(await screen.findByText('Failed to reload user data.')).toBeVisible();
+      expect(syncAuthEmailToMember).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalledWith(['/membership']);
+    });
+
     it('should surface an error and stay on the action page when sync fails after Auth update', async () => {
       const { navigateSpy, syncAuthEmailToMember } = await setup({
         mode: 'verifyAndChangeEmail',
@@ -441,13 +472,14 @@ interface SetupOptions {
   oobCode: string;
   continueUrl?: string;
   lang?: string;
-  // Behavior options - describe what should happen, not how
   shouldSucceed?: boolean;
   verifyCodeShouldSucceed?: boolean;
   confirmResetShouldSucceed?: boolean;
   signInShouldSucceed?: boolean;
   verifyEmailShouldSucceed?: boolean;
   syncEmailShouldSucceed?: boolean;
+  reloadUserShouldSucceed?: boolean;
+  reloadUserError?: Error;
   errorMessage?: string;
   restoredEmail?: string;
   userEmail?: string;
@@ -464,6 +496,8 @@ async function setup({
   signInShouldSucceed = true,
   verifyEmailShouldSucceed = true,
   syncEmailShouldSucceed = true,
+  reloadUserShouldSucceed = true,
+  reloadUserError = new Error('Failed to reload user data.'),
   errorMessage = 'An error occurred',
   restoredEmail = 'restored@example.com',
   userEmail = 'user@example.com',
@@ -476,7 +510,11 @@ async function setup({
     applyActionCode: vi
       .fn()
       .mockImplementation(() => (shouldSucceed ? Promise.resolve() : createRejection())),
-    reloadUser: vi.fn().mockResolvedValue(undefined),
+    reloadUser: vi
+      .fn()
+      .mockImplementation(() =>
+        reloadUserShouldSucceed ? Promise.resolve() : Promise.reject(reloadUserError),
+      ),
     verifyPasswordResetCode: vi
       .fn()
       .mockImplementation(() =>

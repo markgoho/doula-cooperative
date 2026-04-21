@@ -1,4 +1,4 @@
-##  (2026-04-20)
+##  (2026-04-21)
 
 ### Features
 
@@ -14,7 +14,6 @@
 * Implement GitHub batch operations utility ([23f3633](https://github.com/markgoho/doula-cooperative/commit/23f36333a76de4e1ef4064f049e01f0a7a7f7f2d))
 * implement MemberFirestoreService for Firestore operations on members ([0c194b8](https://github.com/markgoho/doula-cooperative/commit/0c194b80287e5c64c5122665626380fb08c41cea))
 * include next payment details in claim profile response ([0519f9f](https://github.com/markgoho/doula-cooperative/commit/0519f9f93defb26ecd8e51cfed7083070a905259))
-* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate adminSendInvitation to REST API and consolidate email service ([#46](https://github.com/markgoho/doula-cooperative/issues/46)) ([85d6c11](https://github.com/markgoho/doula-cooperative/commit/85d6c117f05714c4a7313d39444baf0991bc0e33)), closes [#38](https://github.com/markgoho/doula-cooperative/issues/38)
 * migrate profile management to Elysia REST API ([#34](https://github.com/markgoho/doula-cooperative/issues/34)) ([e5cabeb](https://github.com/markgoho/doula-cooperative/commit/e5cabebf7f684403167a0e0c4b779fd93fafa743))
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
@@ -23,9 +22,7 @@
 ### Bug Fixes
 
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
-* **change-email:** address PR review findings ([80e0799](https://github.com/markgoho/doula-cooperative/commit/80e07995957a7af8ab619ab4e1347ea146654dc0))
 * check slug availability against profiles collection instead of members ([489e845](https://github.com/markgoho/doula-cooperative/commit/489e84586359680682c86147f1a1626c14121201))
-* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * preserve aspect ratio on upload and remove optimistic image layer ([55025e8](https://github.com/markgoho/doula-cooperative/commit/55025e82dcbdfc5edcfe5f4befc962d1f9fb06fc))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))

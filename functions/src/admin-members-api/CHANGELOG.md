@@ -1,4 +1,4 @@
-##  (2026-04-20)
+##  (2026-04-21)
 
 ### Features
 
@@ -17,7 +17,6 @@
 * handle Stripe refunds via webhook and admin UI ([#62](https://github.com/markgoho/doula-cooperative/issues/62)) ([014a036](https://github.com/markgoho/doula-cooperative/commit/014a0361bef0241de65e186fa7f3484d01788aed))
 * Implement admin membership management service ([4753ff5](https://github.com/markgoho/doula-cooperative/commit/4753ff507004b9674e91fe4739a01e82209b8f7f))
 * implement MemberFirestoreService for Firestore operations on members ([0c194b8](https://github.com/markgoho/doula-cooperative/commit/0c194b80287e5c64c5122665626380fb08c41cea))
-* **members:** add self-service email change flow ([1d4f851](https://github.com/markgoho/doula-cooperative/commit/1d4f85116258ad8567db656157bdb56d3d9bff9f))
 * migrate admin claim functions to Elysia API with generic claims endpoint ([#33](https://github.com/markgoho/doula-cooperative/issues/33)) ([8670eea](https://github.com/markgoho/doula-cooperative/commit/8670eeafb5d66baf861ceced2348fbccb311869d)), closes [#25](https://github.com/markgoho/doula-cooperative/issues/25)
 * migrate admin match requests functions to Elysia API ([#28](https://github.com/markgoho/doula-cooperative/issues/28)) ([5ef51a3](https://github.com/markgoho/doula-cooperative/commit/5ef51a3f2bcacdc165244d2b125765f26c8236be)), closes [#22](https://github.com/markgoho/doula-cooperative/issues/22) [#22](https://github.com/markgoho/doula-cooperative/issues/22)
 * notify admin about new member signups ([7ba1d3d](https://github.com/markgoho/doula-cooperative/commit/7ba1d3d5543de45d39cc96a9de28d86fb607d3e3))
@@ -28,9 +27,7 @@
 * add typed handleRequest wrapper to resolve 898 lint errors in test files ([e9015f4](https://github.com/markgoho/doula-cooperative/commit/e9015f43e8a885496f4a658465d50ed3756c08d4))
 * **admin-members-api:** clean up import records after profile link ([8747166](https://github.com/markgoho/doula-cooperative/commit/87471668575014de5f131a8a87ecddaf1a53d288))
 * **admin-members-api:** resolve lint errors in draft profile deletion ([50c841c](https://github.com/markgoho/doula-cooperative/commit/50c841cca3175534913b05ee7000791cbf236271))
-* **change-email:** address PR review findings ([80e0799](https://github.com/markgoho/doula-cooperative/commit/80e07995957a7af8ab619ab4e1347ea146654dc0))
 * include memberNotified in refund API response schema and mapping ([43ea4b2](https://github.com/markgoho/doula-cooperative/commit/43ea4b2ababb315478e4c49573649001c430e418))
-* **members-api:** harden email sync error handling and testing ([db11a12](https://github.com/markgoho/doula-cooperative/commit/db11a12acbfc8c080040ccac969b7ef195bfe564))
 * **profile-webhook-api:** bcc webmaster on profile update emails ([9774f4a](https://github.com/markgoho/doula-cooperative/commit/9774f4a557aa281fa7ff45ee5f77084b0be5f4c9))
 * remove profile approval blockers for new members ([839e77c](https://github.com/markgoho/doula-cooperative/commit/839e77ce7419c07839451271e0de7c9de77428eb))
 * remove unnecessary type assertions in test files ([f774f3b](https://github.com/markgoho/doula-cooperative/commit/f774f3b3cab00ca2afc3e24d0f6ff50e52cd6ff6))
