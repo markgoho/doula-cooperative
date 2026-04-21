@@ -17,7 +17,6 @@ export class SignIn {
   private fb = inject(FormBuilder);
 
   message = input<string>();
-  emailChanged = input<string>();
 
   signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
@@ -37,7 +36,7 @@ export class SignIn {
 
         await this.authService.signInWithEmail(email, password);
 
-        if (this.emailChanged() === 'true') {
+        if (this.message() === 'email-changed') {
           await this.membershipService.syncAuthEmailToMember();
         }
 

@@ -123,7 +123,7 @@ describe('SignIn', () => {
 
   it('should sync member email after sign-in when redirected from email change flow', async () => {
     const { user, syncAuthEmailToMember } = await setup({
-      emailChanged: 'true',
+      message: 'email-changed',
     });
 
     await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
@@ -137,7 +137,7 @@ describe('SignIn', () => {
 
   it('should show sync errors after sign-in when email recovery sync fails', async () => {
     const { user } = await setup({
-      emailChanged: 'true',
+      message: 'email-changed',
       syncEmailError: new Error('You must be signed in to update your email.'),
     });
 
@@ -153,7 +153,7 @@ interface SetupOptions {
   signInError?: Error;
   signInDelay?: number;
   signInImplementation?: () => Promise<void>;
-  emailChanged?: string;
+  message?: string;
   syncEmailError?: Error;
 }
 
@@ -161,7 +161,7 @@ async function setup({
   signInError,
   signInDelay,
   signInImplementation,
-  emailChanged,
+  message,
   syncEmailError,
 }: SetupOptions = {}) {
   const mockAuthService = {
@@ -196,7 +196,7 @@ async function setup({
       },
       provideRouter([]),
     ],
-    bindings: [inputBinding('emailChanged', () => emailChanged)],
+    bindings: [inputBinding('message', () => message)],
   });
 
   const user = userEvent.setup();

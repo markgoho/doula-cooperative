@@ -71,8 +71,7 @@ describe('AuthActions - Unit Tests', () => {
         expect(syncAuthEmailToMember).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
           queryParams: {
-            emailChanged: 'true',
-            message: 'Your email was updated. Please sign in again with your new email.',
+            message: 'email-changed',
           },
         });
       });
@@ -93,8 +92,7 @@ describe('AuthActions - Unit Tests', () => {
         expect(syncAuthEmailToMember).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
           queryParams: {
-            emailChanged: 'true',
-            message: 'Your email was updated. Please sign in again with your new email.',
+            message: 'email-changed',
           },
         });
       });
@@ -125,8 +123,7 @@ describe('AuthActions - Unit Tests', () => {
         expect(syncAuthEmailToMember).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledWith(['/sign-in'], {
           queryParams: {
-            emailChanged: 'true',
-            message: 'Your email was updated. Please sign in again with your new email.',
+            message: 'email-changed',
           },
         });
       });

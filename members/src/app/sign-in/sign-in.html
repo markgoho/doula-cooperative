@@ -15,6 +15,12 @@
   </div>
 }
 
+@if (message() === 'email-changed') {
+  <div class="form__info-message">
+    Your email was updated. Please sign in again with your new email.
+  </div>
+}
+
 @if (errorMessage(); as error) {
   <div class="form__error-message">
     {{ error }}
