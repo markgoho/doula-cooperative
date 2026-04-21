@@ -1,5 +1,5 @@
 ---
-description: Commit conventions and changelog generation for this repo. Use when creating commits, writing commit messages, or generating changelogs.
+description: Commit conventions for this repo. Use when creating commits or writing commit messages.
 ---
 
 # Contributing — Commit Conventions
@@ -86,7 +86,7 @@ test(profiles-api): add bio field validation tests
 feat: add bio field to profiles
 ```
 
-A single commit touching multiple folders will appear in every matching changelog (since `--commit-path` includes any commit that touched files in the folder), but with a generic description instead of a targeted one.
+A single commit touching multiple folders will appear with a generic description. Prefer granular scoped commits when the changes are independently valid.
 
 ## Pre-commit checks
 
@@ -120,15 +120,3 @@ npm run typecheck:tests
 - If neither `members/` nor `functions/` changed, skip these checks.
 - Fail fast: stop on the first failing command and do not create the commit until it passes.
 - Report the failing command and its error output to the user.
-
-## Changelogs
-
-This repo uses `conventional-changelog-cli` to auto-generate per-folder `CHANGELOG.md` files from conventional commits. Run:
-
-```bash
-bun run changelog
-```
-
-This generates 10 changelogs (one for `members/` and one for each API folder in `functions/src/`). Filtering is based on which files a commit touched, not the scope in the message — but using the correct scope improves changelog readability.
-
-`shared-api/` does not have its own changelog. Changes there appear in the consuming API's changelog when committed together.
