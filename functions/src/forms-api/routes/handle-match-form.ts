@@ -7,7 +7,8 @@ import { buildDoulaMatchNotification } from "../services/build-doula-match-notif
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { DoulaMatchData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
-import { checkRecaptchaScore } from "../utils/check-recaptcha-score.js";
+import { runSpamChecks } from "../utils/run-spam-checks.js";
+import { sendAndPersist } from "../utils/send-and-persist.js";
 
 export async function handleMatchFormLogic({
   formData,
@@ -29,7 +30,6 @@ export async function handleMatchFormLogic({
   set: { status?: number | string };
 }): Promise<FormResponse> {
   try {
-    // Verify reCAPTCHA token
     const verification = await recaptchaService.verifyToken({
       token: recaptchaToken,
       secretKey: recaptchaSecretKey,
@@ -45,50 +45,39 @@ export async function handleMatchFormLogic({
       return { success: false, error: "reCAPTCHA verification failed" };
     }
 
-    // Check reCAPTCHA score threshold to block bots
-    const scoreRejection = checkRecaptchaScore({
-      score: verification.score,
+    const rejection = runSpamChecks({
+      policy: {
+        recaptcha: { score: verification.score },
+      },
       submitterEmail: formData.email,
       submitterName: formData.name,
       formType: "doula match form",
+      errorId: ERROR_IDS.DOULA_MATCH_FORM_PROCESSING_FAILED,
       logger,
       set,
     });
-    if (scoreRejection !== undefined) {
-      return scoreRejection;
+    if (rejection !== undefined) {
+      return rejection;
     }
 
-    // Try to send notification email first
-    let emailSent = false;
-    let warning: string | undefined;
-
-    try {
-      const emailMessage = buildDoulaMatchNotification(formData);
-      await emailService.sendEmail({ message: emailMessage }, logger);
-      emailSent = true;
-    } catch (emailError: unknown) {
-      logger.error("CRITICAL: Failed to send doula match notification email", {
+    const { emailSent, warning } = await sendAndPersist({
+      buildEmail: () => buildDoulaMatchNotification(formData),
+      persist: ({ emailSent: sent }) =>
+        formStorageService.saveMatchRequest({
+          data: formData,
+          recaptchaScore: verification.score,
+          emailSent: sent,
+        }),
+      emailService,
+      logger,
+      formContext: {
+        formType: "doula match form",
+        formTypeKey: "doula_match",
         errorId: ERROR_IDS.DOULA_MATCH_FORM_PROCESSING_FAILED,
-        severity: "CRITICAL",
-        error: emailError,
-        errorMessage:
-          emailError instanceof Error ? emailError.message : "Unknown error",
-        errorStack: emailError instanceof Error ? emailError.stack : undefined,
-        formType: "doula_match",
         submitterEmail: formData.email,
         submitterName: formData.name,
         recaptchaScore: verification.score,
-        timestamp: new Date().toISOString(),
-      });
-
-      warning = "Form saved but notification email failed to send";
-    }
-
-    // Save form to Firestore with email send status
-    await formStorageService.saveMatchRequest({
-      data: formData,
-      recaptchaScore: verification.score,
-      emailSent,
+      },
     });
 
     logger.info("Doula match form submitted successfully", {
