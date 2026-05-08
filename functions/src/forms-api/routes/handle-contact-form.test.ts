@@ -245,6 +245,24 @@ describe("POST /contact-us", () => {
       expect(body.error).toBe("Invalid form submission");
     });
 
+    it("should return 400 when both contact name and message look like gibberish", async () => {
+      const { plugin, request } = setup({
+        body: {
+          contactName: "AisqdChFmjmacpKsLgjGNo",
+          email: "john@example.com",
+          message: "XzqkfBpwLmNvCxRtYuIoAsDfGhJk",
+          recaptchaToken: "valid-token",
+          formLoadedAt: Date.now() - 5000,
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Invalid form submission");
+    });
+
     it("should return 400 when submitted too quickly", async () => {
       const { plugin, request } = setup({
         body: {

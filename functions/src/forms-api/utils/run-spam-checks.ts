@@ -39,11 +39,14 @@ export function runSpamChecks({
     return scoreRejection;
   }
 
-  if (policy.honeypot !== undefined) {
+  if (policy.honeypot === undefined) {
+    logger.debug?.("Honeypot check not configured for form", { formType });
+  } else {
     const { value } = policy.honeypot;
     if (value !== undefined && value.trim() !== "") {
-      logger.warn(`${formType} submission rejected by honeypot`, {
+      logger.warn("Form submission rejected by honeypot", {
         errorId,
+        formType,
         reason: "honeypot_filled",
         submitterEmail,
         submitterName,
@@ -58,8 +61,9 @@ export function runSpamChecks({
       detectGibberish({ text: field.text }),
     );
     if (flagged.length > 0) {
-      logger.warn(`${formType} submission rejected as gibberish`, {
+      logger.warn("Form submission rejected as gibberish", {
         errorId,
+        formType,
         reason: "gibberish_detected",
         submitterEmail,
         submitterName,
@@ -68,13 +72,18 @@ export function runSpamChecks({
       set.status = 400;
       return { success: false, error: "Invalid form submission" };
     }
+  } else {
+    logger.debug?.("Gibberish check not configured for form", { formType });
   }
 
-  if (policy.timing !== undefined) {
+  if (policy.timing === undefined) {
+    logger.debug?.("Timing check not configured for form", { formType });
+  } else {
     const { formLoadedAt, minMillis } = policy.timing;
     if (formLoadedAt !== undefined && Date.now() - formLoadedAt < minMillis) {
-      logger.warn(`${formType} submission rejected as too fast`, {
+      logger.warn("Form submission rejected as too fast", {
         errorId,
+        formType,
         reason: "submitted_too_fast",
         submitterEmail,
         submitterName,
