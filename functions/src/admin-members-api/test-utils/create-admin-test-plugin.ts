@@ -1,6 +1,5 @@
 import { mock } from "bun:test";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import type { ProfileDocument } from "../../collections/index.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
@@ -95,7 +94,7 @@ export function createAdminTestPlugin(overrides?: {
           draft: false,
           createdAt: "2024-01-01T00:00:00.000Z",
           updatedAt: "2024-01-01T00:00:00.000Z",
-        } as ProfileDocument,
+        },
       }),
     ),
     updateProfile: mock(() =>
@@ -107,7 +106,7 @@ export function createAdminTestPlugin(overrides?: {
           draft: false,
           createdAt: "2024-01-01T00:00:00.000Z",
           updatedAt: "2024-02-01T00:00:00.000Z",
-        } as ProfileDocument,
+        },
       }),
     ),
     listUnlinkedProfiles: mock(() =>

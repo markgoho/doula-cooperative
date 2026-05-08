@@ -81,7 +81,7 @@ export function createAdminMessagesPlugin(services?: PartialServices) {
               logger,
               set,
             }) => {
-              const typedBody = body as { sent: boolean };
+              const typedBody = body;
               return updateMessageLogic({
                 messageId: params.messageId,
                 sent: typedBody.sent,

@@ -134,6 +134,6 @@ export async function createProfileLogic({
       set,
       context: { uid },
     });
-    return errorResponse as CreateProfileResponse;
+    return errorResponse;
   }
 }
