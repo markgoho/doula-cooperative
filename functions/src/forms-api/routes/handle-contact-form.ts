@@ -7,8 +7,8 @@ import { buildContactFormNotification } from "../services/build-contact-form-not
 import type { FormStorageService } from "../services/form-storage/interface.js";
 import type { ContactFormData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
-import { checkRecaptchaScore } from "../utils/check-recaptcha-score.js";
-import { detectGibberish } from "../utils/detect-gibberish.js";
+import { runSpamChecks } from "../utils/run-spam-checks.js";
+import { sendAndPersist } from "../utils/send-and-persist.js";
 
 export async function handleContactFormLogic({
   formData,
@@ -34,7 +34,6 @@ export async function handleContactFormLogic({
   set: { status?: number | string };
 }): Promise<FormResponse> {
   try {
-    // Verify reCAPTCHA token
     const verification = await recaptchaService.verifyToken({
       token: recaptchaToken,
       secretKey: recaptchaSecretKey,
@@ -50,93 +49,45 @@ export async function handleContactFormLogic({
       return { success: false, error: "reCAPTCHA verification failed" };
     }
 
-    // Check reCAPTCHA score threshold to block bots
-    const scoreRejection = checkRecaptchaScore({
-      score: verification.score,
+    const rejection = runSpamChecks({
+      policy: {
+        recaptcha: { score: verification.score },
+        honeypot: { value: honeypotValue },
+        gibberish: [
+          { fieldName: "contactName", text: formData.contactName },
+          { fieldName: "message", text: formData.message },
+        ],
+        timing: { formLoadedAt, minMillis: 3000 },
+      },
       submitterEmail: formData.email,
       submitterName: formData.contactName,
       formType: "contact form",
+      errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
       logger,
       set,
     });
-    if (scoreRejection !== undefined) {
-      return scoreRejection;
+    if (rejection !== undefined) {
+      return rejection;
     }
 
-    if (honeypotValue !== undefined && honeypotValue.trim() !== "") {
-      logger.warn("Contact form submission rejected by honeypot", {
+    const { emailSent, warning } = await sendAndPersist({
+      buildEmail: () => buildContactFormNotification(formData),
+      persist: ({ emailSent: sent }) =>
+        formStorageService.saveContactForm({
+          data: formData,
+          recaptchaScore: verification.score,
+          emailSent: sent,
+        }),
+      emailService,
+      logger,
+      formContext: {
+        formType: "contact form",
+        formTypeKey: "contact_form",
         errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
-        reason: "honeypot_filled",
-        submitterEmail: formData.email,
-        submitterName: formData.contactName,
-      });
-      set.status = 400;
-      return { success: false, error: "Invalid form submission" };
-    }
-
-    const nameLooksLikeGibberish = detectGibberish({
-      text: formData.contactName,
-    });
-    const messageLooksLikeGibberish = detectGibberish({
-      text: formData.message,
-    });
-
-    if (nameLooksLikeGibberish || messageLooksLikeGibberish) {
-      logger.warn("Contact form submission rejected as gibberish", {
-        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
-        reason: "gibberish_detected",
-        submitterEmail: formData.email,
-        submitterName: formData.contactName,
-        nameLooksLikeGibberish,
-        messageLooksLikeGibberish,
-      });
-      set.status = 400;
-      return { success: false, error: "Invalid form submission" };
-    }
-
-    if (formLoadedAt !== undefined && Date.now() - formLoadedAt < 3000) {
-      logger.warn("Contact form submission rejected as too fast", {
-        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
-        reason: "submitted_too_fast",
-        submitterEmail: formData.email,
-        submitterName: formData.contactName,
-        formLoadedAt,
-      });
-      set.status = 400;
-      return { success: false, error: "Invalid form submission" };
-    }
-
-    // Try to send notification email first
-    let emailSent = false;
-    let warning: string | undefined;
-
-    try {
-      const emailMessage = buildContactFormNotification(formData);
-      await emailService.sendEmail({ message: emailMessage }, logger);
-      emailSent = true;
-    } catch (emailError: unknown) {
-      logger.error("CRITICAL: Failed to send contact form notification email", {
-        errorId: ERROR_IDS.CONTACT_FORM_PROCESSING_FAILED,
-        severity: "CRITICAL",
-        error: emailError,
-        errorMessage:
-          emailError instanceof Error ? emailError.message : "Unknown error",
-        errorStack: emailError instanceof Error ? emailError.stack : undefined,
-        formType: "contact_form",
         submitterEmail: formData.email,
         submitterName: formData.contactName,
         recaptchaScore: verification.score,
-        timestamp: new Date().toISOString(),
-      });
-
-      warning = "Form saved but notification email failed to send";
-    }
-
-    // Save form to Firestore with email send status
-    await formStorageService.saveContactForm({
-      data: formData,
-      recaptchaScore: verification.score,
-      emailSent,
+      },
     });
 
     logger.info("Contact form submitted successfully", {

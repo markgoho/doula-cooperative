@@ -1,6 +1,5 @@
 import { Elysia } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
-import type { ProfileDataBody } from "../../profiles-api/schemas/profile-schemas.js";
 import { ProfileDataBodySchema } from "../../profiles-api/schemas/profile-schemas.js";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
@@ -254,7 +253,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               logger,
               set,
             }) => {
-              const typedBody = body as ProfileDataBody;
+              const typedBody = body;
               return updateProfileLogic({
                 memberId: params.memberId,
                 profileData: typedBody,
@@ -280,7 +279,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               logger,
               set,
             }) => {
-              const typedBody = body as { slug: string };
+              const typedBody = body;
               return linkProfileLogic({
                 memberId: params.memberId,
                 slug: typedBody.slug,
@@ -366,7 +365,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                   logger,
                   set,
                 }) => {
-                  const typedBody = body as { newExpirationDate: string };
+                  const typedBody = body;
                   return extendMembershipLogic({
                     memberId: params.memberId,
                     newExpirationDate: typedBody.newExpirationDate,
@@ -423,7 +422,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               logger,
               set,
             }) => {
-              const typedBody = body as { admin?: boolean };
+              const typedBody = body;
               return updateClaimsLogic({
                 uid: params.memberId,
                 claims: typedBody,

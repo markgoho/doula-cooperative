@@ -47,6 +47,6 @@ export async function approveProfileLogic({
       logger,
       set,
       context: { memberId, adminUid },
-    }) as ApproveProfileApiResponse;
+    });
   }
 }

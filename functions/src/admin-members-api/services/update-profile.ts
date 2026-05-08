@@ -100,6 +100,6 @@ function isFirestoreNotFoundError(error: unknown): boolean {
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
-    (error as { code: unknown }).code === NOT_FOUND_CODE
+    error.code === NOT_FOUND_CODE
   );
 }

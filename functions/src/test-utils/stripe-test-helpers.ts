@@ -87,7 +87,7 @@ export function createMockCheckoutEvent(options: {
       idempotency_key: null,
     },
     type: "checkout.session.completed",
-  } as Stripe.Event;
+  };
 }
 
 /**

@@ -85,7 +85,7 @@ export function createAdminMatchRequestsPlugin(services?: PartialServices) {
               logger,
               set,
             }) => {
-              const typedBody = body as { sent: boolean };
+              const typedBody = body;
               return updateMatchRequestLogic({
                 requestId: params.requestId,
                 sent: typedBody.sent,

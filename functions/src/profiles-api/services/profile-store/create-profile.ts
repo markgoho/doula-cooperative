@@ -83,6 +83,6 @@ function isFirestoreAlreadyExistsError(error: unknown): boolean {
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
-    (error as { code: unknown }).code === ALREADY_EXISTS_CODE
+    error.code === ALREADY_EXISTS_CODE
   );
 }
