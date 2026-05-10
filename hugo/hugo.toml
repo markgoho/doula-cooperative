@@ -40,8 +40,4 @@ enableGitInfo = true
   name = "Join"
   pageRef = "/join-the-doula-cooperative"
   weight = 20
-[[menu.main]]
-  name = "Contact"
-  pageRef = "/contact-us"
-  weight = 30
 
