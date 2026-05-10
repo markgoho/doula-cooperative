@@ -1,4 +1,5 @@
 ---
+name: contributing
 description: Commit conventions for this repo. Use when creating commits or writing commit messages.
 ---
 
