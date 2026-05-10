@@ -252,3 +252,17 @@ For Stripe subscription testing (both local and deployed):
 - deployments are the responsibility of CI or the user, do not deploy any applications
 - don't use nested ternaries
 - there should only be one exported function per module (file)
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs are tracked in GitHub Issues for `markgoho/doula-cooperative`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default five-role triage label vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a multi-context layout for functions APIs, members app, and Hugo static site. See `docs/agents/domain.md`.
