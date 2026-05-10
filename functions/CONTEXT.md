@@ -74,14 +74,18 @@ _Avoid_: Member record, doula account
 
 **Legacy Membership**:
 A pre-current-system cooperative membership record imported from the old system, carrying member identity, profile slug, and subscription/payment dates until admin links it to a **Member**.
-_Avoid_: Legacy user, migrated user, import record
+_Avoid_: Legacy user, migrated user, import record, unclaimed profile
 
-**Unclaimed Profile**:
-A **Legacy Membership** awaiting link to a **Member**.
-_Avoid_: Migrated user, imported user
+**Unclaimed Legacy Membership**:
+A **Legacy Membership** not yet linked to a **Member**.
+_Avoid_: Unclaimed profile, unlinked profile
+
+**Unlinked Profile**:
+Existing **Profile** content with no **Profile Owner**.
+_Avoid_: Unclaimed profile
 
 **Link Legacy Membership**:
-An admin action that connects a **Legacy Membership** to a new **Member**.
+An admin action that connects a **Legacy Membership** to a new **Member** and may link an **Unlinked Profile**.
 _Avoid_: Claim, migrate user
 
 **Draft Profile**:
@@ -138,7 +142,8 @@ _Avoid_: Sent item
 - A **Processed Stripe Event** belongs to exactly one Stripe webhook event ID.
 - **Newsletter Subscription** is system-aware but paused as an active product surface.
 - **External Sync** failures should produce visible **Admin Failure Notifications** when local state already changed.
-- An **Unclaimed Profile** becomes linked through **Link Legacy Membership**.
+- An **Unclaimed Legacy Membership** may reference zero or one **Unlinked Profile** by slug.
+- Linking an **Unlinked Profile** to a **Member** may resolve the matching **Unclaimed Legacy Membership**.
 - A **Draft Profile** is a visibility state of a **Profile**, not an ownership state.
 - **Profile Approval** allows a **Member** to create or edit a **Profile**.
 - **Profile Publishing** propagates approved **Profile** changes to **Hugo Static Site** content.
@@ -160,4 +165,5 @@ _Avoid_: Sent item
 ## Flagged ambiguities
 
 - "members app APIs" was too narrow for this backend context; resolved: use **Functions APIs** for the whole Firebase Functions backend.
+- "unclaimed profile" mixed imported membership records with unowned profile content; resolved: use **Unclaimed Legacy Membership** for import records and **Unlinked Profile** for profile content without an owner.
 - Self-service legacy membership claim is rejected for this project; legacy migration should happen through admin-only **Link Legacy Membership**.
