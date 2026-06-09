@@ -6,9 +6,9 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set versions for our tools as arguments
-ARG HUGO_VERSION=0.160.1
+ARG HUGO_VERSION=0.163.0
 ARG DART_SASS_VERSION=1.99.0
-ARG BUN_VERSION=1.3.12
+ARG BUN_VERSION=1.3.14
 ARG PLAYWRIGHT_VERSION=1.59.1
 
 # 1. Install base dependencies and Java 21 (required for Firebase emulators - firebase-tools requires Java 21+)
