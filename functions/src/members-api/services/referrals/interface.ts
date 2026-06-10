@@ -1,4 +1,5 @@
 import type { MatchRequestDocument } from "../../../collections/match-requests.js";
+import type { Logger } from "../../../shared-api/types/logger.js";
 
 export interface ReferralItem {
   id: string;
@@ -6,6 +7,6 @@ export interface ReferralItem {
 }
 
 export interface ReferralsService {
-  listReferrals(): Promise<ReferralItem[]>;
-  getReferral(requestId: string): Promise<ReferralItem>;
+  listReferrals(logger: Logger): Promise<ReferralItem[]>;
+  getReferral(requestId: string, logger: Logger): Promise<ReferralItem>;
 }

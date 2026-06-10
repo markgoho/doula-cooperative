@@ -75,7 +75,7 @@ describe("GET /:memberId/referrals", () => {
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
       referralsService: {
-        listReferrals: mock(() => Promise.resolve(referrals)),
+        listReferrals: mock((_logger) => Promise.resolve(referrals)),
       },
     });
 

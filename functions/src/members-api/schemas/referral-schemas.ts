@@ -1,6 +1,4 @@
 import { t, type Static } from "elysia";
-import type { MatchRequestDocument } from "../../collections/match-requests.js";
-import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 
 /**
  * Referral list item schema - minimal fields for list display.
@@ -66,41 +64,3 @@ export const ReferralRequestIdParameterSchema = t.Object({
   }),
 });
 
-/**
- * Convert Firestore document to list item (no contact info).
- */
-export function toReferralListItem(
-  id: string,
-  document: MatchRequestDocument,
-): ReferralListItem {
-  return {
-    id,
-    submitted: timestampToIso(document.submitted),
-    estimatedDueDate: document.estimatedDueDate,
-    services: document.services,
-    zipcode: document.zipcode,
-    birthLocation: document.birthLocation,
-  };
-}
-
-/**
- * Convert Firestore document to detail response (full contact info).
- */
-export function toReferralDetail(
-  id: string,
-  document: MatchRequestDocument,
-): ReferralDetail {
-  return {
-    id,
-    name: document.name,
-    email: document.email,
-    phone: document.phone,
-    zipcode: document.zipcode,
-    estimatedDueDate: document.estimatedDueDate,
-    services: document.services,
-    birthLocation: document.birthLocation,
-    otherInfo: document.otherInfo,
-    insurance: document.insurance,
-    submitted: timestampToIso(document.submitted),
-  };
-}

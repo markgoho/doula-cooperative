@@ -74,7 +74,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
       return Promise.resolve(makeActiveStripeMember());
     });
 
-    const mockGetReferral = mock((id: string): Promise<ReferralItem> => {
+    const mockGetReferral = mock((id: string, _logger): Promise<ReferralItem> => {
       if (referralNotFound || id !== REQUEST_ID) {
         return Promise.reject(new NotFoundError(`Referral ${id} not found`));
       }

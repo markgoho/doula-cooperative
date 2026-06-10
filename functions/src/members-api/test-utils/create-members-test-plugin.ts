@@ -79,8 +79,8 @@ export function createMembersTestPlugin(overrides?: {
   };
 
   const defaultReferralsService: ReferralsService = {
-    listReferrals: mock(() => Promise.resolve([])),
-    getReferral: mock(() =>
+    listReferrals: mock((_logger) => Promise.resolve([])),
+    getReferral: mock((_requestId, _logger) =>
       Promise.reject(new Error("getReferral not configured in test")),
     ),
     ...overrides?.referralsService,

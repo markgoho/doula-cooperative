@@ -1,36 +1,17 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { firstValueFrom } from 'rxjs';
+import type { MatchRequest } from '../admin/admin.types';
 
-export interface ReferralDueDate {
-  month: string;
-  day: string;
-  year: string;
-}
+export type ReferralDueDate = MatchRequest['estimatedDueDate'];
 
-export interface ReferralListItem {
-  id: string;
-  submitted: string;
-  estimatedDueDate: ReferralDueDate;
-  services: string[];
-  zipcode: string;
-  birthLocation: string;
-}
+export type ReferralListItem = Pick<
+  MatchRequest,
+  'id' | 'submitted' | 'estimatedDueDate' | 'services' | 'zipcode' | 'birthLocation'
+>;
 
-export interface ReferralDetail {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  zipcode: string;
-  estimatedDueDate: ReferralDueDate;
-  services: string[];
-  birthLocation: string;
-  otherInfo: string;
-  insurance: string[];
-  submitted: string;
-}
+export type ReferralDetail = Omit<MatchRequest, 'sent' | 'recaptchaScore'>;
 
 @Injectable({
   providedIn: 'root',
@@ -43,18 +24,50 @@ export class ReferralsService {
     const uid = this.auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to view referrals.');
 
-    const response = await firstValueFrom(
-      this.http.get<{ referrals: ReferralListItem[] }>(`/api/members/${uid}/referrals`),
-    );
-    return response.referrals;
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ referrals: ReferralListItem[] }>(`/api/members/${uid}/referrals`),
+      );
+      return response.referrals;
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 403: {
+            throw new Error(
+              'Your membership is not currently active. Renew your membership to view referrals.',
+            );
+          }
+          case 404: {
+            throw new Error('Member account not found. Please contact support.');
+          }
+        }
+      }
+      throw new Error('Failed to load referrals. Please try again.');
+    }
   }
 
   async getReferral(id: string): Promise<ReferralDetail> {
     const uid = this.auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to view referrals.');
 
-    return firstValueFrom(
-      this.http.get<ReferralDetail>(`/api/members/${uid}/referrals/${id}`),
-    );
+    try {
+      return await firstValueFrom(
+        this.http.get<ReferralDetail>(`/api/members/${uid}/referrals/${id}`),
+      );
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 403: {
+            throw new Error(
+              'Your membership is not currently active. Renew your membership to view referrals.',
+            );
+          }
+          case 404: {
+            throw new Error('Referral not found.');
+          }
+        }
+      }
+      throw new Error('Failed to load referral. Please try again.');
+    }
   }
 }

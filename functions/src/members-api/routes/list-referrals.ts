@@ -3,10 +3,8 @@ import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { isActiveStripeMember } from "../../types/member-document.js";
-import {
-  toReferralListItem,
-  type ListReferralsResponse,
-} from "../schemas/referral-schemas.js";
+import { type ListReferralsResponse } from "../schemas/referral-schemas.js";
+import { toReferralListItem } from "../schemas/to-referral-list-item.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { ReferralsService } from "../services/referrals/interface.js";
 
@@ -36,7 +34,7 @@ export async function listReferralsLogic({
       return { error: "Active membership required to view referrals" };
     }
 
-    const items = await referralsService.listReferrals();
+    const items = await referralsService.listReferrals(logger);
     return {
       referrals: items.map(({ id, document }) => toReferralListItem(id, document)),
     };
