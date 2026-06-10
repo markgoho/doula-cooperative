@@ -1,9 +1,11 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { cancelMembershipLogic } from "../routes/cancel-membership.js";
+import { getReferralLogic } from "../routes/get-referral.js";
+import { listReferralsLogic } from "../routes/list-referrals.js";
 import { getMemberLogic } from "../routes/members.js";
 import { syncEmailLogic } from "../routes/sync-email.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
@@ -19,8 +21,12 @@ import {
   UpdateNewsletterPreferenceResponseSchema,
   VerifyEmailResponseSchema,
 } from "../schemas/member-schemas.js";
+import {
+  ReferralRequestIdParameterSchema,
+} from "../schemas/referral-schemas.js";
 import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
+import { ReferralsServiceImpl } from "../services/referrals/referrals-service.js";
 import { VerifyEmailServiceImpl } from "../services/verify-email/verify-email-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
 
@@ -59,6 +65,10 @@ export function createMembersPlugin(services?: PartialServices) {
       .decorate(
         SERVICE_KEYS.MEMBER_FIRESTORE_SERVICE,
         services?.memberFirestoreService ?? MemberFirestoreService,
+      )
+      .decorate(
+        SERVICE_KEYS.REFERRALS_SERVICE,
+        services?.referralsService ?? ReferralsServiceImpl,
       )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
@@ -203,6 +213,62 @@ export function createMembersPlugin(services?: PartialServices) {
         {
           params: MemberIdParameterSchema,
           response: CancelMembershipResponseSchema,
+        },
+      )
+      // GET /:memberId/referrals - List referrals (active Stripe member or admin) - Served at /api/members/:memberId/referrals
+      .get(
+        "/:memberId/referrals",
+        async ({
+          params,
+          memberService,
+          referralsService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          listReferralsLogic({
+            memberId: params.memberId,
+            memberService,
+            referralsService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+        },
+      )
+      // GET /:memberId/referrals/:requestId - Get referral detail (active Stripe member or admin) - Served at /api/members/:memberId/referrals/:requestId
+      .get(
+        "/:memberId/referrals/:requestId",
+        async ({
+          params,
+          memberService,
+          referralsService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          getReferralLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            memberService,
+            referralsService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: t.Object({
+            memberId: MemberIdParameterSchema.properties.memberId,
+            requestId: ReferralRequestIdParameterSchema.properties.requestId,
+          }),
         },
       )
   );

@@ -354,6 +354,13 @@ export const ERROR_IDS = {
   API_ADMIN_LIST_UNLINKED_PROFILES_FAILED:
     "api_admin_list_unlinked_profiles_failed",
   API_ADMIN_LINK_PROFILE_FAILED: "api_admin_link_profile_failed",
+
+  // Member referrals errors
+  API_MEMBER_LIST_REFERRALS_FAILED: "api_member_list_referrals_failed",
+  API_MEMBER_GET_REFERRAL_FAILED: "api_member_get_referral_failed",
+  API_MEMBER_REFERRAL_NOT_FOUND: "api_member_referral_not_found",
+  API_MEMBER_REFERRALS_ELIGIBILITY_FAILED:
+    "api_member_referrals_eligibility_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];

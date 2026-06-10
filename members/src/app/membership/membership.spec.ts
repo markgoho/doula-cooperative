@@ -704,6 +704,74 @@ describe('Membership', () => {
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
   });
+
+  describe('referrals card', () => {
+    const activeStripeMember: Partial<Member> = {
+      createdAt: new Date(),
+      email: 'jane@example.com',
+      uid: 'user123',
+      membershipActive: true,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+      subscriptionStatus: 'active',
+    };
+
+    it('shows referrals link for active Stripe member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: activeStripeMember,
+      });
+
+      expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
+    });
+
+    it('does not show referrals link for member without Stripe subscription', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: true,
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
+
+    it('does not show referrals link for inactive member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          createdAt: new Date(),
+          email: 'jane@example.com',
+          uid: 'user123',
+          membershipActive: false,
+          stripeCustomerId: 'cus_123',
+          stripeSubscriptionId: 'sub_123',
+          subscriptionStatus: 'canceled',
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
+
+    it('shows referrals link for trialing member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          ...activeStripeMember,
+          subscriptionStatus: 'trialing',
+        },
+      });
+
+      expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
+    });
+  });
 });
 
 interface SetupOptions {
