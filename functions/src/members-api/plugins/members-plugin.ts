@@ -22,6 +22,8 @@ import {
   VerifyEmailResponseSchema,
 } from "../schemas/member-schemas.js";
 import {
+  ListReferralsRouteResponseSchema,
+  ReferralDetailRouteResponseSchema,
   ReferralRequestIdParameterSchema,
 } from "../schemas/referral-schemas.js";
 import { MemberService } from "../services/member/member-service.js";
@@ -239,6 +241,7 @@ export function createMembersPlugin(services?: PartialServices) {
           }),
         {
           params: MemberIdParameterSchema,
+          response: ListReferralsRouteResponseSchema,
         },
       )
       // GET /:memberId/referrals/:requestId - Get referral detail (active Stripe member or admin) - Served at /api/members/:memberId/referrals/:requestId
@@ -269,6 +272,7 @@ export function createMembersPlugin(services?: PartialServices) {
             memberId: MemberIdParameterSchema.properties.memberId,
             requestId: ReferralRequestIdParameterSchema.properties.requestId,
           }),
+          response: ReferralDetailRouteResponseSchema,
         },
       )
   );

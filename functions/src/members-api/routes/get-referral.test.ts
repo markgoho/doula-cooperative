@@ -49,6 +49,7 @@ function makeReferralItem(id = REQUEST_ID): ReferralItem {
       insurance: ["medicaid"],
       submitted: Timestamp.now(),
       sent: false,
+      recaptchaScore: 0.9,
     },
   };
 }
@@ -74,7 +75,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
       return Promise.resolve(makeActiveStripeMember());
     });
 
-    const mockGetReferral = mock((id: string, _logger): Promise<ReferralItem> => {
+    const mockGetReferral = mock((id: string): Promise<ReferralItem> => {
       if (referralNotFound || id !== REQUEST_ID) {
         return Promise.reject(new NotFoundError(`Referral ${id} not found`));
       }
@@ -148,6 +149,9 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(body.birthLocation).toBe("Hospital");
       expect(body.otherInfo).toBe("Looking for experienced doula");
       expect(typeof body.submitted).toBe("string");
+      // Privacy: admin-only fields must not leak
+      expect(body).not.toHaveProperty("sent");
+      expect(body).not.toHaveProperty("recaptchaScore");
     });
 
     it("returns 200 for admin access even when membership is inactive", async () => {
@@ -162,6 +166,14 @@ describe("GET /:memberId/referrals/:requestId", () => {
       const { testApp, request } = setup({ referralNotFound: true });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("Validation", () => {
+    it("returns 422 when requestId exceeds 128 characters", async () => {
+      const { testApp, request } = setup({ requestId: "a".repeat(129) });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(422);
     });
   });
 

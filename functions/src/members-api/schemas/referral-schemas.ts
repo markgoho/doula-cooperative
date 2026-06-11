@@ -1,4 +1,5 @@
 import { t, type Static } from "elysia";
+import { ErrorResponseSchema } from "./member-schemas.js";
 
 /**
  * Referral list item schema - minimal fields for list display.
@@ -64,3 +65,20 @@ export const ReferralRequestIdParameterSchema = t.Object({
   }),
 });
 
+/**
+ * Route response schema for GET /:memberId/referrals.
+ * Unions success and error responses for HTTP contract enforcement.
+ */
+export const ListReferralsRouteResponseSchema = t.Union([
+  ListReferralsResponseSchema,
+  ErrorResponseSchema,
+]);
+
+/**
+ * Route response schema for GET /:memberId/referrals/:requestId.
+ * Unions success and error responses for HTTP contract enforcement.
+ */
+export const ReferralDetailRouteResponseSchema = t.Union([
+  ReferralDetailSchema,
+  ErrorResponseSchema,
+]);

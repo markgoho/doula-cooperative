@@ -75,7 +75,7 @@ describe("GET /:memberId/referrals", () => {
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
       referralsService: {
-        listReferrals: mock((_logger) => Promise.resolve(referrals)),
+        listReferrals: mock(() => Promise.resolve(referrals)),
       },
     });
 
@@ -156,10 +156,14 @@ describe("GET /:memberId/referrals", () => {
       expect(body.referrals).toHaveLength(1);
       expect(body.referrals[0]?.id).toBe("req-abc");
       expect(body.referrals[0]?.zipcode).toBe("14607");
-      // Contact info NOT in list response
-      expect(body.referrals[0]).not.toHaveProperty("email");
+      // Privacy: contact and admin-only fields must not appear in list
       expect(body.referrals[0]).not.toHaveProperty("name");
+      expect(body.referrals[0]).not.toHaveProperty("email");
       expect(body.referrals[0]).not.toHaveProperty("phone");
+      expect(body.referrals[0]).not.toHaveProperty("otherInfo");
+      expect(body.referrals[0]).not.toHaveProperty("insurance");
+      expect(body.referrals[0]).not.toHaveProperty("sent");
+      expect(body.referrals[0]).not.toHaveProperty("recaptchaScore");
     });
 
     it("returns 200 for admin access even when membership is inactive", async () => {
