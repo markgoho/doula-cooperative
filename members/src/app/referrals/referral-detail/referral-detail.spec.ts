@@ -38,6 +38,7 @@ async function setup({
 } = {}) {
   let getReferralMock: ReturnType<typeof vi.fn>;
   if (loading) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     getReferralMock = vi.fn().mockReturnValue(new Promise(() => {}));
   } else if (error) {
     getReferralMock = vi.fn().mockRejectedValue(new Error('Not found'));

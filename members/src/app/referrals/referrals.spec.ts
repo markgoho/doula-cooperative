@@ -26,6 +26,7 @@ async function setup({
 } = {}) {
   let listReferralsMock: ReturnType<typeof vi.fn>;
   if (loading) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     listReferralsMock = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
   } else if (error) {
     listReferralsMock = vi.fn().mockRejectedValue(new Error('Network error'));
@@ -70,7 +71,8 @@ describe('Referrals list', () => {
   describe('populated state', () => {
     it('renders referral cards', async () => {
       await setup({ referrals: [makeReferral(), makeReferral({ id: 'req-2', zipcode: '14608' })] });
-      expect((await screen.findAllByRole('listitem')).length).toBeGreaterThanOrEqual(2);
+      const items = await screen.findAllByRole('listitem');
+      expect(items.length).toBeGreaterThanOrEqual(2);
     });
 
     it('shows ZIP code for each referral', async () => {

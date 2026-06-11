@@ -35,7 +35,7 @@ export class ReferralDetail {
 
   protected parsedDueDate = computed(() => {
     const referral = this.referralResource.value();
-    if (!referral || !isValidDueDate(referral.estimatedDueDate)) return undefined;
+    if (!referral || !isValidDueDate(referral.estimatedDueDate)) return;
     return parseDueDate(referral.estimatedDueDate);
   });
 
