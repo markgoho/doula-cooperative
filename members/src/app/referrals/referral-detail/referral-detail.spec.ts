@@ -36,11 +36,14 @@ async function setup({
   id?: string;
   referral?: ReferralDetailModel;
 } = {}) {
-  const getReferralMock = loading
-    ? vi.fn().mockReturnValue(new Promise(() => {}))
-    : error
-      ? vi.fn().mockRejectedValue(new Error('Not found'))
-      : vi.fn().mockResolvedValue(referral);
+  let getReferralMock: ReturnType<typeof vi.fn>;
+  if (loading) {
+    getReferralMock = vi.fn().mockReturnValue(new Promise(() => {}));
+  } else if (error) {
+    getReferralMock = vi.fn().mockRejectedValue(new Error('Not found'));
+  } else {
+    getReferralMock = vi.fn().mockResolvedValue(referral);
+  }
 
   const mockReferralsService = {
     getReferral: getReferralMock,
@@ -66,7 +69,7 @@ describe('ReferralDetail', () => {
   describe('error state', () => {
     it('shows error message on failure', async () => {
       await setup({ error: true });
-      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to load referral');
+      expect(await screen.findByRole('alert')).toHaveTextContent('Not found');
     });
   });
 

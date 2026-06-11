@@ -150,8 +150,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(typeof body.submitted).toBe("string");
     });
 
-    it("returns 200 for admin access", async () => {
-      const { testApp, request } = setup({ authToken: "admin-token" });
+    it("returns 200 for admin access even when membership is inactive", async () => {
+      const { testApp, request } = setup({ authToken: "admin-token", memberIsInactive: true });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
     });
@@ -162,6 +162,27 @@ describe("GET /:memberId/referrals/:requestId", () => {
       const { testApp, request } = setup({ referralNotFound: true });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("Error handling", () => {
+    it("returns 500 when getReferral throws a non-NotFoundError", async () => {
+      const mockFindById = mock((): Promise<MemberDocument> =>
+        Promise.resolve(makeActiveStripeMember()),
+      );
+      const mockGetReferral = mock(() => Promise.reject(new Error("Unexpected DB error")));
+      const testApp = createMembersTestPlugin({
+        memberService: { findById: mockFindById },
+        referralsService: { getReferral: mockGetReferral },
+      });
+      const request = new Request(
+        `http://localhost/${MEMBER_ID}/referrals/${REQUEST_ID}`,
+        { headers: { Authorization: "Bearer valid-owner-token" } },
+      );
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Failed to retrieve referral");
     });
   });
 });

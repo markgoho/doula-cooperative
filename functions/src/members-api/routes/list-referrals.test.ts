@@ -162,16 +162,41 @@ describe("GET /:memberId/referrals", () => {
       expect(body.referrals[0]).not.toHaveProperty("phone");
     });
 
-    it("returns 200 for admin access", async () => {
-      const { testApp, request } = setup({ authToken: "admin-token" });
+    it("returns 200 for admin access even when membership is inactive", async () => {
+      const { testApp, request } = setup({ authToken: "admin-token", memberIsInactive: true });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
     });
   });
 
   describe("Error handling", () => {
+    it("returns 404 when member document not found", async () => {
+      const { testApp, request } = setup({ memberNotFound: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(404);
+    });
+
     it("returns 500 on service failure", async () => {
       const { testApp, request } = setup({ serverError: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Failed to retrieve referrals");
+    });
+
+    it("returns 500 when listReferrals throws", async () => {
+      const mockFindById = mock((): Promise<MemberDocument> =>
+        Promise.resolve(makeActiveStripeMember()),
+      );
+      const testApp = createMembersTestPlugin({
+        memberService: { findById: mockFindById },
+        referralsService: {
+          listReferrals: mock(() => Promise.reject(new Error("DB error"))),
+        },
+      });
+      const request = new Request(`http://localhost/${MEMBER_ID}/referrals`, {
+        headers: { Authorization: "Bearer valid-owner-token" },
+      });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(500);
       const body = (await response.json()) as { error?: string };

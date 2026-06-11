@@ -24,11 +24,14 @@ async function setup({
   error = false,
   referrals = [] as ReferralListItem[],
 } = {}) {
-  const listReferralsMock = loading
-    ? vi.fn().mockReturnValue(new Promise(() => {})) // never resolves
-    : error
-      ? vi.fn().mockRejectedValue(new Error('Network error'))
-      : vi.fn().mockResolvedValue(referrals);
+  let listReferralsMock: ReturnType<typeof vi.fn>;
+  if (loading) {
+    listReferralsMock = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
+  } else if (error) {
+    listReferralsMock = vi.fn().mockRejectedValue(new Error('Network error'));
+  } else {
+    listReferralsMock = vi.fn().mockResolvedValue(referrals);
+  }
 
   const mockReferralsService = {
     listReferrals: listReferralsMock,
@@ -53,7 +56,7 @@ describe('Referrals list', () => {
   describe('error state', () => {
     it('shows error message on failure', async () => {
       await setup({ error: true });
-      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to load referrals');
+      expect(await screen.findByRole('alert')).toHaveTextContent('Network error');
     });
   });
 

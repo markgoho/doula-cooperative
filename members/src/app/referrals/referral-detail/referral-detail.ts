@@ -12,7 +12,6 @@ import { SERVICE_LABELS_LONG } from '../../admin/match-requests/match-request.co
 import {
   isValidDueDate,
   parseDueDate,
-  type DueDate,
 } from '../../admin/match-requests/match-request.utilities';
 import { ReferralsService } from '../../services/referrals.service';
 
@@ -42,10 +41,5 @@ export class ReferralDetail {
 
   protected getServiceLabel(service: string): string {
     return SERVICE_LABELS_LONG[service] ?? service;
-  }
-
-  protected formatDueDate(dueDate: DueDate): Date | undefined {
-    if (!isValidDueDate(dueDate)) return undefined;
-    return parseDueDate(dueDate);
   }
 }

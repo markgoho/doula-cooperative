@@ -7,8 +7,8 @@
 
   @if (referralsResource.isLoading()) {
     <p class="loading" role="status">Loading referrals...</p>
-  } @else if (referralsResource.error()) {
-    <p class="error" role="alert">Failed to load referrals. Please try again.</p>
+  } @else if (referralsResource.error(); as err) {
+    <p class="error" role="alert">{{ err.message }}</p>
   } @else if (referralsResource.value(); as referrals) {
     @if (referrals.length === 0) {
       <p class="empty-state">No referrals available right now.</p>

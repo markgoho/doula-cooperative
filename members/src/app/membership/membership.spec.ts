@@ -771,6 +771,45 @@ describe('Membership', () => {
 
       expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
     });
+
+    it('does not show referrals link for past_due member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          ...activeStripeMember,
+          subscriptionStatus: 'past_due',
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
+
+    it('does not show referrals link for incomplete member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          ...activeStripeMember,
+          subscriptionStatus: 'incomplete',
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
+
+    it('does not show referrals link for unpaid member', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: {
+          ...activeStripeMember,
+          subscriptionStatus: 'unpaid',
+        },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
   });
 });
 

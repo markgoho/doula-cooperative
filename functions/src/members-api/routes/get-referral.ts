@@ -28,12 +28,15 @@ export async function getReferralLogic({
   set: { status?: number | string };
 }): Promise<ReferralDetail | { error: string }> {
   try {
-    await authService.verifyOwnerOrAdmin(authorizationHeader, memberId);
+    const decodedToken = await authService.verifyOwnerOrAdmin(authorizationHeader, memberId);
+    const isAdmin = decodedToken["admin"] === true;
 
-    const member = await memberService.findById(memberId);
-    if (!isActiveStripeMember(member)) {
-      set.status = 403;
-      return { error: "Active membership required to view referrals" };
+    if (!isAdmin) {
+      const member = await memberService.findById(memberId);
+      if (!isActiveStripeMember(member)) {
+        set.status = 403;
+        return { error: "Active membership required to view referrals" };
+      }
     }
 
     const { id, document } = await referralsService.getReferral(requestId, logger);
