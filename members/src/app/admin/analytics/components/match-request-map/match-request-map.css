@@ -1,0 +1,21 @@
+.map-status {
+  color: var(--color-text-muted, #666);
+  font-style: italic;
+}
+
+.map-status--error {
+  color: var(--color-error, #c00);
+}
+
+.map-container {
+  min-height: 360px;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.map-footnote {
+  margin-block-start: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #666);
+}

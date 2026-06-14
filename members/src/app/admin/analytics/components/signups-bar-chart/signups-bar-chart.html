@@ -1,0 +1,22 @@
+@if (isLoading()) {
+  <p class="chart-status" aria-live="polite">Loading signups…</p>
+} @else if (hasError()) {
+  <p class="chart-status chart-status--error" role="alert">Failed to load member signups.</p>
+} @else if (days().length === 0) {
+  <p class="chart-status">No signups this month.</p>
+} @else {
+  <div class="bar-chart" role="img" aria-label="Daily member signups this month">
+    @for (day of days(); track day.date) {
+      <div class="bar-col">
+        <div
+          class="bar"
+          [style.height]="barHeight(day.count)"
+          [attr.aria-label]="day.date + ': ' + day.count + ' signups'"
+        >
+          <title>{{ day.date }}: {{ day.count }}</title>
+        </div>
+        <span class="bar-label">{{ formatDate(day.date) }}</span>
+      </div>
+    }
+  </div>
+}

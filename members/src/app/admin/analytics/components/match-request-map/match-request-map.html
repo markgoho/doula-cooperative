@@ -1,0 +1,10 @@
+@if (isLoading()) {
+  <p class="map-status" aria-live="polite">Loading map data…</p>
+} @else if (hasError()) {
+  <p class="map-status map-status--error" role="alert">Failed to load match request locations.</p>
+} @else {
+  <div class="map-container" aria-label="Map of match request locations"></div>
+  @if (unmapped() > 0) {
+    <p class="map-footnote">{{ unmapped() }} request(s) could not be mapped (unknown ZIP code).</p>
+  }
+}

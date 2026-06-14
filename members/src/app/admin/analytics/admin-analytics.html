@@ -1,0 +1,17 @@
+<h1>Analytics</h1>
+
+<section aria-labelledby="membership-heading">
+  <h2 id="membership-heading">Membership</h2>
+  <app-signups-bar-chart [resource]="state.memberSignupsResource" />
+</section>
+
+<section aria-labelledby="match-requests-heading">
+  <h2 id="match-requests-heading">Match Requests</h2>
+  <app-cost-offset-stat-card [resource]="state.costOffsetRateResource" />
+  <app-match-request-map [resource]="state.matchRequestLocationsResource" />
+</section>
+
+<section aria-labelledby="website-heading">
+  <h2 id="website-heading">Website</h2>
+  <app-top-pages-list [resource]="state.topPagesResource" />
+</section>

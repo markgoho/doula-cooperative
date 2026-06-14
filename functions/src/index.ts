@@ -13,6 +13,7 @@ import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
 import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
+import { PIRSCH_SECRETS } from "./constants/pirsch.js";
 import { STRIPE_SECRETS } from "./constants/stripe.js";
 
 // Initialize only if not already initialized
@@ -50,6 +51,15 @@ export const adminMembersApi = onRequest(
     const { handleAdminMembersApi } =
       await import("./admin-members-api/handler.js");
     await handleAdminMembersApi(request, response);
+  },
+);
+
+// Analytics API (members.doulacooperative.com)
+export const analyticsApi = onRequest(
+  { invoker: "public", secrets: [...PIRSCH_SECRETS] },
+  async (request, response) => {
+    const { handleAnalyticsApi } = await import("./analytics-api/handler.js");
+    await handleAnalyticsApi(request, response);
   },
 );
 

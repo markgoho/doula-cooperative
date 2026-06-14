@@ -598,6 +598,10 @@
           "function": "adminMembersApi"
         },
         {
+          "source": "/api/analytics{,/**}",
+          "function": "analyticsApi"
+        },
+        {
           "source": "/api/profiles{,/**}",
           "function": "profilesApi"
         },

@@ -143,6 +143,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./admin/analytics/admin-analytics').then((m) => m.AdminAnalytics),
+      },
+      {
         path: 'messages',
         loadComponent: () => import('./admin/messages/admin-messages').then((m) => m.AdminMessages),
       },

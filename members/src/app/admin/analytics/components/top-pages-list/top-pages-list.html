@@ -1,0 +1,17 @@
+@if (isLoading()) {
+  <p class="pages-status" aria-live="polite">Loading top pages…</p>
+} @else if (hasError()) {
+  <p class="pages-status pages-status--error" role="alert">Failed to load top pages.</p>
+} @else if (pages().length === 0) {
+  <p class="pages-status">No page data available.</p>
+} @else {
+  <ol class="pages-list">
+    @for (page of pages(); track page.path) {
+      <li class="page-item">
+        <span class="page-title">{{ page.title }}</span>
+        <span class="page-path">{{ page.path }}</span>
+        <span class="page-views">{{ page.views }} views</span>
+      </li>
+    }
+  </ol>
+}

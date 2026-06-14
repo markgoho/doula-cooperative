@@ -8,7 +8,7 @@ import { EMPTY, catchError, from, switchMap } from 'rxjs';
  * API paths that require authentication.
  * Add new authenticated API paths here to automatically include auth tokens.
  */
-const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/profiles/', '/api/members/'];
+const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/analytics/', '/api/profiles/', '/api/members/'];
 
 /**
  * HTTP Interceptor that manages Firebase Auth tokens on API requests.

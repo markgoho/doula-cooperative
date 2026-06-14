@@ -1,0 +1,13 @@
+.stat-status {
+  color: var(--color-text-muted, #666);
+  font-style: italic;
+}
+
+.stat-status--error {
+  color: var(--color-error, #c00);
+}
+
+.stat-value {
+  font-size: 1.05rem;
+  line-height: 1.5;
+}

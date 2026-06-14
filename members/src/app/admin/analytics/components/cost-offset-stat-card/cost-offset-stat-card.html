@@ -1,0 +1,12 @@
+@if (isLoading()) {
+  <p class="stat-status" aria-live="polite">Loading cost offset data…</p>
+} @else if (hasError()) {
+  <p class="stat-status stat-status--error" role="alert">Failed to load cost offset data.</p>
+} @else if (!data() || data()!.total === 0) {
+  <p class="stat-status">No match requests in the last 30 days.</p>
+} @else {
+  <p class="stat-value">
+    <strong>{{ data()!.withOffset }} of {{ data()!.total }} ({{ pct() }}%)</strong>
+    selected a Cost Offset in the last 30 days.
+  </p>
+}

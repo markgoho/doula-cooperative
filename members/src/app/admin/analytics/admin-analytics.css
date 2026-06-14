@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+section {
+  margin-block-end: 2.5rem;
+}
+
+section h2 {
+  margin-block-end: 1rem;
+}
