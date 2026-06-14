@@ -68,6 +68,22 @@ _Avoid_: Active newsletter program
 A signed-in person with the admin claim who can operate cooperative management screens.
 _Avoid_: Webmaster, superuser
 
+**Analytics Dashboard**:
+An admin screen presenting cooperative metrics drawn from both Firestore data and **Web Analytics**.
+_Avoid_: Reports, stats page
+
+**Metric**:
+A single answerable question on the **Analytics Dashboard** (e.g. new signups per day) with its own data source and visibility level.
+_Avoid_: Widget, chart
+
+**Metric Visibility**:
+Whether a **Metric** is restricted to an **Admin** or may be exposed to an **Active Membership**; enforced server-side per metric.
+_Avoid_: Public/private flag
+
+**Web Analytics**:
+Visitor behavior data (page views, top pages) sourced from the third-party Pirsch service, never from Firestore.
+_Avoid_: Traffic stats, Pirsch data
+
 ## Relationships
 
 - A **Member** may have zero or one **Doula Profile**.
@@ -90,3 +106,4 @@ _Avoid_: Webmaster, superuser
 
 - "profile" must not mean both **Member** account state and **Doula Profile** content.
 - "unclaimed profile" mixed imported membership records with unowned profile content; resolved: use **Unclaimed Legacy Membership** for import records and **Unlinked Doula Profile** for profile content without an owner.
+- "insurance" (the `insurance` code field on a **Match Request**) is not insurance — it holds Medicaid/Carrot cost-offset selections; resolved: use **Cost Offset** (per the Hugo glossary) in all analytics labels and metric definitions.

@@ -28,6 +28,10 @@ _Avoid_: Membership
 A Stripe event that creates or updates **Member** membership state after successful checkout.
 _Avoid_: Payment success
 
+**New Member Signup**:
+A new Stripe-backed **Membership** starting, identified by a **Member**'s `subscriptionStart`; the canonical growth event since public enrollment opened (ADR-0004). Excludes legacy-linked memberships.
+_Avoid_: Account created, invite
+
 **Subscription Update**:
 A Stripe event that changes billing state while preserving **Membership** rules.
 _Avoid_: Membership update
