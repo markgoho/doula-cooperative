@@ -214,6 +214,17 @@
             </a>
           </section>
         }
+
+        <!-- Referrals Card -->
+        @if (canViewReferrals()) {
+          <section class="membership-card card-5" aria-labelledby="referrals-heading">
+            <h2 id="referrals-heading" class="section-heading">Referrals</h2>
+            <p class="community-description">
+              View doula match requests submitted by families looking for support.
+            </p>
+            <a routerLink="/referrals" class="community-link">View Referrals</a>
+          </section>
+        }
       </div>
     } @else {
       <div class="loading-info">

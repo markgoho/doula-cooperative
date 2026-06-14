@@ -13,6 +13,7 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { ReferralsService } from "../services/referrals/interface.js";
 import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
 /**
@@ -29,6 +30,7 @@ export function createMembersTestPlugin(overrides?: {
   emailService?: EmailServiceInterface;
   verifyEmailService?: Partial<VerifyEmailService>;
   memberFirestoreService?: Partial<MemberFirestoreService>;
+  referralsService?: Partial<ReferralsService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -76,6 +78,14 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.memberFirestoreService,
   };
 
+  const defaultReferralsService: ReferralsService = {
+    listReferrals: mock(() => Promise.resolve([])),
+    getReferral: mock(() =>
+      Promise.reject(new Error("getReferral not configured in test")),
+    ),
+    ...overrides?.referralsService,
+  };
+
   return createMembersPlugin({
     memberService: defaultMemberService,
     newsletterService: defaultNewsletterService,
@@ -83,6 +93,7 @@ export function createMembersTestPlugin(overrides?: {
     emailService: defaultEmailService,
     verifyEmailService: defaultVerifyEmailService,
     memberFirestoreService: defaultMemberFirestoreService,
+    referralsService: defaultReferralsService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  max-width: 800px;
+  margin-inline: auto;
+  padding: var(--space-l);
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--teal-600);
+  text-decoration: none;
+  font-size: var(--step--1);
+  margin-block-end: var(--space-l);
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--teal-500);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--brown-450);
+}
+
+.error {
+  color: var(--brown-600);
+  background: var(--brown-100);
+  border: 1px solid var(--brown-300);
+  border-radius: var(--border-radius-md);
+}
+
+.referral-detail {
+  display: grid;
+  gap: var(--space-m);
+}
+
+.detail-header h1 {
+  margin-block-end: var(--space-xs);
+}
+
+.member-notice {
+  font-size: var(--step--1);
+  color: var(--brown-500);
+  padding: var(--space-s);
+  background: var(--brown-100);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--teal-500);
+  margin: 0;
+}
+
+.info-card {
+  background: var(--brown-000);
+  border: 1px solid var(--brown-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-m);
+
+  h2 {
+    font-size: var(--step-0);
+    font-weight: var(--font-weight-semibold);
+    border-left: 4px solid var(--teal-500);
+    padding-left: var(--space-s);
+    margin-block-end: var(--space-m);
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-xs) var(--space-m);
+  align-items: baseline;
+  margin: 0;
+
+  dt {
+    font-size: var(--step--2);
+    font-weight: var(--font-weight-regular);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brown-500);
+  }
+
+  dd {
+    font-size: var(--step-0);
+    margin: 0;
+  }
+}
+
+.contact-link {
+  color: var(--teal-600);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.no-info {
+  color: var(--brown-400);
+  font-style: italic;
+}
+
+.service-list,
+.insurance-list {
+  list-style: disc;
+  padding-left: var(--space-l);
+  margin: 0;
+  display: grid;
+  gap: var(--space-2xs);
+
+  li {
+    font-size: var(--step-0);
+  }
+}
+
+.notes-text {
+  font-size: var(--step-0);
+  line-height: var(--line-height-normal);
+  white-space: pre-wrap;
+  margin: 0;
+}

@@ -123,6 +123,17 @@ export class Membership {
     );
   });
 
+  protected canViewReferrals = computed(() => {
+    const userDocument = this.userDocument();
+    return (
+      userDocument?.membershipActive === true &&
+      userDocument.stripeCustomerId !== undefined &&
+      userDocument.stripeSubscriptionId !== undefined &&
+      (userDocument.subscriptionStatus === 'active' ||
+        userDocument.subscriptionStatus === 'trialing')
+    );
+  });
+
   protected cancelInProgress = signal(false);
   protected cancelError = signal<string | undefined>(undefined);
 

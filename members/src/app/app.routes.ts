@@ -84,6 +84,19 @@ export const routes: Routes = [
     ...canActivate(redirectUnauthorizedToSignIn),
   },
 
+  // Member referral routes (require authentication)
+  {
+    path: 'referrals',
+    loadComponent: () => import('./referrals/referrals').then((m) => m.Referrals),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
+  {
+    path: 'referrals/:id',
+    loadComponent: () =>
+      import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
+    ...canActivate(redirectUnauthorizedToSignIn),
+  },
+
   // Admin routes (require authentication and admin claim)
   {
     path: 'admin',

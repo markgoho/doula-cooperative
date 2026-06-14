@@ -111,6 +111,6 @@ describe('AdminDashboard', () => {
     await setup();
 
     const comingSoonBadges = screen.getAllByText('Coming Soon');
-    expect(comingSoonBadges).toHaveLength(3);
+    expect(comingSoonBadges).toHaveLength(2);
   });
 });

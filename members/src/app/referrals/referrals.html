@@ -1,0 +1,52 @@
+<section>
+  <h1>Referrals</h1>
+  <p class="referrals-note">
+    These referrals are visible only to active cooperative members. Contact families following
+    cooperative norms and guidelines.
+  </p>
+
+  @if (referralsResource.isLoading()) {
+    <p class="loading" role="status">Loading referrals...</p>
+  } @else if (referralsResource.error(); as err) {
+    <p class="error" role="alert">{{ err.message }}</p>
+  } @else if (referralsResource.value(); as referrals) {
+    @if (referrals.length === 0) {
+      <p class="empty-state">No referrals available right now.</p>
+    } @else {
+      <ul class="referral-list" aria-label="Referral requests">
+        @for (referral of referrals; track referral.id) {
+          <li class="referral-card">
+            <div class="referral-meta">
+              <span class="referral-zip">{{ referral.zipcode }}</span>
+              <span class="referral-submitted">{{ getRelativeTime(referral.submitted) }}</span>
+            </div>
+
+            <div class="referral-details">
+              <dl class="referral-fields">
+                <dt>Due date</dt>
+                <dd>{{ formatDueDate(referral) }}</dd>
+
+                <dt>Birth location</dt>
+                <dd>{{ referral.birthLocation || '—' }}</dd>
+              </dl>
+
+              <ul class="service-tags" aria-label="Services requested">
+                @for (service of referral.services; track service) {
+                  <li class="service-tag">{{ getServiceLabel(service) }}</li>
+                }
+              </ul>
+            </div>
+
+            <a
+              [routerLink]="['/referrals', referral.id]"
+              class="view-link"
+              aria-label="View details for referral in {{ referral.zipcode }}"
+            >
+              View details
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

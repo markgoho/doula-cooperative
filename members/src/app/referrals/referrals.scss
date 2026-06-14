@@ -1,0 +1,127 @@
+:host {
+  display: block;
+  max-width: 800px;
+  margin-inline: auto;
+  padding: var(--space-l);
+}
+
+.referrals-note {
+  font-size: var(--step--1);
+  color: var(--brown-500);
+  margin-block-end: var(--space-l);
+  padding: var(--space-s);
+  background: var(--brown-100);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--teal-500);
+}
+
+.loading,
+.empty-state {
+  color: var(--brown-450);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.error {
+  color: var(--brown-600);
+  background: var(--brown-100);
+  border: 1px solid var(--brown-300);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-m);
+  text-align: center;
+}
+
+.referral-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-m);
+}
+
+.referral-card {
+  background: var(--brown-000);
+  border: 1px solid var(--brown-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-m);
+  display: grid;
+  gap: var(--space-s);
+}
+
+.referral-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.referral-zip {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--step-0);
+}
+
+.referral-submitted {
+  font-size: var(--step--2);
+  color: var(--brown-450);
+}
+
+.referral-details {
+  display: grid;
+  gap: var(--space-s);
+}
+
+.referral-fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3xs) var(--space-s);
+  align-items: baseline;
+  margin: 0;
+
+  dt {
+    font-size: var(--step--2);
+    font-weight: var(--font-weight-regular);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brown-500);
+  }
+
+  dd {
+    font-size: var(--step-0);
+    margin: 0;
+  }
+}
+
+.service-tags {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.service-tag {
+  font-size: var(--step--2);
+  background: var(--teal-100, var(--brown-100));
+  color: var(--teal-700, var(--brown-600));
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: 999px;
+}
+
+.view-link {
+  display: inline-block;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  color: var(--teal-600);
+  text-decoration: none;
+  align-self: start;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--teal-500);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
