@@ -40,14 +40,14 @@ export class AdminMatchRequestDetailService {
   /**
    * Update the status (sent field) of the match request
    */
-  async updateStatus(id: string, sent: boolean): Promise<void> {
+  async updateStatus(id: string, wasSent: boolean): Promise<void> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
-      await this.adminMatchRequestsService.updateMatchRequestStatus(id, sent);
-      this.successMessage.set(`Match request marked as ${sent ? 'processed' : 'pending'}`);
+      await this.adminMatchRequestsService.updateMatchRequestStatus(id, wasSent);
+      this.successMessage.set(`Match request marked as ${wasSent ? 'processed' : 'pending'}`);
       this.matchRequestResource.reload();
       this.matchRequestsState.invalidate();
     } catch (error) {

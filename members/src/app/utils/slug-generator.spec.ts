@@ -43,7 +43,7 @@ describe('slug-generator', () => {
 
     it('should handle names that result in empty slugs', () => {
       expect(generateSlug('!!!')).toBe('');
-      expect(generateSlug('   ')).toBe('');
+      expect(generateSlug(' '.repeat(3))).toBe('');
       expect(generateSlug('---')).toBe('');
     });
 

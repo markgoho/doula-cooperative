@@ -64,7 +64,7 @@ export class MatchRequestMap implements OnDestroy {
       this.el.nativeElement.querySelector<HTMLElement>('.map-container');
     if (!mapContainer) return;
 
-    // eslint-disable-next-line unicorn/no-array-callback-reference
+
     this.map = L.map(mapContainer).setView(MAP_CENTER, MAP_ZOOM);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

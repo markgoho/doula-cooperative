@@ -24,16 +24,16 @@ vi.mock('firebase/auth', () => ({
   getIdTokenResult: mockGetIdTokenResult,
 }));
 
-@Component({ template: '<h1>Sign In</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({ selector: 'app-mock-sign-in', template: '<h1>Sign In</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
 class MockSignIn {}
 
-@Component({ template: '<h1>Membership</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({ selector: 'app-mock-membership', template: '<h1>Membership</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
 class MockMembership {}
 
-@Component({ template: '<h1>Protected</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({ selector: 'app-mock-protected', template: '<h1>Protected</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
 class MockProtected {}
 
-@Component({ template: '<h1>Admin</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({ selector: 'app-mock-admin', template: '<h1>Admin</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
 class MockAdmin {}
 
 @Component({

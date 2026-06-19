@@ -103,22 +103,20 @@ export class EditProfileImage {
     this.editorState.set('viewing');
   }
 
-  protected confirmDelete(): void {
+  protected async confirmDelete(): Promise<void> {
     this.editorState.set('deleting');
     this.errorMessage.set(undefined);
 
-    this.profileService
-      .deleteProfileImage()
-      .then(() => {
-        this.successMessage.set('Profile image removed.');
-        this.editorState.set('viewing');
-      })
-      .catch((error: unknown) => {
-        this.errorMessage.set(
-          error instanceof Error ? error.message : 'Delete failed. Please try again.',
-        );
-        this.editorState.set('viewing');
-      });
+    try {
+      await this.profileService.deleteProfileImage();
+      this.successMessage.set('Profile image removed.');
+    } catch (error: unknown) {
+      this.errorMessage.set(
+        error instanceof Error ? error.message : 'Delete failed. Please try again.',
+      );
+    } finally {
+      this.editorState.set('viewing');
+    }
   }
 
   protected clearMessages(): void {

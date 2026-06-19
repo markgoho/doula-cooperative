@@ -63,17 +63,17 @@ export class MatchRequestsTable {
           break;
         }
         case 'dueDate': {
-          const aValid = isValidDueDate(a.estimatedDueDate);
-          const bValid = isValidDueDate(b.estimatedDueDate);
+          const isAValid = isValidDueDate(a.estimatedDueDate);
+          const isBValid = isValidDueDate(b.estimatedDueDate);
 
           // Invalid dates sort after valid dates (before direction flip)
-          if (aValid && bValid) {
+          if (isAValid && isBValid) {
             const aDate = parseDueDate(a.estimatedDueDate);
             const bDate = parseDueDate(b.estimatedDueDate);
             comparison = aDate.getTime() - bDate.getTime();
-          } else if (aValid && !bValid) {
+          } else if (isAValid && !isBValid) {
             comparison = -1;
-          } else if (!aValid && bValid) {
+          } else if (!isAValid && isBValid) {
             comparison = 1;
           } else {
             comparison = 0;

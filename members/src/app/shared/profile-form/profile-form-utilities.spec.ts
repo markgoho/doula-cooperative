@@ -192,8 +192,8 @@ describe('Profile Form Utilities', () => {
       // Set some tags as checked (Birth Doula=true, Postpartum Doula=false, etc.)
       const tagsArray = form.get('tags') as FormArray;
       tagsArray.clear();
-      for (const value of [true, false, true]) {
-        tagsArray.push(fb.control(value));
+      for (const isValue of [true, false, true]) {
+        tagsArray.push(fb.control(isValue));
       }
 
       const profileData = extractProfileData(form);

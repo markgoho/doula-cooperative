@@ -139,12 +139,12 @@ export class Membership {
 
   protected confirmDialog = viewChild(ConfirmDialog);
 
-  protected async onUpdateNewsletterPreference(subscribed: boolean) {
+  protected async onUpdateNewsletterPreference(isSubscribed: boolean) {
     this.newsletterUpdateInProgress.set(true);
     this.newsletterUpdateError.set(undefined);
 
     try {
-      await this.membershipService.updateNewsletterPreference(subscribed);
+      await this.membershipService.updateNewsletterPreference(isSubscribed);
       // Resource will auto-reload via reloadUserDocument() in service
     } catch (error) {
       console.error('Error updating newsletter preference:', error);
@@ -185,6 +185,7 @@ export class Membership {
         console.error('Slug generation failed:', error);
         throw new Error(
           'Unable to generate a unique profile URL. Please try again or contact support.',
+          { cause: error },
         );
       }
 

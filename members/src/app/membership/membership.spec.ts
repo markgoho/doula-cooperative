@@ -305,7 +305,7 @@ describe('Membership', () => {
       });
 
       const nameInput = screen.getByLabelText('Full Name');
-      await user.type(nameInput, '   ');
+      await user.type(nameInput, ' '.repeat(3));
 
       const saveButton = screen.getByRole('button', { name: 'Save Name' });
       expect(saveButton).toBeDisabled();

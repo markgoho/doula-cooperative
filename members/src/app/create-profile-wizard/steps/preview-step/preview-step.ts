@@ -52,8 +52,8 @@ export class PreviewStep {
       const profileData = this.wizardService.buildProfileData();
       await this.profileService.createProfileContent(profileData);
 
-      const navigated = await this.router.navigate(['/profile']);
-      if (navigated) {
+      const isNavigated = await this.router.navigate(['/profile']);
+      if (isNavigated) {
         this.wizardService.reset();
       }
     } catch (error: unknown) {

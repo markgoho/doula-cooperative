@@ -31,10 +31,10 @@ export class AdminMessagesService {
     return firstValueFrom(this.httpClient.get<Message>(`${this.baseUrl}/${id}`));
   }
 
-  async updateMessageStatus(id: string, sent: boolean): Promise<{ success: boolean }> {
+  async updateMessageStatus(id: string, wasSent: boolean): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
-      this.httpClient.patch<{ success: boolean }>(`${this.baseUrl}/${id}`, { sent }),
+      this.httpClient.patch<{ success: boolean }>(`${this.baseUrl}/${id}`, { sent: wasSent }),
     );
   }
 }

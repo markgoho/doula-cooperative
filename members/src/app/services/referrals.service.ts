@@ -47,18 +47,19 @@ export class ReferralsService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 0: {
-            throw new Error('Unable to connect. Check your network and try again.');
+            throw new Error('Unable to connect. Check your network and try again.', { cause: error });
           }
           case 401: {
-            throw new Error('Your session has expired. Please sign in again.');
+            throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
             throw new Error(
               'Your membership is not currently active. Renew your membership to view referrals.',
+              { cause: error },
             );
           }
           case 404: {
-            throw new Error('Member account not found. Please contact support.');
+            throw new Error('Member account not found. Please contact support.', { cause: error });
           }
         }
       }
@@ -81,21 +82,22 @@ export class ReferralsService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 0: {
-            throw new Error('Unable to connect. Check your network and try again.');
+            throw new Error('Unable to connect. Check your network and try again.', { cause: error });
           }
           case 401: {
-            throw new Error('Your session has expired. Please sign in again.');
+            throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
             throw new Error(
               'Your membership is not currently active. Renew your membership to view referrals.',
+              { cause: error },
             );
           }
           case 404: {
-            throw new Error('Referral not found.');
+            throw new Error('Referral not found.', { cause: error });
           }
           case 422: {
-            throw new Error('Invalid referral link. Please check the URL and try again.');
+            throw new Error('Invalid referral link. Please check the URL and try again.', { cause: error });
           }
         }
       }

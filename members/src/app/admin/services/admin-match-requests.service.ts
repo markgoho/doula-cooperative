@@ -31,10 +31,10 @@ export class AdminMatchRequestsService {
     return firstValueFrom(this.httpClient.get<MatchRequest>(`${this.baseUrl}/${id}`));
   }
 
-  async updateMatchRequestStatus(id: string, sent: boolean): Promise<{ success: boolean }> {
+  async updateMatchRequestStatus(id: string, wasSent: boolean): Promise<{ success: boolean }> {
     // Authorization header added automatically by authInterceptor
     return firstValueFrom(
-      this.httpClient.patch<{ success: boolean }>(`${this.baseUrl}/${id}`, { sent }),
+      this.httpClient.patch<{ success: boolean }>(`${this.baseUrl}/${id}`, { sent: wasSent }),
     );
   }
 }

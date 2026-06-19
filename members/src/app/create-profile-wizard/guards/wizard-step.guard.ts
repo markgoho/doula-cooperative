@@ -9,12 +9,12 @@ import { CreateProfileWizardService, type WizardStep } from '../create-profile-w
 export function wizardStepGuard(step: WizardStep): CanActivateFn {
   return () => {
     const wizardService = inject(CreateProfileWizardService);
-    const router = inject(Router);
 
     if (wizardService.canNavigateToStep(step)) {
       return true;
     }
 
+    const router = inject(Router);
     const firstIncomplete = wizardService.getFirstIncompleteStep();
     return router.createUrlTree(['/profile/create', firstIncomplete]);
   };

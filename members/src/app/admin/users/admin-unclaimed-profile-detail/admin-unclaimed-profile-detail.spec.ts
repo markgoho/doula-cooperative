@@ -306,9 +306,9 @@ async function setup(rawOptions: SetupOptions = {}) {
     profile ??
     ({
       ...baseProfile,
-      ...(hasSlugOverride ? { slug } : {}),
-      ...(hasLastPaymentOverride ? { lastPayment } : {}),
-      ...(hasNextPaymentOverride ? { nextPayment } : {}),
+      ...(hasSlugOverride && { slug }),
+      ...(hasLastPaymentOverride && { lastPayment }),
+      ...(hasNextPaymentOverride && { nextPayment }),
     } as UnclaimedProfile);
 
   // Mock the service to avoid resource() lifecycle issues in CI

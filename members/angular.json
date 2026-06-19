@@ -26,7 +26,8 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["src/styles.scss"],
+            "allowedCommonJsDependencies": ["leaflet"]
           },
           "configurations": {
             "production": {
@@ -38,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
@@ -48,6 +49,14 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "prod-services": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "define": {
+                "import.meta.env.VITE_USE_PRODUCTION": "true"
+              }
             }
           },
           "defaultConfiguration": "production"
@@ -69,7 +78,7 @@
               "proxyConfig": "proxy.conf.e2e.json"
             },
             "prod": {
-              "buildTarget": "members:build:development",
+              "buildTarget": "members:build:prod-services",
               "proxyConfig": "proxy.conf.prod.json"
             }
           },

@@ -8,17 +8,17 @@ export function isValidDueDate(dueDate: DueDate | undefined | null): boolean {
   if (!dueDate || !dueDate.month || !dueDate.day || !dueDate.year) {
     return false;
   }
-  const month = Number.parseInt(dueDate.month, 10);
-  const day = Number.parseInt(dueDate.day, 10);
-  const year = Number.parseInt(dueDate.year, 10);
+  const month = Number(dueDate.month);
+  const day = Number(dueDate.day);
+  const year = Number(dueDate.year);
   return !Number.isNaN(month) && !Number.isNaN(day) && !Number.isNaN(year);
 }
 
 export function parseDueDate(dueDate: DueDate): Date {
   // Month is 1-based in the form, but Date() expects 0-based months
-  const month = Number.parseInt(dueDate.month, 10) - 1;
-  const day = Number.parseInt(dueDate.day, 10);
-  const year = Number.parseInt(dueDate.year, 10);
+  const month = Number(dueDate.month) - 1;
+  const day = Number(dueDate.day);
+  const year = Number(dueDate.year);
   return new Date(year, month, day);
 }
 

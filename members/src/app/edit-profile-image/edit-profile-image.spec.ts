@@ -10,8 +10,8 @@ import { EditProfileImage } from './edit-profile-image';
 // Mock URL.createObjectURL and revokeObjectURL
 const mockCreateObjectURL = vi.fn();
 const mockRevokeObjectURL = vi.fn();
-globalThis.URL.createObjectURL = mockCreateObjectURL;
-globalThis.URL.revokeObjectURL = mockRevokeObjectURL;
+URL.createObjectURL = mockCreateObjectURL;
+URL.revokeObjectURL = mockRevokeObjectURL;
 
 describe('EditProfileImage', () => {
   describe('when profile exists with image', () => {

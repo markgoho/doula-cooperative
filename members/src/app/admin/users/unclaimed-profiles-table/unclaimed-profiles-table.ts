@@ -58,9 +58,9 @@ export class UnclaimedProfilesTable {
           break;
         }
         case 'hasProfile': {
-          const aHasProfile = !!a.slug;
-          const bHasProfile = !!b.slug;
-          comparison = Number(bHasProfile) - Number(aHasProfile);
+          const isAHasProfile = !!a.slug;
+          const isBHasProfile = !!b.slug;
+          comparison = Number(isBHasProfile) - Number(isAHasProfile);
           break;
         }
         case 'nextPayment': {

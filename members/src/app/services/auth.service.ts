@@ -99,7 +99,7 @@ export class AuthService {
         error: error instanceof Error ? error.message : String(error),
         code: (error as { code?: string }).code,
       });
-      throw new Error('Failed to sign out. Please try closing your browser and signing in again.');
+      throw new Error('Failed to sign out. Please try closing your browser and signing in again.', { cause: error });
     }
   }
 
@@ -120,7 +120,7 @@ export class AuthService {
       }
 
       console.error('Error reloading user:', error);
-      throw new Error('Failed to reload user data.');
+      throw new Error('Failed to reload user data.', { cause: error });
     }
 
     try {
@@ -136,7 +136,7 @@ export class AuthService {
       }
 
       console.error('Error refreshing user token:', error);
-      throw new Error('Failed to reload user data.');
+      throw new Error('Failed to reload user data.', { cause: error });
     }
   }
 
@@ -157,15 +157,16 @@ export class AuthService {
 
       // Provide specific error messages based on Firebase error codes
       if (errorCode === 'auth/user-token-expired' || errorCode === 'auth/user-disabled') {
-        throw new Error('Your session has expired. Please sign in again.');
+        throw new Error('Your session has expired. Please sign in again.', { cause: error });
       }
       if (errorCode === 'auth/network-request-failed') {
         throw new Error(
           'Network error refreshing session. Please check your connection and try again.',
+          { cause: error },
         );
       }
 
-      throw new Error('Failed to refresh session. Please sign in again.');
+      throw new Error('Failed to refresh session. Please sign in again.', { cause: error });
     }
   }
 

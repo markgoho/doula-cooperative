@@ -39,11 +39,11 @@
         formControlName="title"
         placeholder="Enter full name"
         class="form__input"
-        [class.error]="titleControl?.invalid && titleControl?.touched"
+        [class.error]="titleControl?.invalid && titleControl.touched"
       />
-      @if (titleControl?.invalid && titleControl?.touched) {
+      @if (titleControl?.invalid && titleControl.touched) {
         <div class="form__error-message">
-          @if (titleControl?.errors?.['required']) {
+          @if (titleControl.errors?.['required']) {
             <span>Name is required</span>
           }
         </div>
@@ -100,11 +100,11 @@
         placeholder="Tell us about this member's experience and approach..."
         class="form__textarea"
         rows="10"
-        [class.error]="bioControl?.invalid && bioControl?.touched"
+        [class.error]="bioControl?.invalid && bioControl.touched"
       ></textarea>
-      @if (bioControl?.invalid && bioControl?.touched) {
+      @if (bioControl?.invalid && bioControl.touched) {
         <div class="form__error-message">
-          @if (bioControl?.errors?.['required']) {
+          @if (bioControl.errors?.['required']) {
             <span>Bio is required</span>
           }
         </div>
@@ -144,11 +144,11 @@
           formControlName="email"
           placeholder="doula@example.com"
           class="form__input"
-          [class.error]="emailControl?.invalid && emailControl?.touched"
+          [class.error]="emailControl?.invalid && emailControl.touched"
         />
-        @if (emailControl?.invalid && emailControl?.touched) {
+        @if (emailControl?.invalid && emailControl.touched) {
           <div class="form__error-message">
-            @if (emailControl?.errors?.['email']) {
+            @if (emailControl.errors?.['email']) {
               <span>Please enter a valid email address</span>
             }
           </div>

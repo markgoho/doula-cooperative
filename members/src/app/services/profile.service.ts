@@ -70,7 +70,7 @@ export class ProfileService {
       if (!this.loadRequested()) return;
       const user = this.membershipService.userDocument();
       // Only load if user has active membership and a slug
-      return user?.membershipActive && user?.slug ? { slug: user.slug } : undefined;
+      return user?.membershipActive && user.slug ? { slug: user.slug } : undefined;
     },
     loader: async ({ params }) => {
       return this.fetchProfileFromServer(params.slug);
@@ -132,35 +132,35 @@ export class ProfileService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to update your profile.');
+            throw new Error('You must be signed in to update your profile.', { cause: error });
           }
 
           case 403: {
             if (error.error?.error?.includes('active membership')) {
-              throw new Error('Active membership required to update profile.');
+              throw new Error('Active membership required to update profile.', { cause: error });
             }
-            throw new Error('You do not have permission to update this profile.');
+            throw new Error('You do not have permission to update this profile.', { cause: error });
           }
 
           case 404: {
-            throw new Error('Profile not found. Please create a profile first.');
+            throw new Error('Profile not found. Please create a profile first.', { cause: error });
           }
 
           case 409: {
-            throw new Error('Profile was modified elsewhere. Please refresh and try again.');
+            throw new Error('Profile was modified elsewhere. Please refresh and try again.', { cause: error });
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.');
+            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Failed to update profile. Please try again.');
+      throw new Error('Failed to update profile. Please try again.', { cause: error });
     }
   }
 
@@ -192,36 +192,37 @@ export class ProfileService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to create a profile.');
+            throw new Error('You must be signed in to create a profile.', { cause: error });
           }
 
           case 403: {
             if (error.error?.error?.includes('slug')) {
               throw new Error(
                 'You must set up your profile slug first. Please return to the membership page.',
+                { cause: error },
               );
             }
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to create a profile.');
+              throw new Error('Active membership required to create a profile.', { cause: error });
             }
-            throw new Error('You do not have permission to create a profile.');
+            throw new Error('You do not have permission to create a profile.', { cause: error });
           }
 
           case 409: {
-            throw new Error('Profile already exists. Try refreshing the page.');
+            throw new Error('Profile already exists. Try refreshing the page.', { cause: error });
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.');
+            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Failed to create profile. Please try again or contact support.');
+      throw new Error('Failed to create profile. Please try again or contact support.', { cause: error });
     }
   }
 
@@ -286,42 +287,42 @@ export class ProfileService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to upload a profile image.');
+            throw new Error('You must be signed in to upload a profile image.', { cause: error });
           }
 
           case 413: {
-            throw new Error('Image too large. Maximum size is 10MB.');
+            throw new Error('Image too large. Maximum size is 10MB.', { cause: error });
           }
 
           case 428: {
             if (error.error?.error?.includes('slug')) {
-              throw new Error('Please set up your profile first.');
+              throw new Error('Please set up your profile first.', { cause: error });
             }
-            throw new Error('Profile setup required to upload an image.');
+            throw new Error('Profile setup required to upload an image.', { cause: error });
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.');
+            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
           }
 
           case 403: {
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to upload a profile image.');
+              throw new Error('Active membership required to upload a profile image.', { cause: error });
             }
-            throw new Error('You do not have permission to upload a profile image.');
+            throw new Error('You do not have permission to upload a profile image.', { cause: error });
           }
 
           case 409: {
-            throw new Error('Profile was modified by another operation. Please try again.');
+            throw new Error('Profile was modified by another operation. Please try again.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Failed to upload profile image. Please try again.');
+      throw new Error('Failed to upload profile image. Please try again.', { cause: error });
     }
   }
 
@@ -348,34 +349,34 @@ export class ProfileService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to delete your profile image.');
+            throw new Error('You must be signed in to delete your profile image.', { cause: error });
           }
 
           case 428: {
             if (error.error?.error?.includes('slug')) {
-              throw new Error('Please set up your profile first.');
+              throw new Error('Please set up your profile first.', { cause: error });
             }
-            throw new Error('Profile setup required to delete an image.');
+            throw new Error('Profile setup required to delete an image.', { cause: error });
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.');
+            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
           }
 
           case 403: {
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to delete your profile image.');
+              throw new Error('Active membership required to delete your profile image.', { cause: error });
             }
-            throw new Error('You do not have permission to delete a profile image.');
+            throw new Error('You do not have permission to delete a profile image.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Failed to delete profile image. Please try again.');
+      throw new Error('Failed to delete profile image. Please try again.', { cause: error });
     }
   }
 

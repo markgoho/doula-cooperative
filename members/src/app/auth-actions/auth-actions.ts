@@ -131,9 +131,9 @@ export class AuthActions {
       await this.authService.confirmPasswordReset(code, password);
 
       const email = this.emailForAction();
-      const signedIn = await this.attemptAutoSignIn(email, password);
+      const isSignedIn = await this.attemptAutoSignIn(email, password);
 
-      if (signedIn) {
+      if (isSignedIn) {
         this.processingState.set('success');
         this.statusMessage.set(
           'Password has been reset successfully. Welcome to your membership dashboard!',
@@ -200,7 +200,8 @@ export class AuthActions {
     await this.authService.applyActionCode(code);
 
     if (restoredEmail && restoredEmail !== '') {
-      // best-effort password reset recommendation
+      // best-effort password reset recommendation — intentionally not awaited
+      // eslint-disable-next-line unicorn/prefer-await
       this.authService.sendPasswordResetEmail(restoredEmail).catch((resetError: unknown) => {
         console.error('Failed to send post-recovery password reset email:', {
           email: restoredEmail,
@@ -217,7 +218,7 @@ export class AuthActions {
     // Respect continueUrl if provided
     const target = this.continueUrl();
     if (target) {
-      globalThis.location.href = target;
+      globalThis.location.assign(target);
       return;
     }
     await this.router.navigate(['/sign-in']);

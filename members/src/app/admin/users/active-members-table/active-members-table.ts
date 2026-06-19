@@ -60,9 +60,9 @@ export class ActiveMembersTable {
           break;
         }
         case 'membership': {
-          const aActive = a.membershipActive ?? false;
-          const bActive = b.membershipActive ?? false;
-          comparison = Number(bActive) - Number(aActive);
+          const isAActive = a.membershipActive ?? false;
+          const isBActive = b.membershipActive ?? false;
+          comparison = Number(isBActive) - Number(isAActive);
           break;
         }
         case 'created': {

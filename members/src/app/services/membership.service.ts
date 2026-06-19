@@ -108,16 +108,16 @@ export class MembershipService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to check slug availability.');
+            throw new Error('You must be signed in to check slug availability.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Unable to check slug availability. Please try again.');
+      throw new Error('Unable to check slug availability. Please try again.', { cause: error });
     }
   }
 
@@ -143,40 +143,40 @@ export class MembershipService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to set a profile slug.');
+            throw new Error('You must be signed in to set a profile slug.', { cause: error });
           }
 
           case 403: {
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to set profile slug.');
+              throw new Error('Active membership required to set profile slug.', { cause: error });
             }
-            throw new Error('You do not have permission to set a profile slug.');
+            throw new Error('You do not have permission to set a profile slug.', { cause: error });
           }
 
           case 404: {
             if (error.error?.error?.includes('member')) {
-              throw new Error('Member account not found. Please contact support.');
+              throw new Error('Member account not found. Please contact support.', { cause: error });
             }
-            throw new Error('Unable to set profile slug. Please try again.');
+            throw new Error('Unable to set profile slug. Please try again.', { cause: error });
           }
 
           case 409: {
             if (error.error?.error?.includes('already has')) {
-              throw new Error('You already have a profile slug. Contact support to change it.');
+              throw new Error('You already have a profile slug. Contact support to change it.', { cause: error });
             }
             if (error.error?.error?.includes('already taken')) {
-              throw new Error('This slug is already taken. Please choose another.');
+              throw new Error('This slug is already taken. Please choose another.', { cause: error });
             }
-            throw new Error('Slug conflict. Please try again.');
+            throw new Error('Slug conflict. Please try again.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Unable to set profile slug. Please try again.');
+      throw new Error('Unable to set profile slug. Please try again.', { cause: error });
     }
   }
 
@@ -185,7 +185,7 @@ export class MembershipService {
    * @param subscribed - true to subscribe, false to unsubscribe
    * @throws Error with user-friendly message
    */
-  async updateNewsletterPreference(subscribed: boolean): Promise<void> {
+  async updateNewsletterPreference(isSubscribed: boolean): Promise<void> {
     const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to update newsletter preferences.');
@@ -195,43 +195,43 @@ export class MembershipService {
       await firstValueFrom(
         this.http.patch<{ success: boolean; subscribed: boolean }>(
           `/api/members/${uid}/newsletter-preference`,
-          { subscribed },
+          { subscribed: isSubscribed },
         ),
       );
       // Trigger reload of user document to reflect changes
       this.reloadUserDocument();
     } catch (error: unknown) {
       console.error('Failed to update newsletter preference:', {
-        subscribed,
+        subscribed: isSubscribed,
         error: error instanceof Error ? error.message : String(error),
       });
 
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to update newsletter preferences.');
+            throw new Error('You must be signed in to update newsletter preferences.', { cause: error });
           }
 
           case 403: {
-            throw new Error('You do not have permission to update newsletter preferences.');
+            throw new Error('You do not have permission to update newsletter preferences.', { cause: error });
           }
 
           case 404: {
-            throw new Error('Member account not found. Please contact support.');
+            throw new Error('Member account not found. Please contact support.', { cause: error });
           }
 
           case 400:
           case 422: {
-            throw new Error('Invalid request. Please try again.');
+            throw new Error('Invalid request. Please try again.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Unable to update newsletter preference. Please try again.');
+      throw new Error('Unable to update newsletter preference. Please try again.', { cause: error });
     }
   }
 
@@ -264,34 +264,35 @@ export class MembershipService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to update your name.');
+            throw new Error('You must be signed in to update your name.', { cause: error });
           }
 
           case 403: {
-            throw new Error('You do not have permission to update this name.');
+            throw new Error('You do not have permission to update this name.', { cause: error });
           }
 
           case 404: {
-            throw new Error('Member account not found. Please contact support.');
+            throw new Error('Member account not found. Please contact support.', { cause: error });
           }
 
           case 422: {
-            throw new Error('Invalid name. Please check your input and try again.');
+            throw new Error('Invalid name. Please check your input and try again.', { cause: error });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
 
           default: {
             throw new Error(
               `Unable to update your name (error ${String(error.status)}). Please try again or contact support.`,
+              { cause: error },
             );
           }
         }
       }
 
-      throw new Error('Unable to update your name. Please try again.');
+      throw new Error('Unable to update your name. Please try again.', { cause: error });
     }
   }
 
@@ -325,24 +326,25 @@ export class MembershipService {
           case 400: {
             throw new Error(
               'Unable to cancel membership online. Please contact support for assistance.',
+              { cause: error },
             );
           }
           case 401: {
-            throw new Error('You must be signed in to cancel your membership.');
+            throw new Error('You must be signed in to cancel your membership.', { cause: error });
           }
           case 403: {
-            throw new Error('You do not have permission to cancel this membership.');
+            throw new Error('You do not have permission to cancel this membership.', { cause: error });
           }
           case 404: {
-            throw new Error('Member account not found. Please contact support.');
+            throw new Error('Member account not found. Please contact support.', { cause: error });
           }
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Unable to cancel membership. Please try again or contact support.');
+      throw new Error('Unable to cancel membership. Please try again or contact support.', { cause: error });
     }
   }
 
@@ -378,21 +380,21 @@ export class MembershipService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 400: {
-            throw new Error('Email is already verified.');
+            throw new Error('Email is already verified.', { cause: error });
           }
           case 401: {
-            throw new Error('You must be signed in to verify your email.');
+            throw new Error('You must be signed in to verify your email.', { cause: error });
           }
           case 403: {
-            throw new Error('You do not have permission to verify this email.');
+            throw new Error('You do not have permission to verify this email.', { cause: error });
           }
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
         }
       }
 
-      throw new Error('Unable to verify email. Please try again.');
+      throw new Error('Unable to verify email. Please try again.', { cause: error });
     }
   }
 
@@ -416,16 +418,16 @@ export class MembershipService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to update your email.');
+            throw new Error('You must be signed in to update your email.', { cause: error });
           }
           case 403: {
-            throw new Error('You do not have permission to update your email.');
+            throw new Error('You do not have permission to update your email.', { cause: error });
           }
           case 404: {
-            throw new Error('Member account not found. Please contact support.');
+            throw new Error('Member account not found. Please contact support.', { cause: error });
           }
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.');
+            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
           }
           case 500: {
             const serverMessage =
@@ -435,7 +437,7 @@ export class MembershipService {
                 ? (error.error as { error: string }).error
                 : undefined;
             if (serverMessage) {
-              throw new Error(serverMessage);
+              throw new Error(serverMessage, { cause: error });
             }
           }
         }
@@ -443,6 +445,7 @@ export class MembershipService {
 
       throw new Error(
         'We updated your sign-in email, but could not refresh your membership email. Please try again.',
+        { cause: error },
       );
     }
   }

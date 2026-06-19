@@ -32,8 +32,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const router = inject(Router);
 
   // Only intercept authenticated API requests
-  const requiresAuth = AUTHENTICATED_API_PATHS.some((path) => request.url.includes(path));
-  if (!requiresAuth) {
+  const isRequiresAuth = AUTHENTICATED_API_PATHS.some((path) => request.url.includes(path));
+  if (!isRequiresAuth) {
     return next(request);
   }
 
@@ -70,6 +70,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         // Token is invalid/revoked — sign out and redirect to sign-in
+        // eslint-disable-next-line unicorn/prefer-await
         signOut(auth).then(
           () => void router.navigate(['/sign-in']),
           (signOutError: unknown) => {

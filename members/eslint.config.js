@@ -44,6 +44,10 @@ export default defineConfig([
         },
       ],
       'unicorn/no-useless-undefined': ['error', { checkArguments: false }],
+      // Angular has its own member ordering conventions (inject → signals → lifecycle)
+      'unicorn/consistent-class-member-order': 'off',
+      // destroyRef = inject(DestroyRef) is the standard Angular DI pattern
+      'unicorn/no-non-function-verb-prefix': 'off',
       '@angular-eslint/directive-selector': [
         'error',
         {
@@ -60,6 +64,21 @@ export default defineConfig([
           style: 'kebab-case',
         },
       ],
+    },
+  },
+  {
+    // False positive: vi.fn(function (this: Type) {...}) is a valid typed function context
+    files: ['**/*.spec.ts', '**/*.integration.spec.ts'],
+    rules: {
+      'unicorn/no-this-outside-of-class': 'off',
+    },
+  },
+  {
+    // Angular lazy-loaded route configs must use .then(m => m.Component) — cannot await
+    // inside a Routes array literal, so prefer-await is a false positive here.
+    files: ['**/*.routes.ts'],
+    rules: {
+      'unicorn/prefer-await': 'off',
     },
   },
   ...angular.configs.templateRecommended.map((config) => ({

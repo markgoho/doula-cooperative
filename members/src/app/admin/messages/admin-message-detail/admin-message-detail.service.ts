@@ -40,14 +40,14 @@ export class AdminMessageDetailService {
   /**
    * Update the status (sent field) of the message
    */
-  async updateStatus(id: string, sent: boolean): Promise<void> {
+  async updateStatus(id: string, wasSent: boolean): Promise<void> {
     this.actionInProgress.set(true);
     this.successMessage.set(undefined);
     this.actionError.set(undefined);
 
     try {
-      await this.adminMessagesService.updateMessageStatus(id, sent);
-      this.successMessage.set(`Message marked as ${sent ? 'processed' : 'pending'}`);
+      await this.adminMessagesService.updateMessageStatus(id, wasSent);
+      this.successMessage.set(`Message marked as ${wasSent ? 'processed' : 'pending'}`);
       this.messageResource.reload();
       this.messagesState.invalidate();
     } catch (error) {

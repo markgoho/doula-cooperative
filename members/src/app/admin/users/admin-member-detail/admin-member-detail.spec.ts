@@ -97,10 +97,7 @@ function createMockAdminMembersService({
   };
   resolveMemberPromise: (value: ApiMemberResponse) => void;
 } {
-  let resolveMemberPromise!: (value: ApiMemberResponse) => void;
-  const pendingMemberPromise = new Promise<ApiMemberResponse>((resolve) => {
-    resolveMemberPromise = resolve;
-  });
+  const { promise: pendingMemberPromise, resolve: resolveMemberPromise } = Promise.withResolvers<ApiMemberResponse>();
 
   const mockAdminMembersService = {
     getMember: vi.fn().mockImplementation(() => {
