@@ -70,15 +70,34 @@
       "Bash(gh pr create:*)",
       "Bash(gh issue view:*)",
       "Bash(firebase functions:secrets:list:*)",
-      "Bash(bunx firebase:*)"
+      "Bash(bunx firebase:*)",
+      "Bash(gh pr *)",
+      "Bash(gh run *)",
+      "Bash(bunx ng *)",
+      "Read(//Users/mgoho/.claude/**)",
+      "Bash(bunx playwriter *)",
+      "WebFetch(domain:blog.ninja-squad.com)",
+      "Bash(bun run *)",
+      "Read(//tmp/**)",
+      "Read(//Users/mgoho/.bun/bin/**)",
+      "Bash(~/.bun/bin/node --version)",
+      "Bash(command -v nvm)",
+      "Bash(command -v fnm)",
+      "Bash(command -v volta)",
+      "Read(//Users/mgoho/.nvm/**)",
+      "Bash(python3 *)",
+      "Bash(node *)"
     ],
     "deny": [],
     "ask": []
   },
-  "skipWebFetchPreflight": true,
+  "disabledMcpjsonServers": [
+    "figma-console"
+  ],
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
     "padding": 0
-  }
+  },
+  "skipWebFetchPreflight": true
 }
