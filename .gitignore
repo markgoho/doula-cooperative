@@ -68,3 +68,4 @@ TESTING_GAPS_ANALYSIS.md
 TESTING_GAPS_SUMMARY.txt
 
 .sisyphus/
+.claude/settings.local.json
