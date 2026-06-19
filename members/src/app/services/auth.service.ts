@@ -54,12 +54,27 @@ export class AuthService {
       return result.claims['admin'] === true;
     },
   });
+  // Fails closed to non-admin: an undefined value covers both "loading" and
+  // "claim fetch failed". The effect below logs the failure case so it isn't silent.
   readonly isAdmin = computed(() => this.adminClaims.value() ?? false);
 
   constructor() {
     effect((onCleanup) => {
-      const unsubscribe = onIdTokenChanged(auth, (user) => this.authUser.set(user));
+      // onIdTokenChanged re-emits on token refresh, keeping emailVerified and
+      // admin claims current (not just on sign-in/out).
+      const unsubscribe = onIdTokenChanged(
+        auth,
+        (user) => this.authUser.set(user),
+        (error) => console.error('Auth ID token listener error:', error),
+      );
       onCleanup(unsubscribe);
+    });
+
+    effect(() => {
+      const error = this.adminClaims.error();
+      if (error) {
+        console.error('Failed to resolve admin claims; treating user as non-admin:', error);
+      }
     });
   }
 

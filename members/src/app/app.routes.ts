@@ -4,13 +4,17 @@ import { redirectNonAdminToMembership } from './guards/admin.guard';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 import { auth } from './lib/firebase';
 
-const requireAuth: CanActivateFn = () => {
+export const requireAuth: CanActivateFn = async () => {
   const router = inject(Router);
+  // Wait for Firebase to restore any persisted session before deciding, so a
+  // hard refresh on a protected route doesn't bounce an authenticated user.
+  await auth.authStateReady();
   return auth.currentUser ? true : router.parseUrl('/sign-in');
 };
 
-const requireUnauth: CanActivateFn = () => {
+export const requireUnauth: CanActivateFn = async () => {
   const router = inject(Router);
+  await auth.authStateReady();
   return auth.currentUser ? router.parseUrl('/membership') : true;
 };
 

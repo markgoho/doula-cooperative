@@ -1,5 +1,6 @@
+import { isDevMode } from '@angular/core';
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBuYxpvwYc3ZVn5OSYtJe88XnL8x5HSuDI',
@@ -12,3 +13,9 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
+
+// In local dev, point Auth at the emulator unless explicitly opted into
+// production (VITE_USE_PRODUCTION). Production builds skip this entirely.
+if (isDevMode() && !import.meta.env['VITE_USE_PRODUCTION']) {
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+}

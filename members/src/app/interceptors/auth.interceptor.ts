@@ -2,7 +2,7 @@ import { type HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/
 import { inject } from '@angular/core';
 import { signOut } from 'firebase/auth';
 import { Router } from '@angular/router';
-import { EMPTY, catchError, from, switchMap } from 'rxjs';
+import { EMPTY, catchError, from, of, switchMap } from 'rxjs';
 import { auth } from '../lib/firebase';
 
 /**
@@ -40,6 +40,18 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   // Get ID token and add to request
   // eslint-disable-next-line unicorn/no-null
   return from(auth.currentUser?.getIdToken() ?? Promise.resolve(null)).pipe(
+    catchError((tokenError: unknown) => {
+      // Token acquisition failed (e.g. network error, revoked/expired token).
+      // This is NOT an HttpErrorResponse, so handle it separately from the
+      // response-error branch below. Proceed without a token; the server will
+      // respond 401 if auth is required, which the 401 handler then catches.
+      console.error('Failed to acquire auth token for request:', {
+        url: request.url,
+        error: tokenError instanceof Error ? tokenError.message : String(tokenError),
+      });
+      // eslint-disable-next-line unicorn/no-null
+      return of(null);
+    }),
     switchMap((token) => {
       if (!token) {
         // No user authenticated - proceed without modification

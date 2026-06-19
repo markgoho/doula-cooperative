@@ -41,7 +41,11 @@ export class MembershipService {
 
   constructor() {
     effect((onCleanup) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => this.authUser.set(user));
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        (user) => this.authUser.set(user),
+        (error) => console.error('Auth state listener error:', error),
+      );
       onCleanup(unsubscribe);
     });
   }
@@ -178,7 +182,7 @@ export class MembershipService {
 
   /**
    * Update the user's newsletter subscription preference
-   * @param subscribed - true to subscribe, false to unsubscribescribe
+   * @param subscribed - true to subscribe, false to unsubscribe
    * @throws Error with user-friendly message
    */
   async updateNewsletterPreference(subscribed: boolean): Promise<void> {
