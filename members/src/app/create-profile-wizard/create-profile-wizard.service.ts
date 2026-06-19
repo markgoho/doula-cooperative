@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Service, signal } from '@angular/core';
 import { type Member } from '../services/membership.service';
 import { type ProfileData } from '../types/profile-data';
 import { type ContactInfo, type PersonalInfo, type WizardStep, WIZARD_STEPS } from './wizard-types';
@@ -9,9 +9,7 @@ export { type WizardStep, WIZARD_STEPS } from './wizard-types';
  * Holds all wizard state as signals so data survives route navigation between steps.
  * Each step reads initial values from the service and writes back on "Next".
  */
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class CreateProfileWizardService {
   // Personal info fields
   readonly personalInfo = signal<PersonalInfo>({ title: '', pronouns: '', credentials: '' });

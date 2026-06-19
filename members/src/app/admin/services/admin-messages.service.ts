@@ -1,11 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type { ListMessagesResponse, Message } from '../admin.types';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AdminMessagesService {
   private readonly httpClient = inject(HttpClient);
   private readonly baseUrl = '/api/admin/messages';

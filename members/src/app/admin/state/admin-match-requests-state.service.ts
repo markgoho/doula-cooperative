@@ -1,9 +1,7 @@
-import { Injectable, inject, resource, signal } from '@angular/core';
+import { inject, resource, Service, signal } from '@angular/core';
 import { AdminMatchRequestsService } from '../services/admin-match-requests.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AdminMatchRequestsStateService {
   private adminMatchRequestsService = inject(AdminMatchRequestsService);
   private initialized = signal(false);

@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type {
   ListMembersResponse,
@@ -73,9 +73,7 @@ function toLinkedMember(response: ApiLinkProfileResponse): ApiMemberResponse {
   return assertApiSuccess(response).member;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AdminMembersService {
   private httpClient = inject(HttpClient);
 

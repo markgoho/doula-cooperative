@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
 import type { MatchRequest } from '../admin/admin.types';
@@ -26,9 +26,7 @@ export type ReferralDetail = Pick<
   | 'submitted'
 >;
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class ReferralsService {
   private http = inject(HttpClient);
 

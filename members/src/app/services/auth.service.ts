@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
+import { computed, effect, inject, resource, Service, signal } from '@angular/core';
 import {
   type ActionCodeInfo,
   type User,
@@ -34,9 +34,7 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AuthService {
   private router = inject(Router);
 

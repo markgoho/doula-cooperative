@@ -1,9 +1,7 @@
-import { Injectable, inject, resource, signal } from '@angular/core';
+import { inject, resource, Service, signal } from '@angular/core';
 import { AnalyticsService } from '../services/analytics.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AnalyticsStateService {
   private readonly analyticsService = inject(AnalyticsService);
   private initialized = signal(false);

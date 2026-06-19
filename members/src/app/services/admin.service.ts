@@ -1,11 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AdminService {
   private httpClient = inject(HttpClient);
   private authService = inject(AuthService);

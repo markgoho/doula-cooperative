@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
+import { computed, effect, inject, resource, Service, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { buildImageKitDisplayUrl, IMAGEKIT_BASE_URL } from '../shared/profile-image-url';
 import { type ProfileData } from '../types/profile-data';
@@ -10,9 +10,7 @@ interface ProfileResponse {
   profile?: ProfileData;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class ProfileService {
   private http = inject(HttpClient);
   private membershipService = inject(MembershipService);

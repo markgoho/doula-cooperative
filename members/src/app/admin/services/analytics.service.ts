@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type {
   CostOffsetRateResponse,
@@ -8,9 +8,7 @@ import type {
   TopPagesResponse,
 } from '../api-types/analytics-api.types';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class AnalyticsService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/analytics';

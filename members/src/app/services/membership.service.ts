@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { computed, effect, inject, Injectable, resource, signal } from '@angular/core';
+import { computed, effect, inject, resource, Service, signal } from '@angular/core';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
@@ -28,9 +28,7 @@ export interface Member {
   newsletterUnsubscribedAt?: Date;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class MembershipService {
   private http = inject(HttpClient);
 
