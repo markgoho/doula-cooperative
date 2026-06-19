@@ -17,7 +17,7 @@ interface MockUser {
 // mock at the firebase SDK boundary instead: getAuth returns our controllable
 // auth object, which lib/firebase then exports as the shared `auth` singleton.
 const { mockAuth, mockSignOut } = vi.hoisted(() => ({
-  mockAuth: { currentUser: undefined as MockUser | undefined },
+  mockAuth: { currentUser: undefined as MockUser | null | undefined },
   mockSignOut: vi.fn<() => Promise<void>>(() => Promise.resolve()),
 }));
 
@@ -139,7 +139,7 @@ describe('authInterceptor', () => {
 });
 
 interface SetupOptions {
-  currentUser?: MockUser;
+  currentUser?: MockUser | null;
   signOutError?: Error;
 }
 

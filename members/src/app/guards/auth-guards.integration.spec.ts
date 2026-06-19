@@ -11,7 +11,7 @@ import { redirectNonAdminToMembership } from './admin.guard';
 // auth object, which lib/firebase then exports as the shared `auth` singleton.
 const { mockAuth, mockGetIdTokenResult } = vi.hoisted(() => ({
   mockAuth: {
-    currentUser: undefined as { uid: string } | undefined,
+    currentUser: undefined as { uid: string } | null | undefined,
     authStateReady: vi.fn<() => Promise<void>>(() => Promise.resolve()),
   },
   mockGetIdTokenResult: vi.fn(),
@@ -140,7 +140,7 @@ describe('auth route guards', () => {
 });
 
 interface SetupOptions {
-  currentUser?: { uid: string };
+  currentUser?: { uid: string } | null;
   authStateReady?: (auth: typeof mockAuth) => Promise<void>;
   idTokenResult?: { claims: Record<string, unknown> };
   idTokenError?: Error;
