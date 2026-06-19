@@ -1,5 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { DestroyRef, Injectable, computed, inject, resource, signal } from '@angular/core';
 import {
   type ActionCodeInfo,
   type User,
@@ -7,6 +6,7 @@ import {
   applyActionCode,
   checkActionCode,
   confirmPasswordReset,
+  getIdTokenResult,
   onIdTokenChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -16,7 +16,6 @@ import {
   verifyPasswordResetCode,
 } from 'firebase/auth';
 import { Router } from '@angular/router';
-import { Observable, from, map, switchMap } from 'rxjs';
 import { auth } from '../lib/firebase';
 
 // Global auth error messages object
@@ -35,41 +34,31 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
-// Observable that emits on every ID token change (sign-in, sign-out, token refresh)
-const idTokenChanged$ = new Observable<User | null>((subscriber) => {
-  const unsubscribe = onIdTokenChanged(auth, (user) => subscriber.next(user));
-  return unsubscribe;
-});
-
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private router = inject(Router);
 
-  // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
-  readonly user$ = idTokenChanged$.pipe(map(() => auth.currentUser));
-  readonly userId$ = this.user$.pipe(map((user) => user?.uid));
-  // eslint-disable-next-line unicorn/no-null
-  readonly user = toSignal(this.user$, { initialValue: null });
+  private readonly _user = signal<User | null>(null);
 
-  // Derived signal that tracks emailVerified and re-emits on ID token changes
-  readonly emailVerified = toSignal(
-    idTokenChanged$.pipe(map(() => auth.currentUser?.emailVerified ?? false)),
-    { initialValue: false },
-  );
+  readonly user = this._user.asReadonly();
+  readonly emailVerified = computed(() => this._user()?.emailVerified ?? false);
 
-  // Derived signal for admin status from custom claims
-  readonly isAdmin = toSignal(
-    idTokenChanged$.pipe(
-      switchMap(() => {
-        const user = auth.currentUser;
-        if (!user) return from(Promise.resolve(false));
-        return from(user.getIdTokenResult().then((result) => result.claims['admin'] === true));
-      }),
-    ),
-    { initialValue: false },
-  );
+  private readonly _isAdminResource = resource({
+    params: () => this._user(),
+    loader: async ({ params: user }) => {
+      if (!user) return false;
+      const result = await getIdTokenResult(user);
+      return result.claims['admin'] === true;
+    },
+  });
+  readonly isAdmin = computed(() => this._isAdminResource.value() ?? false);
+
+  constructor() {
+    const unsub = onIdTokenChanged(auth, (u) => this._user.set(u));
+    inject(DestroyRef).onDestroy(unsub);
+  }
 
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {

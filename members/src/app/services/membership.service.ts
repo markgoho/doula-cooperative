@@ -1,8 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, resource } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { DestroyRef, computed, inject, Injectable, resource, signal } from '@angular/core';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
 import type { ApiMemberResponse } from '../api-types/api-member-response';
 import type { SubscriptionStatus } from '../api-types/subscription-status';
@@ -29,19 +28,20 @@ export interface Member {
   newsletterUnsubscribedAt?: Date;
 }
 
-const authState$ = new Observable<User | null>((subscriber) => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => subscriber.next(user));
-  return unsubscribe;
-});
-
 @Injectable({
   providedIn: 'root',
 })
 export class MembershipService {
   private http = inject(HttpClient);
 
-  userId = computed(() => auth.currentUser?.uid ?? 'abcd');
-  user = toSignal(authState$);
+  private readonly _user = signal<User | null>(null);
+  readonly user = this._user.asReadonly();
+  readonly userId = computed(() => this._user()?.uid ?? 'abcd');
+
+  constructor() {
+    const unsub = onAuthStateChanged(auth, (u) => this._user.set(u));
+    inject(DestroyRef).onDestroy(unsub);
+  }
 
   // Resource for loading user document - automatically reloads when user changes
   readonly userDocumentResource = resource({
