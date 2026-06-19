@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { DestroyRef, computed, inject, Injectable, resource, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, resource, signal } from '@angular/core';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
@@ -39,8 +39,10 @@ export class MembershipService {
   readonly userId = computed(() => this._user()?.uid ?? 'abcd');
 
   constructor() {
-    const unsub = onAuthStateChanged(auth, (u) => this._user.set(u));
-    inject(DestroyRef).onDestroy(unsub);
+    effect((onCleanup) => {
+      const unsub = onAuthStateChanged(auth, (u) => this._user.set(u));
+      onCleanup(unsub);
+    });
   }
 
   // Resource for loading user document - automatically reloads when user changes

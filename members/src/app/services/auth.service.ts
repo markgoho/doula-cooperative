@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, computed, inject, resource, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, resource, signal } from '@angular/core';
 import {
   type ActionCodeInfo,
   type User,
@@ -56,8 +56,10 @@ export class AuthService {
   readonly isAdmin = computed(() => this._isAdminResource.value() ?? false);
 
   constructor() {
-    const unsub = onIdTokenChanged(auth, (u) => this._user.set(u));
-    inject(DestroyRef).onDestroy(unsub);
+    effect((onCleanup) => {
+      const unsub = onIdTokenChanged(auth, (u) => this._user.set(u));
+      onCleanup(unsub);
+    });
   }
 
   // Sign in with email and password
