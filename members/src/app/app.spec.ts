@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal, type WritableSignal } from '@angular/core';
-import type { User } from '@angular/fire/auth';
+import type { User } from 'firebase/auth';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
