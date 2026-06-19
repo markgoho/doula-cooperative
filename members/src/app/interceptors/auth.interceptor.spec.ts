@@ -8,13 +8,16 @@ import { Router, provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { authInterceptor } from './auth.interceptor';
 
-type MockUser = { uid: string; getIdToken: () => Promise<string> };
+interface MockUser {
+  uid: string;
+  getIdToken: () => Promise<string>;
+}
 
 // The Angular unit-test system disallows vi.mock on relative imports, so we
 // mock at the firebase SDK boundary instead: getAuth returns our controllable
 // auth object, which lib/firebase then exports as the shared `auth` singleton.
 const { mockAuth, mockSignOut } = vi.hoisted(() => ({
-  mockAuth: { currentUser: null as MockUser | null },
+  mockAuth: { currentUser: undefined as MockUser | undefined },
   mockSignOut: vi.fn<() => Promise<void>>(() => Promise.resolve()),
 }));
 
@@ -37,9 +40,9 @@ describe('authInterceptor', () => {
     httpClient.get('/api/members/u1').subscribe();
     await flushMicrotasks();
 
-    const req = httpTesting.expectOne('/api/members/u1');
-    expect(req.request.headers.get('Authorization')).toBe('Bearer test-token');
-    req.flush({});
+    const request = httpTesting.expectOne('/api/members/u1');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer test-token');
+    request.flush({});
   });
 
   it('leaves the request unmodified when no user is authenticated', async () => {
@@ -48,9 +51,9 @@ describe('authInterceptor', () => {
     httpClient.get('/api/members/u1').subscribe();
     await flushMicrotasks();
 
-    const req = httpTesting.expectOne('/api/members/u1');
-    expect(req.request.headers.has('Authorization')).toBe(false);
-    req.flush({});
+    const request = httpTesting.expectOne('/api/members/u1');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    request.flush({});
   });
 
   it('does not touch requests to non-authenticated paths', async () => {
@@ -60,10 +63,10 @@ describe('authInterceptor', () => {
     httpClient.get('/public/config').subscribe();
     await flushMicrotasks();
 
-    const req = httpTesting.expectOne('/public/config');
-    expect(req.request.headers.has('Authorization')).toBe(false);
+    const request = httpTesting.expectOne('/public/config');
+    expect(request.request.headers.has('Authorization')).toBe(false);
     expect(getIdToken).not.toHaveBeenCalled();
-    req.flush({});
+    request.flush({});
   });
 
   it('signs out and redirects to sign-in on a 401 response', async () => {
@@ -71,7 +74,7 @@ describe('authInterceptor', () => {
       currentUser: { uid: 'u1', getIdToken: () => Promise.resolve('test-token') },
     });
 
-    httpClient.get('/api/members/u1').subscribe({ error: () => undefined });
+    httpClient.get('/api/members/u1').subscribe({ error: () => {} });
     await flushMicrotasks();
 
     httpTesting
@@ -89,7 +92,7 @@ describe('authInterceptor', () => {
       signOutError: new Error('sign-out failed'),
     });
 
-    httpClient.get('/api/members/u1').subscribe({ error: () => undefined });
+    httpClient.get('/api/members/u1').subscribe({ error: () => {} });
     await flushMicrotasks();
 
     httpTesting
@@ -129,9 +132,9 @@ describe('authInterceptor', () => {
     httpClient.get('/api/members/u1').subscribe();
     await flushMicrotasks();
 
-    const req = httpTesting.expectOne('/api/members/u1');
-    expect(req.request.headers.has('Authorization')).toBe(false);
-    req.flush({});
+    const request = httpTesting.expectOne('/api/members/u1');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    request.flush({});
   });
 });
 
@@ -140,8 +143,8 @@ interface SetupOptions {
   signOutError?: Error;
 }
 
-function setup({ currentUser = null, signOutError }: SetupOptions = {}) {
-  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+function setup({ currentUser = undefined, signOutError }: SetupOptions = {}) {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 
   mockAuth.currentUser = currentUser;
   mockSignOut.mockReset();
