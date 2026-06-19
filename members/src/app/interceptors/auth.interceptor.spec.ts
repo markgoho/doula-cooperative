@@ -74,7 +74,7 @@ describe('authInterceptor', () => {
       currentUser: { uid: 'u1', getIdToken: () => Promise.resolve('test-token') },
     });
 
-    httpClient.get('/api/members/u1').subscribe({ error: () => {} });
+    httpClient.get('/api/members/u1').subscribe({ error: vi.fn() });
     await flushMicrotasks();
 
     httpTesting
@@ -92,7 +92,7 @@ describe('authInterceptor', () => {
       signOutError: new Error('sign-out failed'),
     });
 
-    httpClient.get('/api/members/u1').subscribe({ error: () => {} });
+    httpClient.get('/api/members/u1').subscribe({ error: vi.fn() });
     await flushMicrotasks();
 
     httpTesting
@@ -139,12 +139,12 @@ describe('authInterceptor', () => {
 });
 
 interface SetupOptions {
-  currentUser?: MockUser | null;
+  currentUser?: MockUser;
   signOutError?: Error;
 }
 
-function setup({ currentUser = undefined, signOutError }: SetupOptions = {}) {
-  vi.spyOn(console, 'error').mockImplementation(() => {});
+function setup({ currentUser, signOutError }: SetupOptions = {}) {
+  vi.spyOn(console, 'error').mockReturnValue(undefined);
 
   mockAuth.currentUser = currentUser;
   mockSignOut.mockReset();

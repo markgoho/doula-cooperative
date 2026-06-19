@@ -140,19 +140,19 @@ describe('auth route guards', () => {
 });
 
 interface SetupOptions {
-  currentUser?: { uid: string } | null;
+  currentUser?: { uid: string };
   authStateReady?: (auth: typeof mockAuth) => Promise<void>;
   idTokenResult?: { claims: Record<string, unknown> };
   idTokenError?: Error;
 }
 
 async function setup({
-  currentUser = undefined,
+  currentUser,
   authStateReady,
   idTokenResult,
   idTokenError,
 }: SetupOptions = {}) {
-  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockReturnValue(undefined);
 
   mockAuth.currentUser = currentUser;
   mockAuth.authStateReady = vi.fn(() =>
