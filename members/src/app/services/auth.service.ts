@@ -40,25 +40,26 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
 export class AuthService {
   private router = inject(Router);
 
-  private readonly _user = signal<User | null>(null);
+  // eslint-disable-next-line unicorn/no-null
+  private readonly authUser = signal<User | null>(null);
 
-  readonly user = this._user.asReadonly();
-  readonly emailVerified = computed(() => this._user()?.emailVerified ?? false);
+  readonly user = this.authUser.asReadonly();
+  readonly emailVerified = computed(() => this.authUser()?.emailVerified ?? false);
 
-  private readonly _isAdminResource = resource({
-    params: () => this._user(),
+  private readonly adminClaims = resource({
+    params: () => this.authUser(),
     loader: async ({ params: user }) => {
       if (!user) return false;
       const result = await getIdTokenResult(user);
       return result.claims['admin'] === true;
     },
   });
-  readonly isAdmin = computed(() => this._isAdminResource.value() ?? false);
+  readonly isAdmin = computed(() => this.adminClaims.value() ?? false);
 
   constructor() {
     effect((onCleanup) => {
-      const unsub = onIdTokenChanged(auth, (u) => this._user.set(u));
-      onCleanup(unsub);
+      const unsubscribe = onIdTokenChanged(auth, (user) => this.authUser.set(user));
+      onCleanup(unsubscribe);
     });
   }
 

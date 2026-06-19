@@ -34,14 +34,15 @@ export interface Member {
 export class MembershipService {
   private http = inject(HttpClient);
 
-  private readonly _user = signal<User | null>(null);
-  readonly user = this._user.asReadonly();
-  readonly userId = computed(() => this._user()?.uid ?? 'abcd');
+  // eslint-disable-next-line unicorn/no-null
+  private readonly authUser = signal<User | null>(null);
+  readonly user = this.authUser.asReadonly();
+  readonly userId = computed(() => this.authUser()?.uid ?? 'abcd');
 
   constructor() {
     effect((onCleanup) => {
-      const unsub = onAuthStateChanged(auth, (u) => this._user.set(u));
-      onCleanup(unsub);
+      const unsubscribe = onAuthStateChanged(auth, (user) => this.authUser.set(user));
+      onCleanup(unsubscribe);
     });
   }
 
@@ -177,7 +178,7 @@ export class MembershipService {
 
   /**
    * Update the user's newsletter subscription preference
-   * @param subscribed - true to subscribe, false to unsubscribe
+   * @param subscribed - true to subscribe, false to unsubscribescribe
    * @throws Error with user-friendly message
    */
   async updateNewsletterPreference(subscribed: boolean): Promise<void> {
