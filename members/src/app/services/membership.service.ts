@@ -1,8 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, resource } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Auth, authState } from '@angular/fire/auth';
-import { firstValueFrom } from 'rxjs';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { firstValueFrom, Observable } from 'rxjs';
+import { auth } from '../lib/firebase';
 import type { ApiMemberResponse } from '../api-types/api-member-response';
 import type { SubscriptionStatus } from '../api-types/subscription-status';
 
@@ -28,18 +29,19 @@ export interface Member {
   newsletterUnsubscribedAt?: Date;
 }
 
+const authState$ = new Observable<User | null>((subscriber) => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => subscriber.next(user));
+  return unsubscribe;
+});
+
 @Injectable({
   providedIn: 'root',
 })
 export class MembershipService {
-  private auth = inject(Auth);
   private http = inject(HttpClient);
 
-  // Use authState directly to avoid circular dependency with AuthService
-  private user$ = authState(this.auth);
-
-  userId = computed(() => this.auth.currentUser?.uid ?? 'abcd');
-  user = toSignal(this.user$);
+  userId = computed(() => auth.currentUser?.uid ?? 'abcd');
+  user = toSignal(authState$);
 
   // Resource for loading user document - automatically reloads when user changes
   readonly userDocumentResource = resource({
@@ -177,7 +179,7 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async updateNewsletterPreference(subscribed: boolean): Promise<void> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to update newsletter preferences.');
     }
@@ -233,7 +235,7 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async updateMemberName(name: string): Promise<void> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to update your name.');
     }
@@ -292,7 +294,7 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async cancelMembership(): Promise<void> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to cancel your membership.');
     }
@@ -351,7 +353,7 @@ export class MembershipService {
    * @throws Error with user-friendly message
    */
   async verifyEmail(): Promise<void> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to verify your email.');
     }
@@ -388,7 +390,7 @@ export class MembershipService {
   }
 
   async syncAuthEmailToMember(): Promise<void> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) {
       throw new Error('You must be signed in to update your email.');
     }

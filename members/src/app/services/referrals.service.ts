@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
 import { firstValueFrom } from 'rxjs';
+import { auth } from '../lib/firebase';
 import type { MatchRequest } from '../admin/admin.types';
 
 export type ReferralDueDate = MatchRequest['estimatedDueDate'];
@@ -30,11 +30,10 @@ export type ReferralDetail = Pick<
   providedIn: 'root',
 })
 export class ReferralsService {
-  private auth = inject(Auth);
   private http = inject(HttpClient);
 
   async listReferrals(): Promise<ReferralListItem[]> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to view referrals.');
 
     const memberId = encodeURIComponent(uid);
@@ -68,7 +67,7 @@ export class ReferralsService {
   }
 
   async getReferral(id: string): Promise<ReferralDetail> {
-    const uid = this.auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to view referrals.');
 
     const memberId = encodeURIComponent(uid);

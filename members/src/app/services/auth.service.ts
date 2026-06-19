@@ -2,22 +2,22 @@ import { Injectable, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   type ActionCodeInfo,
-  Auth,
   type User,
   type UserCredential,
   applyActionCode,
   checkActionCode,
   confirmPasswordReset,
-  idToken,
+  onIdTokenChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   verifyBeforeUpdateEmail,
   verifyPasswordResetCode,
-} from '@angular/fire/auth';
+} from 'firebase/auth';
 import { Router } from '@angular/router';
-import { from, map, switchMap } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
+import { auth } from '../lib/firebase';
 
 // Global auth error messages object
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -35,30 +35,35 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/unknown-error': 'An error occurred during authentication. Please try again.',
 };
 
+// Observable that emits on every ID token change (sign-in, sign-out, token refresh)
+const idTokenChanged$ = new Observable<User | null>((subscriber) => {
+  const unsubscribe = onIdTokenChanged(auth, (user) => subscriber.next(user));
+  return unsubscribe;
+});
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private auth = inject(Auth);
   private router = inject(Router);
 
   // Public signal for auth state; re-emits on ID token changes (emailVerified, claims)
-  readonly user$ = idToken(this.auth).pipe(map(() => this.auth.currentUser));
+  readonly user$ = idTokenChanged$.pipe(map(() => auth.currentUser));
   readonly userId$ = this.user$.pipe(map((user) => user?.uid));
   // eslint-disable-next-line unicorn/no-null
   readonly user = toSignal(this.user$, { initialValue: null });
 
   // Derived signal that tracks emailVerified and re-emits on ID token changes
   readonly emailVerified = toSignal(
-    idToken(this.auth).pipe(map(() => this.auth.currentUser?.emailVerified ?? false)),
+    idTokenChanged$.pipe(map(() => auth.currentUser?.emailVerified ?? false)),
     { initialValue: false },
   );
 
   // Derived signal for admin status from custom claims
   readonly isAdmin = toSignal(
-    idToken(this.auth).pipe(
+    idTokenChanged$.pipe(
       switchMap(() => {
-        const user = this.auth.currentUser;
+        const user = auth.currentUser;
         if (!user) return from(Promise.resolve(false));
         return from(user.getIdTokenResult().then((result) => result.claims['admin'] === true));
       }),
@@ -69,7 +74,7 @@ export class AuthService {
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<UserCredential> {
     try {
-      return await signInWithEmailAndPassword(this.auth, email, password);
+      return await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       throw this.translateAuthError(error, 'signInWithEmail');
     }
@@ -78,12 +83,12 @@ export class AuthService {
   // Sign out
   async signOut(): Promise<void> {
     try {
-      await signOut(this.auth);
+      await signOut(auth);
       // Only navigate after successful sign out
       void this.router.navigate(['/sign-in']);
     } catch (error) {
       console.error('Sign out failed:', {
-        uid: this.auth.currentUser?.uid,
+        uid: auth.currentUser?.uid,
         error: error instanceof Error ? error.message : String(error),
         code: (error as { code?: string }).code,
       });
@@ -93,7 +98,7 @@ export class AuthService {
 
   // Reload the current user's data
   async reloadUser(): Promise<void> {
-    const current = this.auth.currentUser;
+    const current = auth.currentUser;
     if (!current) return;
 
     try {
@@ -130,7 +135,7 @@ export class AuthService {
 
   // Force refresh ID token to get updated custom claims
   async refreshToken(): Promise<void> {
-    const current = this.auth.currentUser;
+    const current = auth.currentUser;
     if (!current) return;
     try {
       await current.getIdToken(true);
@@ -159,16 +164,16 @@ export class AuthService {
 
   // Get current user (synchronous)
   get currentUser(): User | null {
-    return this.auth.currentUser;
+    return auth.currentUser;
   }
 
   // Check if user is authenticated
   get isAuthenticated(): boolean {
-    return this.auth.currentUser !== null;
+    return auth.currentUser !== null;
   }
 
   async resendEmailVerification(): Promise<void> {
-    const user = this.auth.currentUser;
+    const user = auth.currentUser;
     if (!user) {
       throw new Error('No authenticated user');
     }
@@ -192,7 +197,7 @@ export class AuthService {
    */
   async applyActionCode(code: string): Promise<void> {
     try {
-      await applyActionCode(this.auth, code);
+      await applyActionCode(auth, code);
     } catch (error) {
       throw this.translateAuthError(error, 'applyActionCode');
     }
@@ -203,7 +208,7 @@ export class AuthService {
    */
   async checkActionCode(code: string): Promise<ActionCodeInfo> {
     try {
-      return await checkActionCode(this.auth, code);
+      return await checkActionCode(auth, code);
     } catch (error) {
       throw this.translateAuthError(error, 'checkActionCode');
     }
@@ -214,7 +219,7 @@ export class AuthService {
    */
   async verifyPasswordResetCode(code: string): Promise<string> {
     try {
-      return await verifyPasswordResetCode(this.auth, code);
+      return await verifyPasswordResetCode(auth, code);
     } catch (error) {
       throw this.translateAuthError(error, 'verifyPasswordResetCode');
     }
@@ -225,7 +230,7 @@ export class AuthService {
    */
   async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
     try {
-      await confirmPasswordReset(this.auth, code, newPassword);
+      await confirmPasswordReset(auth, code, newPassword);
     } catch (error) {
       throw this.translateAuthError(error, 'confirmPasswordReset');
     }
@@ -236,7 +241,7 @@ export class AuthService {
    */
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
-      await sendPasswordResetEmail(this.auth, email, {
+      await sendPasswordResetEmail(auth, email, {
         url: `${globalThis.window.location.origin}/auth-actions?mode=resetPassword`,
         handleCodeInApp: true,
       });
@@ -246,7 +251,7 @@ export class AuthService {
   }
 
   async verifyBeforeUpdateEmail(newEmail: string): Promise<void> {
-    const user = this.auth.currentUser;
+    const user = auth.currentUser;
     if (!user) {
       throw new Error('You must be signed in to change your email.');
     }

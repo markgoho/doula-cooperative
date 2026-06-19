@@ -1,11 +1,18 @@
-import { canActivate, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
-import { type Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, type CanActivateFn, type Routes } from '@angular/router';
 import { redirectNonAdminToMembership } from './guards/admin.guard';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
+import { auth } from './lib/firebase';
 
-// Guards for different authentication states
-const redirectUnauthorizedToSignIn = () => redirectUnauthorizedTo(['sign-in']);
-const redirectToMembership = () => redirectLoggedInTo(['membership']);
+const requireAuth: CanActivateFn = () => {
+  const router = inject(Router);
+  return auth.currentUser ? true : router.parseUrl('/sign-in');
+};
+
+const requireUnauth: CanActivateFn = () => {
+  const router = inject(Router);
+  return auth.currentUser ? router.parseUrl('/membership') : true;
+};
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
@@ -14,11 +21,11 @@ export const routes: Routes = [
   {
     path: 'membership',
     loadComponent: () => import('./membership/membership').then((m) => m.Membership),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
   {
     path: 'profile/create',
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
     loadComponent: () =>
       import('./create-profile-wizard/create-profile-wizard').then((m) => m.CreateProfileWizard),
     children: [
@@ -70,37 +77,37 @@ export const routes: Routes = [
     path: 'profile/preview',
     loadComponent: () =>
       import('./profile-preview-page/profile-preview-page').then((m) => m.ProfilePreviewPage),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
   {
     path: 'profile',
     loadComponent: () => import('./edit-profile/edit-profile').then((m) => m.EditProfile),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
   {
     path: 'profile/image',
     loadComponent: () =>
       import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
 
   // Member referral routes (require authentication)
   {
     path: 'referrals',
     loadComponent: () => import('./referrals/referrals').then((m) => m.Referrals),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
   {
     path: 'referrals/:id',
     loadComponent: () =>
       import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
 
   // Admin routes (require authentication and admin claim)
   {
     path: 'admin',
-    ...canActivate(redirectNonAdminToMembership),
+    canActivate: [redirectNonAdminToMembership],
     children: [
       {
         path: '',
@@ -183,17 +190,17 @@ export const routes: Routes = [
   {
     path: 'sign-in',
     loadComponent: () => import('./sign-in/sign-in').then((m) => m.SignIn),
-    ...canActivate(redirectToMembership),
+    canActivate: [requireUnauth],
   },
   {
     path: 'forgot-password',
     loadComponent: () => import('./forgot-password/forgot-password').then((m) => m.ForgotPassword),
-    ...canActivate(redirectToMembership),
+    canActivate: [requireUnauth],
   },
   {
     path: 'change-email',
     loadComponent: () => import('./change-email/change-email').then((m) => m.ChangeEmail),
-    ...canActivate(redirectUnauthorizedToSignIn),
+    canActivate: [requireAuth],
   },
 
   // Firebase Auth action handler entry points
@@ -201,6 +208,4 @@ export const routes: Routes = [
     path: 'auth-actions',
     loadComponent: () => import('./auth-actions/auth-actions').then((m) => m.AuthActions),
   },
-
-  // future routes can go here
 ];

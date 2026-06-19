@@ -1,8 +1,9 @@
 import { type HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Auth, signOut } from '@angular/fire/auth';
+import { signOut } from 'firebase/auth';
 import { Router } from '@angular/router';
 import { EMPTY, catchError, from, switchMap } from 'rxjs';
+import { auth } from '../lib/firebase';
 
 /**
  * API paths that require authentication.
@@ -28,7 +29,6 @@ const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/analytics/', '/api/profile
  * this.httpClient.get('/api/profiles/me') // Token added automatically
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
-  const auth = inject(Auth);
   const router = inject(Router);
 
   // Only intercept authenticated API requests
