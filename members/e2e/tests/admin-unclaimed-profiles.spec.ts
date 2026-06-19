@@ -219,7 +219,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   test('admin deletes unclaimed profile with confirmation', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
-    let deleteRequestMade = false;
+    let wasDeleteRequested = false;
 
     // Mock GET and DELETE
     await authenticatedAdminPage.route(
@@ -235,7 +235,7 @@ test.describe('Admin Unclaimed Profiles', () => {
           return;
         }
         if (method === 'DELETE') {
-          deleteRequestMade = true;
+          wasDeleteRequested = true;
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -267,7 +267,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Verify DELETE request was made ===
     await authenticatedAdminPage.waitForTimeout(500); // Allow time for navigation
-    expect(deleteRequestMade).toBe(true);
+    expect(wasDeleteRequested).toBe(true);
 
     // === Verify navigation to unclaimed profiles list ===
     await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed$/);
@@ -278,7 +278,7 @@ test.describe('Admin Unclaimed Profiles', () => {
   }) => {
     const mockProfile = mockUnclaimedProfiles[1]!; // Bob
 
-    let deleteRequestMade = false;
+    let wasDeleteRequested = false;
 
     // Mock GET and DELETE
     await authenticatedAdminPage.route(
@@ -294,7 +294,7 @@ test.describe('Admin Unclaimed Profiles', () => {
           return;
         }
         if (method === 'DELETE') {
-          deleteRequestMade = true;
+          wasDeleteRequested = true;
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -322,7 +322,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Verify DELETE request was NOT made ===
     await authenticatedAdminPage.waitForTimeout(500);
-    expect(deleteRequestMade).toBe(false);
+    expect(wasDeleteRequested).toBe(false);
 
     // === Verify dialog is closed ===
     await expect(dialog).not.toBeVisible();
@@ -408,7 +408,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
   test('admin updates email successfully', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[1]!; // Bob
-    let patchRequestMade = false;
+    let wasPatchRequested = false;
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/bob.unclaimed@example.com',
@@ -423,7 +423,7 @@ test.describe('Admin Unclaimed Profiles', () => {
           return;
         }
         if (method === 'PATCH') {
-          patchRequestMade = true;
+          wasPatchRequested = true;
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -478,7 +478,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     });
 
     // === Verify the PATCH was made ===
-    expect(patchRequestMade).toBe(true);
+    expect(wasPatchRequested).toBe(true);
   });
 
   test('handles update email failure with error message', async ({ authenticatedAdminPage }) => {
@@ -559,7 +559,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
   test('admin sets profile to draft successfully', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[0]!;
-    let draftRequestMade = false;
+    let wasDraftRequested = false;
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
@@ -580,7 +580,7 @@ test.describe('Admin Unclaimed Profiles', () => {
       '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
       async (route) => {
         if (route.request().method() === 'POST') {
-          draftRequestMade = true;
+          wasDraftRequested = true;
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -605,7 +605,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.successMessage).toContainText(
       'Profile alice-unclaimed was set to draft.',
     );
-    expect(draftRequestMade).toBe(true);
+    expect(wasDraftRequested).toBe(true);
   });
 
   test('admin sees rebuild warning after setting profile to draft', async ({
@@ -669,7 +669,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
   test('admin cancels draft confirmation dialog', async ({ authenticatedAdminPage }) => {
     const mockProfile = mockUnclaimedProfiles[0]!;
-    let draftRequestMade = false;
+    let wasDraftRequested = false;
 
     await authenticatedAdminPage.route(
       '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com',
@@ -690,7 +690,7 @@ test.describe('Admin Unclaimed Profiles', () => {
       '**/api/admin/unclaimed-profiles/alice.unclaimed@example.com/draft',
       async (route) => {
         if (route.request().method() === 'POST') {
-          draftRequestMade = true;
+          wasDraftRequested = true;
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -716,7 +716,7 @@ test.describe('Admin Unclaimed Profiles', () => {
 
     // === Verify draft request was not made ===
     await expect(dialog).not.toBeVisible();
-    expect(draftRequestMade).toBe(false);
+    expect(wasDraftRequested).toBe(false);
 
     // === Verify still on detail page ===
     await expect(authenticatedAdminPage).toHaveURL(

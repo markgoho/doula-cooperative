@@ -54,10 +54,10 @@ test.describe('Cancel Membership', () => {
     });
 
     // Mock POST /api/members/:memberId/membership/cancel
-    let cancelCalled = false;
+    let wasCancelCalled = false;
     await authenticatedUserPage.route('**/api/members/*/membership/cancel', async (route) => {
       if (route.request().method() === 'POST') {
-        cancelCalled = true;
+        wasCancelCalled = true;
 
         // Update mock to reflect canceled state for subsequent GET requests
         currentMember = {
@@ -101,7 +101,7 @@ test.describe('Cancel Membership', () => {
     await confirmButton.click();
 
     // === Verify API Was Called ===
-    await expect.poll(() => cancelCalled).toBe(true);
+    await expect.poll(() => wasCancelCalled).toBe(true);
 
     // === Verify UI Updates ===
     await expect(confirmDialog).not.toBeVisible();

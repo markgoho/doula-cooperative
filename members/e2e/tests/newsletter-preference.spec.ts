@@ -45,14 +45,14 @@ test.describe('Newsletter Preference', () => {
     });
 
     // Mock PATCH /api/members/:memberId/newsletter-preference
-    let updateCalled = false;
+    let wasUpdateCalled = false;
     let updateSubscribed: boolean | undefined;
     await authenticatedUserPage.route('**/api/members/*/newsletter-preference', async (route) => {
       if (route.request().method() === 'PATCH') {
         const requestBody = route.request().postDataJSON() as {
           subscribed: boolean;
         };
-        updateCalled = true;
+        wasUpdateCalled = true;
         updateSubscribed = requestBody.subscribed;
 
         // Return success response
@@ -89,7 +89,7 @@ test.describe('Newsletter Preference', () => {
     await authenticatedUserPage.getByText('Not subscribed').click();
 
     // === Verify API Call ===
-    await expect.poll(() => updateCalled).toBe(true);
+    await expect.poll(() => wasUpdateCalled).toBe(true);
     expect(updateSubscribed).toBe(true);
 
     // === Verify UI Updates ===
@@ -118,14 +118,14 @@ test.describe('Newsletter Preference', () => {
     });
 
     // Mock PATCH /api/members/:memberId/newsletter-preference
-    let updateCalled = false;
+    let wasUpdateCalled = false;
     let updateSubscribed: boolean | undefined;
     await authenticatedUserPage.route('**/api/members/*/newsletter-preference', async (route) => {
       if (route.request().method() === 'PATCH') {
         const requestBody = route.request().postDataJSON() as {
           subscribed: boolean;
         };
-        updateCalled = true;
+        wasUpdateCalled = true;
         updateSubscribed = requestBody.subscribed;
 
         // Return success response
@@ -162,7 +162,7 @@ test.describe('Newsletter Preference', () => {
     await authenticatedUserPage.getByText('Subscribed').click();
 
     // === Verify API Call ===
-    await expect.poll(() => updateCalled).toBe(true);
+    await expect.poll(() => wasUpdateCalled).toBe(true);
     expect(updateSubscribed).toBe(false);
 
     // === Verify UI Updates ===
