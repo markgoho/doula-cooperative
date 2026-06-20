@@ -88,14 +88,13 @@
       "Bash(python3 *)",
       "Bash(node *)",
       "Bash(bunx playwright *)",
-      "WebFetch(domain:timdeschryver.dev)"
+      "WebFetch(domain:timdeschryver.dev)",
+      "Bash(awk '*)"
     ],
     "deny": [],
     "ask": []
   },
-  "disabledMcpjsonServers": [
-    "figma-console"
-  ],
+  "disabledMcpjsonServers": ["figma-console"],
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
