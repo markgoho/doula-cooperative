@@ -2,7 +2,7 @@ import { logger } from "firebase-functions/v2";
 import Stripe from "stripe";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import {
-  StripeConfigurationError,
+  StripeConfigError,
   StripeSignatureError,
 } from "../../shared-api/errors/stripe-errors.js";
 
@@ -11,7 +11,7 @@ import {
  *
  * @param options - Raw body buffer and signature header
  * @returns Validated Stripe event
- * @throws StripeConfigurationError if Stripe secrets are not configured
+ * @throws StripeConfigError if Stripe secrets are not configured
  * @throws StripeSignatureError if signature verification fails
  */
 export function verifySignature(options: {
@@ -29,7 +29,7 @@ export function verifySignature(options: {
       hasApiKey: Boolean(stripeApiKey),
       hasWebhookSecret: Boolean(webhookSecret),
     });
-    throw new StripeConfigurationError("Stripe integration not configured");
+    throw new StripeConfigError("Stripe integration not configured");
   }
 
   let stripe: Stripe;
@@ -41,7 +41,7 @@ export function verifySignature(options: {
       errorId: ERROR_IDS.API_STRIPE_WEBHOOK_MISSING_CONFIG,
       message: error instanceof Error ? error.message : "Unknown error",
     });
-    throw new StripeConfigurationError("Invalid Stripe configuration");
+    throw new StripeConfigError("Invalid Stripe configuration");
   }
 
   try {

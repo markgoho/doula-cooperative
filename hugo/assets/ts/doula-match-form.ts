@@ -49,7 +49,7 @@ async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
     throw new Error(`HTTP error! status: ${String(response.status)}`);
   }
 
-  location.href = "/thank-you-for-your-match-request";
+  location.assign("/thank-you-for-your-match-request");
 }
 
 function validateDueDateRange(
@@ -63,9 +63,9 @@ function validateDueDateRange(
   }
 
   // Parse numeric values
-  const m = Number.parseInt(month, 10);
-  const d = Number.parseInt(day, 10);
-  const y = Number.parseInt(year, 10);
+  const m = Number(month);
+  const d = Number(day);
+  const y = Number(year);
 
   // Construct date (month is 0-indexed in JavaScript Date)
   const enteredDate = new Date(y, m - 1, d);
@@ -143,12 +143,12 @@ const doSubmit = async () => {
       submitButton.textContent = "Sending...";
     }
 
-    // eslint-disable-next-line unicorn/prefer-spread
     const services: string[] = Array.from(
       document.querySelectorAll<HTMLInputElement>(
         'input[type="checkbox"]:checked:not(#medicaid):not(#carrot)',
       ),
-    ).map((checkbox: HTMLInputElement) => checkbox.id);
+      checkbox => checkbox.id,
+    );
 
     const selectedBirthLocationRadio = document.querySelector<HTMLInputElement>(
       'input[name="birth-location"]:checked',
@@ -163,7 +163,7 @@ const doSubmit = async () => {
         birthLocation = otherHospitalInput?.value ?? "Other Hospital";
       } else {
         const label = document.querySelector<HTMLLabelElement>(
-          `label[for="${selectedBirthLocationRadio.id}"]`,
+          `label[for="${CSS.escape(selectedBirthLocationRadio.id)}"]`,
         );
         const labelText = label?.textContent;
         birthLocation = labelText
@@ -172,12 +172,12 @@ const doSubmit = async () => {
       }
     }
 
-    // eslint-disable-next-line unicorn/prefer-spread
     const insurance: string[] = Array.from(
       document.querySelectorAll<HTMLInputElement>(
         'input[type="checkbox"][id="medicaid"]:checked, input[type="checkbox"][id="carrot"]:checked',
       ),
-    ).map((checkbox: HTMLInputElement) => checkbox.id);
+      checkbox => checkbox.id,
+    );
 
     const formData: DoulaMatchFormRequest = {
       name: contactName?.value ?? "",
@@ -249,8 +249,7 @@ const otherHospitalInputContainer = document.querySelector<HTMLDivElement>(
 const otherHospitalRadio =
   document.querySelector<HTMLInputElement>("#other-hospital");
 
-// eslint-disable-next-line unicorn/no-array-for-each
-birthLocationRadios.forEach(radio => {
+for (const radio of birthLocationRadios) {
   radio.addEventListener("change", () => {
     if (otherHospitalInputContainer) {
       otherHospitalInputContainer.style.display = otherHospitalRadio?.checked
@@ -258,4 +257,4 @@ birthLocationRadios.forEach(radio => {
         : "none";
     }
   });
-});
+}

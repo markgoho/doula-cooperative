@@ -12,7 +12,6 @@
  */
 
 /* eslint-disable unicorn/no-process-exit */
-/* eslint-disable unicorn/prefer-top-level-await */
 
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -57,7 +56,7 @@ async function promptForCollection(): Promise<string> {
 
     rl.question("Select a collection (1-5): ", answer => {
       rl.close();
-      const index = Number.parseInt(answer.trim(), 10) - 1;
+      const index = Number(answer.trim()) - 1;
 
       if (
         Number.isNaN(index) ||
@@ -181,12 +180,11 @@ async function syncCollectionToEmulator() {
   }
 }
 
-syncCollectionToEmulator()
-  .then(() => {
-    console.log("\n✨ Script completed successfully");
-    process.exit(0);
-  })
-  .catch((error: unknown) => {
-    console.error("\n❌ Script failed:", error);
-    process.exit(1);
-  });
+try {
+  await syncCollectionToEmulator();
+  console.log("\n✨ Script completed successfully");
+  process.exit(0);
+} catch (error: unknown) {
+  console.error("\n❌ Script failed:", error);
+  process.exit(1);
+}

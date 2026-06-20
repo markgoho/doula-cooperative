@@ -37,11 +37,7 @@ function canAccessDraftProfile(
   }
 
   // Profile owner can access their own draft
-  if (ownerUid && userToken.uid === ownerUid) {
-    return true;
-  }
-
-  return false;
+  return Boolean(ownerUid && userToken.uid === ownerUid);
 }
 
 export async function readProfileBySlugLogic({

@@ -83,7 +83,7 @@ export async function sendEmail(
     logger.error("Mailgun API call failed", {
       error,
       errorId,
-      retryable: emailError.retryable,
+      retryable: emailError.isRetryable,
       to: emailTo,
       subject: message.subject,
       domain: EMAIL_DOMAIN,

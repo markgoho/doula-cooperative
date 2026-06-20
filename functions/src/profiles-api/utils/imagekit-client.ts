@@ -1,15 +1,15 @@
 import ImageKit from "@imagekit/nodejs";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 
-let cachedClient: ImageKit | undefined;
+const clientCache: { instance: ImageKit | undefined } = { instance: undefined };
 
 /**
  * Get initialized ImageKit client instance (lazy singleton).
  * Throws HttpError if required env vars are missing.
  */
 export function getImageKitClient(): ImageKit {
-  if (cachedClient) {
-    return cachedClient;
+  if (clientCache.instance) {
+    return clientCache.instance;
   }
 
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
@@ -18,12 +18,12 @@ export function getImageKitClient(): ImageKit {
     throw new HttpError("Missing ImageKit configuration (private key)", 500);
   }
 
-  cachedClient = new ImageKit({ privateKey });
+  clientCache.instance = new ImageKit({ privateKey });
 
-  return cachedClient;
+  return clientCache.instance;
 }
 
 /** @internal Reset cached client (for tests only). */
 export function _resetImageKitClient(): void {
-  cachedClient = undefined;
+  clientCache.instance = undefined;
 }

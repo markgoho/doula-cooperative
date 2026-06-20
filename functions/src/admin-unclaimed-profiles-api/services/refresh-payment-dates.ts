@@ -38,16 +38,16 @@ export async function refreshPaymentDates({
     for (const document of snapshot.docs) {
       const data = document.data() as UnclaimedProfileDocumentData;
       let { lastPayment, nextPayment } = data;
-      let needsUpdate = false;
+      let shouldUpdate = false;
 
       // Advance dates by 1 year until nextPayment is in the future
       while (nextPayment.toMillis() < now.toMillis()) {
         lastPayment = advanceByOneYear(lastPayment);
         nextPayment = advanceByOneYear(nextPayment);
-        needsUpdate = true;
+        shouldUpdate = true;
       }
 
-      if (needsUpdate) {
+      if (shouldUpdate) {
         batch.update(document.ref, { lastPayment, nextPayment });
         batchCount++;
         updatedCount++;

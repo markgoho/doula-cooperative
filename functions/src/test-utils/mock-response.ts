@@ -20,21 +20,21 @@ export function createMockResponse(): MockResponse {
     statusCode: 0,
     headers: {},
     body: undefined,
-    set(this: MockResponse, key: string, value: string): MockResponse {
-      this.headers[key] = value;
-      return this;
+    set(key: string, value: string): MockResponse {
+      response.headers[key] = value;
+      return response;
     },
-    status(this: MockResponse, code: number): MockResponse {
-      this.statusCode = code;
-      return this;
+    status(code: number): MockResponse {
+      response.statusCode = code;
+      return response;
     },
-    send(this: MockResponse, body: unknown): MockResponse {
-      this.body = body;
-      return this;
+    send(body: unknown): MockResponse {
+      response.body = body;
+      return response;
     },
-    json(this: MockResponse, body: unknown): MockResponse {
-      this.body = body;
-      return this;
+    json(body: unknown): MockResponse {
+      response.body = body;
+      return response;
     },
   };
 

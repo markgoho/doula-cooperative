@@ -2,10 +2,10 @@ import { findMemberBySlug } from "./find-member-by-slug.js";
 import type { ProfileWebhookService as ProfileWebhookServiceInterface } from "./interface.js";
 import { sendNotificationEmail } from "./send-notification-email.js";
 import { validatePayload } from "./validate-payload.js";
-import { verifySecret } from "./verify-secret.js";
+import { isValidSecret } from "./verify-secret.js";
 
 export const ProfileWebhookService: ProfileWebhookServiceInterface = {
-  verifySecret,
+  verifySecret: isValidSecret,
   validatePayload,
   findMemberBySlug,
   sendNotificationEmail,
@@ -21,4 +21,4 @@ export type {
   WebhookPayload,
 } from "./types.js";
 export { validatePayload } from "./validate-payload.js";
-export { verifySecret } from "./verify-secret.js";
+export { isValidSecret as verifySecret } from "./verify-secret.js";

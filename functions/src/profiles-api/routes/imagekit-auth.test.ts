@@ -10,16 +10,18 @@ import { _resetImageKitClient } from "../utils/imagekit-client.js";
 
 // Restore real ImageKit client — delete-image.test.ts replaces this module
 // via mock.module with a stub missing getAuthenticationParameters.
-let realClient: ImageKit | undefined;
+const realClientCache: { instance: ImageKit | undefined } = {
+  instance: undefined,
+};
 void mock.module("../utils/imagekit-client.js", () => ({
   getImageKitClient: () => {
-    realClient ??= new ImageKit({
+    realClientCache.instance ??= new ImageKit({
       privateKey: process.env["IMAGEKIT_PRIVATE_KEY"] ?? "",
     });
-    return realClient;
+    return realClientCache.instance;
   },
   _resetImageKitClient: () => {
-    realClient = undefined;
+    realClientCache.instance = undefined;
   },
 }));
 

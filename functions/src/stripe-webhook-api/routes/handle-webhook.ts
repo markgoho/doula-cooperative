@@ -1,7 +1,7 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import {
-  StripeConfigurationError,
+  StripeConfigError,
   StripeSignatureError,
 } from "../../shared-api/errors/stripe-errors.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
@@ -60,7 +60,7 @@ export async function handleStripeWebhookLogic(options: {
         errorId: ERROR_IDS.API_STRIPE_WEBHOOK_INVALID_SIGNATURE,
       };
     }
-    if (error instanceof StripeConfigurationError) {
+    if (error instanceof StripeConfigError) {
       set.status = 500;
       return {
         error: error.message,

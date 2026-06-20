@@ -17,7 +17,7 @@ async function processFile(file: string) {
     const timestamp = formatDate(d);
     const data = await fs.readFile(file, "utf8");
     if (data.includes("YYYY-MM-DD HH:MM:SS")) {
-      const updated = data.replaceAll("YYYY-MM-DD HH:MM:SS", timestamp);
+      const updated = data.split("YYYY-MM-DD HH:MM:SS").join(timestamp);
       await fs.writeFile(file, updated, "utf8");
       console.log(`Updated ${file} with timestamp ${timestamp}`);
     }

@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import {
-  StripeConfigurationError,
+  StripeConfigError,
   StripeSignatureError,
 } from "../../shared-api/errors/stripe-errors.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
@@ -23,7 +23,7 @@ describe("POST /webhook", () => {
     body?: Record<string, unknown>;
     stripeSignature?: string | null;
     signatureInvalid?: boolean;
-    configurationError?: boolean;
+    configError?: boolean;
     unexpectedSignatureError?: boolean;
     eventAlreadyProcessed?: boolean;
     eventType?: string;
@@ -48,7 +48,7 @@ describe("POST /webhook", () => {
     body = { test: true },
     stripeSignature = "valid_sig",
     signatureInvalid = false,
-    configurationError = false,
+    configError = false,
     unexpectedSignatureError = false,
     eventAlreadyProcessed = false,
     eventType = "checkout.session.completed",
@@ -91,8 +91,8 @@ describe("POST /webhook", () => {
       if (signatureInvalid) {
         throw new StripeSignatureError("Invalid signature");
       }
-      if (configurationError) {
-        throw new StripeConfigurationError("STRIPE_WEBHOOK_SECRET not set");
+      if (configError) {
+        throw new StripeConfigError("STRIPE_WEBHOOK_SECRET not set");
       }
       if (unexpectedSignatureError) {
         throw new Error("Unexpected error");
@@ -190,7 +190,7 @@ describe("POST /webhook", () => {
     });
 
     it("should return 500 when Stripe is not configured", async () => {
-      const { testApp, request } = setup({ configurationError: true });
+      const { testApp, request } = setup({ configError: true });
 
       const response = await handleRequest(testApp, request);
 

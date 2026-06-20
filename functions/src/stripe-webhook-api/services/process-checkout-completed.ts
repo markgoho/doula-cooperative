@@ -277,7 +277,7 @@ async function sendReferralCoordinatorNotification(options: {
     const notificationEmail: EmailMessage = {
       from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
       to: REFERRAL_EMAIL,
-      subject: "New Member Joined \u2014 Watch for Facebook Group Request",
+      subject: "New Member Joined \u{2014} Watch for Facebook Group Request",
       html: createReferralCoordinatorEmailHtml({
         customerEmail,
         customerName,
@@ -409,16 +409,17 @@ export async function processCheckoutCompleted(options: {
   // Get email from customer_details (customer_email is often null in real webhooks)
   const customerEmail =
     session.customer_details?.email ?? session.customer_email;
-  const customerId = session.customer as string;
-  const subscriptionId = session.subscription as string;
 
   if (!customerEmail) {
     logger.error("No customer email in checkout session", {
       errorId: ERROR_IDS.API_STRIPE_WEBHOOK_MISSING_EMAIL,
-      customerId,
+      customerId: session.customer as string,
     });
     throw new StripeWebhookError("Missing customer email", 400);
   }
+
+  const customerId = session.customer as string;
+  const subscriptionId = session.subscription as string;
 
   // Prefer custom field name over cardholder name (which may be a business name)
   const customNameField = session.custom_fields.find(
@@ -607,7 +608,7 @@ export async function processCheckoutCompleted(options: {
   }
 
   // Track non-critical operation results
-  let mailerliteSynced = false;
+  let wasMailerliteSynced = false;
 
   // Step 3.5: Add to newsletter (non-critical - don't fail webhook if this fails)
   if (mailerliteApiKey) {
@@ -641,7 +642,7 @@ export async function processCheckoutCompleted(options: {
           uid: userRecord.uid,
           email: customerEmail,
         });
-        mailerliteSynced = true;
+        wasMailerliteSynced = true;
       } catch (firestoreError) {
         // This is a critical failure - MailerLite and Firestore would be out of sync
         logger.error(
@@ -675,7 +676,7 @@ export async function processCheckoutCompleted(options: {
       logger.error("Failed to add subscriber to MailerLite", {
         error,
         errorId: specificErrorId,
-        retryable: error.retryable,
+        retryable: error.isRetryable,
         uid: userRecord.uid,
         email: customerEmail,
         actionRequired: "Manual newsletter signup needed",
@@ -715,7 +716,7 @@ export async function processCheckoutCompleted(options: {
   }
 
   // Step 4: Send welcome email (non-critical - don't fail webhook if this fails)
-  let emailSent = false;
+  let wasEmailSent = false;
   if (isNewUser) {
     try {
       await sendWelcomeEmail({
@@ -724,7 +725,7 @@ export async function processCheckoutCompleted(options: {
         emailService,
         logger,
       });
-      emailSent = true;
+      wasEmailSent = true;
 
       // Update member document with email success status
       await database.collection(MEMBERS_COLLECTION).doc(userRecord.uid).set(
@@ -815,8 +816,8 @@ export async function processCheckoutCompleted(options: {
   return {
     userId: userRecord.uid,
     isNewUser,
-    emailSent,
-    mailerliteSynced,
+    emailSent: wasEmailSent,
+    mailerliteSynced: wasMailerliteSynced,
     ...(warning && { warning }),
   };
 }

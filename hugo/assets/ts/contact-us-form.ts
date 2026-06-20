@@ -1,4 +1,4 @@
-import { detectDoulaRequest } from "./detect-doula-request.js";
+import { isDoulaRequest } from "./detect-doula-request.js";
 
 const contactForm: HTMLFormElement | null = document.querySelector(".form");
 const contactName: HTMLInputElement | null = document.querySelector("#name");
@@ -20,7 +20,7 @@ const dismissDoulaNoticeButton: HTMLButtonElement | null =
 const announcementText =
   "Looking for doula support? Use the doula match form, or dismiss this notice to continue.";
 
-let doulaNoticeOverridden = false;
+const doulaNoticeState = { overridden: false };
 
 function showDoulaRedirectNotice(): void {
   if (!doulaRedirectNotice) {
@@ -53,11 +53,11 @@ function hideDoulaRedirectNotice(): void {
 }
 
 function resetDoulaNoticeOverride(): void {
-  doulaNoticeOverridden = false;
+  doulaNoticeState.overridden = false;
 }
 
 function maybeHideDoulaRedirectNotice(): void {
-  if (!message || detectDoulaRequest(message.value)) {
+  if (!message || isDoulaRequest(message.value)) {
     return;
   }
 
@@ -121,17 +121,17 @@ function handleMessageInput(): void {
 }
 
 function handleDismissDoulaNotice(): void {
-  doulaNoticeOverridden = true;
+  doulaNoticeState.overridden = true;
   hideDoulaRedirectNotice();
 }
 
 function shouldBlockForDoulaRequest(): boolean {
   return Boolean(
-    message && detectDoulaRequest(message.value) && !doulaNoticeOverridden,
+    message && isDoulaRequest(message.value) && !doulaNoticeState.overridden,
   );
 }
 
-function prepareForSubmit(): boolean {
+function shouldProceedWithSubmit(): boolean {
   showValidationState();
 
   if (!hasRequiredFields()) {
@@ -186,7 +186,7 @@ function handleSubmitError(error: unknown): void {
 }
 
 function shouldSubmit(): boolean {
-  return Boolean(submitButton && prepareForSubmit());
+  return Boolean(submitButton && shouldProceedWithSubmit());
 }
 
 function handleSubmitClick(event: Event): void {
@@ -234,7 +234,7 @@ async function sendContactForm({
     throw new Error(`HTTP error! status: ${String(response.status)}`);
   }
 
-  location.href = "/thank-you-for-contacting-us";
+  location.assign("/thank-you-for-contacting-us");
 }
 
 const doSubmit = async () => {

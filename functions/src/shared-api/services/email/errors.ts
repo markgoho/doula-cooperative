@@ -8,7 +8,7 @@
 export class EmailError extends Error {
   constructor(
     message: string,
-    public readonly retryable: boolean,
+    public readonly isRetryable: boolean,
   ) {
     super(message);
     this.name = this.constructor.name;

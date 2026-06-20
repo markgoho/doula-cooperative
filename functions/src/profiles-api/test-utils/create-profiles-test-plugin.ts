@@ -48,11 +48,11 @@ export const mockProfileData: ProfileData = {
  * Helper function to create a mock Firestore DocumentSnapshot.
  */
 function createMockDocumentSnapshot(
-  exists: boolean,
+  isDocumentPresent: boolean,
   data?: unknown,
 ): DocumentSnapshot {
   return {
-    exists,
+    exists: isDocumentPresent,
     id: "test-document",
     data: () => data,
   } as DocumentSnapshot;

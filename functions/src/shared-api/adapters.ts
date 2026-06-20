@@ -26,7 +26,7 @@ export function toWebRequest(request: Request): globalThis.Request {
     const headers = normalizeHeaders(request.headers);
     const body = getRequestBody(request);
 
-    return new globalThis.Request(url.toString(), {
+    return new globalThis.Request(url.href, {
       method: request.method,
       headers,
       body,

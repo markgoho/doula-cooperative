@@ -293,20 +293,21 @@ export function createProfilesPlugin(services?: PartialServices) {
           }
 
           const uid = getUserUid(userToken, logger);
-          const email = userToken.email;
-          const emailVerified = userToken.email_verified ?? false;
 
-          if (!email) {
+          if (!userToken.email) {
             set.status = 400;
             return {
               error: "Authentication token did not contain an email address.",
             };
           }
 
+          const email = userToken.email;
+          const isEmailVerified = userToken.email_verified ?? false;
+
           return claimProfileLogic({
             uid,
             email,
-            emailVerified,
+            emailVerified: isEmailVerified,
             emailService,
             claimProfileFirestoreService,
             authUpdateService,

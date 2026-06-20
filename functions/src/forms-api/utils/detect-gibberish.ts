@@ -75,10 +75,12 @@ function hasMixedCaseMidWord({ word }: { word: string }): boolean {
 
   let hasUppercaseBeyondFirstCharacter = false;
   for (const character of word.slice(1)) {
-    if (/[A-Z]/.test(character)) {
-      hasUppercaseBeyondFirstCharacter = true;
-      break;
+    if (!/[A-Z]/.test(character)) {
+      continue;
     }
+
+    hasUppercaseBeyondFirstCharacter = true;
+    break;
   }
 
   const hasLowercase = /[a-z]/.test(word);
@@ -107,7 +109,7 @@ function getConsonantClusterRatio({ words }: { words: string[] }): number {
   return clusteredWords.length / words.length;
 }
 
-export function detectGibberish({ text }: { text: string }): boolean {
+export function isGibberish({ text }: { text: string }): boolean {
   const normalizedText = text.trim();
   if (normalizedText.length === 0) {
     return false;
@@ -132,22 +134,22 @@ export function detectGibberish({ text }: { text: string }): boolean {
     dictionary: COMMON_MESSAGE_WORDS,
   });
   const firstWord = words[0];
-  const longSingleWord =
+  const isLongSingleWord =
     words.length === 1 && firstWord !== undefined && firstWord.length >= 12;
 
-  if (longSingleWord && mixedCaseWordCount > 0 && consonantClusterRatio >= 1) {
+  if (
+    isLongSingleWord &&
+    mixedCaseWordCount > 0 &&
+    consonantClusterRatio >= 1
+  ) {
     return true;
   }
 
-  if (
+  return (
     consonantClusterRatio >= 0.6 &&
     vowelRatio !== undefined &&
     (vowelRatio < 0.15 || vowelRatio > 0.6) &&
     !hasNameWord &&
     !hasMessageWord
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }

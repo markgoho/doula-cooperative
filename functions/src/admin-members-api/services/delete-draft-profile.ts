@@ -75,12 +75,12 @@ export async function deleteDraftProfile(options: {
     }
 
     const failures: string[] = [];
-    let profileImageDeleted = false;
-    let hugoRebuildTriggered = false;
+    let wasProfileImageDeleted = false;
+    let wasHugoRebuildTriggered = false;
 
     try {
       const imageDeleteResult = await deleteProfileImage({ slug });
-      profileImageDeleted = imageDeleteResult.deleted;
+      wasProfileImageDeleted = imageDeleteResult.deleted;
     } catch (error) {
       failures.push("ImageKit profile image deletion failed");
       logger.error("Failed to delete draft profile image", {
@@ -103,7 +103,7 @@ export async function deleteDraftProfile(options: {
 
     try {
       await triggerHugoRebuild({ slug, action: "draft" });
-      hugoRebuildTriggered = true;
+      wasHugoRebuildTriggered = true;
     } catch (error) {
       failures.push("Hugo rebuild trigger failed");
       logger.warn("Hugo rebuild trigger failed after draft profile deletion", {
@@ -135,16 +135,16 @@ export async function deleteDraftProfile(options: {
       slug,
       profileDeleted: true,
       memberUpdated: true,
-      profileImageDeleted,
-      hugoRebuildTriggered,
+      profileImageDeleted: wasProfileImageDeleted,
+      hugoRebuildTriggered: wasHugoRebuildTriggered,
     });
 
     return {
       slug,
       profileDeleted: true,
-      profileImageDeleted,
+      profileImageDeleted: wasProfileImageDeleted,
       memberUpdated: true,
-      hugoRebuildTriggered,
+      hugoRebuildTriggered: wasHugoRebuildTriggered,
     };
   } catch (error) {
     if (error instanceof HttpError) {

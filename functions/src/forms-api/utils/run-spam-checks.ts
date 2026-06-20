@@ -1,7 +1,7 @@
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { FormResponse } from "../schemas/form-response-schemas.js";
 import { checkRecaptchaScore } from "./check-recaptcha-score.js";
-import { detectGibberish } from "./detect-gibberish.js";
+import { isGibberish } from "./detect-gibberish.js";
 
 export interface SpamPolicy {
   recaptcha: { score: number };
@@ -58,7 +58,7 @@ export function runSpamChecks({
 
   if (policy.gibberish !== undefined && policy.gibberish.length > 0) {
     const flagged = policy.gibberish.filter(field =>
-      detectGibberish({ text: field.text }),
+      isGibberish({ text: field.text }),
     );
     if (flagged.length > 0) {
       logger.warn("Form submission rejected as gibberish", {

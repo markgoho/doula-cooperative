@@ -251,7 +251,7 @@ describe("PATCH /:memberId/name (authenticated)", () => {
 
     it("should reject request with whitespace-only name", async () => {
       const { testApp, request } = setup({
-        body: { name: "   " },
+        body: { name: " ".repeat(3) },
       });
 
       const response = await handleRequest(testApp, request);

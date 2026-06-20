@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { IMPORT_COLLECTION } from "../collections/index.js";
 
-const USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
+const SHOULD_USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
 
 interface ProfileTimestamps {
   slug: string;
@@ -76,7 +76,7 @@ function parseFrontMatter(
 
 async function syncProfileTimestamps() {
   // 1. Setup Emulator / Firebase
-  if (USE_EMULATOR) {
+  if (SHOULD_USE_EMULATOR) {
     process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8090";
     process.env["GCLOUD_PROJECT"] = "doula-cooperative";
     console.log("🔧 Using Firebase Firestore Emulator at localhost:8090");

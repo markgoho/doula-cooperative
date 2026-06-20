@@ -112,13 +112,13 @@ export async function refundMembership({
   }
 
   // Step 3: Create refund
-  let stripeRefundCreated = false;
+  let wasStripeRefundCreated = false;
   try {
     const refund = await stripe.refunds.create({
       charge: latestChargeId,
     });
 
-    stripeRefundCreated = true;
+    wasStripeRefundCreated = true;
     logger.info("Stripe refund created", {
       memberId,
       chargeId: latestChargeId,
@@ -134,7 +134,7 @@ export async function refundMembership({
         memberId,
         chargeId: latestChargeId,
       });
-      stripeRefundCreated = true;
+      wasStripeRefundCreated = true;
     } else {
       logger.error("Failed to create Stripe refund", {
         errorId: ERROR_IDS.API_ADMIN_REFUND_STRIPE_API_FAILED,
@@ -148,12 +148,12 @@ export async function refundMembership({
   }
 
   // Step 4: Cancel subscription
-  let subscriptionCanceled = false;
+  let wasSubscriptionCanceled = false;
   try {
     await cancelStripeSubscription({
       subscriptionId: member.stripeSubscriptionId,
     });
-    subscriptionCanceled = true;
+    wasSubscriptionCanceled = true;
   } catch (error) {
     logger.error("Failed to cancel subscription during admin refund", {
       errorId: ERROR_IDS.STRIPE_WEBHOOK_REFUND_SUBSCRIPTION_CANCEL_FAILED,
@@ -178,8 +178,8 @@ export async function refundMembership({
 
   return {
     member: updatedMember,
-    stripeRefundCreated,
-    subscriptionCanceled,
+    stripeRefundCreated: wasStripeRefundCreated,
+    subscriptionCanceled: wasSubscriptionCanceled,
     refundActions,
   };
 }

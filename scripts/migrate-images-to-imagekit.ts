@@ -39,11 +39,11 @@ async function findSourceImage(
 async function uploadToImageKit(
   imagePath: string,
   slug: string,
-  dryRun: boolean,
+  isDryRun: boolean,
 ): Promise<void> {
   const imagekitPath = `/doulas/${slug}/${slug}-profile`;
 
-  if (dryRun) {
+  if (isDryRun) {
     console.log(
       `  [DRY RUN] Would upload ${imagePath} to ImageKit at ${imagekitPath}`,
     );
@@ -57,7 +57,7 @@ async function uploadToImageKit(
   });
 
   const imageBuffer = await Bun.file(imagePath).arrayBuffer();
-  const imageBase64 = Buffer.from(imageBuffer).toString("base64");
+  const imageBase64 = new Uint8Array(imageBuffer).toBase64();
 
   await imagekit.files.upload({
     file: imageBase64,
@@ -71,7 +71,7 @@ async function uploadToImageKit(
 async function processProfile(
   profileDirectory: string,
   slug: string,
-  dryRun: boolean,
+  isDryRun: boolean,
 ): Promise<MigrationResult> {
   console.log(`\nProcessing: ${slug}`);
 
@@ -83,7 +83,7 @@ async function processProfile(
   }
 
   try {
-    await uploadToImageKit(imagePath, slug, dryRun);
+    await uploadToImageKit(imagePath, slug, isDryRun);
     console.log(`  Uploaded to ImageKit: /doulas/${slug}/${slug}-profile`);
 
     return { slug, status: "success" };
@@ -100,11 +100,11 @@ async function processProfile(
 
 // Main execution
 async function main() {
-  const dryRun = process.argv.includes("--dry-run");
+  const isDryRun = process.argv.includes("--dry-run");
 
   console.log("=".repeat(60));
   console.log("ImageKit Migration Script");
-  console.log(dryRun ? "[DRY RUN MODE]" : "[LIVE MODE]");
+  console.log(isDryRun ? "[DRY RUN MODE]" : "[LIVE MODE]");
   console.log("=".repeat(60));
 
   // Scan doulas directory for profile subdirectories
@@ -113,13 +113,13 @@ async function main() {
   const profileSlugs: string[] = [];
 
   for await (const match of glob.scan(doulasDirectory)) {
-    const slug = match.split("/")[0];
+    const slug = match.split("/", 1)[0];
     if (slug && slug !== "tag" && !slug.startsWith("_")) {
       profileSlugs.push(slug);
     }
   }
 
-  profileSlugs.sort();
+  profileSlugs.sort((a, b) => a.localeCompare(b));
 
   console.log(`\nFound ${profileSlugs.length} profile directories\n`);
 
@@ -129,7 +129,7 @@ async function main() {
     const result = await processProfile(
       `${doulasDirectory}/${slug}`,
       slug,
-      dryRun,
+      isDryRun,
     );
     results.push(result);
   }
@@ -162,7 +162,7 @@ async function main() {
     }
   }
 
-  if (dryRun) {
+  if (isDryRun) {
     console.log(
       "\n[DRY RUN] No changes were made. Run without --dry-run to execute.",
     );
@@ -172,8 +172,10 @@ async function main() {
 }
 
 // Run
-await main().catch((error: unknown) => {
+try {
+  await main();
+} catch (error: unknown) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   console.error("Fatal error:", errorMessage);
   process.exit(1);
-});
+}

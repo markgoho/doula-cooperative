@@ -12,5 +12,5 @@ declare global {
 }
 
 // Empty export to make this a module
-// eslint-disable-next-line unicorn/require-module-specifiers
+
 export {};

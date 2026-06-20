@@ -32,17 +32,16 @@ const TEST_EMAIL = "test-existing-member@doulacooperative.com";
 
 // Initialize Firebase Admin (emulator by default)
 if (getApps().length === 0) {
-  const useEmulator = process.env["USE_EMULATOR"] !== "false";
+  const shouldUseEmulator = process.env["USE_EMULATOR"] !== "false";
 
-  if (useEmulator) {
+  if (shouldUseEmulator) {
     console.log("🔧 Using Firebase Emulators (safe mode)");
     process.env["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8090";
     process.env["FIREBASE_AUTH_EMULATOR_HOST"] = "127.0.0.1:9099";
-    process.env["GCLOUD_PROJECT"] = "doula-cooperative";
   } else {
     console.log("⚠️  Using PRODUCTION Firebase (doula-cooperative)");
-    process.env["GCLOUD_PROJECT"] = "doula-cooperative";
   }
+  process.env["GCLOUD_PROJECT"] = "doula-cooperative";
 
   initializeApp({ projectId: "doula-cooperative" });
 }
@@ -80,7 +79,7 @@ function calculateLegacyCreatedAt(): Date {
  * Format date for console output
  */
 function formatDate(date: Date): string {
-  const datePart = date.toISOString().split("T")[0];
+  const datePart = date.toISOString().split("T", 1)[0];
   if (!datePart) {
     throw new Error("Failed to format date");
   }

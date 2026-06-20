@@ -34,13 +34,13 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
     });
 
     // Override auth service when we need explicit email_verified state
-    const needsAuthOverride = emailAlreadyVerified || emailVerifiedExplicit;
+    const shouldOverrideAuth = emailAlreadyVerified || emailVerifiedExplicit;
 
     const testApp = createMembersTestPlugin({
       verifyEmailService: {
         markEmailVerified: mockMarkEmailVerified,
       },
-      ...(needsAuthOverride && {
+      ...(shouldOverrideAuth && {
         authService: {
           verifyOwnerOrAdmin: mock(() =>
             Promise.resolve({

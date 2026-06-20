@@ -319,13 +319,15 @@ export const UpdateMemberBodySchema = t.Object({
 
 export type UpdateMemberBody = Static<typeof UpdateMemberBodySchema>;
 
+const ActivateMembershipDateTimeSchema = t.String({ format: "date-time" });
+
 /**
  * Request body schema for activating membership.
  */
 export const ActivateMembershipBodySchema = t.Optional(
   t.Object({
-    subscriptionStart: t.Optional(t.String({ format: "date-time" })),
-    membershipExpiresAt: t.Optional(t.String({ format: "date-time" })),
+    subscriptionStart: t.Optional(ActivateMembershipDateTimeSchema),
+    membershipExpiresAt: t.Optional(ActivateMembershipDateTimeSchema),
   }),
 );
 

@@ -5,7 +5,7 @@
  * @param expected - The expected secret from environment
  * @returns true if secrets match, false otherwise
  */
-export function verifySecret({
+export function isValidSecret({
   provided,
   expected,
 }: {

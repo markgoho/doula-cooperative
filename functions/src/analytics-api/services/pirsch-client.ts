@@ -36,10 +36,11 @@ export function createPirschClient(): PirschClient {
     async getTopPages(days: number): Promise<PageEntry[]> {
       const token = await getAccessToken(clientId, clientSecret);
 
-      const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0] ?? "";
-      const toDate = new Date().toISOString().split("T")[0] ?? "";
+      const fromDate =
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T", 1)[0] ?? "";
+      const toDate = new Date().toISOString().split("T", 1)[0] ?? "";
 
       const url = new URL(PIRSCH_PAGES_URL);
       url.searchParams.set("id", PIRSCH_DOMAIN_ID);
@@ -47,7 +48,7 @@ export function createPirschClient(): PirschClient {
       url.searchParams.set("to", toDate);
       url.searchParams.set("limit", "5");
 
-      const response = await fetch(url.toString(), {
+      const response = await fetch(url.href, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

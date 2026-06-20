@@ -62,12 +62,12 @@ export async function processChargeRefunded({
   }
 
   // Step 2: Cancel subscription (prevent future charges)
-  let subscriptionCanceled = false;
+  let wasSubscriptionCanceled = false;
   if (member.stripeSubscriptionId) {
     await cancelStripeSubscription({
       subscriptionId: member.stripeSubscriptionId,
     });
-    subscriptionCanceled = true;
+    wasSubscriptionCanceled = true;
   }
 
   // Step 3: Process refund actions (deactivate, draft profile, unsubscribe)
@@ -81,7 +81,7 @@ export async function processChargeRefunded({
   return {
     memberId: member.uid,
     memberFound: true,
-    subscriptionCanceled,
+    subscriptionCanceled: wasSubscriptionCanceled,
     refundActions,
   };
 }

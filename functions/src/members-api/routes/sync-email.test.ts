@@ -68,7 +68,7 @@ describe("POST /:memberId/sync-email (authenticated)", () => {
 
           return Promise.resolve({
             uid: memberId,
-            ...(tokenHasNoEmail ? {} : { email: authEmail }),
+            ...(!tokenHasNoEmail && { email: authEmail }),
           } as DecodedIdToken);
         }),
       },

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { IMPORT_COLLECTION } from "../collections/index.js";
 
-const USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
+const SHOULD_USE_EMULATOR = process.env["USE_EMULATOR"] !== "false";
 
 interface SubscriberJson {
   Name: string;
@@ -18,7 +18,7 @@ interface SubscriberJson {
 
 async function importSubscribers() {
   // 1. Setup Emulator / Firebase
-  if (USE_EMULATOR) {
+  if (SHOULD_USE_EMULATOR) {
     process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8090";
     process.env["GCLOUD_PROJECT"] = "doula-cooperative";
     console.log("🔧 Using Firebase Firestore Emulator at localhost:8090");
@@ -75,8 +75,6 @@ async function importSubscribers() {
 
       // Parse dates
       const subscriptionStart = toTimestamp(sub["Start Date"]);
-      const lastPayment = toTimestamp(sub["Last Payment"]);
-      const nextPayment = toTimestamp(sub["Next Payment"]);
 
       if (!subscriptionStart) {
         console.warn(`⚠️ Invalid start date for ${email}`);
@@ -84,6 +82,9 @@ async function importSubscribers() {
         errorCount++;
         continue;
       }
+
+      const lastPayment = toTimestamp(sub["Last Payment"]);
+      const nextPayment = toTimestamp(sub["Next Payment"]);
 
       // Map to Firestore document structure
       // Interface MigratedUserData { name: string; subscriptionStart: Timestamp; slug?: string; email?: string; }

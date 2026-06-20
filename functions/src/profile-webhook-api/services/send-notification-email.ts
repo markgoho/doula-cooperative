@@ -71,6 +71,11 @@ export async function sendNotificationEmail({
   const profileUrl = `https://doulacooperative.com/doulas/${slug}/`;
   const { subject, heading, description } = getEmailContent(notificationType);
 
+  // Skip email in emulator mode
+  if (process.env["FUNCTIONS_EMULATOR"]) {
+    return;
+  }
+
   const emailMessage: EmailMessage = {
     from: `Rochester Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: memberEmail,
@@ -110,11 +115,6 @@ export async function sendNotificationEmail({
 </body>
 </html>`,
   };
-
-  // Skip email in emulator mode
-  if (process.env["FUNCTIONS_EMULATOR"]) {
-    return;
-  }
 
   await emailService.sendEmail({ message: emailMessage }, logger);
 }

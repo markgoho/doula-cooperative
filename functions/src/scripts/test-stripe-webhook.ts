@@ -218,7 +218,9 @@ async function main() {
 }
 
 // Run script with top-level await
-await main().catch((error: unknown) => {
+try {
+  await main();
+} catch (error: unknown) {
   console.error("\n❌ Error:", error);
   process.exit(1);
-});
+}

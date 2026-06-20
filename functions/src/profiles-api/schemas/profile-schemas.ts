@@ -33,6 +33,11 @@ export const ContactSchema = t.Object({
 
 export type Contact = Static<typeof ContactSchema>;
 
+const ProfileTagSchema = t.String({
+  maxLength: 100,
+  error: "Each tag must be 100 characters or less",
+});
+
 /**
  * Profile data schema for create/update operations.
  */
@@ -60,16 +65,10 @@ export const ProfileDataBodySchema = t.Object({
     }),
   ),
   tags: t.Optional(
-    t.Array(
-      t.String({
-        maxLength: 100,
-        error: "Each tag must be 100 characters or less",
-      }),
-      {
-        maxItems: 50,
-        error: "Maximum 50 tags allowed",
-      },
-    ),
+    t.Array(ProfileTagSchema, {
+      maxItems: 50,
+      error: "Maximum 50 tags allowed",
+    }),
   ),
   contact: t.Optional(ContactSchema),
   draft: t.Optional(t.Boolean()),
@@ -177,20 +176,24 @@ const ErrorResponseSchema = t.Object({
   error: t.String(),
 });
 
-/**
- * Success response for reading a profile by slug.
- * GET /api/profiles/:slug
- */
-const ReadProfileSuccessSchema = t.Object({
+const ReadProfileTagsSchema = t.Array(t.String());
+
+const ReadProfileDataSchema = t.Object({
   title: t.String(),
   bio: t.String(),
   credentials: t.Optional(t.String()),
   pronouns: t.Optional(t.String()),
-  tags: t.Optional(t.Array(t.String())),
+  tags: t.Optional(ReadProfileTagsSchema),
   contact: t.Optional(ContactSchema),
   draft: t.Optional(t.Boolean()),
   image: t.Optional(t.String()),
 });
+
+/**
+ * Success response for reading a profile by slug.
+ * GET /api/profiles/:slug
+ */
+const ReadProfileSuccessSchema = ReadProfileDataSchema;
 
 export type ReadProfileSuccessResponse = Static<
   typeof ReadProfileSuccessSchema
@@ -281,6 +284,17 @@ export const CreateProfileResponseSchema = t.Union([
 
 export type CreateProfileResponse = Static<typeof CreateProfileResponseSchema>;
 
+const ClaimProfileMemberDataSchema = t.Object({
+  email: t.String({ format: "email" }),
+  name: t.String(),
+  slug: t.Optional(t.String()),
+  subscriptionStart: t.Any(), // Timestamp - not JSON serializable
+  lastPayment: t.Any(), // Timestamp
+  nextPayment: t.Any(), // Timestamp
+  createdAt: t.Optional(t.Any()), // Timestamp
+  updatedAt: t.Optional(t.Any()), // Timestamp
+});
+
 /**
  * Success response for claiming unclaimed profile.
  * POST /api/profiles/:slug/claim
@@ -288,16 +302,7 @@ export type CreateProfileResponse = Static<typeof CreateProfileResponseSchema>;
 const ClaimProfileSuccessSchema = t.Union([
   t.Object({
     status: t.Literal("success"),
-    data: t.Object({
-      email: t.String({ format: "email" }),
-      name: t.String(),
-      slug: t.Optional(t.String()),
-      subscriptionStart: t.Any(), // Timestamp - not JSON serializable
-      lastPayment: t.Any(), // Timestamp
-      nextPayment: t.Any(), // Timestamp
-      createdAt: t.Optional(t.Any()), // Timestamp
-      updatedAt: t.Optional(t.Any()), // Timestamp
-    }),
+    data: ClaimProfileMemberDataSchema,
   }),
   t.Object({
     status: t.Literal("no_profile_to_claim"),

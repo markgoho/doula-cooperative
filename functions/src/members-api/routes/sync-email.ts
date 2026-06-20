@@ -138,13 +138,11 @@ export async function syncEmailLogic({
         memberId,
         authEmail,
         hasAuthorizationHeader: Boolean(authorizationHeader),
-        ...(isDivergence
-          ? {
-              severity: "CRITICAL",
-              actionRequired:
-                "Member's Firebase Auth email may have diverged from Firestore. Verify and reconcile manually.",
-            }
-          : {}),
+        ...(isDivergence && {
+          severity: "CRITICAL",
+          actionRequired:
+            "Member's Firebase Auth email may have diverged from Firestore. Verify and reconcile manually.",
+        }),
       },
     );
 

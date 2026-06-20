@@ -34,13 +34,13 @@ export async function uploadImageLogic({
     }
 
     const base64Content = imageData.replace(/^data:image\/\w+;base64,/, "");
-    const imageBuffer = Buffer.from(base64Content, "base64");
+    const imageBuffer = Uint8Array.fromBase64(base64Content);
 
-    if (imageBuffer.length > MAX_IMAGE_SIZE) {
+    if (imageBuffer.byteLength > MAX_IMAGE_SIZE) {
       logger.warn("Image too large", {
         errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_TOO_LARGE,
         uid,
-        size: imageBuffer.length,
+        size: imageBuffer.byteLength,
       });
       set.status = 413;
       return {

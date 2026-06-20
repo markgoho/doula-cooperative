@@ -44,17 +44,18 @@ export type ListMatchRequestsResponse = Static<
   typeof ListMatchRequestsResponseSchema
 >;
 
+const MatchRequestStatusFilterSchema = t.Union(
+  [t.Literal("pending"), t.Literal("processed"), t.Literal("all")],
+  { default: "all" },
+);
+
 /**
  * Query parameters for list endpoint
  */
 export const ListMatchRequestsQuerySchema = t.Object({
   limit: t.Optional(t.Number({ minimum: 1, maximum: 100, default: 50 })),
   offset: t.Optional(t.Number({ minimum: 0, default: 0 })),
-  status: t.Optional(
-    t.Union([t.Literal("pending"), t.Literal("processed"), t.Literal("all")], {
-      default: "all",
-    }),
-  ),
+  status: t.Optional(MatchRequestStatusFilterSchema),
 });
 
 export type ListMatchRequestsQuery = Static<

@@ -16,7 +16,7 @@ describe("POST /:memberId/profile/delete-draft", () => {
     profileNotDraft?: boolean;
     profileNotFound?: boolean;
     serverError?: boolean;
-    deleteResult?: DeleteDraftProfileResult;
+    draftProfileResult?: DeleteDraftProfileResult;
   }
 
   function setup({
@@ -27,7 +27,7 @@ describe("POST /:memberId/profile/delete-draft", () => {
     profileNotDraft = false,
     profileNotFound = false,
     serverError = false,
-    deleteResult,
+    draftProfileResult,
   }: SetupOptions = {}) {
     const defaultResult: DeleteDraftProfileResult = {
       slug: "test-slug",
@@ -66,7 +66,7 @@ describe("POST /:memberId/profile/delete-draft", () => {
         if (serverError) {
           return Promise.reject(new Error("Firestore unavailable"));
         }
-        return Promise.resolve(deleteResult ?? defaultResult);
+        return Promise.resolve(draftProfileResult ?? defaultResult);
       },
     );
 
@@ -117,7 +117,7 @@ describe("POST /:memberId/profile/delete-draft", () => {
   describe("Successful delete", () => {
     it("should return deletion statuses and slug on success", async () => {
       const { testApp, request } = setup({
-        deleteResult: {
+        draftProfileResult: {
           slug: "jane-doe",
           profileDeleted: true,
           profileImageDeleted: true,
@@ -161,7 +161,7 @@ describe("POST /:memberId/profile/delete-draft", () => {
 
     it("should include warning when Hugo rebuild fails", async () => {
       const { testApp, request } = setup({
-        deleteResult: {
+        draftProfileResult: {
           slug: "jane-doe",
           profileDeleted: true,
           profileImageDeleted: true,

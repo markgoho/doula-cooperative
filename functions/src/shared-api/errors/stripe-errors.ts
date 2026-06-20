@@ -12,7 +12,7 @@ export class StripeSignatureError extends HttpError {
 /**
  * 500 Internal Server Error - Stripe configuration is missing or invalid.
  */
-export class StripeConfigurationError extends HttpError {
+export class StripeConfigError extends HttpError {
   constructor(message: string) {
     super(message, 500);
   }

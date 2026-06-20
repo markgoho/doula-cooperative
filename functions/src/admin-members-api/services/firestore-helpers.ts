@@ -42,13 +42,13 @@ export async function cleanupTestMembers({
   const testDocuments = await firestore
     .collection(MEMBERS_COLLECTION)
     .where("uid", ">=", "test-")
-    .where("uid", "<", "test-\uF8FF")
+    .where("uid", "<", "test-\u{F8FF}")
     .get();
 
-  const deletePromises = testDocuments.docs.map(document =>
+  const deletionPromises = testDocuments.docs.map(document =>
     document.ref.delete(),
   );
-  await Promise.all(deletePromises);
+  await Promise.all(deletionPromises);
 }
 
 /**
@@ -66,13 +66,13 @@ export async function cleanupTestDocumentsByEmail({
   const testDocuments = await firestore
     .collection(collection)
     .where("email", ">=", emailPrefix)
-    .where("email", "<", `${emailPrefix}\uF8FF`)
+    .where("email", "<", emailPrefix + "\u{F8FF}")
     .get();
 
-  const deletePromises = testDocuments.docs.map(document =>
+  const deletionPromises = testDocuments.docs.map(document =>
     document.ref.delete(),
   );
-  await Promise.all(deletePromises);
+  await Promise.all(deletionPromises);
 }
 
 /**

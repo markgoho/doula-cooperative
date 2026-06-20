@@ -32,17 +32,18 @@ export const ListMessagesResponseSchema = t.Object({
 
 export type ListMessagesResponse = Static<typeof ListMessagesResponseSchema>;
 
+const MessageStatusFilterSchema = t.Union(
+  [t.Literal("pending"), t.Literal("processed"), t.Literal("all")],
+  { default: "all" },
+);
+
 /**
  * Query parameters for list endpoint
  */
 export const ListMessagesQuerySchema = t.Object({
   limit: t.Optional(t.Number({ minimum: 1, maximum: 100, default: 50 })),
   offset: t.Optional(t.Number({ minimum: 0, default: 0 })),
-  status: t.Optional(
-    t.Union([t.Literal("pending"), t.Literal("processed"), t.Literal("all")], {
-      default: "all",
-    }),
-  ),
+  status: t.Optional(MessageStatusFilterSchema),
 });
 
 export type ListMessagesQuery = Static<typeof ListMessagesQuerySchema>;

@@ -39,7 +39,7 @@ function escapeRegex(text: string): string {
   return text.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
-export function detectDoulaRequest(text: string): boolean {
+export function isDoulaRequest(text: string): boolean {
   const normalizedText = text.toLowerCase();
 
   if (strongSignals.some(signal => normalizedText.includes(signal))) {

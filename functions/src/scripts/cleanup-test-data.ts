@@ -37,8 +37,8 @@ const arguments_ = process.argv.slice(2);
 const emailPattern = arguments_[arguments_.indexOf("--email-pattern") + 1];
 const exactEmail = arguments_[arguments_.indexOf("--email") + 1];
 const uid = arguments_[arguments_.indexOf("--uid") + 1];
-const dryRun = arguments_.includes("--dry-run");
-const skipConfirm = arguments_.includes("--confirm");
+const isDryRun = arguments_.includes("--dry-run");
+const shouldSkipConfirm = arguments_.includes("--confirm");
 
 // Production email patterns to protect
 const PROTECTED_PATTERNS = [
@@ -50,9 +50,9 @@ const PROTECTED_PATTERNS = [
 
 // Initialize Firebase Admin (emulator by default)
 if (getApps().length === 0) {
-  const useEmulator = !process.env["USE_PRODUCTION"];
+  const shouldUseEmulator = !process.env["USE_PRODUCTION"];
 
-  if (useEmulator) {
+  if (shouldUseEmulator) {
     console.log("🔧 Using Firebase Emulators (safe mode)");
     process.env["FIRESTORE_EMULATOR_HOST"] = "127.0.0.1:8090";
     process.env["FIREBASE_AUTH_EMULATOR_HOST"] = "127.0.0.1:9099";
@@ -73,11 +73,44 @@ interface UserToDelete {
   eventsCount: number;
 }
 
+async function buildUserToDelete(user: {
+  uid: string;
+  email?: string;
+}): Promise<UserToDelete> {
+  const memberDocument = await firestore
+    .collection(MEMBERS_COLLECTION)
+    .doc(user.uid)
+    .get();
+  const eventsQuery = await firestore
+    .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
+    .where("userId", "==", user.uid)
+    .get();
+
+  return {
+    uid: user.uid,
+    email: user.email,
+    memberDocExists: memberDocument.exists,
+    eventsCount: eventsQuery.size,
+  };
+}
+
+async function collectMatchingUser(
+  user: { uid: string; email?: string },
+  pattern: string,
+  usersToDelete: UserToDelete[],
+): Promise<void> {
+  if (!user.email?.includes(pattern)) {
+    return;
+  }
+
+  usersToDelete.push(await buildUserToDelete(user));
+}
+
 /**
  * Get confirmation from user
  */
 async function confirm(message: string): Promise<boolean> {
-  if (skipConfirm) return true;
+  if (shouldSkipConfirm) return true;
 
   console.log(`\n${message}`);
   console.log("Type 'yes' to confirm, anything else to cancel:");
@@ -114,21 +147,7 @@ async function findUsersToDelete(): Promise<UserToDelete[]> {
     // Delete by UID
     try {
       const user = await auth.getUser(uid);
-      const memberDocument = await firestore
-        .collection(MEMBERS_COLLECTION)
-        .doc(uid)
-        .get();
-      const eventsQuery = await firestore
-        .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-        .where("userId", "==", uid)
-        .get();
-
-      usersToDelete.push({
-        uid: user.uid,
-        email: user.email,
-        memberDocExists: memberDocument.exists,
-        eventsCount: eventsQuery.size,
-      });
+      usersToDelete.push(await buildUserToDelete(user));
     } catch (error) {
       console.error(`❌ User not found with UID: ${uid}`);
       throw error;
@@ -137,21 +156,7 @@ async function findUsersToDelete(): Promise<UserToDelete[]> {
     // Delete by exact email
     try {
       const user = await auth.getUserByEmail(exactEmail);
-      const memberDocument = await firestore
-        .collection(MEMBERS_COLLECTION)
-        .doc(user.uid)
-        .get();
-      const eventsQuery = await firestore
-        .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-        .where("userId", "==", user.uid)
-        .get();
-
-      usersToDelete.push({
-        uid: user.uid,
-        email: user.email,
-        memberDocExists: memberDocument.exists,
-        eventsCount: eventsQuery.size,
-      });
+      usersToDelete.push(await buildUserToDelete(user));
     } catch (error) {
       console.error(`❌ User not found with email: ${exactEmail}`);
       throw error;
@@ -165,23 +170,7 @@ async function findUsersToDelete(): Promise<UserToDelete[]> {
       const listUsersResult = await auth.listUsers(1000, nextPageToken);
 
       for (const user of listUsersResult.users) {
-        if (user.email?.includes(emailPattern)) {
-          const memberDocument = await firestore
-            .collection(MEMBERS_COLLECTION)
-            .doc(user.uid)
-            .get();
-          const eventsQuery = await firestore
-            .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
-            .where("userId", "==", user.uid)
-            .get();
-
-          usersToDelete.push({
-            uid: user.uid,
-            email: user.email,
-            memberDocExists: memberDocument.exists,
-            eventsCount: eventsQuery.size,
-          });
-        }
+        await collectMatchingUser(user, emailPattern, usersToDelete);
       }
 
       nextPageToken = listUsersResult.pageToken;
@@ -202,7 +191,7 @@ async function deleteUser(user: UserToDelete): Promise<void> {
 
   // Delete member document
   if (user.memberDocExists) {
-    if (!dryRun) {
+    if (!isDryRun) {
       await firestore.collection(MEMBERS_COLLECTION).doc(user.uid).delete();
     }
     console.log(`  ✓ Deleted member document`);
@@ -210,7 +199,7 @@ async function deleteUser(user: UserToDelete): Promise<void> {
 
   // Delete processed events
   if (user.eventsCount > 0) {
-    if (!dryRun) {
+    if (!isDryRun) {
       const eventsSnapshot = await firestore
         .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)
         .where("userId", "==", user.uid)
@@ -226,7 +215,7 @@ async function deleteUser(user: UserToDelete): Promise<void> {
   }
 
   // Delete Auth user
-  if (!dryRun) {
+  if (!isDryRun) {
     await auth.deleteUser(user.uid);
   }
   console.log(`  ✓ Deleted Auth user`);
@@ -238,7 +227,7 @@ async function deleteUser(user: UserToDelete): Promise<void> {
 async function main() {
   console.log("\n🧹 Firebase Test Data Cleanup Tool\n");
 
-  if (dryRun) {
+  if (isDryRun) {
     console.log("📋 DRY RUN MODE - No data will be deleted\n");
   }
 
@@ -275,12 +264,12 @@ async function main() {
   }
 
   // Confirm deletion
-  if (!dryRun) {
-    const confirmed = await confirm(
+  if (!isDryRun) {
+    const isConfirmed = await confirm(
       `\n⚠️  Delete ${users.length} user(s) and all related data?`,
     );
 
-    if (!confirmed) {
+    if (!isConfirmed) {
       console.log("\n❌ Deletion cancelled");
       return;
     }
@@ -288,11 +277,11 @@ async function main() {
 
   // Delete users
   console.log(
-    `\n${dryRun ? "Would delete" : "Deleting"} ${users.length} user(s)...`,
+    `\n${isDryRun ? "Would delete" : "Deleting"} ${users.length} user(s)...`,
   );
 
   for (const user of users) {
-    if (dryRun) {
+    if (isDryRun) {
       console.log(`\n[DRY RUN] Would delete: ${user.email ?? user.uid}`);
       console.log(`  - Member document: ${user.memberDocExists}`);
       console.log(`  - Events: ${user.eventsCount}`);
@@ -301,12 +290,16 @@ async function main() {
     }
   }
 
-  console.log(`\n✅ ${dryRun ? "Dry run" : "Cleanup"} complete!`);
-  console.log(`   Users ${dryRun ? "would be" : ""} deleted: ${users.length}`);
+  console.log(`\n✅ ${isDryRun ? "Dry run" : "Cleanup"} complete!`);
+  console.log(
+    `   Users ${isDryRun ? "would be" : ""} deleted: ${users.length}`,
+  );
 }
 
 // Run script with top-level await
-await main().catch((error: unknown) => {
+try {
+  await main();
+} catch (error: unknown) {
   console.error("\n❌ Error during cleanup:", error);
   process.exit(1);
-});
+}

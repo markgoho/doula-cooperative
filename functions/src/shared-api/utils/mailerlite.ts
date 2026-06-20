@@ -28,7 +28,7 @@ export class MailerLiteError extends Error {
     message: string,
     public readonly email: string,
     public readonly errorId: ErrorId,
-    public readonly retryable: boolean,
+    public readonly isRetryable: boolean,
     public readonly originalError?: unknown,
   ) {
     super(message);

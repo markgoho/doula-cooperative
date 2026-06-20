@@ -306,13 +306,15 @@ export const UpdateMemberBodySchema = t.Object({
 
 export type UpdateMemberBody = Static<typeof UpdateMemberBodySchema>;
 
+const ActivateMembershipDateTimeSchema = t.String({ format: "date-time" });
+
 /**
  * Request body schema for activating membership.
  */
 export const ActivateMembershipBodySchema = t.Optional(
   t.Object({
-    subscriptionStart: t.Optional(t.String({ format: "date-time" })),
-    membershipExpiresAt: t.Optional(t.String({ format: "date-time" })),
+    subscriptionStart: t.Optional(ActivateMembershipDateTimeSchema),
+    membershipExpiresAt: t.Optional(ActivateMembershipDateTimeSchema),
   }),
 );
 
@@ -454,16 +456,16 @@ export type UpdateClaimsApiResponse = Static<
   typeof UpdateClaimsApiResponseSchema
 >;
 
+const RefundReasonSchema = t.String({
+  description: "Reason for the refund",
+});
+
 /**
  * Request body schema for refunding membership.
  */
 export const RefundMembershipBodySchema = t.Optional(
   t.Object({
-    reason: t.Optional(
-      t.String({
-        description: "Reason for the refund",
-      }),
-    ),
+    reason: t.Optional(RefundReasonSchema),
   }),
 );
 
@@ -663,20 +665,22 @@ export type DeleteDraftProfileApiResponse = Static<
  * Profile content schema for admin read profile response.
  * Includes all ProfileData fields plus metadata.
  */
+const ProfileContentContactSchema = t.Object({
+  phone: t.Optional(t.String()),
+  email: t.Optional(t.String()),
+  website: t.Optional(t.String()),
+  business_name: t.Optional(t.String()),
+});
+
+const ProfileTagsSchema = t.Array(t.String());
+
 export const ProfileContentSchema = t.Object({
   title: t.String(),
   bio: t.String(),
   credentials: t.Optional(t.String()),
   pronouns: t.Optional(t.String()),
-  tags: t.Optional(t.Array(t.String())),
-  contact: t.Optional(
-    t.Object({
-      phone: t.Optional(t.String()),
-      email: t.Optional(t.String()),
-      website: t.Optional(t.String()),
-      business_name: t.Optional(t.String()),
-    }),
-  ),
+  tags: t.Optional(ProfileTagsSchema),
+  contact: t.Optional(ProfileContentContactSchema),
   draft: t.Optional(t.Boolean()),
   image: t.Optional(t.String()),
   createdAt: t.String({

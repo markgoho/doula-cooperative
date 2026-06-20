@@ -27,7 +27,7 @@ export interface StripeWebhookService {
    * @param options - Raw body and signature header
    * @returns Validated Stripe event
    * @throws StripeSignatureError if signature is invalid
-   * @throws StripeConfigurationError if Stripe is not configured
+   * @throws StripeConfigError if Stripe is not configured
    */
   verifySignature(options: {
     rawBody: Buffer;

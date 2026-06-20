@@ -24,11 +24,11 @@ describe("POST /:slug/claim (claim profile)", () => {
   }
 
   const createMockDocumentSnapshot = (
-    exists: boolean,
+    isDocumentPresent: boolean,
     data?: unknown,
   ): DocumentSnapshot =>
     ({
-      exists,
+      exists: isDocumentPresent,
       id: "test-document",
       data: () => data,
     }) as DocumentSnapshot;

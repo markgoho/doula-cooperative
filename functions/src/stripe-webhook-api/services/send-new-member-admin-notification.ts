@@ -59,14 +59,14 @@ export async function sendNewMemberAdminNotification({
   logger: Logger;
 }): Promise<void> {
   try {
-    let legacyImportFound = false;
+    let wasLegacyImportFound = false;
 
     try {
       const importDocument = await getFirestore()
         .collection(IMPORT_COLLECTION)
         .doc(customerEmail)
         .get();
-      legacyImportFound = importDocument.exists;
+      wasLegacyImportFound = importDocument.exists;
     } catch (error: unknown) {
       logger.error(
         "Failed to read legacy import record for new-member admin notification",
@@ -96,7 +96,7 @@ export async function sendNewMemberAdminNotification({
         customerEmail,
         customerName,
         uid,
-        legacyImportFound,
+        legacyImportFound: wasLegacyImportFound,
         adminUrl,
       }),
     };
@@ -105,7 +105,7 @@ export async function sendNewMemberAdminNotification({
     logger.info("Sent new-member admin notification email", {
       uid,
       email: customerEmail,
-      legacyImportFound,
+      legacyImportFound: wasLegacyImportFound,
     });
   } catch (error: unknown) {
     logger.error("Failed to send new-member admin notification email", {

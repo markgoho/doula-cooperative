@@ -33,7 +33,7 @@ export async function updateMember(
 
   const protectedFields = ["uid", "createdAt"];
   for (const field of protectedFields) {
-    if (field in updates) {
+    if (Object.hasOwn(updates, field)) {
       throw new ValidationError(`Cannot update protected field: ${field}`);
     }
   }

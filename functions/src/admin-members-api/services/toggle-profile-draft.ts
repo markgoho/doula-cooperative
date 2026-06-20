@@ -56,30 +56,30 @@ export async function toggleProfileDraft(options: {
     }
 
     const profileData = profileDocument.data() as ProfileDocument;
-    const currentDraft = profileData.draft ?? false;
-    const newDraft = !currentDraft;
+    const isCurrentlyDraft = profileData.draft ?? false;
+    const isNewDraft = !isCurrentlyDraft;
 
     // 2. Update draft status
     await profileReference.update({
-      draft: newDraft,
+      draft: isNewDraft,
       updatedAt: new Date().toISOString(),
     });
 
     // 3. Trigger Hugo rebuild
-    let hugoRebuildTriggered = false;
+    let wasHugoRebuildTriggered = false;
     try {
       await triggerHugoRebuild({
         slug,
-        action: newDraft ? "draft" : "publish",
-        ...(!newDraft && { notificationType: "publish" }),
+        action: isNewDraft ? "draft" : "publish",
+        ...(!isNewDraft && { notificationType: "publish" }),
       });
-      hugoRebuildTriggered = true;
+      wasHugoRebuildTriggered = true;
     } catch (error) {
       // Non-critical: log but don't fail the toggle
       logger.warn("Hugo rebuild trigger failed after draft toggle", {
         errorId: ERROR_IDS.API_HUGO_REBUILD_FAILED,
         slug,
-        newDraft,
+        newDraft: isNewDraft,
         error,
         errorMessage: error instanceof Error ? error.message : "Unknown error",
       });
@@ -87,12 +87,16 @@ export async function toggleProfileDraft(options: {
 
     logger.info("Toggled profile draft status", {
       slug,
-      previousDraft: currentDraft,
-      newDraft,
-      hugoRebuildTriggered,
+      previousDraft: isCurrentlyDraft,
+      newDraft: isNewDraft,
+      hugoRebuildTriggered: wasHugoRebuildTriggered,
     });
 
-    return { slug, draft: newDraft, hugoRebuildTriggered };
+    return {
+      slug,
+      draft: isNewDraft,
+      hugoRebuildTriggered: wasHugoRebuildTriggered,
+    };
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;

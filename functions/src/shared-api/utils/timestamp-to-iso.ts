@@ -8,7 +8,7 @@ import type { Timestamp } from "firebase-admin/firestore";
  * @returns ISO 8601 formatted date string
  */
 export function timestampToIso(
-  timestamp: Timestamp | { _seconds: number; _nanoseconds: number } | string,
+  timestamp: Timestamp | string | { _seconds: number; _nanoseconds: number },
 ): string {
   // Handle string (already ISO format from emulator or other source)
   if (typeof timestamp === "string") {

@@ -52,7 +52,7 @@ export async function draftUnclaimedProfile(options: {
     await draftProfile({ slug });
     logger.info("Set unclaimed profile to draft", { email, slug });
 
-    let rebuildTriggered = true;
+    let wasRebuildTriggered = true;
 
     try {
       await triggerHugoRebuild({
@@ -60,7 +60,7 @@ export async function draftUnclaimedProfile(options: {
         action: "unclaimed profile drafted",
       });
     } catch (rebuildError) {
-      rebuildTriggered = false;
+      wasRebuildTriggered = false;
       logger.error(
         "Failed to trigger Hugo rebuild after drafting unclaimed profile",
         {
@@ -79,7 +79,7 @@ export async function draftUnclaimedProfile(options: {
     return {
       success: true,
       slug,
-      ...(!rebuildTriggered && {
+      ...(!wasRebuildTriggered && {
         warning:
           "Profile was set to draft, but the site rebuild did not trigger. The change may not appear immediately.",
       }),
