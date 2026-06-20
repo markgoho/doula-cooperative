@@ -86,7 +86,9 @@
       "Bash(command -v volta)",
       "Read(//Users/mgoho/.nvm/**)",
       "Bash(python3 *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(bunx playwright *)",
+      "WebFetch(domain:timdeschryver.dev)"
     ],
     "deny": [],
     "ask": []
