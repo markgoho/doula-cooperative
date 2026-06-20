@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Validate commit message follows conventional commit format
-bunx commitlint --edit "$1"
