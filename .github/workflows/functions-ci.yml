@@ -31,8 +31,7 @@ jobs:
         run: npm ci
 
       - name: Lint functions code
-        working-directory: ./functions
-        run: npm run lint
+        run: bunx eslint functions/
 
       - name: Typecheck production code
         working-directory: ./functions

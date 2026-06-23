@@ -12,7 +12,7 @@ on:
   repository_dispatch:
     types: [profile-update]
 jobs:
-  build_and_deploy:
+  build:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}:trunk
@@ -33,6 +33,24 @@ jobs:
           # Hugo templates use {{ os.Getenv "VAR_NAME" }} to read these
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_LIVE_PUBLISHABLE_KEY }}
           STRIPE_PRICING_TABLE_ID: ${{ secrets.STRIPE_LIVE_PRICING_TABLE_ID }}
+      - name: Upload Hugo build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: hugo-public
+          path: hugo/public
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Download Hugo build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: hugo-public
+          path: hugo/public
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
