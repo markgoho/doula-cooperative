@@ -52,6 +52,18 @@ jobs:
           name: hugo-public
           path: hugo/public
       - name: Deploy to Firebase
+        id: deploy
+        continue-on-error: true
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DOULA_COOPERATIVE }}
+          channelId: live
+          projectId: doula-cooperative
+          target: main-site
+      - name: Retry deploy to Firebase
+        id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +73,7 @@ jobs:
           target: main-site
       - name: Notify Profile Updates
         if: >-
-          success() &&
+          (steps.deploy.outcome == 'success' || steps.deploy_retry.outcome == 'success') &&
           github.event_name == 'repository_dispatch' &&
           github.event.client_payload.notificationType
         run: |
