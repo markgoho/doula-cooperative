@@ -272,14 +272,11 @@ export async function cleanSlateDelete({
   }
 
   // Step 8: CRITICAL — Delete Firebase Auth user
-  let wasAuthUserDeleted = false;
   try {
     await auth.deleteUser(memberId);
-    wasAuthUserDeleted = true;
   } catch (error) {
     if (isAuthError(error) && error.code === "auth/user-not-found") {
       // User is already gone — desired state achieved
-      wasAuthUserDeleted = true;
       logger.warn(
         "Auth user not found during clean slate delete (already removed)",
         { memberId },
@@ -320,7 +317,7 @@ export async function cleanSlateDelete({
     ...(profileDeleted !== undefined && { profileDeleted }),
     ...(profileImageDeleted !== undefined && { profileImageDeleted }),
     memberDocumentDeleted: true,
-    authUserDeleted: wasAuthUserDeleted,
+    authUserDeleted: true,
     ...(warning !== undefined && { warning }),
   };
 }

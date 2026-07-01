@@ -361,7 +361,9 @@ async function sendWelcomeEmail(options: {
       uid,
       email,
     });
-    throw new Error(`Failed to generate password reset link for ${email}`);
+    throw new Error(`Failed to generate password reset link for ${email}`, {
+      cause: error,
+    });
   }
 
   const emailMessage: EmailMessage = {
@@ -386,7 +388,9 @@ async function sendWelcomeEmail(options: {
         uid,
         email,
       });
-      throw new Error(`Failed to send welcome email to ${email}`);
+      throw new Error(`Failed to send welcome email to ${email}`, {
+        cause: error,
+      });
     }
   }
 }

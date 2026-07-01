@@ -38,7 +38,7 @@ async function importSubscribers() {
   const jsonPath = path.join(process.cwd(), "../Doula-Coop-Subscribers.json");
   console.log(`Reading subscribers from: ${jsonPath}`);
 
-  let subscribers: SubscriberJson[] = [];
+  let subscribers: SubscriberJson[];
   try {
     const fileContent = readFileSync(jsonPath, "utf8");
     subscribers = JSON.parse(fileContent) as SubscriberJson[];
@@ -47,7 +47,7 @@ async function importSubscribers() {
       `❌ Error reading JSON file:`,
       error instanceof Error ? error.message : String(error),
     );
-    throw new Error("Failed to read JSON file");
+    throw new Error("Failed to read JSON file", { cause: error });
   }
 
   console.log(`Found ${subscribers.length} subscribers to import.`);

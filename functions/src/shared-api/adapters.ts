@@ -44,6 +44,7 @@ export function toWebRequest(request: Request): globalThis.Request {
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(
       `Failed to convert Firebase request to Web request: ${errorMessage}`,
+      { cause: error },
     );
   }
 }
@@ -118,7 +119,12 @@ export async function sendWebResponse(
     });
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to send Web response to Firebase: ${errorMessage}`);
+    throw new Error(
+      `Failed to send Web response to Firebase: ${errorMessage}`,
+      {
+        cause: error,
+      },
+    );
   }
 }
 

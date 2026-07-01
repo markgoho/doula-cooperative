@@ -53,6 +53,7 @@ export async function saveContactForm({
     // Re-throw with context - this is a critical failure
     throw new Error(
       `Failed to save contact form to Firestore after email ${emailSent ? "was sent" : "failed"}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
     );
   }
 }

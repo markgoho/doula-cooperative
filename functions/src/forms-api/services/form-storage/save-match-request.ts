@@ -53,6 +53,7 @@ export async function saveMatchRequest({
     // Re-throw with context - this is a critical failure
     throw new Error(
       `Failed to save doula match request to Firestore after email ${emailSent ? "was sent" : "failed"}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
     );
   }
 }

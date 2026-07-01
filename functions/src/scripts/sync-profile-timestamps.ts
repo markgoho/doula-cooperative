@@ -96,7 +96,7 @@ async function syncProfileTimestamps() {
   const doulasPath = path.join(process.cwd(), "../hugo/content/doulas");
   console.log(`Reading doula profiles from: ${doulasPath}`);
 
-  let profileDirectories: string[] = [];
+  let profileDirectories: string[];
   try {
     profileDirectories = readdirSync(doulasPath, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
@@ -106,7 +106,7 @@ async function syncProfileTimestamps() {
       `❌ Error reading doulas directory:`,
       error instanceof Error ? error.message : String(error),
     );
-    throw new Error("Failed to read doulas directory");
+    throw new Error("Failed to read doulas directory", { cause: error });
   }
 
   console.log(`Found ${profileDirectories.length} doula profiles to process.`);
