@@ -1,5 +1,6 @@
 ---
-paths: members/e2e/**/*.spec.ts
+paths:
+  - "members/e2e/**/*.spec.ts"
 ---
 
 ## Test Structure

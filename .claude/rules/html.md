@@ -1,5 +1,6 @@
 ---
-paths: *.html
+paths:
+  - "*.html"
 ---
 
 - use semantic elements where appropriate

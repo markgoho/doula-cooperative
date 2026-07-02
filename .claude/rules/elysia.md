@@ -1,5 +1,6 @@
 ---
-paths: functions/src/**/*-api/**/*.ts
+paths:
+  - "functions/src/**/*-api/**/*.ts"
 ---
 
 # Elysia.js API Patterns

@@ -1,5 +1,6 @@
 ---
-paths: functions/src/**/*.test.ts
+paths:
+  - "functions/src/**/*.test.ts"
 ---
 
 # Firebase Functions Testing Guidelines

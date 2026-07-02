@@ -1,5 +1,6 @@
 ---
-paths: members/e2e/pages/*.page.ts
+paths:
+  - "members/e2e/pages/*.page.ts"
 ---
 
 ## Selector Strategy

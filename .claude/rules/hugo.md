@@ -1,10 +1,11 @@
 ---
-paths: hugo/**
+paths:
+  - "hugo/**"
 ---
 
-# Hugo Site - Rochester Doula Cooperative
+# Hugo Site
 
-Project-specific guidance for the Hugo static site at https://doulacooperative.com/
+Project-specific guidance for the Hugo static site
 
 **Note:** This file extends and overrides the generic Hugo best practices defined in `~/.claude/rules/hugo.md`. When working on this project, follow these project-specific patterns where they differ from the generic defaults. This file contains only project-specific details; refer to the user-level rules for general Hugo guidance.
 
