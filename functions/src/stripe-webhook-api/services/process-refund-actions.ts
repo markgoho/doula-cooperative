@@ -136,7 +136,7 @@ export async function processRefundActions({
   }
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
-  if (failures.length > 0 && emailService !== undefined) {
+  if (emailService !== undefined && failures.length > 0) {
     await sendAdminFailureNotification({
       subject:
         "Refund Processing - Action Required for Failed Follow-up Actions",

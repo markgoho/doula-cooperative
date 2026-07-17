@@ -57,7 +57,7 @@ async function fixUnclaimedProfileSlugs() {
     const stat = statSync(fullPath);
 
     // Only include directories (exclude _index.md and tag directory)
-    if (stat.isDirectory() && entry !== "tag") {
+    if (entry !== "tag" && stat.isDirectory()) {
       validSlugs.add(entry);
 
       // Try to parse email from index.md

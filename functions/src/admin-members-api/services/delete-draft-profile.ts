@@ -115,7 +115,7 @@ export async function deleteDraftProfile(options: {
       });
     }
 
-    if (failures.length > 0 && emailService) {
+    if (emailService && failures.length > 0) {
       await sendAdminFailureNotification({
         subject: `Draft profile deletion partial failure for ${member.email}`,
         title: "Draft profile deletion completed with failures",

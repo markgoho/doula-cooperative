@@ -145,7 +145,7 @@ export async function processSubscriptionEnded({
   }
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
-  if (failures.length > 0 && emailService !== undefined) {
+  if (emailService !== undefined && failures.length > 0) {
     await sendAdminFailureNotification({
       subject:
         "Subscription End - Action Required for Failed Follow-up Actions",

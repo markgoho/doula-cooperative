@@ -90,7 +90,6 @@ describe("GET /:memberId/profile", () => {
     }
 
     const request = new Request(`http://localhost/${memberId}/profile`, {
-      method: "GET",
       headers,
     });
 

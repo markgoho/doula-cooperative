@@ -81,7 +81,7 @@ function yamlScalar(value: string | boolean | number): string {
   if (typeof value !== "string") {
     return String(value);
   }
-  if (/[:#[\]{}|>&*!]/.test(value) || value === "") {
+  if (value === "" || /[:#[\]{}|>&*!]/.test(value)) {
     return `"${value.replaceAll('"', String.raw`\"`)}"`;
   }
   return value;
@@ -137,7 +137,7 @@ function serializeProfileToMarkdown(
   }
 
   if (profile.createdAt) {
-    const [dateOnly] = profile.createdAt.split("T");
+    const [dateOnly] = profile.createdAt.split("T", 1);
     frontMatter.date = dateOnly ?? profile.createdAt;
     frontMatter.createdAt = profile.createdAt;
   }

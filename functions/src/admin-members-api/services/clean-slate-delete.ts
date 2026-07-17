@@ -233,7 +233,7 @@ export async function cleanSlateDelete({
   }
 
   // NON-CRITICAL: Send admin notification if any cascading action failed
-  if (failures.length > 0 && emailService !== undefined) {
+  if (emailService !== undefined && failures.length > 0) {
     await sendAdminFailureNotification({
       subject:
         "Clean Slate Delete - Action Required for Failed Follow-up Actions",

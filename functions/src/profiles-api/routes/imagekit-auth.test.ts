@@ -59,7 +59,6 @@ describe("GET /auth (ImageKit auth)", () => {
     }
 
     const request = new Request("http://localhost/auth", {
-      method: "GET",
       headers,
     });
 

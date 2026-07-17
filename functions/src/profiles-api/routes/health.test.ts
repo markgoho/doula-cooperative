@@ -6,9 +6,7 @@ function setup() {
   const testApp = createApp();
 
   // Health endpoint is at /api/profiles/health (with prefix)
-  const request = new Request("http://localhost/api/profiles/health", {
-    method: "GET",
-  });
+  const request = new Request("http://localhost/api/profiles/health");
 
   return { testApp, request };
 }
