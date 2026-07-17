@@ -5,6 +5,7 @@
     "lib": ["es2023"],
     "module": "NodeNext",
     "outDir": "lib",
+    "rootDir": "src",
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "es2022"
