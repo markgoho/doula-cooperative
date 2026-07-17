@@ -9,7 +9,22 @@ import { auth } from '../lib/firebase';
  * API paths that require authentication.
  * Add new authenticated API paths here to automatically include auth tokens.
  */
-const AUTHENTICATED_API_PATHS = ['/api/admin/', '/api/analytics/', '/api/profiles/', '/api/members/'];
+const AUTHENTICATED_API_PATHS = [
+  '/api/admin/',
+  '/api/analytics/',
+  '/api/profiles/',
+  '/api/members/',
+];
+
+async function signOutAndRedirect(router: Router): Promise<void> {
+  try {
+    await signOut(auth);
+  } catch (signOutError) {
+    console.error('Sign out after 401 failed:', signOutError);
+  } finally {
+    void router.navigate(['/sign-in']);
+  }
+}
 
 /**
  * HTTP Interceptor that manages Firebase Auth tokens on API requests.
@@ -70,14 +85,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         // Token is invalid/revoked — sign out and redirect to sign-in
-        // eslint-disable-next-line unicorn/prefer-await
-        signOut(auth).then(
-          () => void router.navigate(['/sign-in']),
-          (signOutError: unknown) => {
-            console.error('Sign out after 401 failed:', signOutError);
-            void router.navigate(['/sign-in']);
-          },
-        );
+        void signOutAndRedirect(router);
         return EMPTY;
       }
       throw error;

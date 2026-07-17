@@ -93,8 +93,9 @@ export class CreateProfileWizardService {
       profileData.tags = tags;
     }
 
-    const hasContactInfo =
-      contact.businessName || contact.phone || contact.email || contact.website;
+    const hasContactInfo = Boolean(
+      contact.businessName || contact.phone || contact.email || contact.website,
+    );
 
     if (hasContactInfo) {
       profileData.contact = {};

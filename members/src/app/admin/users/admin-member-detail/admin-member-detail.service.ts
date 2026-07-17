@@ -54,7 +54,7 @@ export class AdminMemberDetailService {
     const member = this.memberResource.hasValue() ? this.memberResource.value() : undefined;
     const profile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
 
-    if (!member?.slug || !profile) {
+    if (!profile || !member?.slug) {
       return;
     }
 

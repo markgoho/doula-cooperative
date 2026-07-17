@@ -113,8 +113,8 @@ describe('UnclaimedProfilesTable', () => {
       const { user } = await setup({ profiles });
 
       // Act
-      const hasProfileHeader = await screen.findByRole('columnheader', { name: /Has Profile/i });
-      await user.click(hasProfileHeader);
+      const profileStatusHeader = await screen.findByRole('columnheader', { name: /Has Profile/i });
+      await user.click(profileStatusHeader);
 
       // Assert - profiles with slugs should come first
       const yesBadges = screen.getAllByText('Yes');

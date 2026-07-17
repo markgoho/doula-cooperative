@@ -44,7 +44,7 @@ export class ProfileService {
     effect(() => {
       const profile = this.profile();
       const slug = this.membershipService.userDocument()?.slug;
-      if (!profile?.image || !slug) return;
+      if (!slug || !profile?.image) return;
 
       // Track cache-bust so the effect re-runs after upload/delete
       this.imageCacheBust();
@@ -145,15 +145,21 @@ export class ProfileService {
           }
 
           case 409: {
-            throw new Error('Profile was modified elsewhere. Please refresh and try again.', { cause: error });
+            throw new Error('Profile was modified elsewhere. Please refresh and try again.', {
+              cause: error,
+            });
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
+            throw new Error('Too many requests. Please try again in a few minutes.', {
+              cause: error,
+            });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
+            throw new Error('Request timed out. Please check your connection and try again.', {
+              cause: error,
+            });
           }
         }
       }
@@ -211,16 +217,22 @@ export class ProfileService {
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
+            throw new Error('Too many requests. Please try again in a few minutes.', {
+              cause: error,
+            });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
+            throw new Error('Request timed out. Please check your connection and try again.', {
+              cause: error,
+            });
           }
         }
       }
 
-      throw new Error('Failed to create profile. Please try again or contact support.', { cause: error });
+      throw new Error('Failed to create profile. Please try again or contact support.', {
+        cause: error,
+      });
     }
   }
 
@@ -300,22 +312,32 @@ export class ProfileService {
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
+            throw new Error('Too many requests. Please try again in a few minutes.', {
+              cause: error,
+            });
           }
 
           case 403: {
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to upload a profile image.', { cause: error });
+              throw new Error('Active membership required to upload a profile image.', {
+                cause: error,
+              });
             }
-            throw new Error('You do not have permission to upload a profile image.', { cause: error });
+            throw new Error('You do not have permission to upload a profile image.', {
+              cause: error,
+            });
           }
 
           case 409: {
-            throw new Error('Profile was modified by another operation. Please try again.', { cause: error });
+            throw new Error('Profile was modified by another operation. Please try again.', {
+              cause: error,
+            });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
+            throw new Error('Request timed out. Please check your connection and try again.', {
+              cause: error,
+            });
           }
         }
       }
@@ -347,7 +369,9 @@ export class ProfileService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 401: {
-            throw new Error('You must be signed in to delete your profile image.', { cause: error });
+            throw new Error('You must be signed in to delete your profile image.', {
+              cause: error,
+            });
           }
 
           case 428: {
@@ -358,18 +382,26 @@ export class ProfileService {
           }
 
           case 429: {
-            throw new Error('Too many requests. Please try again in a few minutes.', { cause: error });
+            throw new Error('Too many requests. Please try again in a few minutes.', {
+              cause: error,
+            });
           }
 
           case 403: {
             if (error.error?.error?.includes('membership')) {
-              throw new Error('Active membership required to delete your profile image.', { cause: error });
+              throw new Error('Active membership required to delete your profile image.', {
+                cause: error,
+              });
             }
-            throw new Error('You do not have permission to delete a profile image.', { cause: error });
+            throw new Error('You do not have permission to delete a profile image.', {
+              cause: error,
+            });
           }
 
           case 504: {
-            throw new Error('Request timed out. Please check your connection and try again.', { cause: error });
+            throw new Error('Request timed out. Please check your connection and try again.', {
+              cause: error,
+            });
           }
         }
       }
@@ -395,9 +427,8 @@ export class ProfileService {
     const url = `${IMAGEKIT_BASE_URL}/doulas/${slug}/${slug}-profile?v=${this.imageCacheBust()}`;
     this.imageExistsOnServer.set(undefined);
 
-    void fetch(url, { method: 'HEAD' }).then(
-      (response) => this.imageExistsOnServer.set(response.ok),
-      () => this.imageExistsOnServer.set(undefined),
-    );
+    void fetch(url, { method: 'HEAD' })
+      .then((response) => this.imageExistsOnServer.set(response.ok))
+      .catch(() => this.imageExistsOnServer.set(undefined));
   }
 }
