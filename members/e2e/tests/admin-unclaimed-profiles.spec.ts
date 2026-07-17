@@ -86,12 +86,12 @@ test.describe('Admin Unclaimed Profiles', () => {
     // Check table headers
     const nameHeader = unclaimedTable.getByRole('columnheader', { name: /Name/ });
     const emailHeader = unclaimedTable.getByRole('columnheader', { name: /Email/ });
-    const hasProfileHeader = unclaimedTable.getByRole('columnheader', { name: /Has Profile/ });
+    const profileStatusHeader = unclaimedTable.getByRole('columnheader', { name: /Has Profile/ });
     const nextPaymentHeader = unclaimedTable.getByRole('columnheader', { name: /Next Payment/ });
 
     await expect(nameHeader).toBeVisible();
     await expect(emailHeader).toBeVisible();
-    await expect(hasProfileHeader).toBeVisible();
+    await expect(profileStatusHeader).toBeVisible();
     await expect(nextPaymentHeader).toBeVisible();
 
     // === Initial Data Display (default sort: next payment descending) ===
@@ -147,8 +147,8 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(tableRows.nth(2)).toContainText('charlie.unclaimed@example.com');
 
     // === Sort by Has Profile ===
-    await hasProfileHeader.click();
-    await expect(hasProfileHeader).toContainText('↑');
+    await profileStatusHeader.click();
+    await expect(profileStatusHeader).toContainText('↑');
     // Profiles with slugs first
     await expect(tableRows.nth(0)).toContainText('Yes');
     await expect(tableRows.nth(2)).toContainText('No');

@@ -41,7 +41,7 @@ test.describe('Admin Member Detail Page', () => {
       const url = route.request().url();
       const method = route.request().method();
 
-      if (url.includes('/api/admin/members/test-member-123') && method === 'GET') {
+      if (method === 'GET' && url.includes('/api/admin/members/test-member-123')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -80,9 +80,9 @@ test.describe('Admin Member Detail Page', () => {
 
       // GET single member
       if (
+        method === 'GET' &&
         url.includes('/api/admin/members/test-member-123') &&
-        !url.includes('/clean-slate') &&
-        method === 'GET'
+        !url.includes('/clean-slate')
       ) {
         await route.fulfill({
           status: 200,
@@ -93,7 +93,7 @@ test.describe('Admin Member Detail Page', () => {
       }
 
       // POST clean-slate delete
-      if (url.includes('/api/admin/members/test-member-123/clean-slate') && method === 'POST') {
+      if (method === 'POST' && url.includes('/api/admin/members/test-member-123/clean-slate')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -108,7 +108,7 @@ test.describe('Admin Member Detail Page', () => {
       }
 
       // GET members list (for redirect after delete)
-      if (/\/api\/admin\/members(\?|$)/.test(url) && method === 'GET') {
+      if (method === 'GET' && /\/api\/admin\/members(\?|$)/.test(url)) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -144,7 +144,7 @@ test.describe('Admin Member Detail Page', () => {
       const method = route.request().method();
 
       // GET member profile (new admin endpoint)
-      if (url.includes('/api/admin/members/test-member-123/profile') && method === 'GET') {
+      if (method === 'GET' && url.includes('/api/admin/members/test-member-123/profile')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -158,7 +158,7 @@ test.describe('Admin Member Detail Page', () => {
       }
 
       // GET single member
-      if (url.includes('/api/admin/members/test-member-123') && method === 'GET') {
+      if (method === 'GET' && url.includes('/api/admin/members/test-member-123')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
