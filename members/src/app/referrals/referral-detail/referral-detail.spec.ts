@@ -72,50 +72,69 @@ describe('ReferralDetail', () => {
   });
 
   describe('loaded state', () => {
-    it('shows contact name in the contact action heading', async () => {
+    it('shows the requester name and due date in the heading', async () => {
       await setup();
-      expect(await screen.findByRole('heading', { name: 'Contact Jane Smith' })).toBeVisible();
+      expect(await screen.findByRole('heading', { name: 'Jane Smith' })).toBeVisible();
+      expect(screen.getByText('Due March 15')).toBeVisible();
     });
 
-    it('shows contact email as a prominent link', async () => {
-      await setup();
-      expect(await screen.findByRole('link', { name: /email.*jane@example.com/i })).toBeVisible();
+    it('shows a missing due-date fallback', async () => {
+      await setup({
+        referral: makeReferralDetail({ estimatedDueDate: { month: '', day: '', year: '' } }),
+      });
+      expect(await screen.findByText('Due date not provided')).toBeVisible();
     });
 
-    it('shows phone as a prominent link', async () => {
+    it('shows notes before contact information', async () => {
       await setup();
-      expect(await screen.findByRole('link', { name: /call or text.*555-0100/i })).toBeVisible();
+      const notes = await screen.findByRole('heading', { name: 'Additional notes' });
+      const contact = screen.getByRole('heading', { name: 'Contact information' });
+      expect(
+        notes.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(screen.getByText('Looking for experienced doula')).toBeVisible();
     });
 
-    it('shows ZIP code', async () => {
-      await setup();
-      expect(await screen.findByText('14607')).toBeVisible();
+    it('omits the notes section when no notes were supplied', async () => {
+      await setup({ referral: makeReferralDetail({ otherInfo: '' }) });
+      expect(screen.queryByRole('heading', { name: 'Additional notes' })).not.toBeInTheDocument();
     });
 
-    it('shows service labels', async () => {
+    it('shows equal full-value email and phone contact links', async () => {
       await setup();
-      expect(await screen.findByText('Birth doula support')).toBeVisible();
+      const email = await screen.findByRole('link', { name: /email.*jane@example.com/i });
+      const phone = screen.getByRole('link', { name: /call or text.*555-0100/i });
+      expect(email).toHaveAttribute('href', 'mailto:jane@example.com');
+      expect(phone).toHaveAttribute('href', 'tel:555-0100');
+    });
+
+    it('consolidates secondary fields under request details', async () => {
+      await setup();
+      expect(await screen.findByRole('heading', { name: 'Request details' })).toBeVisible();
+      expect(screen.getByText('Hospital')).toBeVisible();
+      expect(screen.getByText('Birth doula support')).toBeVisible();
       expect(screen.getByText('Postpartum doula support')).toBeVisible();
+      expect(screen.getByText('medicaid')).toBeVisible();
+      expect(screen.getByText('14607')).toBeVisible();
     });
 
-    it('shows birth location', async () => {
+    it('does not show the member contact notice', async () => {
       await setup();
-      expect(await screen.findByText('Hospital')).toBeVisible();
+      await screen.findByRole('heading', { name: 'Jane Smith' });
+      expect(screen.queryByText(/cooperative norms/i)).not.toBeInTheDocument();
     });
 
-    it('shows additional notes', async () => {
-      await setup();
-      expect(await screen.findByText('Looking for experienced doula')).toBeVisible();
-    });
-
-    it('shows insurance', async () => {
-      await setup();
-      expect(await screen.findByText('medicaid')).toBeVisible();
-    });
-
-    it('shows member notice about contact norms', async () => {
-      await setup();
-      expect(await screen.findByText(/cooperative norms/i)).toBeVisible();
+    it('shows a due-soon cue for birth requests due within 30 days', async () => {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 7);
+      const estimatedDueDate = {
+        month: String(dueDate.getMonth() + 1),
+        day: String(dueDate.getDate()),
+        year: String(dueDate.getFullYear()),
+      };
+      const referral = makeReferralDetail({ estimatedDueDate });
+      await setup({ referral });
+      expect(await screen.findByText(/Due .+Due soon/)).toBeVisible();
     });
 
     it('shows back link to referrals list', async () => {
