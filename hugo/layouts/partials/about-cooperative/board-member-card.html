@@ -1,10 +1,12 @@
+{{ $slug := .doula_slug }}
+{{ $imagePath := .image_path | default (printf "https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/%s/%s-profile" $slug $slug) }}
 <div class="board-member-card">
   <div class="board-member-card__image">
     <img
       height="300"
       width="300"
       loading="lazy"
-      src="{{ .path }}"
+      src="{{ $imagePath }}"
       alt="Headshot of {{ .name }}" />
   </div>
   <div class="board-member-card__info">
