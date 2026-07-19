@@ -1,8 +1,7 @@
-<section>
+<section class="referrals-page">
   <h1>Referrals</h1>
   <p class="referrals-note">
-    These referrals are visible only to active cooperative members. Contact families following
-    cooperative norms and guidelines.
+    Referral requests submitted in the last 14 days are available to active cooperative members.
   </p>
 
   @if (referralsResource.isLoading()) {
@@ -11,38 +10,61 @@
     <p class="error" role="alert">{{ err.message }}</p>
   } @else if (referralsResource.value(); as referrals) {
     @if (referrals.length === 0) {
-      <p class="empty-state">No referrals available right now.</p>
+      <p class="empty-state">No referral requests in the last 14 days. Check back soon.</p>
     } @else {
       <ul class="referral-list" aria-label="Referral requests">
         @for (referral of referrals; track referral.id) {
           <li class="referral-card">
-            <div class="referral-meta">
-              <span class="referral-zip">{{ referral.zipcode }}</span>
-              <span class="referral-submitted">{{ getRelativeTime(referral.submitted) }}</span>
-            </div>
+            @if (hasDueDate(referral)) {
+              <div class="due-date">
+                <svg class="meta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="4" y="5" width="16" height="15" rx="2" />
+                  <path d="M8 3v4m8-4v4M4 10h16" />
+                </svg>
+                <span>{{ formatDueDate(referral) }}</span>
+                @if (isDueSoon(referral)) {
+                  <span class="due-soon">Due soon</span>
+                }
+              </div>
+            } @else if (!hasServices(referral)) {
+              <p class="fallback-heading">{{ getFallbackHeading(referral) }}</p>
+            }
 
-            <div class="referral-details">
-              <dl class="referral-fields">
-                <dt>Due date</dt>
-                <dd>{{ formatDueDate(referral) }}</dd>
+            <span class="referral-submitted">
+              <svg class="meta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3.5 2" />
+              </svg>
+              {{ getRelativeTime(referral.submitted) }}
+            </span>
 
-                <dt>Birth location</dt>
-                <dd>{{ referral.birthLocation || '—' }}</dd>
-              </dl>
+            @if (referral.birthLocation) {
+              <div class="birth-location">
+                <svg class="meta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 21s7-7.58 7-12A7 7 0 0 0 5 9c0 4.42 7 12 7 12Z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                {{ referral.birthLocation }}
+              </div>
+            }
 
+            @if (hasServices(referral)) {
               <ul class="service-tags" aria-label="Services requested">
                 @for (service of referral.services; track service) {
-                  <li class="service-tag">{{ getServiceLabel(service) }}</li>
+                  <li><app-tag [label]="getServiceLabel(service)" size="small" /></li>
                 }
               </ul>
-            </div>
+            }
 
             <a
               [routerLink]="['/referrals', referral.id]"
               class="view-link"
-              aria-label="View details for referral in {{ referral.zipcode }}"
+              aria-label="View request details"
             >
-              View details
+              View request
+              <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
             </a>
           </li>
         }

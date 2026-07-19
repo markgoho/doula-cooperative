@@ -1,4 +1,9 @@
-<a routerLink="/referrals" class="back-link">← Back to referrals</a>
+<a routerLink="/referrals" class="back-link">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M19 12H5m6-6-6 6 6 6" />
+  </svg>
+  Back to referrals
+</a>
 
 @if (referralResource.isLoading()) {
   <p class="loading" role="status">Loading referral...</p>
@@ -7,79 +12,97 @@
 } @else if (referralResource.value(); as referral) {
   <article class="referral-detail">
     <header class="detail-header">
-      <h1>Referral Request</h1>
+      <div>
+        <p class="eyebrow">Referral request</p>
+        <h1>{{ referral.zipcode }} · {{ referral.birthLocation || 'Location not provided' }}</h1>
+      </div>
+      <dl class="overview-details">
+        <div>
+          <dt>Estimated due date</dt>
+          <dd>
+            @if (parsedDueDate(); as dueDate) {
+              {{ dueDate | date: 'MMMM d, yyyy' }}
+            } @else {
+              Not provided
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Submitted</dt>
+          <dd>{{ referral.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
+        </div>
+      </dl>
+      <ul class="service-list service-list--overview" aria-label="Services requested">
+        @for (service of referral.services; track service) {
+          <li>{{ getServiceLabel(service) }}</li>
+        }
+      </ul>
       <p class="member-notice">
         Contact information is visible only to active cooperative members. Please follow cooperative
         norms when reaching out.
       </p>
     </header>
 
-    <section class="info-card" aria-labelledby="contact-heading">
-      <h2 id="contact-heading">Contact Details</h2>
-      <dl class="info-grid">
-        <dt>Name</dt>
-        <dd>{{ referral.name }}</dd>
-
-        <dt>Email</dt>
-        <dd>
-          <a [href]="'mailto:' + referral.email" class="contact-link">{{ referral.email }}</a>
-        </dd>
-
-        <dt>Phone</dt>
-        <dd>
-          <a [href]="'tel:' + referral.phone" class="contact-link">{{ referral.phone }}</a>
-        </dd>
-
-        <dt>ZIP code</dt>
-        <dd>{{ referral.zipcode }}</dd>
-
-        <dt>Submitted</dt>
-        <dd>{{ referral.submitted | date: 'MMM d, yyyy, h:mm a' }}</dd>
-      </dl>
+    <section class="contact-panel" aria-labelledby="contact-heading">
+      <div>
+        <p class="eyebrow">Ready to connect?</p>
+        <h2 id="contact-heading">Contact {{ referral.name }}</h2>
+      </div>
+      <div class="contact-actions">
+        <a [href]="'mailto:' + referral.email" class="contact-action">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="m3 7 9 6 9-6" />
+          </svg>
+          <span><small>Email</small>{{ referral.email }}</span>
+        </a>
+        <a [href]="'tel:' + referral.phone" class="contact-action">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M5 4h3l2 5-2 1.5a14 14 0 0 0 5.5 5.5L15 14l5 2v3a2 2 0 0 1-2 2C10.3 21 3 13.7 3 6a2 2 0 0 1 2-2Z"
+            />
+          </svg>
+          <span><small>Call or text</small>{{ referral.phone }}</span>
+        </a>
+      </div>
     </section>
 
-    <section class="info-card" aria-labelledby="birth-heading">
-      <h2 id="birth-heading">Birth Details</h2>
-      <dl class="info-grid">
-        <dt>Estimated due date</dt>
-        <dd>
-          @if (parsedDueDate(); as dueDate) {
-            {{ dueDate | date: 'MMMM d, yyyy' }}
-          } @else {
-            <span class="no-info">Not provided</span>
-          }
-        </dd>
-
-        <dt>Birth location</dt>
-        <dd>{{ referral.birthLocation || '—' }}</dd>
-      </dl>
-    </section>
-
-    <section class="info-card" aria-labelledby="services-heading">
-      <h2 id="services-heading">Services Requested</h2>
-      <ul class="service-list">
-        @for (service of referral.services; track service) {
-          <li>{{ getServiceLabel(service) }}</li>
-        }
-      </ul>
-    </section>
-
-    @if (referral.insurance.length > 0) {
-      <section class="info-card" aria-labelledby="insurance-heading">
-        <h2 id="insurance-heading">Insurance / Payment</h2>
-        <ul class="insurance-list">
-          @for (ins of referral.insurance; track ins) {
-            <li>{{ ins }}</li>
-          }
-        </ul>
+    <div class="details-grid">
+      <section class="info-card" aria-labelledby="birth-heading">
+        <h2 id="birth-heading">Birth Details</h2>
+        <dl class="info-grid">
+          <dt>Estimated due date</dt>
+          <dd>
+            @if (parsedDueDate(); as dueDate) {
+              {{ dueDate | date: 'MMMM d, yyyy' }}
+            } @else {
+              <span class="no-info">Not provided</span>
+            }
+          </dd>
+          <dt>Birth location</dt>
+          <dd>{{ referral.birthLocation || '—' }}</dd>
+          <dt>ZIP code</dt>
+          <dd>{{ referral.zipcode }}</dd>
+        </dl>
       </section>
-    }
 
-    @if (referral.otherInfo) {
-      <section class="info-card" aria-labelledby="notes-heading">
-        <h2 id="notes-heading">Additional Notes</h2>
-        <p class="notes-text">{{ referral.otherInfo }}</p>
-      </section>
-    }
+      @if (referral.insurance.length > 0) {
+        <section class="info-card" aria-labelledby="insurance-heading">
+          <h2 id="insurance-heading">Insurance / Payment</h2>
+          <ul class="insurance-list">
+            @for (ins of referral.insurance; track ins) {
+              <li>{{ ins }}</li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (referral.otherInfo) {
+        <section class="info-card info-card--wide" aria-labelledby="notes-heading">
+          <h2 id="notes-heading">Additional Notes</h2>
+          <p class="notes-text">{{ referral.otherInfo }}</p>
+        </section>
+      }
+    </div>
   </article>
 }

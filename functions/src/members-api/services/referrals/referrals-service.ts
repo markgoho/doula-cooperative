@@ -1,4 +1,4 @@
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import {
   MATCH_REQUESTS_COLLECTION,
   type MatchRequestDocument,
@@ -8,15 +8,23 @@ import { NotFoundError } from "../../../shared-api/errors/http-error.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
 import type { ReferralItem, ReferralsService } from "./interface.js";
 
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
+
+/**
+ * Lists referrals submitted within the last 14 days (inclusive), newest first.
+ * Older match requests are stale leads and are excluded from the member portal.
+ */
 async function listReferrals(logger: Logger): Promise<ReferralItem[]> {
   try {
     const firestore = getFirestore();
+    const cutoff = Timestamp.fromDate(new Date(Date.now() - FOURTEEN_DAYS_MS));
     const snapshot = await firestore
       .collection(MATCH_REQUESTS_COLLECTION)
+      .where("submitted", ">=", cutoff)
       .orderBy("submitted", "desc")
       .get();
 
-    return snapshot.docs.map((matchDocument) => ({
+    return snapshot.docs.map(matchDocument => ({
       id: matchDocument.id,
       document: matchDocument.data() as MatchRequestDocument,
     }));

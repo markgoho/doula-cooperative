@@ -1,127 +1,173 @@
 :host {
   display: block;
-  max-width: 800px;
-  margin-inline: auto;
   padding: var(--space-l);
 }
 
 .referrals-note {
-  font-size: var(--step--1);
+  background: var(--brown-100);
+  border-left: 4px solid var(--teal-500);
+  border-radius: var(--border-radius-md);
   color: var(--brown-500);
+  font-size: var(--step--1);
   margin-block-end: var(--space-l);
   padding: var(--space-s);
-  background: var(--brown-100);
-  border-radius: var(--border-radius-md);
-  border-left: 4px solid var(--teal-500);
 }
 
 .loading,
 .empty-state {
   color: var(--brown-450);
-  text-align: center;
   padding: var(--space-xl);
+  text-align: center;
 }
 
 .error {
-  color: var(--brown-600);
   background: var(--brown-100);
   border: 1px solid var(--brown-300);
   border-radius: var(--border-radius-md);
+  color: var(--brown-600);
   padding: var(--space-m);
   text-align: center;
 }
 
 .referral-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: grid;
   gap: var(--space-m);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .referral-card {
   background: var(--brown-000);
   border: 1px solid var(--brown-200);
   border-radius: var(--border-radius-md);
-  padding: var(--space-m);
+  column-gap: var(--space-m);
+  row-gap: var(--space-xs);
   display: grid;
-  gap: var(--space-s);
-}
-
-.referral-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.referral-zip {
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--step-0);
+  grid-template-areas:
+    'due-date submitted'
+    'location .'
+    'services services'
+    '. view-link';
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto 1fr;
+  min-height: 12rem;
+  padding: var(--space-m);
 }
 
 .referral-submitted {
-  font-size: var(--step--2);
+  align-items: center;
   color: var(--brown-450);
+  display: inline-flex;
+  font-size: var(--step--2);
+  gap: var(--space-3xs);
+  grid-area: submitted;
+  justify-self: end;
 }
 
-.referral-details {
-  display: grid;
-  gap: var(--space-s);
+.meta-icon,
+.arrow-icon {
+  fill: none;
+  flex-shrink: 0;
+  height: 1.1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 1.1rem;
 }
 
-.referral-fields {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-3xs) var(--space-s);
-  align-items: baseline;
-  margin: 0;
-
-  dt {
-    font-size: var(--step--2);
-    font-weight: var(--font-weight-regular);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--brown-500);
-  }
-
-  dd {
-    font-size: var(--step-0);
-    margin: 0;
-  }
-}
-
-.service-tags {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.due-date,
+.birth-location {
+  align-items: center;
   display: flex;
-  flex-wrap: wrap;
   gap: var(--space-2xs);
 }
 
-.service-tag {
-  font-size: var(--step--2);
-  background: var(--teal-100, var(--brown-100));
-  color: var(--teal-700, var(--brown-600));
-  padding: var(--space-3xs) var(--space-xs);
-  border-radius: 999px;
+.due-date {
+  grid-area: due-date;
+  color: var(--brown-600);
+  font-size: var(--step-1);
+  font-weight: var(--font-weight-semibold);
+}
+
+.due-soon {
+  color: var(--brown-500);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+}
+
+.birth-location {
+  color: var(--brown-450);
+  font-size: var(--step--1);
+  grid-area: location;
+}
+
+.fallback-heading {
+  color: var(--brown-600);
+  font-size: var(--step-1);
+  font-weight: var(--font-weight-semibold);
+  grid-area: due-date;
+  margin: 0;
+}
+
+.service-tags {
+  display: flex;
+  grid-area: services;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .view-link {
-  display: inline-block;
+  align-items: center;
+  color: var(--teal-600);
+  display: inline-flex;
   font-size: var(--step--1);
   font-weight: var(--font-weight-semibold);
-  color: var(--teal-600);
+  gap: var(--space-3xs);
+  grid-area: view-link;
+  justify-self: end;
   text-decoration: none;
-  align-self: start;
 
   &:hover {
     text-decoration: underline;
   }
 
   &:focus-visible {
+    border-radius: 2px;
     outline: 2px solid var(--teal-500);
     outline-offset: 2px;
-    border-radius: 2px;
+  }
+}
+
+@media (max-width: 48rem) {
+  .referral-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 30rem) {
+  :host {
+    padding: var(--space-m);
+  }
+
+  .referral-card {
+    grid-template-areas:
+      'due-date'
+      'submitted'
+      'location'
+      'services'
+      'view-link';
+    grid-template-columns: 1fr;
+    row-gap: var(--space-xs);
+  }
+
+  .referral-submitted,
+  .view-link {
+    justify-self: start;
   }
 }

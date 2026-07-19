@@ -61,10 +61,19 @@ describe('Referrals list', () => {
     });
   });
 
-  describe('empty state', () => {
-    it('shows empty state when no referrals', async () => {
+  describe('14-day framing', () => {
+    it('frames the feed as showing requests from the last 14 days', async () => {
       await setup({ referrals: [] });
-      expect(await screen.findByText('No referrals available right now.')).toBeVisible();
+      expect(await screen.findByText(/last 14 days/i)).toBeVisible();
+    });
+  });
+
+  describe('empty state', () => {
+    it('shows empty state when no referrals in the last 14 days', async () => {
+      await setup({ referrals: [] });
+      expect(
+        await screen.findByText('No referral requests in the last 14 days. Check back soon.'),
+      ).toBeVisible();
     });
   });
 
@@ -75,27 +84,62 @@ describe('Referrals list', () => {
       expect(items.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('shows ZIP code for each referral', async () => {
-      await setup({ referrals: [makeReferral({ zipcode: '14607' })] });
-      expect(await screen.findByText('14607')).toBeVisible();
-    });
-
-    it('shows service label', async () => {
-      await setup({ referrals: [makeReferral({ services: ['birth-doula'] })] });
+    it('shows service tags with the reusable tag component', async () => {
+      await setup({ referrals: [makeReferral({ services: ['birth-doula', 'postpartum-doula'] })] });
       expect(await screen.findByText('Birth')).toBeVisible();
+      expect(screen.getByText('Postpartum')).toBeVisible();
     });
 
-    it('shows view details link for each referral', async () => {
+    it('shows due date as the primary card content', async () => {
+      await setup({ referrals: [makeReferral()] });
+      expect(await screen.findByText('Mar 15, 2025')).toBeVisible();
+    });
+
+    it('shows the birth location without showing ZIP code', async () => {
+      await setup({ referrals: [makeReferral({ zipcode: '14607', birthLocation: 'Hospital' })] });
+      expect(await screen.findByText('Hospital')).toBeVisible();
+      expect(screen.queryByText('14607')).toBeNull();
+    });
+
+    it('shows services as the primary content without a due date', async () => {
+      await setup({
+        referrals: [makeReferral({ estimatedDueDate: { month: '', day: '', year: '' } })],
+      });
+      expect(await screen.findByText('Birth')).toBeVisible();
+      expect(screen.queryByText('—')).toBeNull();
+    });
+
+    it('marks an upcoming birth-doula request as due soon', async () => {
+      const soon = new Date();
+      soon.setDate(soon.getDate() + 14);
+      const estimatedDueDate = {
+        month: String(soon.getMonth() + 1),
+        day: String(soon.getDate()),
+        year: String(soon.getFullYear()),
+      };
+      const referral = makeReferral({ estimatedDueDate });
+      await setup({ referrals: [referral] });
+      expect(await screen.findByText('Due soon')).toBeVisible();
+    });
+
+    it('shows view request link for each referral', async () => {
       await setup({ referrals: [makeReferral({ id: 'req-abc' })] });
-      expect(await screen.findByRole('link', { name: /View details/ })).toBeVisible();
+      expect(await screen.findByRole('link', { name: /View request details/ })).toBeVisible();
     });
 
     it('does not show contact info (name, email, phone) in list', async () => {
       await setup({ referrals: [makeReferral()] });
       // Wait for loaded state
-      await screen.findByText('14607');
+      await screen.findByText('Hospital');
       expect(screen.queryByText(/jane@example\.com/)).toBeNull();
       expect(screen.queryByText(/555-/)).toBeNull();
+    });
+
+    it('marks decorative icons as hidden from assistive technology', async () => {
+      await setup({ referrals: [makeReferral()] });
+      await screen.findByText('Hospital');
+      const hiddenIcons = document.querySelectorAll('svg[aria-hidden="true"]');
+      expect(hiddenIcons.length).toBeGreaterThan(0);
     });
   });
 });

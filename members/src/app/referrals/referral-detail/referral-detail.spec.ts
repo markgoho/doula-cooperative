@@ -52,10 +52,7 @@ async function setup({
 
   await render(ReferralDetail, {
     bindings: [inputBinding('id', () => id)],
-    providers: [
-      { provide: ReferralsService, useValue: mockReferralsService },
-      provideRouter([]),
-    ],
+    providers: [{ provide: ReferralsService, useValue: mockReferralsService }, provideRouter([])],
   });
 }
 
@@ -75,19 +72,19 @@ describe('ReferralDetail', () => {
   });
 
   describe('loaded state', () => {
-    it('shows contact name', async () => {
+    it('shows contact name in the contact action heading', async () => {
       await setup();
-      expect(await screen.findByText('Jane Smith')).toBeVisible();
+      expect(await screen.findByRole('heading', { name: 'Contact Jane Smith' })).toBeVisible();
     });
 
-    it('shows contact email as link', async () => {
+    it('shows contact email as a prominent link', async () => {
       await setup();
-      expect(await screen.findByRole('link', { name: 'jane@example.com' })).toBeVisible();
+      expect(await screen.findByRole('link', { name: /email.*jane@example.com/i })).toBeVisible();
     });
 
-    it('shows phone as link', async () => {
+    it('shows phone as a prominent link', async () => {
       await setup();
-      expect(await screen.findByRole('link', { name: '555-0100' })).toBeVisible();
+      expect(await screen.findByRole('link', { name: /call or text.*555-0100/i })).toBeVisible();
     });
 
     it('shows ZIP code', async () => {

@@ -66,7 +66,8 @@ describe("GET /:memberId/referrals", () => {
     referrals = [],
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
-      if (memberNotFound) return Promise.reject(new NotFoundError("Member not found"));
+      if (memberNotFound)
+        return Promise.reject(new NotFoundError("Member not found"));
       if (serverError) return Promise.reject(new Error("DB timeout"));
       if (memberIsInactive) return Promise.resolve(makeInactiveMember());
       return Promise.resolve(makeActiveStripeMember());
@@ -84,7 +85,9 @@ describe("GET /:memberId/referrals", () => {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
 
-    const request = new Request(`http://localhost/${memberId}/referrals`, { headers });
+    const request = new Request(`http://localhost/${memberId}/referrals`, {
+      headers,
+    });
     return { testApp, request };
   }
 
@@ -113,7 +116,10 @@ describe("GET /:memberId/referrals", () => {
   });
 
   describe("Success", () => {
-    it("returns 200 with empty list for active Stripe owner", async () => {
+    // The route trusts referralsService.listReferrals to have already applied
+    // the 14-day Firestore cutoff (see referrals-service.ts); an empty result
+    // here represents "no referrals submitted in the last 14 days".
+    it("returns 200 with empty list when no referrals in the last 14 days", async () => {
       const { testApp, request } = setup({ referrals: [] });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
@@ -121,12 +127,12 @@ describe("GET /:memberId/referrals", () => {
       expect(body.referrals).toEqual([]);
     });
 
-    it("returns 200 with referral list items for active Stripe owner", async () => {
+    it("returns newest-first public referral items for an active Stripe owner", async () => {
       const submitted = Timestamp.now();
       const { testApp, request } = setup({
         referrals: [
           {
-            id: "req-abc",
+            id: "req-newest",
             document: {
               name: "Jane Smith",
               phone: "555-0100",
@@ -138,6 +144,22 @@ describe("GET /:memberId/referrals", () => {
               otherInfo: "",
               insurance: ["medicaid"],
               submitted,
+              sent: false,
+            },
+          },
+          {
+            id: "req-earlier",
+            document: {
+              name: "Older Request",
+              phone: "555-0200",
+              email: "older@example.com",
+              zipcode: "14608",
+              estimatedDueDate: { month: "4", day: "2", year: "2025" },
+              services: ["postpartum-doula"],
+              birthLocation: "Home",
+              otherInfo: "",
+              insurance: [],
+              submitted: Timestamp.fromMillis(submitted.toMillis() - 60_000),
               sent: false,
             },
           },
@@ -153,8 +175,11 @@ describe("GET /:memberId/referrals", () => {
           birthLocation: string;
         }[];
       };
-      expect(body.referrals).toHaveLength(1);
-      expect(body.referrals[0]?.id).toBe("req-abc");
+      expect(body.referrals).toHaveLength(2);
+      expect(body.referrals.map(referral => referral.id)).toEqual([
+        "req-newest",
+        "req-earlier",
+      ]);
       expect(body.referrals[0]?.zipcode).toBe("14607");
       // Privacy: contact and admin-only fields must not appear in list
       expect(body.referrals[0]).not.toHaveProperty("name");
@@ -167,7 +192,10 @@ describe("GET /:memberId/referrals", () => {
     });
 
     it("returns 200 for admin access even when membership is inactive", async () => {
-      const { testApp, request } = setup({ authToken: "admin-token", memberIsInactive: true });
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        memberIsInactive: true,
+      });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
     });
