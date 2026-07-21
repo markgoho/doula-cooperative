@@ -1,3 +1,4 @@
+import type { MatchRequestLocale } from "../../collections/match-request-locale.js";
 import {
   MARK_EMAIL,
   NO_REPLY_EMAIL,
@@ -24,7 +25,7 @@ import type { DoulaMatchData } from "./form-storage/types.js";
  * @param parameters - Doula match form data
  * @returns Email message ready to send via EmailService
  */
-const LOCALE_LABELS: Record<string, string> = {
+const LOCALE_LABELS: Record<MatchRequestLocale, string> = {
   en: "English (en)",
   es: "Spanish (es)",
 };
@@ -41,7 +42,7 @@ export function buildDoulaMatchNotification({
   insurance,
   locale,
 }: DoulaMatchData): EmailMessage {
-  const localeLabel = locale ? (LOCALE_LABELS[locale] ?? locale) : undefined;
+  const localeLabel = locale ? LOCALE_LABELS[locale] : undefined;
 
   return {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,

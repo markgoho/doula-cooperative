@@ -272,15 +272,21 @@ describe("POST /doula-match", () => {
       expect(body.emailSent).toBe(true);
     });
 
-    it("should accept Spanish locale submission", async () => {
+    it("should accept Spanish locale submission and include Language row in notification email", async () => {
       let savedData: { locale?: string } | undefined;
+      let sentEmailHtml: string | undefined;
       const mockSaveMatchRequest = mock(
         ({ data }: { data: { locale?: string } }) => {
           savedData = data;
           return Promise.resolve();
         },
       );
-      const mockSendEmail = mock(() => Promise.resolve());
+      const mockSendEmail = mock(
+        ({ message }: { message: { html?: string } }) => {
+          sentEmailHtml = message.html;
+          return Promise.resolve();
+        },
+      );
       const mockRecaptchaService = {
         verifyToken: mock(() => Promise.resolve({ success: true, score: 0.9 })),
       };
@@ -317,6 +323,8 @@ describe("POST /doula-match", () => {
       expect(body.success).toBe(true);
       expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
       expect(savedData?.locale).toBe("es");
+      expect(sentEmailHtml).toContain("Language:");
+      expect(sentEmailHtml).toContain("Spanish (es)");
     });
 
     it("should return 422 when locale is an unsupported value", async () => {

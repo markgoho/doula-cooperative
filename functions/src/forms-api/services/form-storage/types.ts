@@ -1,3 +1,5 @@
+import type { MatchRequestLocale } from "../../../collections/match-request-locale.js";
+
 /**
  * Contact form input data (without metadata like submitted timestamp).
  * Used for API validation and as input to saveContactForm.
@@ -26,5 +28,5 @@ export interface DoulaMatchData {
   birthLocation: string;
   otherInfo: string;
   insurance: string[];
-  locale?: "en" | "es";
+  locale?: MatchRequestLocale;
 }

@@ -1,4 +1,5 @@
 import type { Timestamp } from "firebase-admin/firestore";
+import type { MatchRequestLocale } from "./match-request-locale.js";
 
 /**
  * Match requests collection: stores doula match form submissions
@@ -22,5 +23,5 @@ export interface MatchRequestDocument {
   submitted: Timestamp;
   sent: boolean;
   recaptchaScore?: number;
-  locale?: "en" | "es";
+  locale?: MatchRequestLocale;
 }
