@@ -76,6 +76,15 @@ other = "Member Login"
 [footer_inclusion]
 other = "The Doula Cooperative is committed to the inclusion of individuals and families regardless of age, race, class, ethnicity, national origin, gender expression &amp; identity, sexuality, relationship status, ability, religion and birthing choices and location. All are welcome."
 
+[language_switcher_label]
+other = "Language"
+
+[language_name_en]
+other = "English"
+
+[language_name_es]
+other = "Español"
+
 # Find a Doula nav cards
 [nav_card_search_title]
 other = "Search"

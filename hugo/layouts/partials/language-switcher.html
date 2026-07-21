@@ -1,0 +1,39 @@
+{{/* Links to the same page in each site language, or that language's home page. */}}
+{{ $page := . }}
+{{ $defaultLang := hugo.Sites.Default.Language.Lang }}
+<nav class="footer__language" aria-label="{{ i18n "language_switcher_label" }}">
+  <ul class="footer__language-list">
+    {{ range site.Languages }}
+      {{ $langCode := .Lang }}
+      {{ $langName := i18n (printf "language_name_%s" $langCode) }}
+      <li class="footer__language-item">
+        {{ if eq $langCode $page.Language.Lang }}
+          <span
+            class="footer__language-current"
+            lang="{{ $langCode }}"
+            aria-current="true"
+            >{{ $langName }}</span
+          >
+        {{ else }}
+          {{ $url := "/" }}
+          {{ if ne $langCode $defaultLang }}
+            {{ $url = printf "/%s/" $langCode }}
+          {{ end }}
+          {{ range $page.AllTranslations }}
+            {{ if eq .Language.Lang $langCode }}
+              {{ $url = .RelPermalink }}
+            {{ end }}
+          {{ end }}
+          <a
+            href="{{ $url }}"
+            class="footer__language-link"
+            hreflang="{{ $langCode }}"
+            lang="{{ $langCode }}"
+            rel="alternate"
+            >{{ $langName }}</a
+          >
+        {{ end }}
+      </li>
+    {{ end }}
+  </ul>
+</nav>

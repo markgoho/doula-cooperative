@@ -76,6 +76,15 @@ other = "Acceso de miembros"
 [footer_inclusion]
 other = "La Cooperativa de Doulas está comprometida con la inclusión de personas y familias sin importar edad, raza, clase, etnia, origen nacional, expresión e identidad de género, sexualidad, estado civil, capacidad, religión y decisiones y lugar de parto. Todas las personas son bienvenidas."
 
+[language_switcher_label]
+other = "Idioma"
+
+[language_name_en]
+other = "English"
+
+[language_name_es]
+other = "Español"
+
 # Find a Doula nav cards
 [nav_card_search_title]
 other = "Buscar"
