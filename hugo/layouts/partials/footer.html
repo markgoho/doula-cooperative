@@ -30,7 +30,7 @@
     <div class="footer__col">
       <h2 class="footer__col-title">{{ i18n "footer_browse_members" }}</h2>
       <ul class="footer__links">
-        {{ range first 3 .Site.Taxonomies.tags.ByCount }}
+        {{ range first 3 (partial "find-a-doula/canonical-tags.html" .) }}
           <li>
             <a href="{{ .Page.RelPermalink }}"
               >{{ .Page.Title }} ({{ .Count }})</a

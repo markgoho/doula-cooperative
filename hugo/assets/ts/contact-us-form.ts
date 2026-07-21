@@ -1,5 +1,3 @@
-import { isDoulaRequest } from "./detect-doula-request.js";
-
 const contactForm: HTMLFormElement | null = document.querySelector(".form");
 const contactName: HTMLInputElement | null = document.querySelector("#name");
 const email: HTMLInputElement | null = document.querySelector("#email");
@@ -9,67 +7,9 @@ const submitButton: HTMLButtonElement | null =
   document.querySelector("#submit-button");
 const formLoadedAt = Date.now();
 const formError: HTMLDivElement | null = document.querySelector("#form-error");
-const doulaRedirectNotice: HTMLDivElement | null = document.querySelector(
-  "#doula-redirect-notice",
-);
-const doulaRedirectAnnouncement: HTMLDivElement | null = document.querySelector(
-  "#doula-redirect-announcement",
-);
-const dismissDoulaNoticeButton: HTMLButtonElement | null =
-  document.querySelector("#dismiss-doula-notice");
+
 function getFormText(key: keyof DOMStringMap, fallback: string): string {
   return contactForm?.dataset[key] ?? fallback;
-}
-
-function getAnnouncementText(): string {
-  return getFormText(
-    "textDoulaAnnouncement",
-    "Looking for doula support? Use the doula match form, or dismiss this notice to continue.",
-  );
-}
-
-const doulaNoticeState = { overridden: false };
-
-function showDoulaRedirectNotice(): void {
-  if (!doulaRedirectNotice) {
-    return;
-  }
-
-  if (doulaRedirectAnnouncement) {
-    doulaRedirectAnnouncement.textContent = "";
-  }
-
-  doulaRedirectNotice.hidden = false;
-  doulaRedirectNotice.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-  if (doulaRedirectAnnouncement) {
-    requestAnimationFrame(() => {
-      doulaRedirectAnnouncement.textContent = getAnnouncementText();
-    });
-  }
-}
-
-function hideDoulaRedirectNotice(): void {
-  if (!doulaRedirectNotice) {
-    return;
-  }
-
-  doulaRedirectNotice.hidden = true;
-  if (doulaRedirectAnnouncement) {
-    doulaRedirectAnnouncement.textContent = "";
-  }
-}
-
-function resetDoulaNoticeOverride(): void {
-  doulaNoticeState.overridden = false;
-}
-
-function maybeHideDoulaRedirectNotice(): void {
-  if (!message || isDoulaRequest(message.value)) {
-    return;
-  }
-
-  hideDoulaRedirectNotice();
 }
 
 function hasRequiredFields(): boolean {
@@ -125,22 +65,6 @@ function updateSubmitButtonToSending(): void {
   }
 }
 
-function handleMessageInput(): void {
-  resetDoulaNoticeOverride();
-  maybeHideDoulaRedirectNotice();
-}
-
-function handleDismissDoulaNotice(): void {
-  doulaNoticeState.overridden = true;
-  hideDoulaRedirectNotice();
-}
-
-function shouldBlockForDoulaRequest(): boolean {
-  return Boolean(
-    message && isDoulaRequest(message.value) && !doulaNoticeState.overridden,
-  );
-}
-
 function shouldProceedWithSubmit(): boolean {
   showValidationState();
 
@@ -150,13 +74,6 @@ function shouldProceedWithSubmit(): boolean {
 
   clearValidationState();
   clearFormError();
-
-  if (shouldBlockForDoulaRequest()) {
-    showDoulaRedirectNotice();
-    return false;
-  }
-
-  hideDoulaRedirectNotice();
   beginSubmit();
   return true;
 }
@@ -260,14 +177,6 @@ const doSubmit = async () => {
     handleSubmitError(error);
   }
 };
-
-if (dismissDoulaNoticeButton) {
-  dismissDoulaNoticeButton.addEventListener("click", handleDismissDoulaNotice);
-}
-
-if (message) {
-  message.addEventListener("input", handleMessageInput);
-}
 
 if (submitButton) {
   submitButton.addEventListener("click", handleSubmitClick);

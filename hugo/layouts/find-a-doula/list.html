@@ -54,6 +54,17 @@
         showSubResults: true,
         showImages: true,
         resetStyles: false,
+        {{ if eq .Site.Language.Lang "es" }}
+        translations: {
+          placeholder: "Buscar doulas…",
+          zero_results: "No se encontraron resultados para [SEARCH_TERM]",
+          many_results: "[COUNT] resultados para [SEARCH_TERM]",
+          one_result: "[COUNT] resultado para [SEARCH_TERM]",
+          alt_search: "No se encontraron resultados para [SEARCH_TERM]. Mostrando resultados para [DIFFERENT_TERM].",
+          search_suggestion: "No se encontraron resultados para [SEARCH_TERM]. ¿Quisiste decir [DIFFERENT_TERM]?",
+          searching: "Buscando [SEARCH_TERM]…",
+        },
+        {{ end }}
       });
 
       const container = document.querySelector("#search");
@@ -83,11 +94,11 @@
               return;
             }
 
-            // Parse total results from the message element
+            // Parse total results from the message element (English and Spanish)
             let resultCount = 0;
             const messageEl = container.querySelector(MESSAGE_SELECTOR);
             if (messageEl && typeof messageEl.textContent === "string") {
-              const match = messageEl.textContent.match(/(\d+)\s+results\b/i);
+              const match = messageEl.textContent.match(/(\d+)\s+results?|resultados?\b/i);
               if (match) {
                 resultCount = Number(match[1]);
               }

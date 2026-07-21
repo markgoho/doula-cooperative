@@ -234,18 +234,3 @@ other = "Enviar"
 
 [contact_doula_redirect]
 other = "¿Buscas información sobre apoyo de doula? Usa nuestro <a href=\"{url}\">formulario especial de solicitud</a>."
-
-[contact_doula_redirect_notice_heading]
-other = "¿Buscas apoyo de doula?"
-
-[contact_doula_redirect_notice_text]
-other = "¡Parece que estás buscando servicios de doula! Tenemos un formulario dedicado que te ayudará a encontrar la doula adecuada para tus necesidades."
-
-[contact_doula_redirect_notice_button]
-other = "Ir al formulario de doula"
-
-[contact_doula_redirect_notice_alt]
-other = "¿No buscas una doula?"
-
-[contact_doula_redirect_notice_dismiss]
-other = "Cerrar y continuar"

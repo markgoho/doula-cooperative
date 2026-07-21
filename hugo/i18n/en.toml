@@ -234,18 +234,3 @@ other = "Submit"
 
 [contact_doula_redirect]
 other = "Looking for information about Doula Support? Use our <a href=\"{url}\">special request form</a>."
-
-[contact_doula_redirect_notice_heading]
-other = "Looking for Doula Support?"
-
-[contact_doula_redirect_notice_text]
-other = "It sounds like you're looking for doula services! We have a dedicated form that will help match you with the right doula for your needs."
-
-[contact_doula_redirect_notice_button]
-other = "Go to Doula Match Form"
-
-[contact_doula_redirect_notice_alt]
-other = "Not looking for a doula?"
-
-[contact_doula_redirect_notice_dismiss]
-other = "Dismiss and continue"

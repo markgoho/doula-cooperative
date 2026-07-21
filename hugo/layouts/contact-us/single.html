@@ -1,7 +1,6 @@
 {{ define "head-styles" }}
   {{ $css := slice
     (resources.Get "css/components/callout.css")
-    (resources.Get "css/components/doula-redirect-notice.css")
     (resources.Get "css/components/forms.css")
     (resources.Get "css/contact-us.css")
     | resources.Concat "contact-us.css"
@@ -49,8 +48,7 @@
       data-text-verifying="{{ i18n "form_verifying_text" }}"
       data-text-sending="{{ i18n "form_sending_text" }}"
       data-text-submit="{{ i18n "contact_submit_button" }}"
-      data-text-generic-error="{{ i18n "form_generic_error" }}"
-      data-text-doula-announcement="{{ i18n "contact_doula_redirect_notice_text" }}">
+      data-text-generic-error="{{ i18n "form_generic_error" }}">
       <div class="form-group full-width">
         <label for="name" class="form__label"
           >{{ i18n "contact_name_label" }}</label
@@ -96,30 +94,6 @@
       </div>
 
       <div id="form-error" class="form__error-message" aria-live="polite"></div>
-      <div id="doula-redirect-notice" class="doula-redirect-notice" hidden>
-        <div
-          id="doula-redirect-announcement"
-          class="visually-hidden"
-          aria-live="polite"></div>
-        <h3 class="doula-redirect-notice__heading">
-          {{ i18n "contact_doula_redirect_notice_heading" }}
-        </h3>
-        <p class="doula-redirect-notice__text">
-          {{ i18n "contact_doula_redirect_notice_text" }}
-        </p>
-        <a href="{{ "/find-a-doula/match/" | relLangURL }}" class="button"
-          >{{ i18n "contact_doula_redirect_notice_button" }}</a
-        >
-        <p class="doula-redirect-notice__alt">
-          {{ i18n "contact_doula_redirect_notice_alt" }}
-          <button
-            type="button"
-            id="dismiss-doula-notice"
-            class="doula-redirect-notice__dismiss">
-            {{ i18n "contact_doula_redirect_notice_dismiss" }}
-          </button>
-        </p>
-      </div>
       <button type="submit" id="submit-button" class="button">
         {{ i18n "contact_submit_button" }}
       </button>

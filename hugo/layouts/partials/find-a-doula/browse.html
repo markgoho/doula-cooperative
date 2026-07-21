@@ -1,6 +1,6 @@
 {{ .Content }}
 <ul class="tag-group top-tags">
-  {{ range first 5 .Site.Taxonomies.tags.ByCount }}
+  {{ range first 5 (partial "find-a-doula/canonical-tags.html" .) }}
     <li class="tag">
       <a href="{{ .Page.RelPermalink }}"
         ><span style="view-transition-name: title-{{ .Page.Title | md5 }};"
