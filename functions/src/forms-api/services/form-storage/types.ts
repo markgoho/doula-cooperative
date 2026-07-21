@@ -26,4 +26,5 @@ export interface DoulaMatchData {
   birthLocation: string;
   otherInfo: string;
   insurance: string[];
+  locale?: "en" | "es";
 }

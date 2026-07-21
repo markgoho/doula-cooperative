@@ -17,8 +17,16 @@ const doulaRedirectAnnouncement: HTMLDivElement | null = document.querySelector(
 );
 const dismissDoulaNoticeButton: HTMLButtonElement | null =
   document.querySelector("#dismiss-doula-notice");
-const announcementText =
-  "Looking for doula support? Use the doula match form, or dismiss this notice to continue.";
+function getFormText(key: keyof DOMStringMap, fallback: string): string {
+  return contactForm?.dataset[key] ?? fallback;
+}
+
+function getAnnouncementText(): string {
+  return getFormText(
+    "textDoulaAnnouncement",
+    "Looking for doula support? Use the doula match form, or dismiss this notice to continue.",
+  );
+}
 
 const doulaNoticeState = { overridden: false };
 
@@ -36,7 +44,7 @@ function showDoulaRedirectNotice(): void {
 
   if (doulaRedirectAnnouncement) {
     requestAnimationFrame(() => {
-      doulaRedirectAnnouncement.textContent = announcementText;
+      doulaRedirectAnnouncement.textContent = getAnnouncementText();
     });
   }
 }
@@ -88,7 +96,7 @@ function resetSubmitButton(): void {
   }
 
   submitButton.disabled = false;
-  submitButton.textContent = "Submit";
+  submitButton.textContent = getFormText("textSubmit", "Submit");
 }
 
 function beginSubmit(): void {
@@ -97,13 +105,15 @@ function beginSubmit(): void {
   }
 
   submitButton.disabled = true;
-  submitButton.textContent = "Verifying...";
+  submitButton.textContent = getFormText("textVerifying", "Verifying...");
 }
 
 function showSubmissionError(): void {
   if (formError) {
-    formError.textContent =
-      "Sorry, there was an error sending your message. Please try again later.";
+    formError.textContent = getFormText(
+      "textGenericError",
+      "Sorry, there was an error sending your message. Please try again later.",
+    );
   }
 
   resetSubmitButton();
@@ -111,7 +121,7 @@ function showSubmissionError(): void {
 
 function updateSubmitButtonToSending(): void {
   if (submitButton) {
-    submitButton.textContent = "Sending...";
+    submitButton.textContent = getFormText("textSending", "Sending...");
   }
 }
 
@@ -234,7 +244,9 @@ async function sendContactForm({
     throw new Error(`HTTP error! status: ${String(response.status)}`);
   }
 
-  location.assign("/thank-you-for-contacting-us");
+  const successUrl =
+    contactForm.dataset.successUrl ?? "/thank-you-for-contacting-us/";
+  location.assign(successUrl);
 }
 
 const doSubmit = async () => {

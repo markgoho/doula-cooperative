@@ -24,6 +24,11 @@ import type { DoulaMatchData } from "./form-storage/types.js";
  * @param parameters - Doula match form data
  * @returns Email message ready to send via EmailService
  */
+const LOCALE_LABELS: Record<string, string> = {
+  en: "English (en)",
+  es: "Spanish (es)",
+};
+
 export function buildDoulaMatchNotification({
   name,
   phone,
@@ -34,7 +39,10 @@ export function buildDoulaMatchNotification({
   birthLocation,
   otherInfo,
   insurance,
+  locale,
 }: DoulaMatchData): EmailMessage {
+  const localeLabel = locale ? (LOCALE_LABELS[locale] ?? locale) : undefined;
+
   return {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: [MARK_EMAIL, REFERRAL_EMAIL],
@@ -52,6 +60,7 @@ export function buildDoulaMatchNotification({
           : ""
       }
       <p><strong>Birth Location:</strong> ${birthLocation}</p>
+      ${localeLabel ? `<p><strong>Language:</strong> ${localeLabel}</p>` : ""}
       <p><strong>Other Info:</strong></p>
       <p>${otherInfo}</p>
     `,

@@ -1,0 +1,251 @@
+# Header
+[nav_find_a_doula]
+other = "Find a Doula"
+
+# Home page
+[home_tagline]
+other = "Doulas for every step of your birth journey"
+
+[home_title]
+other = "Welcome to the Doula Cooperative of Rochester, NY"
+
+[home_collective_highlight]
+other = "We are a collective"
+
+[home_collective_text]
+other = "of experienced, compassionate doulas serving families throughout Rochester and the surrounding communities. Our cooperative model ensures you'll find the right support for your unique needs and life transitions."
+
+[home_believe_highlight]
+other = "We believe"
+
+[home_believe_text]
+other = "birth support should be accessible, personalized, and rooted in community. Each doula brings their own expertise while sharing our commitment to evidence-based care and honoring your choices."
+
+[home_support_highlight]
+other = "We offer comprehensive support"
+
+[home_support_text]
+other = "from prenatal education to labor support, from postpartum care to specialized services, helping you feel confident throughout your journey into parenthood."
+
+[home_learn_title]
+other = "Learn more about Doulas"
+
+[home_learn_description]
+other = "Explore our resources to understand the role and benefits of a doula."
+
+[home_find_title]
+other = "Find the right Doula for you"
+
+[home_find_description]
+other = "Connect with the right doula for you using our powerful search tools."
+
+[home_join_title]
+other = "Join the Doula cooperative"
+
+[home_join_description]
+other = "Join our community of doulas and support each other in our shared mission."
+
+# Footer
+[footer_find_a_doula]
+other = "Find a Doula"
+
+[footer_search]
+other = "Search"
+
+[footer_browse]
+other = "Browse"
+
+[footer_match]
+other = "Match"
+
+[footer_browse_members]
+other = "Browse Members"
+
+[footer_connect]
+other = "Connect"
+
+[footer_our_mission]
+other = "Our mission"
+
+[footer_contact_us]
+other = "Contact us"
+
+[footer_member_login]
+other = "Member Login"
+
+[footer_inclusion]
+other = "The Doula Cooperative is committed to the inclusion of individuals and families regardless of age, race, class, ethnicity, national origin, gender expression &amp; identity, sexuality, relationship status, ability, religion and birthing choices and location. All are welcome."
+
+# Find a Doula nav cards
+[nav_card_search_title]
+other = "Search"
+
+[nav_card_search_description]
+other = "Search across all Doula profiles, bios, specializations, and locations"
+
+[nav_card_browse_title]
+other = "Browse"
+
+[nav_card_browse_description]
+other = "Discover doulas across a variety of professional service categories"
+
+[nav_card_match_title]
+other = "Match"
+
+[nav_card_match_description]
+other = "Answer a few questions to find a doula who matches your needs."
+
+# Match form labels
+[form_name_label]
+other = "Name (first and last)"
+
+[form_phone_label]
+other = "Phone (required)"
+
+[form_email_label]
+other = "Email (required)"
+
+[form_zipcode_label]
+other = "ZIP Code (required)"
+
+[form_due_date_legend]
+other = "Baby's estimated date of arrival or birthdate"
+
+[form_month_label]
+other = "Month"
+
+[form_day_label]
+other = "Day"
+
+[form_year_label]
+other = "Year"
+
+[form_looking_for_legend]
+other = "I am looking for..."
+
+[form_birth_doula_label]
+other = "birth doula support"
+
+[form_postpartum_doula_label]
+other = "postpartum doula support"
+
+[form_lactation_support_label]
+other = "lactation support"
+
+[form_childbirth_classes_label]
+other = "childbirth classes"
+
+[form_other_info_looking_for_label]
+other = "other information"
+
+[form_birth_location_legend]
+other = "My birth is planned at..."
+
+[form_home_birth_label]
+other = "home"
+
+[form_highland_label]
+other = "Highland Hospital"
+
+[form_rochester_general_label]
+other = "Rochester General Hospital"
+
+[form_strong_label]
+other = "Strong Hospital"
+
+[form_other_hospital_label]
+other = "Other Hospital"
+
+[form_other_hospital_input_label]
+other = "Other hospital name"
+
+[form_cost_offset_legend]
+other = "I plan to offset the cost for Doula Services with (optional):"
+
+[form_medicaid_label]
+other = "Medicaid"
+
+[form_carrot_label]
+other = "Carrot"
+
+[form_other_info_label]
+other = "Is there any other information you'd like to share with us?"
+
+[form_submit_button]
+other = "Submit Information"
+
+[form_verifying_text]
+other = "Verifying..."
+
+[form_sending_text]
+other = "Sending..."
+
+[form_date_range_error]
+other = "The date you entered is outside the typical doula service window. Please enter a date within 1 year past to 2 years in the future."
+
+[form_generic_error]
+other = "Sorry, there was an error sending your message. Please try again later."
+
+# What happens next
+[what_happens_next_callout]
+other = "What happens after I submit the form?"
+
+[what_happens_next_p1]
+other = "If you're looking for doula support, your information will be shared with cooperative members."
+
+[what_happens_next_p2]
+other = "Doulas who are available around your estimated arrival date will email you to set up a complimentary consultation. You may receive 2 or 20 emails depending on who is available."
+
+[what_happens_next_p3]
+other = "It is common for pregnant people to meet with a few doulas to determine who they'd feel most comfortable working with."
+
+[what_happens_next_p4]
+other = "When you're ready to hire one of the doulas you've met with, you can contact them directly to sign their client agreement and pay their fee."
+
+# Join page
+[join_membership_heading]
+other = "Cooperative Membership, 1 Year"
+
+# Thank you page
+[thank_you_p1]
+other = "Your request has been submitted to the Doula Cooperative. Here's what you can expect next:"
+
+# Contact page
+[contact_name_label]
+other = "Name (first and last)"
+
+[contact_name_error]
+other = "Please enter your name."
+
+[contact_email_label]
+other = "Email (required)"
+
+[contact_email_error]
+other = "Please enter a valid email address."
+
+[contact_message_label]
+other = "What can we help you with?"
+
+[contact_message_error]
+other = "Please enter a message."
+
+[contact_submit_button]
+other = "Submit"
+
+[contact_doula_redirect]
+other = "Looking for information about Doula Support? Use our <a href=\"{url}\">special request form</a>."
+
+[contact_doula_redirect_notice_heading]
+other = "Looking for Doula Support?"
+
+[contact_doula_redirect_notice_text]
+other = "It sounds like you're looking for doula services! We have a dedicated form that will help match you with the right doula for your needs."
+
+[contact_doula_redirect_notice_button]
+other = "Go to Doula Match Form"
+
+[contact_doula_redirect_notice_alt]
+other = "Not looking for a doula?"
+
+[contact_doula_redirect_notice_dismiss]
+other = "Dismiss and continue"

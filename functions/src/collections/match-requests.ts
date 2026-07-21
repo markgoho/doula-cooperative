@@ -22,4 +22,5 @@ export interface MatchRequestDocument {
   submitted: Timestamp;
   sent: boolean;
   recaptchaScore?: number;
+  locale?: "en" | "es";
 }

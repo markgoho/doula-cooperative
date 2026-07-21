@@ -29,6 +29,7 @@ interface DoulaMatchFormRequest {
   insurance: string[];
   otherHospitalName?: string;
   recaptchaToken: string;
+  locale?: string;
 }
 
 async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
@@ -49,7 +50,9 @@ async function sendMatchForm(data: DoulaMatchFormRequest): Promise<void> {
     throw new Error(`HTTP error! status: ${String(response.status)}`);
   }
 
-  location.assign("/thank-you-for-your-match-request");
+  const successUrl =
+    matchForm.dataset.successUrl ?? "/thank-you-for-your-match-request/";
+  location.assign(successUrl);
 }
 
 function validateDueDateRange(
@@ -90,10 +93,12 @@ function validateDueDateRange(
 
   // Check if date is outside acceptable range
   if (enteredDate < oneYearAgo || enteredDate > twoYearsFromNow) {
+    const dateRangeError =
+      matchForm?.dataset.textDateRangeError ??
+      "The date you entered is outside the typical doula service window. Please enter a date within 1 year past to 2 years in the future.";
     return {
       isError: true,
-      message:
-        "The date you entered is outside the typical doula service window. Please enter a date within 1 year past to 2 years in the future.",
+      message: dateRangeError,
     };
   }
 
@@ -101,8 +106,12 @@ function validateDueDateRange(
 }
 
 const doSubmit = async () => {
+  const textVerifying = matchForm?.dataset.textVerifying ?? "Verifying...";
+  const textSending = matchForm?.dataset.textSending ?? "Sending...";
+  const textSubmit = matchForm?.dataset.textSubmit ?? "Submit Information";
+
   if (submitButton) {
-    submitButton.textContent = "Verifying...";
+    submitButton.textContent = textVerifying;
   }
   if (formError) {
     formError.textContent = "";
@@ -123,7 +132,7 @@ const doSubmit = async () => {
         formError.style.display = "block";
       }
       if (submitButton) {
-        submitButton.textContent = "Submit Information";
+        submitButton.textContent = textSubmit;
       }
       return;
     }
@@ -140,7 +149,7 @@ const doSubmit = async () => {
     });
 
     if (submitButton) {
-      submitButton.textContent = "Sending...";
+      submitButton.textContent = textSending;
     }
 
     const services: string[] = Array.from(
@@ -162,13 +171,7 @@ const doSubmit = async () => {
         );
         birthLocation = otherHospitalInput?.value ?? "Other Hospital";
       } else {
-        const label = document.querySelector<HTMLLabelElement>(
-          `label[for="${CSS.escape(selectedBirthLocationRadio.id)}"]`,
-        );
-        const labelText = label?.textContent;
-        birthLocation = labelText
-          ? labelText.trim()
-          : selectedBirthLocationRadio.id;
+        birthLocation = selectedBirthLocationRadio.value;
       }
     }
 
@@ -177,6 +180,10 @@ const doSubmit = async () => {
         'input[type="checkbox"][id="medicaid"]:checked, input[type="checkbox"][id="carrot"]:checked',
       ),
       checkbox => checkbox.id,
+    );
+
+    const localeInput = document.querySelector<HTMLInputElement>(
+      'input[name="locale"]',
     );
 
     const formData: DoulaMatchFormRequest = {
@@ -194,6 +201,7 @@ const doSubmit = async () => {
       otherInfo: otherInfo?.value ?? "",
       insurance,
       recaptchaToken,
+      locale: localeInput?.value ?? undefined,
     };
 
     // console.log(formData);
@@ -202,11 +210,13 @@ const doSubmit = async () => {
     console.error("Failed to send match form:", error);
     if (formError) {
       formError.textContent =
+        matchForm?.dataset.textGenericError ??
         "Sorry, there was an error sending your message. Please try again later.";
       formError.style.display = "block";
     }
     if (submitButton) {
-      submitButton.textContent = "Submit Information";
+      submitButton.textContent =
+        matchForm?.dataset.textSubmit ?? "Submit Information";
     }
   }
 };

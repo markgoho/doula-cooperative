@@ -1,9 +1,25 @@
 baseURL = 'https://doulacooperative.com/'
 # Production Stripe keys enabled 2026-02-28
-languageCode = 'en-us'
-title = 'Rochester Doula Cooperative'
+defaultContentLanguage = 'en'
 enableRobotsTXT = true
 enableGitInfo = true
+
+[languages.en]
+  locale = 'en-US'
+  label = 'English'
+  title = 'Rochester Doula Cooperative'
+  weight = 1
+  [languages.en.params]
+    description = 'The Rochester Doula Cooperative connects families with professional birth and postpartum doulas in the Rochester, NY area. Find compassionate support for your pregnancy, birth, and new-parent journey.'
+
+[languages.es]
+  locale = 'es'
+  label = 'Español'
+  title = 'Rochester Doula Cooperative'
+  weight = 2
+  contentDir = 'content'
+  [languages.es.params]
+    description = 'La Cooperativa de Doulas de Rochester conecta a familias con doulas profesionales de parto y posparto en el área de Rochester, NY. Encuentra apoyo compasivo para el embarazo, el parto y la crianza temprana.'
 
 [params]
   description = "The Rochester Doula Cooperative connects families with professional birth and postpartum doulas in the Rochester, NY area. Find compassionate support for your pregnancy, birth, and new-parent journey."
@@ -32,12 +48,21 @@ enableGitInfo = true
 [permalinks]
   tags = "/doulas/tag/:slug/"
 
-[[menu.main]]
+[[languages.en.menu.main]]
   name = "About"
   pageRef = "/about-the-doula-cooperative"
   weight = 10
-[[menu.main]]
+[[languages.en.menu.main]]
   name = "Join"
+  pageRef = "/join-the-doula-cooperative"
+  weight = 20
+
+[[languages.es.menu.main]]
+  name = "Sobre Nosotros"
+  pageRef = "/about-the-doula-cooperative"
+  weight = 10
+[[languages.es.menu.main]]
+  name = "Únete"
   pageRef = "/join-the-doula-cooperative"
   weight = 20
 

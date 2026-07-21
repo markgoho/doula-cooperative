@@ -14,6 +14,8 @@ export const ContactFormBodySchema = t.Object({
 
 export type ContactFormBody = Static<typeof ContactFormBodySchema>;
 
+const LocaleSchema = t.Union([t.Literal("en"), t.Literal("es")]);
+
 /**
  * Doula match form request body schema.
  */
@@ -32,6 +34,7 @@ export const DoulaMatchFormBodySchema = t.Object({
   otherInfo: t.String({ maxLength: 5000 }),
   insurance: t.Array(t.String()),
   recaptchaToken: t.Optional(t.String()),
+  locale: t.Optional(LocaleSchema),
 });
 
 export type DoulaMatchFormBody = Static<typeof DoulaMatchFormBodySchema>;

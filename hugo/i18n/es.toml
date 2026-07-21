@@ -1,0 +1,251 @@
+# Header
+[nav_find_a_doula]
+other = "Encontrar una doula"
+
+# Home page
+[home_tagline]
+other = "Doulas para cada paso de tu camino de nacimiento"
+
+[home_title]
+other = "Bienvenida a la Cooperativa de Doulas de Rochester, NY"
+
+[home_collective_highlight]
+other = "Somos un colectivo"
+
+[home_collective_text]
+other = "de doulas con experiencia y compasión que apoyan a familias en Rochester y las comunidades cercanas. Nuestro modelo cooperativo ayuda a encontrar el apoyo adecuado para tus necesidades y transiciones de vida."
+
+[home_believe_highlight]
+other = "Creemos"
+
+[home_believe_text]
+other = "que el apoyo durante el nacimiento debe ser accesible, personalizado y arraigado en la comunidad. Cada doula aporta su propia experiencia y comparte nuestro compromiso con la atención basada en evidencia y el respeto por tus decisiones."
+
+[home_support_highlight]
+other = "Ofrecemos apoyo integral"
+
+[home_support_text]
+other = "desde educación prenatal hasta apoyo durante el parto, cuidado posparto y servicios especializados, para ayudarte a sentir confianza durante tu camino hacia la maternidad o paternidad."
+
+[home_learn_title]
+other = "Aprende más sobre las doulas"
+
+[home_learn_description]
+other = "Explora nuestros recursos para entender el rol y los beneficios de una doula."
+
+[home_find_title]
+other = "Encuentra la doula adecuada para ti"
+
+[home_find_description]
+other = "Conecta con la doula adecuada para ti usando nuestras herramientas de búsqueda."
+
+[home_join_title]
+other = "Únete a la Cooperativa de Doulas"
+
+[home_join_description]
+other = "Únete a nuestra comunidad de doulas y apóyense mutuamente en nuestra misión compartida."
+
+# Footer
+[footer_find_a_doula]
+other = "Encontrar una Doula"
+
+[footer_search]
+other = "Buscar"
+
+[footer_browse]
+other = "Explorar"
+
+[footer_match]
+other = "Solicitar apoyo"
+
+[footer_browse_members]
+other = "Ver Miembros"
+
+[footer_connect]
+other = "Conectar"
+
+[footer_our_mission]
+other = "Nuestra misión"
+
+[footer_contact_us]
+other = "Contáctenos"
+
+[footer_member_login]
+other = "Acceso de miembros"
+
+[footer_inclusion]
+other = "La Cooperativa de Doulas está comprometida con la inclusión de personas y familias sin importar edad, raza, clase, etnia, origen nacional, expresión e identidad de género, sexualidad, estado civil, capacidad, religión y decisiones y lugar de parto. Todas las personas son bienvenidas."
+
+# Find a Doula nav cards
+[nav_card_search_title]
+other = "Buscar"
+
+[nav_card_search_description]
+other = "Busca entre todos los perfiles de doulas, biografías, especializaciones y ubicaciones"
+
+[nav_card_browse_title]
+other = "Explorar"
+
+[nav_card_browse_description]
+other = "Descubre doulas en una variedad de categorías de servicios profesionales"
+
+[nav_card_match_title]
+other = "Solicitar apoyo"
+
+[nav_card_match_description]
+other = "Responde algunas preguntas para encontrar una doula que se adapte a tus necesidades."
+
+# Match form labels
+[form_name_label]
+other = "Nombre (nombre y apellido)"
+
+[form_phone_label]
+other = "Teléfono (requerido)"
+
+[form_email_label]
+other = "Correo electrónico (requerido)"
+
+[form_zipcode_label]
+other = "Código postal (requerido)"
+
+[form_due_date_legend]
+other = "Fecha estimada de llegada del bebé o fecha de nacimiento"
+
+[form_month_label]
+other = "Mes"
+
+[form_day_label]
+other = "Día"
+
+[form_year_label]
+other = "Año"
+
+[form_looking_for_legend]
+other = "Estoy buscando..."
+
+[form_birth_doula_label]
+other = "apoyo de doula de parto"
+
+[form_postpartum_doula_label]
+other = "apoyo de doula posparto"
+
+[form_lactation_support_label]
+other = "apoyo de lactancia"
+
+[form_childbirth_classes_label]
+other = "clases de parto"
+
+[form_other_info_looking_for_label]
+other = "otra información"
+
+[form_birth_location_legend]
+other = "Mi parto está planeado en..."
+
+[form_home_birth_label]
+other = "casa"
+
+[form_highland_label]
+other = "Highland Hospital"
+
+[form_rochester_general_label]
+other = "Rochester General Hospital"
+
+[form_strong_label]
+other = "Strong Hospital"
+
+[form_other_hospital_label]
+other = "Otro hospital"
+
+[form_other_hospital_input_label]
+other = "Nombre del otro hospital"
+
+[form_cost_offset_legend]
+other = "Planeo compensar el costo de los Servicios de Doula con (opcional):"
+
+[form_medicaid_label]
+other = "Medicaid"
+
+[form_carrot_label]
+other = "Carrot"
+
+[form_other_info_label]
+other = "¿Hay alguna otra información que desees compartir con nosotros?"
+
+[form_submit_button]
+other = "Enviar información"
+
+[form_verifying_text]
+other = "Verificando..."
+
+[form_sending_text]
+other = "Enviando..."
+
+[form_date_range_error]
+other = "La fecha que ingresaste está fuera del período típico de servicio de doula. Por favor ingresa una fecha dentro de 1 año pasado a 2 años en el futuro."
+
+[form_generic_error]
+other = "Lo sentimos, hubo un error al enviar tu mensaje. Por favor intenta de nuevo más tarde."
+
+# What happens next
+[what_happens_next_callout]
+other = "¿Qué pasa después de enviar el formulario?"
+
+[what_happens_next_p1]
+other = "Si estás buscando apoyo de doula, tu información será compartida con los miembros de la cooperativa."
+
+[what_happens_next_p2]
+other = "Las doulas que estén disponibles alrededor de tu fecha estimada de llegada te enviarán un correo electrónico para programar una consulta gratuita. Puedes recibir entre 2 y 20 correos dependiendo de quién esté disponible."
+
+[what_happens_next_p3]
+other = "Es común que las personas embarazadas se reúnan con algunas doulas para determinar con quién se sentirían más cómodas trabajando."
+
+[what_happens_next_p4]
+other = "Cuando estés lista para contratar a una de las doulas con las que te hayas reunido, puedes comunicarte con ellas directamente para firmar su contrato de cliente y pagar sus honorarios."
+
+# Join page
+[join_membership_heading]
+other = "Membresía Cooperativa, 1 Año"
+
+# Thank you page
+[thank_you_p1]
+other = "Tu solicitud ha sido enviada a la Cooperativa de Doulas. Esto es lo que puedes esperar a continuación:"
+
+# Contact page
+[contact_name_label]
+other = "Nombre (nombre y apellido)"
+
+[contact_name_error]
+other = "Por favor ingresa tu nombre."
+
+[contact_email_label]
+other = "Correo electrónico (requerido)"
+
+[contact_email_error]
+other = "Por favor ingresa una dirección de correo válida."
+
+[contact_message_label]
+other = "¿En qué podemos ayudarte?"
+
+[contact_message_error]
+other = "Por favor ingresa un mensaje."
+
+[contact_submit_button]
+other = "Enviar"
+
+[contact_doula_redirect]
+other = "¿Buscas información sobre apoyo de doula? Usa nuestro <a href=\"{url}\">formulario especial de solicitud</a>."
+
+[contact_doula_redirect_notice_heading]
+other = "¿Buscas apoyo de doula?"
+
+[contact_doula_redirect_notice_text]
+other = "¡Parece que estás buscando servicios de doula! Tenemos un formulario dedicado que te ayudará a encontrar la doula adecuada para tus necesidades."
+
+[contact_doula_redirect_notice_button]
+other = "Ir al formulario de doula"
+
+[contact_doula_redirect_notice_alt]
+other = "¿No buscas una doula?"
+
+[contact_doula_redirect_notice_dismiss]
+other = "Cerrar y continuar"

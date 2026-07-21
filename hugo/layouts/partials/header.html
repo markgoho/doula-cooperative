@@ -1,5 +1,5 @@
 <nav class="navbar">
-  <a class="navbar__logo" href="/">
+  <a class="navbar__logo" href="{{ "/" | relLangURL }}">
     <h2>Doula Cooperative</h2>
   </a>
   <ul class="navbar__nav">
@@ -9,7 +9,9 @@
       </li>
     {{ end }}
   </ul>
-  <a href="/find-a-doula/" class="navbar__cta button navbar__button"
-    >Find a Doula</a
+  <a
+    href="{{ "/find-a-doula/" | relLangURL }}"
+    class="navbar__cta button navbar__button"
+    >{{ i18n "nav_find_a_doula" }}</a
   >
 </nav>

@@ -10,10 +10,7 @@
 {{ define "main" }}
   <h1 class="thank-you-page__title">{{ .Title }}</h1>
   <section class="text-content">
-    <p>
-      Your request has been submitted to the Doula Cooperative. Here's what you
-      can expect next:
-    </p>
+    <p>{{ i18n "thank_you_p1" }}</p>
   </section>
   <section class="text-content">
     {{ partial "find-a-doula/what-happens-next.html" . }}

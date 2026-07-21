@@ -27,8 +27,10 @@
 
 {{ define "hero" }}
   <section class="hero">
-    <div class="tagline">Doulas for every step of your birth journey</div>
-    <a href="/find-a-doula/" class="hero-cta button">Find a Doula</a>
+    <div class="tagline">{{ i18n "home_tagline" }}</div>
+    <a href="{{ "/find-a-doula/" | relLangURL }}" class="hero-cta button"
+      >{{ i18n "nav_find_a_doula" }}</a
+    >
     <div class="org-container">
       <span class="org-name">Doula Cooperative</span>
       <span class="org-location">Rochester, NY</span>
@@ -37,32 +39,28 @@
 {{ end }}
 
 {{ define "main" }}
-  <h1>Welcome to the Doula Cooperative of Rochester, NY</h1>
+  <h1>{{ i18n "home_title" }}</h1>
   <section class="text-content">
     <p class="text-content">
-      <span class="highlight">We are a collective</span> of experienced,
-      compassionate doulas serving families throughout Rochester and the
-      surrounding communities. Our cooperative model ensures you'll find the
-      right support for your unique needs and life transitions.
+      <span class="highlight">{{ i18n "home_collective_highlight" }}</span>
+      {{ i18n "home_collective_text" }}
     </p>
     <p class="text-content">
-      <span class="highlight">We believe</span> birth support should be
-      accessible, personalized, and rooted in community. Each doula brings their
-      own expertise while sharing our commitment to evidence-based care and
-      honoring your choices.
+      <span class="highlight">{{ i18n "home_believe_highlight" }}</span>
+      {{ i18n "home_believe_text" }}
     </p>
     <p class="text-content">
-      <span class="highlight">We offer comprehensive support</span> from
-      prenatal education to labor support, from postpartum care to specialized
-      services, helping you feel confident throughout your journey into
-      parenthood.
+      <span class="highlight">{{ i18n "home_support_highlight" }}</span>
+      {{ i18n "home_support_text" }}
     </p>
   </section>
 
   <section class="nav-cards-container">
     <div class="nav-cards">
       <div class="nav-card-container">
-        <a href="/learn-more-about-doulas/" class="nav-card">
+        <a
+          href="{{ "/learn-more-about-doulas/" | relLangURL }}"
+          class="nav-card">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -75,17 +73,16 @@
           <h2
             class="nav-card__title"
             style="view-transition-name: title-about-doulas">
-            Learn more about Doulas
+            {{ i18n "home_learn_title" }}
           </h2>
           <p class="nav-card__description">
-            Explore our resources to understand the role and benefits of a
-            doula.
+            {{ i18n "home_learn_description" }}
           </p>
         </a>
       </div>
 
       <div class="nav-card-container">
-        <a href="/find-a-doula/" class="nav-card">
+        <a href="{{ "/find-a-doula/" | relLangURL }}" class="nav-card">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -98,17 +95,18 @@
           <h2
             class="nav-card__title"
             style="view-transition-name: title-find-doula">
-            Find the right Doula for you
+            {{ i18n "home_find_title" }}
           </h2>
           <p class="nav-card__description">
-            Connect with the right doula for you using our powerful search
-            tools.
+            {{ i18n "home_find_description" }}
           </p>
         </a>
       </div>
 
       <div class="nav-card-container">
-        <a href="/join-the-doula-cooperative/" class="nav-card">
+        <a
+          href="{{ "/join-the-doula-cooperative/" | relLangURL }}"
+          class="nav-card">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -121,11 +119,10 @@
           <h2
             class="nav-card__title"
             style="view-transition-name: title-join-coop">
-            Join the Doula cooperative
+            {{ i18n "home_join_title" }}
           </h2>
           <p class="nav-card__description">
-            Join our community of doulas and support each other in our shared
-            mission.
+            {{ i18n "home_join_description" }}
           </p>
         </a>
       </div>

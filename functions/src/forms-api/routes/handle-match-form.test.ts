@@ -271,6 +271,76 @@ describe("POST /doula-match", () => {
       expect(body.success).toBe(true);
       expect(body.emailSent).toBe(true);
     });
+
+    it("should accept Spanish locale submission", async () => {
+      let savedData: { locale?: string } | undefined;
+      const mockSaveMatchRequest = mock(
+        ({ data }: { data: { locale?: string } }) => {
+          savedData = data;
+          return Promise.resolve();
+        },
+      );
+      const mockSendEmail = mock(() => Promise.resolve());
+      const mockRecaptchaService = {
+        verifyToken: mock(() => Promise.resolve({ success: true, score: 0.9 })),
+      };
+      const { createDoulaMatchFormTestPlugin } =
+        await import("../test-utils/create-forms-test-plugins.js");
+      const plugin = createDoulaMatchFormTestPlugin({
+        formStorageService: { saveMatchRequest: mockSaveMatchRequest },
+        emailService: { sendEmail: mockSendEmail },
+        recaptchaService: mockRecaptchaService,
+      });
+
+      const request = new Request("http://localhost/doula-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "María García",
+          phone: "555-5678",
+          email: "maria@example.com",
+          zipcode: "12345",
+          estimatedDueDate: { month: "6", day: "15", year: "2025" },
+          services: ["apoyo de doula de parto"],
+          birthLocation: "Highland Hospital",
+          otherInfo: "",
+          insurance: [],
+          recaptchaToken: "valid-token",
+          locale: "es",
+        }),
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { success: boolean };
+      expect(body.success).toBe(true);
+      expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
+      expect(savedData?.locale).toBe("es");
+    });
+
+    it("should return 422 when locale is an unsupported value", async () => {
+      const { plugin, request } = setup({
+        body: {
+          name: "Test",
+          phone: "555-1234",
+          email: "test@example.com",
+          zipcode: "12345",
+          estimatedDueDate: { month: "12", day: "25", year: "2024" },
+          services: ["Birth Support"],
+          birthLocation: "Hospital",
+          otherInfo: "",
+          insurance: [],
+          recaptchaToken: "valid-token",
+          // @ts-expect-error intentionally invalid locale
+          locale: "fr",
+        },
+      });
+
+      const response = await handleRequest(plugin, request);
+
+      expect(response.status).toBe(422);
+    });
   });
 
   describe("Email Failure Handling", () => {
