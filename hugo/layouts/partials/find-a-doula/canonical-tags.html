@@ -5,7 +5,7 @@
 */}}
 {{ $tags := .Site.Taxonomies.tags.ByCount }}
 {{ if not $tags }}
-  {{ range .Site.Sites }}
+  {{ range hugo.Sites }}
     {{ if and (not $tags) (eq .Language.Lang "en") }}
       {{ $tags = .Taxonomies.tags.ByCount }}
     {{ end }}

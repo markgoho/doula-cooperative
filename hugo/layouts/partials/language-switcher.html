@@ -3,8 +3,8 @@
 {{ $defaultLang := hugo.Sites.Default.Language.Lang }}
 <nav class="footer__language" aria-label="{{ i18n "language_switcher_label" }}">
   <ul class="footer__language-list">
-    {{ range site.Languages }}
-      {{ $langCode := .Lang }}
+    {{ range hugo.Sites }}
+      {{ $langCode := .Language.Lang }}
       {{ $langName := i18n (printf "language_name_%s" $langCode) }}
       <li class="footer__language-item">
         {{ if eq $langCode $page.Language.Lang }}
