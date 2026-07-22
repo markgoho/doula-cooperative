@@ -10,9 +10,18 @@
     {{ else }}
       http://127.0.0.1:5001/doula-cooperative/us-central1/formsApi/doula-match
     {{ end }}"
-    data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}">
+    data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}"
+    data-success-url="{{ "/thank-you-for-your-match-request/" | relLangURL }}"
+    data-text-verifying="{{ i18n "form_verifying_text" }}"
+    data-text-sending="{{ i18n "form_sending_text" }}"
+    data-text-submit="{{ i18n "form_submit_button" }}"
+    data-text-date-range-error="{{ i18n "form_date_range_error" }}"
+    data-text-generic-error="{{ i18n "form_generic_error" }}">
+    <input type="hidden" name="locale" value="{{ .Language.Lang }}" />
     <div class="form-group single-column">
-      <label class="form__label " for="name">Name (first and last)</label>
+      <label class="form__label " for="name"
+        >{{ i18n "form_name_label" }}</label
+      >
       <input
         class="form__input "
         type="text"
@@ -22,7 +31,9 @@
     </div>
 
     <div class="form__group single-column">
-      <label class="form__label" for="phone">Phone (required)</label>
+      <label class="form__label" for="phone"
+        >{{ i18n "form_phone_label" }}</label
+      >
       <input
         class="form__input"
         type="tel"
@@ -32,7 +43,9 @@
     </div>
 
     <div class="form__group single-column">
-      <label class="form__label" for="email">Email (required)</label>
+      <label class="form__label" for="email"
+        >{{ i18n "form_email_label" }}</label
+      >
       <input
         class="form__input"
         type="email"
@@ -42,7 +55,9 @@
     </div>
 
     <div class="form__group single-column">
-      <label class="form__label" for="zipcode">ZIP Code (required)</label>
+      <label class="form__label" for="zipcode"
+        >{{ i18n "form_zipcode_label" }}</label
+      >
       <input
         class="form__input"
         type="text"
@@ -52,10 +67,12 @@
     </div>
 
     <fieldset class="full-width">
-      <legend>Baby's estimated date of arrival or birthdate</legend>
+      <legend>{{ i18n "form_due_date_legend" }}</legend>
       <div class="date-grid">
         <div class="form-group single-column">
-          <label class="form__label" for="month">Month</label>
+          <label class="form__label" for="month"
+            >{{ i18n "form_month_label" }}</label
+          >
           <input
             class="form__input"
             type="text"
@@ -64,7 +81,9 @@
             autocomplete="off" />
         </div>
         <div class="form-group single-column">
-          <label class="form__label" for="day">Day</label>
+          <label class="form__label" for="day"
+            >{{ i18n "form_day_label" }}</label
+          >
           <input
             class="form__input"
             type="text"
@@ -73,7 +92,9 @@
             autocomplete="off" />
         </div>
         <div class="form-group single-column">
-          <label class="form__label" for="year">Year</label>
+          <label class="form__label" for="year"
+            >{{ i18n "form_year_label" }}</label
+          >
           <input
             class="form__input"
             type="text"
@@ -86,12 +107,12 @@
 
     <div class="dynamic-layout-container full-width">
       <fieldset>
-        <legend>I am looking for...</legend>
+        <legend>{{ i18n "form_looking_for_legend" }}</legend>
         <div class="input-grid">
           <input class="form__input" type="checkbox" id="birth-doula" /><label
             class="form__label"
             for="birth-doula"
-            >birth doula support</label
+            >{{ i18n "form_birth_doula_label" }}</label
           >
           <input
             class="form__input"
@@ -99,7 +120,7 @@
             id="postpartum-doula" /><label
             class="form__label"
             for="postpartum-doula"
-            >postpartum doula support</label
+            >{{ i18n "form_postpartum_doula_label" }}</label
           >
           <input
             class="form__input"
@@ -107,7 +128,7 @@
             id="lactation-support" /><label
             class="form__label"
             for="lactation-support"
-            >lactation support</label
+            >{{ i18n "form_lactation_support_label" }}</label
           >
           <input
             class="form__input"
@@ -115,7 +136,7 @@
             id="childbirth-classes" /><label
             class="form__label"
             for="childbirth-classes"
-            >childbirth classes</label
+            >{{ i18n "form_childbirth_classes_label" }}</label
           >
           <input
             class="form__input"
@@ -123,52 +144,59 @@
             id="other-info-looking-for" /><label
             class="form__label"
             for="other-info-looking-for"
-            >other information</label
+            >{{ i18n "form_other_info_looking_for_label" }}</label
           >
         </div>
       </fieldset>
 
       <fieldset id="birth-location-fieldset" style="display: none;">
-        <legend>My birth is planned at...</legend>
+        <legend>{{ i18n "form_birth_location_legend" }}</legend>
         <div class="input-grid">
           <input
             class="form__input"
             type="radio"
             id="home-birth"
-            name="birth-location" /><label class="form__label" for="home-birth"
-            >home</label
+            name="birth-location"
+            value="home" /><label class="form__label" for="home-birth"
+            >{{ i18n "form_home_birth_label" }}</label
           >
           <input
             class="form__input"
             type="radio"
             id="highland"
-            name="birth-location" /><label class="form__label" for="highland"
-            >Highland Hospital</label
+            name="birth-location"
+            value="Highland Hospital" /><label
+            class="form__label"
+            for="highland"
+            >{{ i18n "form_highland_label" }}</label
           >
           <input
             class="form__input"
             type="radio"
             id="rochester-general"
-            name="birth-location" /><label
+            name="birth-location"
+            value="Rochester General Hospital" /><label
             class="form__label"
             for="rochester-general"
-            >Rochester General Hospital</label
+            >{{ i18n "form_rochester_general_label" }}</label
           >
           <input
             class="form__input"
             type="radio"
             id="strong"
-            name="birth-location" /><label class="form__label" for="strong"
-            >Strong Hospital</label
+            name="birth-location"
+            value="Strong Hospital" /><label class="form__label" for="strong"
+            >{{ i18n "form_strong_label" }}</label
           >
           <input
             class="form__input"
             type="radio"
             id="other-hospital"
-            name="birth-location" /><label
+            name="birth-location"
+            value="Other Hospital" /><label
             class="form__label"
             for="other-hospital"
-            >Other Hospital</label
+            >{{ i18n "form_other_hospital_label" }}</label
           >
         </div>
         <div
@@ -176,7 +204,7 @@
           id="other-hospital-input-container"
           style="display: none;">
           <label class="form__label" for="other-hospital-input"
-            >Other hospital name</label
+            >{{ i18n "form_other_hospital_input_label" }}</label
           >
           <input
             class="form__input"
@@ -188,25 +216,25 @@
 
       <fieldset>
         <legend>
-          I plan to offset the cost for Doula Services with (optional):
+          {{ i18n "form_cost_offset_legend" }}
         </legend>
         <div class="input-grid">
           <input class="form__input" type="checkbox" id="medicaid" /><label
             class="form__label"
             for="medicaid"
-            >Medicaid</label
+            >{{ i18n "form_medicaid_label" }}</label
           >
           <input class="form__input" type="checkbox" id="carrot" /><label
             class="form__label"
             for="carrot"
-            >Carrot</label
+            >{{ i18n "form_carrot_label" }}</label
           >
         </div>
       </fieldset>
     </div>
     <div class="form-group full-width">
       <label class="form__label " for="other-info"
-        >Is there any other information you'd like to share with us?</label
+        >{{ i18n "form_other_info_label" }}</label
       >
       <textarea
         class="form__input form__input--textarea "
@@ -219,7 +247,9 @@
       id="form-error"
       class="form__error-message full-width"
       aria-live="polite"></div>
-    <button type="submit" class="button">Submit Information</button>
+    <button type="submit" class="button">
+      {{ i18n "form_submit_button" }}
+    </button>
   </form>
 
   {{ partial "find-a-doula/what-happens-next.html" . }}

@@ -1,7 +1,6 @@
 {{ define "head-styles" }}
   {{ $css := slice
     (resources.Get "css/components/callout.css")
-    (resources.Get "css/components/doula-redirect-notice.css")
     (resources.Get "css/components/forms.css")
     (resources.Get "css/contact-us.css")
     | resources.Concat "contact-us.css"
@@ -31,8 +30,7 @@
         d="M32 6a26 26 0 1 0 26 26A26.027 26.027 0 0 0 32 6Zm0 48a22 22 0 1 1 22-22 22.025 22.025 0 0 1-22 22Zm-2-20V20a2 2 0 0 1 4 0v14a2 2 0 1 1-4 0Zm5 9a3 3 0 1 1-5.999 0A3 3 0 0 1 35 43Z" />
     </svg>
     <p class="callout__text">
-      Looking for information about Doula Support? Use our
-      <a href="/find-a-doula/">special request form</a>.
+      {{ replace (i18n "contact_doula_redirect") "{url}" ("/find-a-doula/" | relLangURL) | safeHTML }}
     </p>
   </div>
 
@@ -45,33 +43,42 @@
       {{ else }}
         http://127.0.0.1:5001/doula-cooperative/us-central1/formsApi/contact-us
       {{ end }}"
-      data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}">
+      data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}"
+      data-success-url="{{ "/thank-you-for-contacting-us/" | relLangURL }}"
+      data-text-verifying="{{ i18n "form_verifying_text" }}"
+      data-text-sending="{{ i18n "form_sending_text" }}"
+      data-text-submit="{{ i18n "contact_submit_button" }}"
+      data-text-generic-error="{{ i18n "form_generic_error" }}">
       <div class="form-group full-width">
-        <label for="name" class="form__label">Name (first and last)</label>
+        <label for="name" class="form__label"
+          >{{ i18n "contact_name_label" }}</label
+        >
         <input type="text" id="name" class="form__input" required />
         <span class="form__error-message" aria-live="polite"
-          >Please enter your name.</span
+          >{{ i18n "contact_name_error" }}</span
         >
       </div>
 
       <div class="form-group full-width">
-        <label for="email" class="form__label">Email (required)</label>
+        <label for="email" class="form__label"
+          >{{ i18n "contact_email_label" }}</label
+        >
         <input type="email" id="email" class="form__input" required />
         <span class="form__error-message" aria-live="polite"
-          >Please enter a valid email address.</span
+          >{{ i18n "contact_email_error" }}</span
         >
       </div>
 
       <div class="form-group full-width">
         <label for="message" class="form__label"
-          >What can we help you with?</label
+          >{{ i18n "contact_message_label" }}</label
         >
         <textarea
           id="message"
           class="form__input form__input--textarea"
           required></textarea>
         <span class="form__error-message" aria-live="polite"
-          >Please enter a message.</span
+          >{{ i18n "contact_message_error" }}</span
         >
       </div>
 
@@ -87,30 +94,9 @@
       </div>
 
       <div id="form-error" class="form__error-message" aria-live="polite"></div>
-      <div id="doula-redirect-notice" class="doula-redirect-notice" hidden>
-        <div
-          id="doula-redirect-announcement"
-          class="visually-hidden"
-          aria-live="polite"></div>
-        <h3 class="doula-redirect-notice__heading">
-          Looking for Doula Support?
-        </h3>
-        <p class="doula-redirect-notice__text">
-          It sounds like you're looking for doula services! We have a dedicated
-          form that will help match you with the right doula for your needs.
-        </p>
-        <a href="/find-a-doula/match/" class="button">Go to Doula Match Form</a>
-        <p class="doula-redirect-notice__alt">
-          Not looking for a doula?
-          <button
-            type="button"
-            id="dismiss-doula-notice"
-            class="doula-redirect-notice__dismiss">
-            Dismiss and continue
-          </button>
-        </p>
-      </div>
-      <button type="submit" id="submit-button" class="button">Submit</button>
+      <button type="submit" id="submit-button" class="button">
+        {{ i18n "contact_submit_button" }}
+      </button>
     </form>
   </section>
 {{ end }}

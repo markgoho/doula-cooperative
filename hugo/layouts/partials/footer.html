@@ -3,25 +3,34 @@
     <div class="footer__brand-title">Doula Cooperative</div>
     <div class="footer__brand-location">Rochester, NY</div>
     <p class="footer__inclusion">
-      The Doula Cooperative is committed to the inclusion of individuals and
-      families regardless of age, race, class, ethnicity, national origin,
-      gender expression &amp; identity, sexuality, relationship status, ability,
-      religion and birthing choices and location. All are welcome.
+      {{ i18n "footer_inclusion" | safeHTML }}
     </p>
   </div>
   <nav class="footer__nav" aria-label="Footer navigation">
     <div class="footer__col">
-      <h2 class="footer__col-title">Find a Doula</h2>
+      <h2 class="footer__col-title">{{ i18n "footer_find_a_doula" }}</h2>
       <ul class="footer__links">
-        <li><a href="/find-a-doula/search/">Search</a></li>
-        <li><a href="/find-a-doula/browse/">Browse</a></li>
-        <li><a href="/find-a-doula/match/">Match</a></li>
+        <li>
+          <a href="{{ "/find-a-doula/search/" | relLangURL }}"
+            >{{ i18n "footer_search" }}</a
+          >
+        </li>
+        <li>
+          <a href="{{ "/find-a-doula/browse/" | relLangURL }}"
+            >{{ i18n "footer_browse" }}</a
+          >
+        </li>
+        <li>
+          <a href="{{ "/find-a-doula/match/" | relLangURL }}"
+            >{{ i18n "footer_match" }}</a
+          >
+        </li>
       </ul>
     </div>
     <div class="footer__col">
-      <h2 class="footer__col-title">Browse Members</h2>
+      <h2 class="footer__col-title">{{ i18n "footer_browse_members" }}</h2>
       <ul class="footer__links">
-        {{ range first 3 .Site.Taxonomies.tags.ByCount }}
+        {{ range first 3 (partial "find-a-doula/canonical-tags.html" .) }}
           <li>
             <a href="{{ .Page.RelPermalink }}"
               >{{ .Page.Title }} ({{ .Count }})</a
@@ -31,12 +40,18 @@
       </ul>
     </div>
     <div class="footer__col">
-      <h2 class="footer__col-title">Connect</h2>
+      <h2 class="footer__col-title">{{ i18n "footer_connect" }}</h2>
       <ul class="footer__links">
         <li>
-          <a href="/about-the-doula-cooperative/">Our mission</a>
+          <a href="{{ "/about-the-doula-cooperative/" | relLangURL }}"
+            >{{ i18n "footer_our_mission" }}</a
+          >
         </li>
-        <li><a href="/contact-us/">Contact us</a></li>
+        <li>
+          <a href="{{ "/contact-us/" | relLangURL }}"
+            >{{ i18n "footer_contact_us" }}</a
+          >
+        </li>
       </ul>
       <div class="footer__social">
         <a
@@ -63,5 +78,6 @@
   <div class="footer__copyright">
     &copy; {{ now.Year }} Doula Cooperative, Rochester, NY
   </div>
-  <a class="footer__login" href="#">Member Login</a>
+  {{ partial "language-switcher.html" . }}
+  <a class="footer__login" href="#">{{ i18n "footer_member_login" }}</a>
 </div>

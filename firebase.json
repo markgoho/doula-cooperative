@@ -43,6 +43,15 @@
       ],
       "headers": [
         {
+          "source": "/es/**",
+          "headers": [
+            {
+              "key": "Content-Language",
+              "value": "es"
+            }
+          ]
+        },
+        {
           "source": "/join-the-doula-cooperative/**",
           "headers": [
             {

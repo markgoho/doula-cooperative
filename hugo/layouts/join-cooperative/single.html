@@ -11,34 +11,11 @@
 
 {{ define "main" }}
   <h1 style="view-transition-name: title-join-coop">{{ .Title }}</h1>
-  <section class="text-content intro">
-    {{ .Content }}
-  </section>
+  {{ .Content }}
 
-  <section class="text-content benefits">
-    <h2>Benefits of Membership</h2>
-    <ul>
-      <li>
-        Informal mentorship and networking opportunities with other doulas and
-        birth professionals.
-      </li>
-      <li>
-        Supportive community (in person and online) to process experiences with
-        and learn from
-      </li>
-      <li>
-        Educational opportunities to increase knowledge and enhance professional
-        skills
-      </li>
-      <li>
-        Option to have profile and contact information featured on Doula
-        Cooperative website
-      </li>
-    </ul>
-  </section>
 
   <section class="membership-join text-content">
-    <h2>Cooperative Membership, 1 Year</h2>
+    <h2>{{ i18n "join_membership_heading" }}</h2>
 
     {{ $pricingTableId := os.Getenv "STRIPE_PRICING_TABLE_ID" }}
     {{ $publishableKey := os.Getenv "STRIPE_PUBLISHABLE_KEY" }}
@@ -51,4 +28,3 @@
     {{ end }}
   </section>
 {{ end }}
-

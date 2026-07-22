@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="en">
+{{ $currentLanguageCode := .Language.Locale | default .Language.Name }}
+<html lang="{{ $currentLanguageCode }}">
   <head>
     {{ partial "head/site.html" . }}
     {{ partial "head/critical-css.html" . }}
@@ -16,7 +17,20 @@
     {{ partial "opengraph.html" . }}
 
 
-    <link rel="canonical" href="{{ .Permalink | absURL }}" />
+    <link rel="canonical" href="{{ .Permalink }}" />
+    {{ range .AllTranslations }}
+      {{ $translationLanguageCode := .Language.Locale | default .Language.Name }}
+      <link
+        rel="alternate"
+        hreflang="{{ $translationLanguageCode }}"
+        href="{{ .Permalink }}" />
+    {{ end }}
+    {{ $defaultTranslation := index (where .AllTranslations "Language.Name" hugo.Sites.Default.Language.Name) 0 }}
+    {{ $defaultURL := .Permalink }}
+    {{ with $defaultTranslation }}
+      {{ $defaultURL = .Permalink }}
+    {{ end }}
+    <link rel="alternate" hreflang="x-default" href="{{ $defaultURL }}" />
   </head>
 
   <body>

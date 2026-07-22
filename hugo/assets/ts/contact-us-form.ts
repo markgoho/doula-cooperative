@@ -1,5 +1,3 @@
-import { isDoulaRequest } from "./detect-doula-request.js";
-
 const contactForm: HTMLFormElement | null = document.querySelector(".form");
 const contactName: HTMLInputElement | null = document.querySelector("#name");
 const email: HTMLInputElement | null = document.querySelector("#email");
@@ -9,59 +7,9 @@ const submitButton: HTMLButtonElement | null =
   document.querySelector("#submit-button");
 const formLoadedAt = Date.now();
 const formError: HTMLDivElement | null = document.querySelector("#form-error");
-const doulaRedirectNotice: HTMLDivElement | null = document.querySelector(
-  "#doula-redirect-notice",
-);
-const doulaRedirectAnnouncement: HTMLDivElement | null = document.querySelector(
-  "#doula-redirect-announcement",
-);
-const dismissDoulaNoticeButton: HTMLButtonElement | null =
-  document.querySelector("#dismiss-doula-notice");
-const announcementText =
-  "Looking for doula support? Use the doula match form, or dismiss this notice to continue.";
 
-const doulaNoticeState = { overridden: false };
-
-function showDoulaRedirectNotice(): void {
-  if (!doulaRedirectNotice) {
-    return;
-  }
-
-  if (doulaRedirectAnnouncement) {
-    doulaRedirectAnnouncement.textContent = "";
-  }
-
-  doulaRedirectNotice.hidden = false;
-  doulaRedirectNotice.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-  if (doulaRedirectAnnouncement) {
-    requestAnimationFrame(() => {
-      doulaRedirectAnnouncement.textContent = announcementText;
-    });
-  }
-}
-
-function hideDoulaRedirectNotice(): void {
-  if (!doulaRedirectNotice) {
-    return;
-  }
-
-  doulaRedirectNotice.hidden = true;
-  if (doulaRedirectAnnouncement) {
-    doulaRedirectAnnouncement.textContent = "";
-  }
-}
-
-function resetDoulaNoticeOverride(): void {
-  doulaNoticeState.overridden = false;
-}
-
-function maybeHideDoulaRedirectNotice(): void {
-  if (!message || isDoulaRequest(message.value)) {
-    return;
-  }
-
-  hideDoulaRedirectNotice();
+function getFormText(key: keyof DOMStringMap, fallback: string): string {
+  return contactForm?.dataset[key] ?? fallback;
 }
 
 function hasRequiredFields(): boolean {
@@ -88,7 +36,7 @@ function resetSubmitButton(): void {
   }
 
   submitButton.disabled = false;
-  submitButton.textContent = "Submit";
+  submitButton.textContent = getFormText("textSubmit", "Submit");
 }
 
 function beginSubmit(): void {
@@ -97,13 +45,15 @@ function beginSubmit(): void {
   }
 
   submitButton.disabled = true;
-  submitButton.textContent = "Verifying...";
+  submitButton.textContent = getFormText("textVerifying", "Verifying...");
 }
 
 function showSubmissionError(): void {
   if (formError) {
-    formError.textContent =
-      "Sorry, there was an error sending your message. Please try again later.";
+    formError.textContent = getFormText(
+      "textGenericError",
+      "Sorry, there was an error sending your message. Please try again later.",
+    );
   }
 
   resetSubmitButton();
@@ -111,24 +61,8 @@ function showSubmissionError(): void {
 
 function updateSubmitButtonToSending(): void {
   if (submitButton) {
-    submitButton.textContent = "Sending...";
+    submitButton.textContent = getFormText("textSending", "Sending...");
   }
-}
-
-function handleMessageInput(): void {
-  resetDoulaNoticeOverride();
-  maybeHideDoulaRedirectNotice();
-}
-
-function handleDismissDoulaNotice(): void {
-  doulaNoticeState.overridden = true;
-  hideDoulaRedirectNotice();
-}
-
-function shouldBlockForDoulaRequest(): boolean {
-  return Boolean(
-    message && isDoulaRequest(message.value) && !doulaNoticeState.overridden,
-  );
 }
 
 function shouldProceedWithSubmit(): boolean {
@@ -140,13 +74,6 @@ function shouldProceedWithSubmit(): boolean {
 
   clearValidationState();
   clearFormError();
-
-  if (shouldBlockForDoulaRequest()) {
-    showDoulaRedirectNotice();
-    return false;
-  }
-
-  hideDoulaRedirectNotice();
   beginSubmit();
   return true;
 }
@@ -234,7 +161,9 @@ async function sendContactForm({
     throw new Error(`HTTP error! status: ${String(response.status)}`);
   }
 
-  location.assign("/thank-you-for-contacting-us");
+  const successUrl =
+    contactForm.dataset.successUrl ?? "/thank-you-for-contacting-us/";
+  location.assign(successUrl);
 }
 
 const doSubmit = async () => {
@@ -248,14 +177,6 @@ const doSubmit = async () => {
     handleSubmitError(error);
   }
 };
-
-if (dismissDoulaNoticeButton) {
-  dismissDoulaNoticeButton.addEventListener("click", handleDismissDoulaNotice);
-}
-
-if (message) {
-  message.addEventListener("input", handleMessageInput);
-}
 
 if (submitButton) {
   submitButton.addEventListener("click", handleSubmitClick);

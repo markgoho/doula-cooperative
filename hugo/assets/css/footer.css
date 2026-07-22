@@ -97,6 +97,42 @@
   text-transform: uppercase;
 }
 
+.footer__language-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer__language-item {
+  display: flex;
+  align-items: center;
+  font-size: var(--step--1);
+
+  &:not(:last-child)::after {
+    content: "·";
+    margin-inline-start: var(--space-2xs);
+    color: var(--brown-600);
+  }
+}
+
+.footer__language-current {
+  font-weight: var(--font-weight-semibold);
+  color: var(--brown-300);
+}
+
+.footer__language-link {
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--brown-400);
+  }
+}
+
 @container footer (width > 30rem) {
   .footer__nav {
     grid-template-columns: repeat(2, 1fr);

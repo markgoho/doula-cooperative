@@ -1,0 +1,14 @@
+{{/* Returns the tag taxonomy terms ordered by count.
+  When the current language site has no tags (e.g. Spanish site where doula
+  profiles live under the English tree), falls back to the English site's
+  taxonomy so browse and footer links resolve to canonical /doulas/tag/… URLs.
+*/}}
+{{ $tags := .Site.Taxonomies.tags.ByCount }}
+{{ if not $tags }}
+  {{ range .Site.Sites }}
+    {{ if and (not $tags) (eq .Language.Lang "en") }}
+      {{ $tags = .Taxonomies.tags.ByCount }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ return $tags }}
