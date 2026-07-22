@@ -27,6 +27,24 @@
 
 <meta name="description" content="{{ $description | plainify }}" />
 
+{{- $locale := .Language.Locale | default .Language.Lang -}}
+{{- $ogLocale := replace $locale "-" "_" -}}
+{{- if not (strings.Contains $ogLocale "_") -}}
+  {{- $ogLocale = printf "%s_US" $ogLocale -}}
+{{- end -}}
+<meta property="og:locale" content="{{ $ogLocale }}" />
+{{- range .AllTranslations -}}
+  {{- $altLocale := .Language.Locale | default .Language.Lang -}}
+  {{- $ogAltLocale := replace $altLocale "-" "_" -}}
+  {{- if not (strings.Contains $ogAltLocale "_") -}}
+    {{- $ogAltLocale = printf "%s_US" $ogAltLocale -}}
+  {{- end -}}
+  {{- if ne $ogAltLocale $ogLocale -}}
+    <meta property="og:locale:alternate" content="{{ $ogAltLocale }}" />
+  {{- end -}}
+{{- end -}}
+
+
 <meta property="og:title" content="{{ .Title }}" />
 <meta property="og:url" content="{{ .Permalink }}" />
 <meta property="og:description" content="{{ $description | plainify }}" />
