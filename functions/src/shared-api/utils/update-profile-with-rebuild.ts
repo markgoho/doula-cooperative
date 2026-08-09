@@ -12,7 +12,7 @@ import type { Logger } from "../types/logger.js";
  *
  * @returns true if the profile action succeeded, false if it failed
  */
-export async function updateProfileWithRebuild({
+export async function didProfileActionSucceed({
   slug,
   action,
   actionLabel,

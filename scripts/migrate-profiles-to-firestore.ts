@@ -28,7 +28,9 @@ const HUGO_DOULAS_DIR = path.resolve(
   "../hugo/content/doulas",
 );
 
-/** Directories/files to skip when scanning for profiles. */
+/**
+Directories/files to skip when scanning for profiles.
+*/
 const SKIP_ENTRIES = new Set(["tag", "_index.md"]);
 
 interface Contact {

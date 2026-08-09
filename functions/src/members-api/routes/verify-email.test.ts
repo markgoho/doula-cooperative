@@ -15,7 +15,9 @@ describe("POST /:memberId/verify-email (authenticated)", () => {
     authToken?: string | null;
     serverError?: boolean;
     emailAlreadyVerified?: boolean;
-    /** When true, overrides auth mock with explicit email_verified: false */
+    /**
+    When true, overrides auth mock with explicit email_verified: false
+    */
     emailVerifiedExplicit?: boolean;
   }
 

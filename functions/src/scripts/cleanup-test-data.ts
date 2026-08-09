@@ -109,7 +109,7 @@ async function collectMatchingUser(
 /**
  * Get confirmation from user
  */
-async function confirm(message: string): Promise<boolean> {
+async function didUserConfirm(message: string): Promise<boolean> {
   if (shouldSkipConfirm) return true;
 
   console.log(`\n${message}`);
@@ -265,7 +265,7 @@ async function main() {
 
   // Confirm deletion
   if (!isDryRun) {
-    const isConfirmed = await confirm(
+    const isConfirmed = await didUserConfirm(
       `\n⚠️  Delete ${users.length} user(s) and all related data?`,
     );
 

@@ -15,15 +15,25 @@ interface ElysiaApp {
  * Options for handling an Elysia request.
  */
 interface HandleElysiaRequestOptions {
-  /** The Elysia app instance to handle the request */
+  /**
+  The Elysia app instance to handle the request
+  */
   app: ElysiaApp;
-  /** Firebase Functions request object */
+  /**
+  Firebase Functions request object
+  */
   request: Request;
-  /** Firebase response object */
+  /**
+  Firebase response object
+  */
   response: FirebaseResponse;
-  /** Logger instance for error reporting */
+  /**
+  Logger instance for error reporting
+  */
   logger: Logger;
-  /** API name for error logging (e.g., "members-api", "admin-members-api") */
+  /**
+  API name for error logging (e.g., "members-api", "admin-members-api")
+  */
   apiName: string;
 }
 

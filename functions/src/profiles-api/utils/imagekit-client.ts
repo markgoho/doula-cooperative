@@ -23,7 +23,9 @@ export function getImageKitClient(): ImageKit {
   return clientCache.instance;
 }
 
-/** @internal Reset cached client (for tests only). */
+/**
+@internal Reset cached client (for tests only).
+*/
 export function _resetImageKitClient(): void {
   clientCache.instance = undefined;
 }

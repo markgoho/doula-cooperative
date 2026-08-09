@@ -15,7 +15,7 @@ async function getMemberByUidImpl(uid: string): Promise<DocumentSnapshot> {
 /**
  * Check if a member document exists.
  */
-async function memberExistsImpl(uid: string): Promise<boolean> {
+async function hasMemberImpl(uid: string): Promise<boolean> {
   const database = getFirestore();
   const document = await database.collection(MEMBERS_COLLECTION).doc(uid).get();
   return document.exists;
@@ -56,7 +56,7 @@ async function deleteMemberImpl(uid: string): Promise<void> {
 
 export const MemberFirestoreService: MemberFirestoreServiceInterface = {
   getMemberByUid: getMemberByUidImpl,
-  memberExists: memberExistsImpl,
+  hasMember: hasMemberImpl,
   writeMember: writeMemberImpl,
   updateMember: updateMemberImpl,
   deleteMember: deleteMemberImpl,

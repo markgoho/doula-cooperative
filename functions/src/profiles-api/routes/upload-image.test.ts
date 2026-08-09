@@ -77,7 +77,9 @@ describe("POST /:slug/image (upload profile image)", () => {
         return { files: { upload: mockUpload } };
       },
       _resetImageKitClient: () => {
-        /* noop */
+        /*
+        noop
+        */
       },
     }));
 

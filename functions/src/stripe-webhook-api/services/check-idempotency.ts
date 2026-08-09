@@ -7,7 +7,7 @@ import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "../../collections/index.js";
  * @param eventId - The Stripe event ID
  * @returns Promise resolving to true if already processed
  */
-export async function checkIdempotency(eventId: string): Promise<boolean> {
+export async function wasAlreadyProcessed(eventId: string): Promise<boolean> {
   const database = getFirestore();
   const documentReference = database
     .collection(PROCESSED_STRIPE_EVENTS_COLLECTION)

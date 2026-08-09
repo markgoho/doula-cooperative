@@ -10,8 +10,8 @@ import {
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
-import { unsubscribeNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
-import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
+import { didUnsubscribeFromNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
+import { didProfileActionSucceed } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import { cancelStripeSubscription } from "../../stripe-webhook-api/services/cancel-stripe-subscription.js";
 import { deleteStripeCustomer } from "../../stripe-webhook-api/services/delete-stripe-customer.js";
 import { verifyMemberExists } from "./verify-member-exists.js";
@@ -180,7 +180,7 @@ export async function cleanSlateDelete({
   // Step 5: NON-CRITICAL — Unsubscribe from MailerLite newsletter
   let newsletterUnsubscribed: boolean | undefined;
   if (member.newsletterSubscribed === true) {
-    newsletterUnsubscribed = await unsubscribeNewsletter({
+    newsletterUnsubscribed = await didUnsubscribeFromNewsletter({
       email: member.email,
       memberId,
       action: "clean slate delete",
@@ -193,7 +193,7 @@ export async function cleanSlateDelete({
   // Step 6: NON-CRITICAL — Delete Hugo profile
   let profileDeleted: boolean | undefined;
   if (member.slug !== undefined && member.slug.length > 0) {
-    profileDeleted = await updateProfileWithRebuild({
+    profileDeleted = await didProfileActionSucceed({
       slug: member.slug,
       action: "clean slate delete",
       actionLabel: "Delete profile",

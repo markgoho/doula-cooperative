@@ -13,23 +13,33 @@ import type { MemberAdminService } from "../services/interface.js";
  * Allows customization of operation name, error ID, logging, and context.
  */
 export interface RouteHandlerConfig<TParameters> {
-  /** Human-readable operation name (e.g., "activate membership") */
+  /**
+  Human-readable operation name (e.g., "activate membership")
+  */
   operation: string;
 
-  /** Error ID constant from ERROR_IDS for this operation */
+  /**
+  Error ID constant from ERROR_IDS for this operation
+  */
   errorId: ErrorId;
 
-  /** Service method to call (receives memberId and parsed parameters) */
+  /**
+  Service method to call (receives memberId and parsed parameters)
+  */
   serviceMethod: (
     service: MemberAdminService,
     memberId: string,
     parameters: TParameters,
   ) => Promise<MemberDocument>;
 
-  /** Parse and validate route-specific parameters */
+  /**
+  Parse and validate route-specific parameters
+  */
   parseParameters: (parameters: TParameters) => TParameters;
 
-  /** Generate log context object for successful operations */
+  /**
+  Generate log context object for successful operations
+  */
   getLogContext: (
     memberId: string,
     adminUid: string,
@@ -37,7 +47,9 @@ export interface RouteHandlerConfig<TParameters> {
     parameters: TParameters,
   ) => Record<string, unknown>;
 
-  /** Generate error context object for failed operations */
+  /**
+  Generate error context object for failed operations
+  */
   getErrorContext: (
     memberId: string,
     parameters: TParameters,

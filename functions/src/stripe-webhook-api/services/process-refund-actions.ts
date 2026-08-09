@@ -5,8 +5,8 @@ import { draftProfile } from "../../profiles-api/services/profile-store/draft-pr
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import { updateMemberWithValidation } from "../../shared-api/utils/firestore-helpers.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
-import { unsubscribeNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
-import { updateProfileWithRebuild } from "../../shared-api/utils/update-profile-with-rebuild.js";
+import { didUnsubscribeFromNewsletter } from "../../shared-api/utils/unsubscribe-newsletter.js";
+import { didProfileActionSucceed } from "../../shared-api/utils/update-profile-with-rebuild.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { buildRefundNotificationEmail } from "./build-refund-notification-email.js";
 
@@ -77,7 +77,7 @@ export async function processRefundActions({
   // NON-CRITICAL: Draft Hugo profile if member has a slug
   let profileDrafted: boolean | undefined;
   if (member.slug !== undefined && member.slug.length > 0) {
-    profileDrafted = await updateProfileWithRebuild({
+    profileDrafted = await didProfileActionSucceed({
       slug: member.slug,
       action: "refund",
       actionLabel: "Draft profile",
@@ -91,7 +91,7 @@ export async function processRefundActions({
   // NON-CRITICAL: Unsubscribe from newsletter if subscribed
   let newsletterUnsubscribed: boolean | undefined;
   if (member.newsletterSubscribed === true) {
-    newsletterUnsubscribed = await unsubscribeNewsletter({
+    newsletterUnsubscribed = await didUnsubscribeFromNewsletter({
       email: member.email,
       memberId,
       action: "refund",

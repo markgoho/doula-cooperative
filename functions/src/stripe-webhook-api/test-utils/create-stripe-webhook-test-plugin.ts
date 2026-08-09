@@ -23,7 +23,7 @@ export function createStripeWebhookTestPlugin(overrides?: {
       }),
     ),
     isEventProcessed: mock(() => Promise.resolve(false)),
-    markEventProcessed: mock(() => Promise.resolve(true)), // Returns true = event was newly marked
+    wasEventMarkedAsProcessed: mock(() => Promise.resolve(true)), // Returns true = event was newly marked
     processCheckoutCompleted: mock(() =>
       Promise.resolve({
         userId: "test-user-123",

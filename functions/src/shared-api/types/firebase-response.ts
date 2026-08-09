@@ -8,18 +8,28 @@
  * of methods we actually use.
  */
 export interface FirebaseResponse {
-  /** Indicates whether headers have already been sent to the client. */
+  /**
+  Indicates whether headers have already been sent to the client.
+  */
   readonly headersSent: boolean;
 
-  /** Sets the HTTP status code. Returns this for chaining. */
+  /**
+  Sets the HTTP status code. Returns this for chaining.
+  */
   status(code: number): this;
 
-  /** Sets a response header. Returns this for chaining. */
+  /**
+  Sets a response header. Returns this for chaining.
+  */
   setHeader(name: string, value: string): this;
 
-  /** Sends the response body. */
+  /**
+  Sends the response body.
+  */
   send(body: string | Buffer): void;
 
-  /** Sends a JSON response. */
+  /**
+  Sends a JSON response.
+  */
   json(body: unknown): void;
 }
