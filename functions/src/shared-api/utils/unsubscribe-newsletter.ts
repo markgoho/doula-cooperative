@@ -15,7 +15,7 @@ import { removeNewsletterSubscriber } from "./mailerlite.js";
  *
  * @returns true if unsubscribed, false if failed or skipped
  */
-export async function unsubscribeNewsletter({
+export async function didUnsubscribeFromNewsletter({
   email,
   memberId,
   action,

@@ -30,9 +30,13 @@ const HUGO_DOULAS_DIR = path.resolve(
   "../hugo/content/doulas",
 );
 
-/** Directories that should never be deleted during sync. */
+/**
+Directories that should never be deleted during sync.
+*/
 const PRESERVED_DIRS = new Set(["tag"]);
-/** Files at the doulas root level that should never be deleted. */
+/**
+Files at the doulas root level that should never be deleted.
+*/
 const PRESERVED_FILES = new Set(["_index.md"]);
 
 interface Contact {

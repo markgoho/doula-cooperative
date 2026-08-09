@@ -49,7 +49,7 @@ export interface StripeWebhookService {
    * @param options - Event ID and type
    * @returns Promise resolving to true if successfully marked, false if already exists
    */
-  markEventProcessed(options: {
+  wasEventMarkedAsProcessed(options: {
     eventId: string;
     eventType: string;
   }): Promise<boolean>;

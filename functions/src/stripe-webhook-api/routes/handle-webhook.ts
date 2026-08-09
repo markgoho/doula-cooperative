@@ -82,7 +82,7 @@ export async function handleStripeWebhookLogic(options: {
   // Step 3: Handle checkout.session.completed events
   if (event.type === "checkout.session.completed") {
     // Step 3a: Check idempotency - try to mark event as processed atomically
-    const wasMarked = await stripeWebhookService.markEventProcessed({
+    const wasMarked = await stripeWebhookService.wasEventMarkedAsProcessed({
       eventId: event.id,
       eventType: event.type,
     });
@@ -134,7 +134,7 @@ export async function handleStripeWebhookLogic(options: {
   // Step 4: Handle charge.refunded events
   if (event.type === "charge.refunded") {
     // Step 4a: Check idempotency
-    const wasMarked = await stripeWebhookService.markEventProcessed({
+    const wasMarked = await stripeWebhookService.wasEventMarkedAsProcessed({
       eventId: event.id,
       eventType: event.type,
     });
@@ -194,7 +194,7 @@ export async function handleStripeWebhookLogic(options: {
 
   // Step 5: Handle customer.subscription.deleted events
   if (event.type === "customer.subscription.deleted") {
-    const wasMarked = await stripeWebhookService.markEventProcessed({
+    const wasMarked = await stripeWebhookService.wasEventMarkedAsProcessed({
       eventId: event.id,
       eventType: event.type,
     });
@@ -253,7 +253,7 @@ export async function handleStripeWebhookLogic(options: {
 
   // Step 6: Handle customer.subscription.updated events
   if (event.type === "customer.subscription.updated") {
-    const wasMarked = await stripeWebhookService.markEventProcessed({
+    const wasMarked = await stripeWebhookService.wasEventMarkedAsProcessed({
       eventId: event.id,
       eventType: event.type,
     });

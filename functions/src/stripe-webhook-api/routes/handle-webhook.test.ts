@@ -100,7 +100,7 @@ describe("POST /webhook", () => {
       return createMockStripeEvent(eventType, sessionData);
     });
 
-    const mockMarkEventProcessed = mock(() =>
+    const mockWasEventMarkedAsProcessed = mock(() =>
       Promise.resolve(!eventAlreadyProcessed),
     );
 
@@ -135,7 +135,7 @@ describe("POST /webhook", () => {
     const testApp = createStripeWebhookTestPlugin({
       stripeWebhookService: {
         verifySignature: mockVerifySignature,
-        markEventProcessed: mockMarkEventProcessed,
+        wasEventMarkedAsProcessed: mockWasEventMarkedAsProcessed,
         processCheckoutCompleted: mockProcessCheckout,
         processChargeRefunded: mockProcessChargeRefunded,
         processSubscriptionEnded: mockProcessSubscriptionEnded,

@@ -82,7 +82,7 @@ describe("handleStripeWebhookApi", () => {
           customer_details: { email: "test@example.com" },
         }),
       );
-      const mockMarkEventProcessed = mock(() => Promise.resolve(true));
+      const mockWasEventMarkedAsProcessed = mock(() => Promise.resolve(true));
       const mockProcessCheckout = mock(() =>
         Promise.resolve({
           userId: "test-user-123",
@@ -106,7 +106,7 @@ describe("handleStripeWebhookApi", () => {
           stripeWebhookService: {
             verifySignature: mockVerifySignature,
             isEventProcessed: mock(() => Promise.resolve(false)),
-            markEventProcessed: mockMarkEventProcessed,
+            wasEventMarkedAsProcessed: mockWasEventMarkedAsProcessed,
             processCheckoutCompleted: mockProcessCheckout,
             processChargeRefunded: mock(() =>
               Promise.resolve({

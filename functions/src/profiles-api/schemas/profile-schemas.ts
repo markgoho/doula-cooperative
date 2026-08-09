@@ -85,7 +85,9 @@ export type ProfileDataBody = Static<typeof ProfileDataBodySchema>;
  * Source of truth is ProfileDataBodySchema - this extends it with response-only fields.
  */
 export interface ProfileData extends ProfileDataBody {
-  /** Optional: Profile image URL (managed separately from markdown content, provided by backend) */
+  /**
+  Optional: Profile image URL (managed separately from markdown content, provided by backend)
+  */
   image?: string;
 }
 

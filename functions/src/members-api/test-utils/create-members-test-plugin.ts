@@ -71,7 +71,7 @@ export function createMembersTestPlugin(overrides?: {
         data: () => ({ email: "test@example.com" }),
       } as unknown as DocumentSnapshot),
     ),
-    memberExists: mock(() => Promise.resolve(true)),
+    hasMember: mock(() => Promise.resolve(true)),
     writeMember: mock(() => Promise.resolve()),
     updateMember: mock(() => Promise.resolve()),
     deleteMember: mock(() => Promise.resolve()),

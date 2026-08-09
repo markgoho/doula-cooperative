@@ -8,7 +8,7 @@ import { PROCESSED_STRIPE_EVENTS_COLLECTION } from "../../collections/index.js";
  * @param options - Event ID and type
  * @returns Promise resolving to true if successfully marked, false if already exists
  */
-export async function markEventProcessed(options: {
+export async function wasEventMarkedAsProcessed(options: {
   eventId: string;
   eventType: string;
 }): Promise<boolean> {

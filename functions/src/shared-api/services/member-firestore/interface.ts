@@ -21,7 +21,7 @@ export interface MemberFirestoreService {
    * @param uid - The user ID (Firestore document ID)
    * @returns Promise resolving to true if the document exists, false otherwise
    */
-  memberExists(uid: string): Promise<boolean>;
+  hasMember(uid: string): Promise<boolean>;
 
   /**
    * Write or merge member document data.

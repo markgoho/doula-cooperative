@@ -201,15 +201,15 @@ export function sleep(ms: number): Promise<void> {
 /**
  * Wait for Firestore operation to complete (useful in tests)
  */
-export async function waitForFirestoreOperation(
-  operation: () => Promise<boolean>,
+export async function didFirestoreOperationSucceedInTime(
+  hasSucceeded: () => Promise<boolean>,
   timeoutMs = 5000,
   intervalMs = 100,
 ): Promise<boolean> {
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeoutMs) {
-    if (await operation()) {
+    if (await hasSucceeded()) {
       return true;
     }
     await sleep(intervalMs);
