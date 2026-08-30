@@ -33,7 +33,7 @@ export class AdminUnclaimedProfileDetail {
   protected deleteConfirmMessage = computed(() => {
     const resource = this.service.unclaimedProfileResource;
     if (resource.hasValue() && resource.value().slug) {
-      return 'This will remove the unclaimed profile, unsubscribe from the newsletter, and set the public doula profile to draft.';
+      return 'This will remove the unclaimed profile, unsubscribe from the newsletter, and permanently delete the public doula profile.';
     }
     return 'This will remove the unclaimed profile and unsubscribe from the newsletter.';
   });

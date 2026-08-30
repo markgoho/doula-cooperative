@@ -5,7 +5,7 @@ import {
   NEWSLETTER_EMAIL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
-import { draftProfile } from "../../profiles-api/services/profile-store/draft-profile.js";
+import { deleteProfile } from "../../profiles-api/services/profile-store/delete-profile.js";
 import { triggerHugoRebuild } from "../../profiles-api/services/profile-store/trigger-rebuild.js";
 import {
   HttpError,
@@ -92,9 +92,9 @@ async function sendUnsubscribeFailureNotification({
 }
 
 /**
- * Creates HTML for profile draft failure notification email
+ * Creates HTML for profile delete failure notification email
  */
-function createDraftFailureEmailHtml({
+function createDeleteFailureEmailHtml({
   email,
   slug,
   errorMessage,
@@ -104,8 +104,8 @@ function createDraftFailureEmailHtml({
   errorMessage: string;
 }): string {
   return `
-    <h2>Profile Draft Failed</h2>
-    <p>An admin deleted an unclaimed profile, but setting the Firestore profile to draft failed.</p>
+    <h2>Profile Delete Failed</h2>
+    <p>An admin deleted an unclaimed profile, but deleting the Firestore profile document failed.</p>
 
     <h3>Profile Details:</h3>
     <ul>
@@ -116,14 +116,14 @@ function createDraftFailureEmailHtml({
     <h3>Error Details:</h3>
     <p>${escapeHtml(errorMessage)}</p>
 
-    <p><strong>Action Required:</strong> Manually set <code>draft: true</code> on the Firestore document at <code>profiles/${escapeHtml(slug)}</code>.</p>
+    <p><strong>Action Required:</strong> Manually delete the Firestore document at <code>profiles/${escapeHtml(slug)}</code>.</p>
   `;
 }
 
 /**
- * Sends notification email when profile drafting fails during profile deletion
+ * Sends notification email when profile deletion fails during unclaimed profile deletion
  */
-async function sendDraftFailureNotification({
+async function sendDeleteFailureNotification({
   email,
   slug,
   errorMessage,
@@ -140,8 +140,9 @@ async function sendDraftFailureNotification({
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,
       to: NEWSLETTER_EMAIL,
-      subject: "Profile Draft Failed During Profile Deletion - Action Required",
-      html: createDraftFailureEmailHtml({
+      subject:
+        "Profile Delete Failed During Profile Deletion - Action Required",
+      html: createDeleteFailureEmailHtml({
         email,
         slug,
         errorMessage,
@@ -149,13 +150,13 @@ async function sendDraftFailureNotification({
     };
 
     await emailService.sendEmail({ message: notificationEmail }, logger);
-    logger.info("Sent profile draft failure notification email", {
+    logger.info("Sent profile delete failure notification email", {
       email,
       slug,
     });
   } catch (emailError) {
     logger.error(
-      "CRITICAL: Failed to send profile draft failure notification email",
+      "CRITICAL: Failed to send profile delete failure notification email",
       {
         errorId:
           ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_NOTIFICATION_FAILED,
@@ -163,7 +164,7 @@ async function sendDraftFailureNotification({
         slug,
         error: emailError,
         severity: "CRITICAL",
-        context: "Profile draft failed AND notification email failed",
+        context: "Profile delete failed AND notification email failed",
         originalError: errorMessage,
       },
     );
@@ -176,14 +177,16 @@ async function sendDraftFailureNotification({
  * before claiming their account.
  *
  * Also unsubscribes the email from the MailerLite newsletter (best-effort).
- * If the profile has a slug, sets the profile to draft in Firestore (best-effort).
+ * If the profile has a slug, permanently deletes the Firestore profile document
+ * (best-effort) — this also frees the slug for reuse. To hide a profile without
+ * losing it, use the separate "Set Profile to Draft" action instead.
  */
 export async function deleteUnclaimedProfile(options: {
   email: string;
   mailerliteApiKey: string;
   emailService: EmailServiceInterface;
   logger: Logger;
-}): Promise<{ success: true; profileDrafted?: boolean }> {
+}): Promise<{ success: true; profileDeleted?: boolean }> {
   const { email, mailerliteApiKey, emailService, logger } = options;
 
   try {
@@ -239,21 +242,21 @@ export async function deleteUnclaimedProfile(options: {
       });
     }
 
-    // Best-effort: Set profile to draft in Firestore if the profile has a slug
+    // Best-effort: Permanently delete the Firestore profile document if the profile has a slug
     const documentData = document.data();
     const slug =
       documentData !== undefined && typeof documentData["slug"] === "string"
         ? documentData["slug"]
         : undefined;
-    let profileDrafted: boolean | undefined;
+    let profileDeleted: boolean | undefined;
 
     if (slug !== undefined && slug.length > 0) {
       try {
-        await draftProfile({ slug });
-        logger.info("Set profile to draft", { email, slug });
-        profileDrafted = true;
+        await deleteProfile({ slug });
+        logger.info("Deleted profile document", { email, slug });
+        profileDeleted = true;
 
-        // NON-CRITICAL: Trigger Hugo rebuild after drafting
+        // NON-CRITICAL: Trigger Hugo rebuild after deletion
         try {
           await triggerHugoRebuild({
             slug,
@@ -265,7 +268,7 @@ export async function deleteUnclaimedProfile(options: {
               ? rebuildError.message
               : "Unknown error";
           logger.error(
-            "Failed to trigger Hugo rebuild after unclaimed profile draft",
+            "Failed to trigger Hugo rebuild after unclaimed profile delete",
             {
               email,
               slug,
@@ -274,42 +277,44 @@ export async function deleteUnclaimedProfile(options: {
             },
           );
         }
-      } catch (draftError) {
-        profileDrafted = false;
-        const draftErrorMessage =
-          draftError instanceof Error ? draftError.message : "Unknown error";
+      } catch (deleteError) {
+        profileDeleted = false;
+        const profileDeleteErrorMessage =
+          deleteError instanceof Error ? deleteError.message : "Unknown error";
 
-        logger.error("Failed to set profile to draft during profile deletion", {
-          errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DRAFT_FAILED,
+        logger.error(
+          "Failed to delete profile document during unclaimed profile deletion",
+          {
+            errorId: ERROR_IDS.API_ADMIN_DELETE_UNCLAIMED_PROFILE_DELETE_FAILED,
+            email,
+            slug,
+            error: deleteError,
+            errorMessage: profileDeleteErrorMessage,
+            actionRequired: "Manually delete the Firestore profiles document",
+          },
+        );
+
+        await sendDeleteFailureNotification({
           email,
           slug,
-          error: draftError,
-          errorMessage: draftErrorMessage,
-          actionRequired:
-            "Manually set draft: true on the Firestore profiles document",
-        });
-
-        await sendDraftFailureNotification({
-          email,
-          slug,
-          errorMessage: draftErrorMessage,
+          errorMessage: profileDeleteErrorMessage,
           emailService,
           logger,
         });
       }
     }
 
-    // Delete the document
+    // Delete the import record
     await documentReference.delete();
 
     logger.info("Unclaimed profile deleted successfully", {
       email,
-      ...(profileDrafted !== undefined && { profileDrafted }),
+      ...(profileDeleted !== undefined && { profileDeleted }),
     });
 
     return {
       success: true,
-      ...(profileDrafted !== undefined && { profileDrafted }),
+      ...(profileDeleted !== undefined && { profileDeleted }),
     };
   } catch (error) {
     // Re-throw known HTTP errors (NotFoundError, etc.)

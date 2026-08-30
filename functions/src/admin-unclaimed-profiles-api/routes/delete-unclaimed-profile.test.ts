@@ -17,14 +17,14 @@ describe("DELETE /:email", () => {
     // Scenario flags
     profileNotFound?: boolean;
     mailerliteFailure?: boolean;
-    profileDrafted?: boolean;
+    profileDeleted?: boolean;
   }
 
   function setup({
     email = "test@example.com",
     authToken = "admin-token",
     profileNotFound = false,
-    profileDrafted,
+    profileDeleted,
   }: SetupOptions = {}) {
     const mockDeleteUnclaimedProfile = mock(
       ({
@@ -33,7 +33,7 @@ describe("DELETE /:email", () => {
         email: string;
         mailerliteApiKey: string;
         emailService: unknown;
-      }): Promise<{ success: true; profileDrafted?: boolean }> => {
+      }): Promise<{ success: true; profileDeleted?: boolean }> => {
         if (profileNotFound || requestEmail === "nonexistent@example.com") {
           return Promise.reject(
             new NotFoundError("Unclaimed profile not found"),
@@ -43,7 +43,7 @@ describe("DELETE /:email", () => {
         // It's handled internally by the service
         return Promise.resolve({
           success: true,
-          ...(profileDrafted !== undefined && { profileDrafted }),
+          ...(profileDeleted !== undefined && { profileDeleted }),
         });
       },
     );
@@ -137,35 +137,35 @@ describe("DELETE /:email", () => {
       expect(callArguments).toHaveProperty("emailService");
     });
 
-    it("should include profileDrafted true when profile had a slug", async () => {
-      const { testApp, request } = setup({ profileDrafted: true });
+    it("should include profileDeleted true when profile had a slug", async () => {
+      const { testApp, request } = setup({ profileDeleted: true });
 
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
         success?: boolean;
-        profileDrafted?: boolean;
+        profileDeleted?: boolean;
       };
       expect(body.success).toBe(true);
-      expect(body.profileDrafted).toBe(true);
+      expect(body.profileDeleted).toBe(true);
     });
 
-    it("should include profileDrafted false when drafting failed", async () => {
-      const { testApp, request } = setup({ profileDrafted: false });
+    it("should include profileDeleted false when deletion failed", async () => {
+      const { testApp, request } = setup({ profileDeleted: false });
 
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
         success?: boolean;
-        profileDrafted?: boolean;
+        profileDeleted?: boolean;
       };
       expect(body.success).toBe(true);
-      expect(body.profileDrafted).toBe(false);
+      expect(body.profileDeleted).toBe(false);
     });
 
-    it("should omit profileDrafted when profile had no slug", async () => {
+    it("should omit profileDeleted when profile had no slug", async () => {
       const { testApp, request } = setup();
 
       const response = await handleRequest(testApp, request);
@@ -173,10 +173,10 @@ describe("DELETE /:email", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as {
         success?: boolean;
-        profileDrafted?: boolean;
+        profileDeleted?: boolean;
       };
       expect(body.success).toBe(true);
-      expect(body.profileDrafted).toBeUndefined();
+      expect(body.profileDeleted).toBeUndefined();
     });
   });
 
