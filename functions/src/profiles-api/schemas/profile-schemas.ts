@@ -210,8 +210,14 @@ export type ReadProfileResponse = Static<typeof ReadProfileResponseSchema>;
  * Success response for checking slug availability.
  * GET /api/profiles/slugs/check?slug=jane-doe
  */
+const UnownedProfileMatchSchema = t.Object({
+  slug: t.String(),
+  title: t.String(),
+});
+
 const CheckSlugAvailableSuccessSchema = t.Object({
   available: t.Boolean(),
+  unownedMatch: t.Optional(UnownedProfileMatchSchema),
 });
 
 export type CheckSlugAvailableSuccessResponse = Static<
@@ -243,6 +249,27 @@ export const SetSlugResponseSchema = t.Union([
 ]);
 
 export type SetSlugResponse = Static<typeof SetSlugResponseSchema>;
+
+/**
+ * Success response for requesting a profile link.
+ * POST /api/profiles/slugs/link-request
+ */
+const RequestProfileLinkSuccessSchema = t.Object({
+  success: t.Literal(true),
+});
+
+export type RequestProfileLinkSuccessResponse = Static<
+  typeof RequestProfileLinkSuccessSchema
+>;
+
+export const RequestProfileLinkResponseSchema = t.Union([
+  RequestProfileLinkSuccessSchema,
+  ErrorResponseSchema,
+]);
+
+export type RequestProfileLinkResponse = Static<
+  typeof RequestProfileLinkResponseSchema
+>;
 
 /**
  * Success response for updating profile.

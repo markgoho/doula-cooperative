@@ -7,26 +7,34 @@
         @if (userDocument()?.name; as name) {
           <p>Welcome, {{ name }}!</p>
         }
-        <p>
-          You have an active membership. Create your public doula profile to appear in our directory
-          and connect with families.
-        </p>
 
-        <button
-          type="button"
-          class="button"
-          (click)="onCreateProfile()"
-          [disabled]="createProfileInProgress()"
-        >
-          @if (createProfileInProgress()) {
-            Setting up your profile...
-          } @else {
-            Create Profile
+        @if (linkRequestSent()) {
+          <p class="success-message">
+            We've asked an admin to link your existing profile to your account. You'll be notified
+            once it's connected.
+          </p>
+        } @else {
+          <p>
+            You have an active membership. Create your public doula profile to appear in our
+            directory and connect with families.
+          </p>
+
+          <button
+            type="button"
+            class="button"
+            (click)="onCreateProfile()"
+            [disabled]="createProfileInProgress()"
+          >
+            @if (createProfileInProgress()) {
+              Setting up your profile...
+            } @else {
+              Create Profile
+            }
+          </button>
+
+          @if (createProfileError(); as error) {
+            <p class="error-message">{{ error }}</p>
           }
-        </button>
-
-        @if (createProfileError(); as error) {
-          <p class="error-message">{{ error }}</p>
         }
       </div>
     }
@@ -240,6 +248,7 @@
   </div>
 
   <app-confirm-dialog
+    #cancelDialog
     title="Cancel Membership"
     message="Are you sure you want to cancel your membership? You will remain an active member until your current billing period ends. Your profile will be hidden and you will not be charged again."
     confirmButtonText="Cancel Membership"
@@ -247,5 +256,16 @@
     [disabled]="cancelInProgress()"
     (confirmed)="onConfirmCancel()"
     (cancelled)="onCancelDialog()"
+  />
+
+  <app-confirm-dialog
+    #linkRequestDialog
+    title="Is this your profile?"
+    [message]="linkRequestDialogMessage()"
+    confirmButtonText="Yes, that's me"
+    cancelButtonText="No, that's not me"
+    [disabled]="linkRequestInProgress()"
+    (confirmed)="onConfirmLinkRequest()"
+    (cancelled)="onDeclineLinkRequest()"
   />
 }

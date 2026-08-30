@@ -12,19 +12,24 @@ describe("GET /slugs/check (check slug availability)", () => {
   interface SetupOptions {
     slug?: string;
     available?: boolean;
+    unownedMatch?: { slug: string; title: string };
     serverError?: boolean;
   }
 
   function setup({
     slug = "test-slug",
     available = true,
+    unownedMatch,
     serverError = false,
   }: SetupOptions = {}) {
     const mockCheckSlug = mock(() => {
       if (serverError) {
         return Promise.reject(new Error("Firestore connection failed"));
       }
-      return Promise.resolve({ available });
+      return Promise.resolve({
+        available,
+        ...(unownedMatch !== undefined && { unownedMatch }),
+      });
     });
 
     const testApp = createProfilesTestPlugin({
@@ -73,6 +78,40 @@ describe("GET /slugs/check (check slug availability)", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as { available?: boolean };
       expect(body.available).toBe(false);
+    });
+
+    it("should include unownedMatch when the taken slug has no owner", async () => {
+      const { testApp, request } = setup({
+        slug: "megan-stavalone",
+        available: false,
+        unownedMatch: { slug: "megan-stavalone", title: "Megan Stavalone" },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        available?: boolean;
+        unownedMatch?: { slug: string; title: string };
+      };
+      expect(body.available).toBe(false);
+      expect(body.unownedMatch).toEqual({
+        slug: "megan-stavalone",
+        title: "Megan Stavalone",
+      });
+    });
+
+    it("should omit unownedMatch when the taken slug is already owned", async () => {
+      const { testApp, request } = setup({
+        slug: "owned-slug",
+        available: false,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { unownedMatch?: unknown };
+      expect(body.unownedMatch).toBeUndefined();
     });
   });
 

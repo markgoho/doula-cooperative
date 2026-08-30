@@ -5,6 +5,12 @@ import type { MemberDocument } from "../../../collections/index.js";
  */
 export interface SlugAvailabilityResponse {
   available: boolean;
+  /**
+   * Present when the slug is taken by a profile with no owner (e.g. a
+   * legacy profile imported from Hugo content). Lets the caller offer an
+   * "is this you?" prompt instead of silently deduplicating the slug.
+   */
+  unownedMatch?: { slug: string; title: string };
 }
 
 /**

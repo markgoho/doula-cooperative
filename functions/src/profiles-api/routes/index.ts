@@ -13,6 +13,9 @@ export { checkSlugAvailableLogic } from "./check-slug-available.js";
 
 export { setSlugLogic } from "./set-slug.js";
 
+export type { RequestProfileLinkResponse } from "../schemas/profile-schemas.js";
+export { requestProfileLinkLogic } from "./request-profile-link.js";
+
 export type { ClaimProfileResponse } from "../schemas/profile-schemas.js";
 export { claimProfileLogic } from "./claim-profile.js";
 

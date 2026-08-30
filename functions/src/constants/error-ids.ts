@@ -251,6 +251,9 @@ export const ERROR_IDS = {
   API_PROFILE_CREATE_FAILED: "api_profile_create_failed",
   API_PROFILE_SLUG_CHECK_FAILED: "api_profile_slug_check_failed",
   API_PROFILE_SLUG_SET_FAILED: "api_profile_slug_set_failed",
+  API_PROFILE_LINK_REQUEST_FAILED: "api_profile_link_request_failed",
+  PROFILE_LINK_REQUEST_NOTIFICATION_FAILED:
+    "profile_link_request_notification_failed",
   API_PROFILE_CLAIM_FAILED: "api_profile_claim_failed",
   API_HUGO_REBUILD_FAILED: "api_hugo_rebuild_failed",
 

@@ -137,7 +137,19 @@ export class Membership {
   protected cancelInProgress = signal(false);
   protected cancelError = signal<string | undefined>(undefined);
 
-  protected confirmDialog = viewChild(ConfirmDialog);
+  protected pendingUnownedMatch = signal<{ slug: string; title: string } | undefined>(undefined);
+  protected linkRequestInProgress = signal(false);
+  protected linkRequestSent = signal(false);
+
+  protected linkRequestDialogMessage = computed(() => {
+    const match = this.pendingUnownedMatch();
+    return match
+      ? `We found an existing profile that matches your name: "${match.title}". Is this you? If so, we'll ask an admin to link it to your account instead of creating a new one.`
+      : '';
+  });
+
+  protected confirmDialog = viewChild<ConfirmDialog>('cancelDialog');
+  protected linkRequestDialog = viewChild<ConfirmDialog>('linkRequestDialog');
 
   protected async onUpdateNewsletterPreference(isSubscribed: boolean) {
     this.newsletterUpdateInProgress.set(true);
@@ -173,33 +185,16 @@ export class Membership {
         throw new Error('Name is required to create profile');
       }
 
-      // Generate slug from name
       const baseSlug = generateSlug(userDocument.name);
-      let uniqueSlug: string;
 
-      try {
-        uniqueSlug = await ensureUniqueSlug(baseSlug, (slug) =>
-          this.membershipService.checkSlugExists(slug),
-        );
-      } catch (error) {
-        console.error('Slug generation failed:', error);
-        throw new Error(
-          'Unable to generate a unique profile URL. Please try again or contact support.',
-          { cause: error },
-        );
+      const { unownedMatch } = await this.membershipService.checkSlugAvailability(baseSlug);
+      if (unownedMatch) {
+        this.pendingUnownedMatch.set(unownedMatch);
+        this.linkRequestDialog()?.showModal();
+        return;
       }
 
-      // Update Firestore with slug
-      try {
-        await this.membershipService.updateMemberSlug(uniqueSlug);
-      } catch (error) {
-        console.error('Failed to save profile slug:', error);
-        // Re-throw with the error message from the service (which has better context)
-        throw error;
-      }
-
-      // Navigate to create profile page
-      await this.router.navigate(['/profile/create']);
+      await this.createProfileWithSlug(baseSlug);
     } catch (error) {
       console.error('Error creating profile:', error);
 
@@ -210,6 +205,82 @@ export class Membership {
       this.createProfileError.set(errorMessage);
     } finally {
       this.createProfileInProgress.set(false);
+    }
+  }
+
+  /**
+   * Resolve a unique slug from the given base slug and set it on the
+   * member, then navigate to the profile creation wizard.
+   */
+  private async createProfileWithSlug(baseSlug: string): Promise<void> {
+    let uniqueSlug: string;
+
+    try {
+      uniqueSlug = await ensureUniqueSlug(baseSlug, (slug) =>
+        this.membershipService.checkSlugExists(slug),
+      );
+    } catch (error) {
+      console.error('Slug generation failed:', error);
+      throw new Error(
+        'Unable to generate a unique profile URL. Please try again or contact support.',
+        { cause: error },
+      );
+    }
+
+    try {
+      await this.membershipService.updateMemberSlug(uniqueSlug);
+    } catch (error) {
+      console.error('Failed to save profile slug:', error);
+      // Re-throw with the error message from the service (which has better context)
+      throw error;
+    }
+
+    await this.router.navigate(['/profile/create']);
+  }
+
+  protected async onDeclineLinkRequest(): Promise<void> {
+    this.linkRequestDialog()?.close();
+    const match = this.pendingUnownedMatch();
+    this.pendingUnownedMatch.set(undefined);
+    if (!match) {
+      return;
+    }
+
+    this.createProfileInProgress.set(true);
+    this.createProfileError.set(undefined);
+    try {
+      await this.createProfileWithSlug(match.slug);
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to create profile. Please try again.';
+      this.createProfileError.set(errorMessage);
+    } finally {
+      this.createProfileInProgress.set(false);
+    }
+  }
+
+  protected async onConfirmLinkRequest(): Promise<void> {
+    const match = this.pendingUnownedMatch();
+    if (!match) {
+      return;
+    }
+
+    this.linkRequestInProgress.set(true);
+    this.createProfileError.set(undefined);
+    try {
+      await this.membershipService.requestProfileLink(match.slug);
+      this.linkRequestDialog()?.close();
+      this.linkRequestSent.set(true);
+    } catch (error) {
+      console.error('Error requesting profile link:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to request profile link. Please try again.';
+      this.createProfileError.set(errorMessage);
+    } finally {
+      this.linkRequestInProgress.set(false);
     }
   }
 

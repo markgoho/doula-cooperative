@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
@@ -453,6 +453,98 @@ describe('Membership', () => {
     });
   });
 
+  describe('create profile - unowned profile match', () => {
+    const matchedUserDocument: Partial<Member> = {
+      createdAt: new Date(),
+      email: 'jane@example.com',
+      uid: 'user123',
+      membershipActive: true,
+      name: 'Megan Stavalone',
+    };
+    const unownedMatch = { slug: 'megan-stavalone', title: 'Megan Stavalone' };
+
+    it('should show an "is this you?" prompt when the name matches an unowned profile', async () => {
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: matchedUserDocument,
+        checkSlugAvailabilityResult: { taken: true, unownedMatch },
+      });
+
+      const createProfileButton = screen.getByRole('button', { name: 'Create Profile' });
+      await user.click(createProfileButton);
+
+      expect(await screen.findByText(/Is this you\?/)).toBeVisible();
+    });
+
+    it('should request a profile link and show a confirmation when confirmed', async () => {
+      const { user, requestProfileLinkMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: matchedUserDocument,
+        checkSlugAvailabilityResult: { taken: true, unownedMatch },
+      });
+
+      const createProfileButton = screen.getByRole('button', { name: 'Create Profile' });
+      await user.click(createProfileButton);
+
+      const confirmButton = await screen.findByRole('button', { name: "Yes, that's me" });
+      await user.click(confirmButton);
+
+      await waitFor(() => {
+        expect(requestProfileLinkMock).toHaveBeenCalledWith('megan-stavalone');
+      });
+      expect(await screen.findByText(/asked an admin to link your existing profile/)).toBeVisible();
+    });
+
+    it('should proceed with slug deduplication when declined', async () => {
+      // Consistent with checkSlugAvailabilityResult: the base slug is
+      // taken (by the unowned match itself), so dedup must walk to "-2".
+      const { user, updateMemberSlugMock, requestProfileLinkMock } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: matchedUserDocument,
+        checkSlugAvailabilityResult: { taken: true, unownedMatch },
+        checkSlugExistsTakenSlugs: ['megan-stavalone'],
+      });
+
+      const createProfileButton = screen.getByRole('button', { name: 'Create Profile' });
+      await user.click(createProfileButton);
+
+      const declineButton = await screen.findByRole('button', { name: "No, that's not me" });
+      await user.click(declineButton);
+
+      await waitFor(() => {
+        expect(updateMemberSlugMock).toHaveBeenCalledWith('megan-stavalone-2');
+      });
+      expect(requestProfileLinkMock).not.toHaveBeenCalled();
+    });
+
+    it('should show an error message when the link request fails', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty - we're just suppressing console output in tests
+      });
+
+      const { user } = await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: matchedUserDocument,
+        checkSlugAvailabilityResult: { taken: true, unownedMatch },
+        requestProfileLinkShouldFail: true,
+      });
+
+      const createProfileButton = screen.getByRole('button', { name: 'Create Profile' });
+      await user.click(createProfileButton);
+
+      const confirmButton = await screen.findByRole('button', { name: "Yes, that's me" });
+      await user.click(confirmButton);
+
+      expect(await screen.findByText('Failed to request profile link')).toBeVisible();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   describe('cancel membership', () => {
     it('should show cancel button for active Stripe members', async () => {
       await setup({
@@ -823,6 +915,9 @@ interface SetupOptions {
   signOutShouldFail?: boolean;
   updateMemberNameShouldFail?: boolean;
   cancelMembershipShouldFail?: boolean;
+  checkSlugAvailabilityResult?: { taken: boolean; unownedMatch?: { slug: string; title: string } };
+  checkSlugExistsTakenSlugs?: string[];
+  requestProfileLinkShouldFail?: boolean;
 }
 
 async function setup({
@@ -835,6 +930,9 @@ async function setup({
   signOutShouldFail = false,
   updateMemberNameShouldFail = false,
   cancelMembershipShouldFail = false,
+  checkSlugAvailabilityResult = { taken: false },
+  checkSlugExistsTakenSlugs = [],
+  requestProfileLinkShouldFail = false,
 }: SetupOptions = {}) {
   const mockUser = isAuthenticated
     ? {
@@ -868,7 +966,15 @@ async function setup({
     : vi.fn().mockResolvedValue(undefined);
 
   const updateMemberSlugMock = vi.fn().mockResolvedValue(undefined);
-  const checkSlugExistsMock = vi.fn().mockResolvedValue(false);
+  const checkSlugExistsMock = vi
+    .fn()
+    .mockImplementation((slug: string) =>
+      Promise.resolve(checkSlugExistsTakenSlugs.includes(slug)),
+    );
+  const checkSlugAvailabilityMock = vi.fn().mockResolvedValue(checkSlugAvailabilityResult);
+  const requestProfileLinkMock = requestProfileLinkShouldFail
+    ? vi.fn().mockRejectedValue(new Error('Failed to request profile link'))
+    : vi.fn().mockResolvedValue(undefined);
 
   const cancelMembershipMock = cancelMembershipShouldFail
     ? vi.fn().mockRejectedValue(new Error('Failed to cancel membership'))
@@ -880,6 +986,8 @@ async function setup({
     updateMemberName: updateMemberNameMock,
     updateMemberSlug: updateMemberSlugMock,
     checkSlugExists: checkSlugExistsMock,
+    checkSlugAvailability: checkSlugAvailabilityMock,
+    requestProfileLink: requestProfileLinkMock,
     cancelMembership: cancelMembershipMock,
   };
 
@@ -906,6 +1014,8 @@ async function setup({
     updateMemberNameMock,
     updateMemberSlugMock,
     checkSlugExistsMock,
+    checkSlugAvailabilityMock,
+    requestProfileLinkMock,
     cancelMembershipMock,
   };
 }

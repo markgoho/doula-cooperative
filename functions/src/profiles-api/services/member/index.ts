@@ -83,7 +83,16 @@ async function checkSlugAvailable(
       .doc(slug)
       .get();
 
-    return { available: !document.exists };
+    if (!document.exists) {
+      return { available: true };
+    }
+
+    const data = document.data() as { ownerUid?: string; title: string };
+    if (data.ownerUid === undefined) {
+      return { available: false, unownedMatch: { slug, title: data.title } };
+    }
+
+    return { available: false };
   } catch (error) {
     logger.error("Failed to check slug availability", {
       errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,

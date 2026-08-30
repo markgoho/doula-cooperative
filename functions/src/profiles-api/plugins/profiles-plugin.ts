@@ -16,6 +16,7 @@ import {
   deleteImageLogic,
   imagekitAuthLogic,
   readProfileBySlugLogic,
+  requestProfileLinkLogic,
   setSlugLogic,
   uploadImageLogic,
   writeProfileLogic,
@@ -28,6 +29,7 @@ import {
   ImageKitAuthResponseSchema,
   ProfileDataBodySchema,
   ReadProfileResponseSchema,
+  RequestProfileLinkResponseSchema,
   SetSlugBodySchema,
   SetSlugResponseSchema,
   SlugParameterSchema,
@@ -108,6 +110,7 @@ async function validateSlugOwnershipOrAdmin({
  *
  * Special routes:
  * - /slugs (POST)          - Set profile slug (for users without a slug yet)
+ * - /slugs/link-request (POST) - Ask an admin to link an existing unowned profile
  *
  * @param services - Optional services to inject (defaults to real implementations)
  * @returns Configured Elysia plugin with profile routes
@@ -193,6 +196,31 @@ export function createProfilesPlugin(services?: PartialServices) {
         {
           body: SetSlugBodySchema,
           response: SetSlugResponseSchema,
+        },
+      )
+
+      // POST /slugs/link-request - Ask an admin to link an existing unowned profile
+      .post(
+        "/slugs/link-request",
+        async ({
+          body,
+          userToken,
+          profileMemberService,
+          emailService,
+          logger,
+          set,
+        }) =>
+          requestProfileLinkLogic({
+            uid: getUserUid(userToken, logger),
+            slug: body.slug,
+            profileMemberService,
+            emailService,
+            logger,
+            set,
+          }),
+        {
+          body: SetSlugBodySchema,
+          response: RequestProfileLinkResponseSchema,
         },
       )
 

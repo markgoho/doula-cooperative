@@ -30,6 +30,11 @@ export class PersonalInfoStep {
   protected readonly resolvedSlug = signal('');
   protected readonly errorMessage = signal('');
 
+  protected readonly unownedMatch = signal<{ slug: string; title: string } | undefined>(undefined);
+  protected readonly dismissedMatchSlug = signal<string | undefined>(undefined);
+  protected readonly linkRequestInProgress = signal(false);
+  protected readonly linkRequestSent = signal(false);
+
   protected readonly form = this.fb.group({
     title: [
       this.wizardService.personalInfo().title,
@@ -87,6 +92,35 @@ export class PersonalInfoStep {
     void this.router.navigate(['/membership']);
   }
 
+  protected async onConfirmUnownedMatch(): Promise<void> {
+    const match = this.unownedMatch();
+    if (!match) return;
+
+    this.linkRequestInProgress.set(true);
+    this.errorMessage.set('');
+    try {
+      await this.membershipService.requestProfileLink(match.slug);
+      this.linkRequestSent.set(true);
+    } catch (error: unknown) {
+      this.errorMessage.set(
+        error instanceof Error
+          ? error.message
+          : 'Failed to request profile link. Please try again.',
+      );
+    } finally {
+      this.linkRequestInProgress.set(false);
+    }
+  }
+
+  protected onDeclineUnownedMatch(): void {
+    const match = this.unownedMatch();
+    if (!match) return;
+
+    this.dismissedMatchSlug.set(match.slug);
+    this.unownedMatch.set(undefined);
+    this.titleControl.updateValueAndValidity();
+  }
+
   private createSlugValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       const currentSlug = this.membershipService.userDocument()?.slug;
@@ -97,24 +131,66 @@ export class PersonalInfoStep {
       const slug = generateSlug(name);
       if (slug === currentSlug) {
         this.resolvedSlug.set(slug);
+        this.unownedMatch.set(undefined);
         // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
         return of(null);
       }
 
       return timer(500).pipe(
-        switchMap(() =>
-          from(ensureUniqueSlug(slug, (s) => this.membershipService.checkSlugExists(s))),
-        ),
-        map((resolved) => {
-          this.resolvedSlug.set(resolved);
-          // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
-          return null;
-        }),
+        switchMap(() => this.resolveSlug(slug)),
         catchError((error: unknown) => {
           console.error('Slug availability check failed:', error);
           return of({ slugCheckFailed: true });
         }),
       );
     };
+  }
+
+  /**
+   * Resolve the base slug for a profile. If it matches an existing
+   * unowned profile the member hasn't already dismissed, surface it
+   * instead of silently deduplicating with a numeric suffix.
+   *
+   * Only offered when the member has no slug at all: by the time this
+   * step is reached, `onCreateProfile` has almost always already set
+   * `member.slug`, and the link-request endpoint always rejects once a
+   * slug is set. Prompting in that case would show a dialog whose
+   * "Yes" answer is guaranteed to fail.
+   */
+  private resolveSlug(slug: string): Observable<ValidationErrors | null> {
+    if (slug === this.dismissedMatchSlug()) {
+      return this.deduplicateSlug(slug);
+    }
+
+    const hasExistingSlug = this.membershipService.userDocument()?.slug !== undefined;
+
+    return from(this.membershipService.checkSlugAvailability(slug)).pipe(
+      switchMap(({ taken, unownedMatch }) => {
+        if (unownedMatch && !hasExistingSlug) {
+          this.unownedMatch.set(unownedMatch);
+          this.resolvedSlug.set('');
+          return of({ unownedProfileFound: true });
+        }
+
+        this.unownedMatch.set(undefined);
+        if (!taken) {
+          this.resolvedSlug.set(slug);
+          // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
+          return of(null);
+        }
+
+        return this.deduplicateSlug(slug);
+      }),
+    );
+  }
+
+  private deduplicateSlug(slug: string): Observable<ValidationErrors | null> {
+    return from(ensureUniqueSlug(slug, (s) => this.membershipService.checkSlugExists(s))).pipe(
+      map((resolved) => {
+        this.resolvedSlug.set(resolved);
+        // eslint-disable-next-line unicorn/no-null -- Angular validator API requires null for "no error"
+        return null;
+      }),
+    );
   }
 }
