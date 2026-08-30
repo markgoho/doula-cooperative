@@ -10,6 +10,7 @@ import {
   activateMembershipLogic,
   approveProfileLogic,
   cancelMembershipLogic,
+  changeSlugLogic,
   cleanSlateDeleteLogic,
   deleteDraftProfileLogic,
   extendMembershipLogic,
@@ -29,6 +30,8 @@ import {
   ActivateMembershipBodySchema,
   ApproveProfileApiResponseSchema,
   CancelMembershipApiResponseSchema,
+  ChangeSlugApiResponseSchema,
+  ChangeSlugBodySchema,
   CleanSlateApiResponseSchema,
   DeleteDraftProfileApiResponseSchema,
   ExtendMembershipApiResponseSchema,
@@ -292,6 +295,32 @@ export function createAdminMembersPlugin(services?: PartialServices) {
             {
               body: LinkProfileBodySchema,
               response: LinkProfileApiResponseSchema,
+            },
+          )
+          // POST /:memberId/profile/change-slug - Change profile slug (served at /api/admin/members/:memberId/profile/change-slug)
+          .post(
+            "/profile/change-slug",
+            async ({
+              params,
+              body,
+              adminToken,
+              memberAdminService,
+              logger,
+              set,
+            }) => {
+              const typedBody = body;
+              return changeSlugLogic({
+                memberId: params.memberId,
+                newSlug: typedBody.newSlug,
+                adminUid: getAdminUid(adminToken, logger),
+                memberAdminService,
+                logger,
+                set,
+              });
+            },
+            {
+              body: ChangeSlugBodySchema,
+              response: ChangeSlugApiResponseSchema,
             },
           )
           // Membership management routes under /:memberId/membership

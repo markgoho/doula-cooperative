@@ -283,4 +283,29 @@ export class AdminMemberDetailService {
       this.actionInProgress.set(false);
     }
   }
+
+  /**
+   * Change the profile slug for the current member
+   */
+  async changeSlug(uid: string, newSlug: string): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      const result = await this.adminMembersService.changeSlug(uid, newSlug);
+      const message = result.imageMoveWarning
+        ? `Slug changed from "${result.oldSlug}" to "${result.newSlug}". Warning: ${result.imageMoveWarning}`
+        : `Slug changed from "${result.oldSlug}" to "${result.newSlug}" successfully`;
+      this.successMessage.set(message);
+      this.memberResource.reload();
+      this.membersState.invalidate();
+    } catch (error) {
+      console.error('Error changing slug:', error);
+      const message = error instanceof Error ? error.message : 'Failed to change slug.';
+      this.actionError.set(message);
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
 }

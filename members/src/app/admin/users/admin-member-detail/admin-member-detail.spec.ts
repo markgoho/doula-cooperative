@@ -25,6 +25,9 @@ interface SetupOptions {
   shouldFailCleanSlate?: boolean;
   shouldFailToggleDraft?: boolean;
   shouldFailLinkProfile?: boolean;
+  shouldFailChangeSlug?: boolean;
+  changeSlugErrorMessage?: string;
+  changeSlugImageMoveWarning?: string;
   shouldFailUnlinkedProfilesLoad?: boolean;
   shouldKeepLoading?: boolean;
   useFakeTimers?: boolean;
@@ -68,6 +71,9 @@ function createMockAdminMembersService({
   shouldFailUnlinkedProfilesLoad,
   unlinkedProfiles,
   shouldFailLinkProfile,
+  shouldFailChangeSlug,
+  changeSlugErrorMessage,
+  changeSlugImageMoveWarning,
   overrideListUnlinkedProfiles,
 }: {
   shouldKeepLoading: boolean;
@@ -83,6 +89,9 @@ function createMockAdminMembersService({
   shouldFailUnlinkedProfilesLoad: boolean;
   unlinkedProfiles: UnlinkedProfileFixture[];
   shouldFailLinkProfile: boolean;
+  shouldFailChangeSlug: boolean;
+  changeSlugErrorMessage: string;
+  changeSlugImageMoveWarning?: string;
   overrideListUnlinkedProfiles?: ReturnType<typeof vi.fn<() => Promise<UnlinkedProfileFixture[]>>>;
 }): {
   mockAdminMembersService: {
@@ -94,10 +103,12 @@ function createMockAdminMembersService({
     toggleProfileDraft: ReturnType<typeof vi.fn>;
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
+    changeSlug: ReturnType<typeof vi.fn>;
   };
   resolveMemberPromise: (value: ApiMemberResponse) => void;
 } {
-  const { promise: pendingMemberPromise, resolve: resolveMemberPromise } = Promise.withResolvers<ApiMemberResponse>();
+  const { promise: pendingMemberPromise, resolve: resolveMemberPromise } =
+    Promise.withResolvers<ApiMemberResponse>();
 
   const mockAdminMembersService = {
     getMember: vi.fn().mockImplementation(() => {
@@ -152,6 +163,16 @@ function createMockAdminMembersService({
     linkProfile: shouldFailLinkProfile
       ? vi.fn().mockRejectedValue(new Error('Failed'))
       : vi.fn().mockResolvedValue(memberToUse),
+    changeSlug: shouldFailChangeSlug
+      ? vi.fn().mockRejectedValue(new Error(changeSlugErrorMessage))
+      : vi.fn().mockResolvedValue({
+          member: { ...memberToUse, slug: 'new-doula-slug' },
+          oldSlug: memberToUse.slug ?? 'old-doula-slug',
+          newSlug: 'new-doula-slug',
+          ...(changeSlugImageMoveWarning !== undefined && {
+            imageMoveWarning: changeSlugImageMoveWarning,
+          }),
+        }),
   };
 
   return { mockAdminMembersService, resolveMemberPromise };
@@ -172,6 +193,7 @@ async function renderAdminMemberDetail({
     toggleProfileDraft: ReturnType<typeof vi.fn>;
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
+    changeSlug: ReturnType<typeof vi.fn>;
   };
   mockRouter: {
     navigate: ReturnType<typeof vi.fn>;
@@ -208,6 +230,9 @@ async function setup({
   shouldFailCleanSlate = false,
   shouldFailToggleDraft = false,
   shouldFailLinkProfile = false,
+  shouldFailChangeSlug = false,
+  changeSlugErrorMessage = 'Failed to change slug.',
+  changeSlugImageMoveWarning,
   shouldFailUnlinkedProfilesLoad = false,
   shouldKeepLoading = false,
   useFakeTimers = false,
@@ -237,6 +262,9 @@ async function setup({
     shouldFailUnlinkedProfilesLoad,
     unlinkedProfiles,
     shouldFailLinkProfile,
+    shouldFailChangeSlug,
+    changeSlugErrorMessage,
+    ...(changeSlugImageMoveWarning !== undefined && { changeSlugImageMoveWarning }),
     ...(overrideListUnlinkedProfiles !== undefined && { overrideListUnlinkedProfiles }),
   });
 
@@ -1392,5 +1420,88 @@ describe('AdminUserDetail', () => {
     await user.click(cancelButton);
 
     expect(screen.queryByText('Profile "matching-doula" linked successfully')).toBeNull();
+  });
+
+  describe('Change Slug', () => {
+    it('should show the change slug control for members with a slug', async () => {
+      const member = createMockMember({ slug: 'existing-slug' });
+
+      await setup({ member });
+
+      expect(await screen.findByRole('button', { name: 'Rename Slug' })).toBeVisible();
+    });
+
+    it('should not allow changing slug until a validly formatted new slug is entered', async () => {
+      const member = createMockMember({ slug: 'existing-slug' });
+      const { user } = await setup({ member });
+
+      const toggleButton = await screen.findByRole('button', { name: 'Rename Slug' });
+      await user.click(toggleButton);
+      const updateButton = screen.getByRole('button', { name: 'Update Slug' });
+      expect(updateButton).toBeDisabled();
+
+      const input = screen.getByLabelText('New slug');
+      await user.type(input, 'Invalid Slug!');
+
+      expect(screen.getByText(/lowercase letters, numbers, and hyphens/)).toBeVisible();
+      expect(updateButton).toBeDisabled();
+    });
+
+    it('should change the slug after confirming', async () => {
+      const member = createMockMember({ slug: 'old-doula-slug' });
+      const { user, mockAdminMembersService } = await setup({ member });
+
+      await user.click(await screen.findByRole('button', { name: 'Rename Slug' }));
+      await user.type(screen.getByLabelText('New slug'), 'new-doula-slug');
+      await user.click(screen.getByRole('button', { name: 'Update Slug' }));
+      await user.click(screen.getByRole('button', { name: 'Change Slug' }));
+
+      expect(mockAdminMembersService.changeSlug).toHaveBeenCalledWith(member.uid, 'new-doula-slug');
+      expect(
+        await screen.findByText(
+          'Slug changed from "old-doula-slug" to "new-doula-slug" successfully',
+        ),
+      ).toBeVisible();
+    });
+
+    it('should surface a collision error inline when the new slug is already taken', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty - we're just suppressing console output in tests
+      });
+
+      const member = createMockMember({ slug: 'old-doula-slug' });
+      const { user } = await setup({
+        member,
+        shouldFailChangeSlug: true,
+        changeSlugErrorMessage: 'Slug "new-doula-slug" is already taken.',
+      });
+
+      await user.click(await screen.findByRole('button', { name: 'Rename Slug' }));
+      await user.type(screen.getByLabelText('New slug'), 'new-doula-slug');
+      await user.click(screen.getByRole('button', { name: 'Update Slug' }));
+      await user.click(screen.getByRole('button', { name: 'Change Slug' }));
+
+      expect(await screen.findByText('Slug "new-doula-slug" is already taken.')).toBeVisible();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should display the image-move warning after a successful slug change', async () => {
+      const member = createMockMember({ slug: 'old-doula-slug' });
+      const { user } = await setup({
+        member,
+        changeSlugImageMoveWarning:
+          'Profile image could not be moved to the new slug and may need manual attention.',
+      });
+
+      await user.click(await screen.findByRole('button', { name: 'Rename Slug' }));
+      await user.type(screen.getByLabelText('New slug'), 'new-doula-slug');
+      await user.click(screen.getByRole('button', { name: 'Update Slug' }));
+      await user.click(screen.getByRole('button', { name: 'Change Slug' }));
+
+      expect(
+        await screen.findByText(/Profile image could not be moved to the new slug/),
+      ).toBeVisible();
+    });
   });
 });

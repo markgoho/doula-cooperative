@@ -3,6 +3,7 @@ import type { EmailServiceInterface } from "../../shared-api/services/email/inde
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { ApproveProfileResult } from "./approve-profile.js";
+import type { ChangeSlugResult } from "./change-slug.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
 import type { LinkProfileResult } from "./link-profile.js";
@@ -241,4 +242,18 @@ export interface MemberAdminService {
     memberId: string;
     slug: string;
   }): Promise<LinkProfileResult>;
+
+  /**
+   * Change a member's profile slug, moving the underlying Firestore profile
+   * document, ImageKit image, and any migrated import record to the new slug.
+   *
+   * @param options - Object containing memberId and newSlug
+   * @returns Promise resolving to the updated member, old/new slugs, and optional image-move warning
+   * @throws NotFoundError if member or profile does not exist
+   * @throws ConflictError if member has no slug, new slug matches old slug, or new slug is taken
+   */
+  changeSlug(options: {
+    memberId: string;
+    newSlug: string;
+  }): Promise<ChangeSlugResult>;
 }

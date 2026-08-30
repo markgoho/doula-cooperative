@@ -358,6 +358,12 @@ export const ERROR_IDS = {
     "api_admin_list_unlinked_profiles_failed",
   API_ADMIN_LINK_PROFILE_FAILED: "api_admin_link_profile_failed",
 
+  // Admin change slug errors
+  API_ADMIN_CHANGE_SLUG_FAILED: "api_admin_change_slug_failed",
+  ADMIN_CHANGE_SLUG_IMAGE_MOVE_FAILED: "admin_change_slug_image_move_failed",
+  API_ADMIN_CHANGE_SLUG_IMPORT_UPDATE_FAILED:
+    "api_admin_change_slug_import_update_failed",
+
   // Member referrals errors
   API_MEMBER_LIST_REFERRALS_FAILED: "api_member_list_referrals_failed",
   API_MEMBER_GET_REFERRAL_FAILED: "api_member_get_referral_failed",

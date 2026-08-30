@@ -124,6 +124,13 @@ export function createAdminTestPlugin(overrides?: {
         member: {} as MemberDocument,
       }),
     ),
+    changeSlug: mock(() =>
+      Promise.resolve({
+        member: {} as MemberDocument,
+        oldSlug: "old-slug",
+        newSlug: "new-slug",
+      }),
+    ),
     ...overrides?.memberAdminService,
   };
 

@@ -91,7 +91,48 @@
 
       @if (member.slug) {
         <dt>Profile Slug:</dt>
-        <dd class="monospace">{{ member.slug }}</dd>
+        <dd>
+          <span class="monospace">{{ member.slug }}</span>
+          <button type="button" class="button button-small" (click)="toggleChangeSlugForm()">
+            Rename Slug
+          </button>
+          @if (changeSlugFormOpen()) {
+            <form (submit)="$event.preventDefault(); showChangeSlugConfirm()">
+              <label for="new-slug-input">New slug</label>
+              <input
+                id="new-slug-input"
+                type="text"
+                class="form__input"
+                [(ngModel)]="newSlugValue"
+                name="newSlug"
+                placeholder="jane-doe"
+              />
+              @if (newSlugValue().trim().length > 0 && !newSlugFormatValid()) {
+                <p class="error" role="alert">
+                  Slug must be lowercase letters, numbers, and hyphens only (e.g., jane-doe).
+                </p>
+              } @else if (newSlugValue().trim().length > 0) {
+                <p>
+                  New URL:
+                  <span class="monospace"
+                    >doulacooperative.com/doulas/{{ newSlugValue().trim() }}</span
+                  >
+                </p>
+              }
+              <button
+                type="submit"
+                class="button button-small"
+                [disabled]="
+                  service.actionInProgress() ||
+                  newSlugValue().trim().length === 0 ||
+                  !newSlugFormatValid()
+                "
+              >
+                {{ service.actionInProgress() ? 'Processing...' : 'Update Slug' }}
+              </button>
+            </form>
+          }
+        </dd>
       }
 
       <dt>Profile Approval:</dt>

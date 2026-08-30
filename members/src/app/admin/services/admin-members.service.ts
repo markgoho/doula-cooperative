@@ -34,7 +34,14 @@ interface ApiMemberSuccessResponse {
   member: ApiMemberResponse;
 }
 
+interface ApiChangeSlugSuccessResponse extends ApiMemberSuccessResponse {
+  oldSlug: string;
+  newSlug: string;
+  imageMoveWarning?: string;
+}
+
 type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
+type ApiChangeSlugResponse = ApiChangeSlugSuccessResponse | ApiErrorResponse;
 type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;
 
 function isApiErrorResponse(response: unknown): response is ApiErrorResponse {
@@ -71,6 +78,23 @@ function toUnlinkedProfiles(response: ApiListUnlinkedProfilesResult): UnlinkedPr
 
 function toLinkedMember(response: ApiLinkProfileResponse): ApiMemberResponse {
   return assertApiSuccess(response).member;
+}
+
+function toChangedSlugResult(response: ApiChangeSlugResponse): {
+  member: ApiMemberResponse;
+  oldSlug: string;
+  newSlug: string;
+  imageMoveWarning?: string;
+} {
+  const result = assertApiSuccess(response);
+  return {
+    member: result.member,
+    oldSlug: result.oldSlug,
+    newSlug: result.newSlug,
+    ...(result.imageMoveWarning !== undefined && {
+      imageMoveWarning: result.imageMoveWarning,
+    }),
+  };
 }
 
 @Service()
@@ -382,5 +406,24 @@ export class AdminMembersService {
     );
 
     return toLinkedMember(response);
+  }
+
+  async changeSlug(
+    uid: string,
+    newSlug: string,
+  ): Promise<{
+    member: ApiMemberResponse;
+    oldSlug: string;
+    newSlug: string;
+    imageMoveWarning?: string;
+  }> {
+    // Authorization header added automatically by authInterceptor
+    const response = await firstValueFrom(
+      this.httpClient.post<ApiChangeSlugResponse>(`/api/admin/members/${uid}/profile/change-slug`, {
+        newSlug,
+      }),
+    );
+
+    return toChangedSlugResult(response);
   }
 }

@@ -1,6 +1,7 @@
 import { activateMembership } from "./activate-membership.js";
 import { approveProfile } from "./approve-profile.js";
 import { cancelMembership } from "./cancel-membership.js";
+import { changeSlug } from "./change-slug.js";
 import { cleanSlateDelete } from "./clean-slate-delete.js";
 import { deleteDraftProfile } from "./delete-draft-profile.js";
 import { extendMembership } from "./extend-membership.js";
@@ -38,12 +39,14 @@ export const MemberAdminService = {
   listUnlinkedProfiles,
   approveProfile,
   linkProfile,
+  changeSlug,
 };
 
 // Re-export individual functions for direct imports
 export { activateMembership } from "./activate-membership.js";
 export { approveProfile } from "./approve-profile.js";
 export { cancelMembership } from "./cancel-membership.js";
+export { changeSlug } from "./change-slug.js";
 export { cleanSlateDelete } from "./clean-slate-delete.js";
 export { deleteDraftProfile } from "./delete-draft-profile.js";
 export { extendMembership } from "./extend-membership.js";

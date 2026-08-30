@@ -19,6 +19,8 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { AdminMemberDetailService } from './admin-member-detail.service';
 
+const SLUG_FORMAT_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 type ConfirmAction =
   | 'activate'
   | 'cancel'
@@ -26,7 +28,8 @@ type ConfirmAction =
   | 'cleanSlate'
   | 'toggleDraft'
   | 'deleteDraftProfile'
-  | 'linkProfile';
+  | 'linkProfile'
+  | 'changeSlug';
 
 interface DialogConfig {
   title: string;
@@ -106,6 +109,12 @@ export class AdminMemberDetail {
   });
 
   private pendingLinkSlug = signal<string | undefined>(undefined);
+
+  protected changeSlugFormOpen = signal(false);
+  protected newSlugValue = signal('');
+  private pendingNewSlug = signal<string | undefined>(undefined);
+
+  protected newSlugFormatValid = computed(() => SLUG_FORMAT_PATTERN.test(this.newSlugValue()));
 
   constructor() {
     this.service.init(this.uid);
@@ -211,10 +220,31 @@ export class AdminMemberDetail {
     this.confirmDialog()?.showModal();
   }
 
+  protected toggleChangeSlugForm(): void {
+    this.changeSlugFormOpen.update((open) => !open);
+  }
+
+  protected showChangeSlugConfirm(): void {
+    const newSlug = this.newSlugValue().trim();
+    if (newSlug.length === 0 || !this.newSlugFormatValid()) {
+      return;
+    }
+    this.pendingAction.set('changeSlug');
+    this.pendingNewSlug.set(newSlug);
+    this.dialogConfig.set({
+      title: 'Confirm Change Slug',
+      message: `Change this member's profile slug to "${newSlug}"? The profile will move to doulacooperative.com/doulas/${newSlug}.`,
+      confirmText: 'Change Slug',
+      variant: 'danger',
+    });
+    this.confirmDialog()?.showModal();
+  }
+
   protected onCancelDialog(): void {
     this.confirmDialog()?.close();
     this.pendingAction.set(undefined);
     this.pendingLinkSlug.set(undefined);
+    this.pendingNewSlug.set(undefined);
   }
 
   protected async onConfirmDialog(): Promise<void> {
@@ -255,11 +285,25 @@ export class AdminMemberDetail {
           await this.service.linkProfile(this.uid(), slug);
           break;
         }
+        case 'changeSlug': {
+          const newSlug = this.pendingNewSlug();
+          if (newSlug === undefined) {
+            this.service.actionError.set('Failed to change slug.');
+            break;
+          }
+          await this.service.changeSlug(this.uid(), newSlug);
+          if (this.service.successMessage()) {
+            this.newSlugValue.set('');
+            this.changeSlugFormOpen.set(false);
+          }
+          break;
+        }
       }
     } finally {
       this.confirmDialog()?.close();
       this.pendingAction.set(undefined);
       this.pendingLinkSlug.set(undefined);
+      this.pendingNewSlug.set(undefined);
     }
   }
 

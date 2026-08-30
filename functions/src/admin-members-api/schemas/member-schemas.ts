@@ -811,3 +811,50 @@ export const LinkProfileApiResponseSchema = t.Union([
 export type LinkProfileApiResponse = Static<
   typeof LinkProfileApiResponseSchema
 >;
+
+/**
+ * Request body schema for changing a member's profile slug.
+ */
+export const ChangeSlugBodySchema = t.Object({
+  newSlug: t.String({
+    minLength: 2,
+    maxLength: 100,
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$",
+    description: "The new profile slug",
+    error:
+      "Slug must be 2-100 characters, lowercase letters, numbers, and hyphens only (e.g., jane-doe)",
+  }),
+});
+
+export type ChangeSlugBody = Static<typeof ChangeSlugBodySchema>;
+
+/**
+ * Success response for changing a member's profile slug.
+ */
+export const ChangeSlugResponseSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+  oldSlug: t.String({
+    description: "The previous profile slug",
+  }),
+  newSlug: t.String({
+    description: "The new profile slug",
+  }),
+  imageMoveWarning: t.Optional(
+    t.String({
+      description: "Warning message if the ImageKit profile image move failed",
+    }),
+  ),
+});
+
+export type ChangeSlugResponse = Static<typeof ChangeSlugResponseSchema>;
+
+/**
+ * POST /api/admin/members/:memberId/profile/change-slug response - union of success and error.
+ */
+export const ChangeSlugApiResponseSchema = t.Union([
+  ChangeSlugResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export type ChangeSlugApiResponse = Static<typeof ChangeSlugApiResponseSchema>;
