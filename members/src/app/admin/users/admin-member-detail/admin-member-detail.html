@@ -77,7 +77,7 @@
 
       <dt>Has Profile:</dt>
       <dd>
-        @if (member.slug) {
+        @if (member.profileCreatedAt) {
           <a
             [href]="'https://doulacooperative.com/doulas/' + member.slug"
             target="_blank"
@@ -301,7 +301,7 @@
     </section>
   }
 
-  @if (member.slug) {
+  @if (member.profileCreatedAt) {
     <section class="subscription-card">
       <h2>Profile</h2>
       @let profileResource = service.profileResource;

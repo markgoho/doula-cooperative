@@ -308,6 +308,7 @@ function createMockMember(overrides: Partial<ApiMemberResponse> = {}): ApiMember
     subscriptionStart: '2024-01-01T00:00:00.000Z',
     membershipExpiresAt: '2025-01-01T00:00:00.000Z',
     slug: 'test-slug',
+    profileCreatedAt: '2024-02-01T00:00:00.000Z',
     ...overrides,
   };
 
@@ -319,6 +320,7 @@ function createMockMemberWithoutSlug(
 ): ApiMemberResponse {
   const member = createMockMember(overrides);
   delete member.slug;
+  delete member.profileCreatedAt;
   return member;
 }
 
@@ -552,6 +554,19 @@ describe('AdminUserDetail', () => {
 
     expect(await screen.findByText(/Approved on Mar 15, 2024/)).toBeVisible();
     expect(await screen.findByRole('button', { name: 'Load Profile Status' })).toBeVisible();
+  });
+
+  it('should not offer to load profile status for a member with only a reserved slug', async () => {
+    const member = createMockMember({
+      slug: 'test-slug',
+      membershipActive: true,
+    });
+    delete member.profileCreatedAt;
+
+    await setup({ member });
+
+    expect(await screen.findByText('No', { selector: 'dd' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Load Profile Status' })).toBeNull();
   });
 
   it('should preserve inactive member link helper copy', async () => {

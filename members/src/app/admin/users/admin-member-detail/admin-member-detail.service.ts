@@ -135,7 +135,7 @@ export class AdminMemberDetailService {
    * Load profile content for the current member
    */
   loadProfile(member: ApiMemberResponse): void {
-    if (member.slug) {
+    if (member.profileCreatedAt) {
       this.profileUidSignal.set(member.uid);
     }
   }
