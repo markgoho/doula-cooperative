@@ -26,4 +26,8 @@ export interface ProfileStoreService {
   draftProfile(options: { slug: string }): Promise<WriteProfileResponse>;
 
   deleteProfile(options: { slug: string }): Promise<WriteProfileResponse>;
+
+  stampProfileImageUpdated(options: {
+    slug: string;
+  }): Promise<WriteProfileResponse>;
 }

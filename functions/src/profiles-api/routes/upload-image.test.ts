@@ -1,4 +1,5 @@
 import { describe, expect, it, mock } from "bun:test";
+import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import {
   createProfilesTestPlugin,
@@ -38,6 +39,8 @@ describe("POST /:slug/image (upload profile image)", () => {
     memberHasNoSlug?: boolean;
     unexpectedError?: boolean;
     uploadFails?: boolean;
+    profileMissing?: boolean;
+    rebuildFails?: boolean;
   }
 
   function setup({
@@ -47,7 +50,26 @@ describe("POST /:slug/image (upload profile image)", () => {
     memberHasNoSlug = false,
     unexpectedError = false,
     uploadFails = false,
+    profileMissing = false,
+    rebuildFails = false,
   }: SetupOptions = {}) {
+    const mockTriggerRebuild = mock(() => {
+      if (rebuildFails) {
+        throw new Error("GitHub dispatch failed");
+      }
+      return Promise.resolve();
+    });
+
+    void mock.module("../services/profile-store/trigger-rebuild.js", () => ({
+      triggerHugoRebuild: mockTriggerRebuild,
+    }));
+
+    const mockStamp = mock(() => {
+      if (profileMissing) {
+        throw new NotFoundError(`No profile exists for slug: ${slug}`);
+      }
+      return Promise.resolve({ success: true as const });
+    });
     const mockUpload = mock(() => {
       if (uploadFails) {
         throw new Error("ImageKit upload failed");
@@ -98,6 +120,9 @@ describe("POST /:slug/image (upload profile image)", () => {
       profileMemberService: {
         verifyActiveMembership: mockVerifyMembership,
       },
+      profileStoreService: {
+        stampProfileImageUpdated: mockStamp,
+      },
     });
 
     // Build request from parameters
@@ -114,7 +139,14 @@ describe("POST /:slug/image (upload profile image)", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request, mockUpload, mockVerifyMembership };
+    return {
+      testApp,
+      request,
+      mockUpload,
+      mockVerifyMembership,
+      mockStamp,
+      mockTriggerRebuild,
+    };
   }
 
   describe("Authentication", () => {
@@ -263,6 +295,57 @@ describe("POST /:slug/image (upload profile image)", () => {
           useUniqueFileName: false,
         }),
       );
+    });
+  });
+
+  describe("Publishing the new image", () => {
+    it("should record when the image changed so the public URL changes with it", async () => {
+      const { testApp, request, mockStamp } = setup();
+
+      await handleRequest(testApp, request);
+
+      expect(mockStamp).toHaveBeenCalledWith({ slug: "test-user" });
+    });
+
+    it("should trigger a site rebuild that notifies the member", async () => {
+      const { testApp, request, mockTriggerRebuild } = setup();
+
+      await handleRequest(testApp, request);
+
+      expect(mockTriggerRebuild).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slug: "test-user",
+          notificationType: "image-update",
+        }),
+      );
+    });
+
+    it("should warn, not fail, when the rebuild cannot be triggered", async () => {
+      const { testApp, request } = setup({ rebuildFails: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        success?: boolean;
+        warning?: string;
+      };
+      expect(body.success).toBe(true);
+      expect(body.warning).toContain("rebuild");
+    });
+
+    it("should return 404 when no profile exists for the slug", async () => {
+      const { testApp, request } = setup({
+        slug: "no-such-doula",
+        authToken: "admin-token",
+        profileMissing: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(404);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toContain("no-such-doula");
     });
   });
 

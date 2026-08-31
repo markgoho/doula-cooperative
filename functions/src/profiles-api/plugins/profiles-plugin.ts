@@ -357,6 +357,7 @@ export function createProfilesPlugin(services?: PartialServices) {
           body,
           userToken,
           profileMemberService,
+          profileStoreService,
           logger,
           set,
         }) => {
@@ -373,6 +374,7 @@ export function createProfilesPlugin(services?: PartialServices) {
             isAdmin: userToken?.["admin"] === true,
             imageData: body.imageData,
             profileMemberService,
+            profileStoreService,
             logger,
             set,
           });
@@ -387,7 +389,14 @@ export function createProfilesPlugin(services?: PartialServices) {
       // DELETE /:slug/image - Delete profile image (must own slug or be admin)
       .delete(
         "/:slug/image",
-        async ({ params, userToken, profileMemberService, logger, set }) => {
+        async ({
+          params,
+          userToken,
+          profileMemberService,
+          profileStoreService,
+          logger,
+          set,
+        }) => {
           await validateSlugOwnershipOrAdmin({
             urlSlug: params.slug,
             userToken,
@@ -400,6 +409,7 @@ export function createProfilesPlugin(services?: PartialServices) {
             slug: params.slug,
             isAdmin: userToken?.["admin"] === true,
             profileMemberService,
+            profileStoreService,
             logger,
             set,
           });

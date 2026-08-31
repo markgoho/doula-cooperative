@@ -15,6 +15,8 @@ export interface ProfileDocument extends ProfileData {
   createdAt: string;
   /** ISO 8601 timestamp when the profile was last updated. */
   updatedAt: string;
+  /** ISO 8601 timestamp when the profile image last changed. Versions the public image URL. */
+  imageUpdatedAt?: string;
   /** Firebase Auth UID of the profile owner. Undefined for unclaimed/migrated profiles. */
   ownerUid?: string;
 }

@@ -354,6 +354,8 @@ export type ClaimProfileResponse = Static<typeof ClaimProfileResponseSchema>;
 const UploadImageSuccessSchema = t.Object({
   success: t.Literal(true),
   url: t.String(),
+  /** Present when the site rebuild could not be triggered. */
+  warning: t.Optional(t.String()),
 });
 
 export type UploadImageSuccessResponse = Static<
@@ -373,6 +375,8 @@ export type UploadImageResponse = Static<typeof UploadImageResponseSchema>;
  */
 const DeleteImageSuccessSchema = t.Object({
   success: t.Literal(true),
+  /** Present when the site rebuild could not be triggered. */
+  warning: t.Optional(t.String()),
 });
 
 export type DeleteImageSuccessResponse = Static<

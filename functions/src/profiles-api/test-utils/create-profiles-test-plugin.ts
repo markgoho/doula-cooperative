@@ -88,6 +88,9 @@ export function createProfilesTestPlugin(overrides?: {
     createProfile: mock(() => Promise.resolve({ success: true as const })),
     draftProfile: mock(() => Promise.resolve({ success: true as const })),
     deleteProfile: mock(() => Promise.resolve({ success: true as const })),
+    stampProfileImageUpdated: mock(() =>
+      Promise.resolve({ success: true as const }),
+    ),
     ...overrides?.profileStoreService,
   };
 

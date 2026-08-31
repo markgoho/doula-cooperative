@@ -3,6 +3,8 @@ import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
 import type { ProfileMemberService } from "../services/member/interface.js";
+import type { ProfileStoreService } from "../services/profile-store/interface.js";
+import { triggerHugoRebuild } from "../services/profile-store/trigger-rebuild.js";
 import { getImageKitClient } from "../utils/imagekit-client.js";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -13,6 +15,7 @@ export async function uploadImageLogic({
   isAdmin,
   imageData,
   profileMemberService,
+  profileStoreService,
   logger,
   set,
 }: {
@@ -21,9 +24,12 @@ export async function uploadImageLogic({
   isAdmin: boolean;
   imageData: string;
   profileMemberService: ProfileMemberService;
+  profileStoreService: ProfileStoreService;
   logger: Logger;
   set: { status?: number | string };
-}): Promise<{ success: true; url: string } | { error: string }> {
+}): Promise<
+  { success: true; url: string; warning?: string } | { error: string }
+> {
   logger.info("Profile image upload initiated", { uid, slug, isAdmin });
 
   try {
@@ -101,7 +107,17 @@ export async function uploadImageLogic({
       return { error: "Failed to upload image. Please try again." };
     }
 
-    return { success: true, url: uploadResult.url };
+    // Throws if the profile is missing or the write fails: without this stamp
+    // the public URL never changes and the new photo never reaches visitors.
+    await profileStoreService.stampProfileImageUpdated({ slug });
+
+    const warning = await requestRebuild({ slug, logger });
+
+    return {
+      success: true,
+      url: uploadResult.url,
+      ...(warning && { warning }),
+    };
   } catch (error: unknown) {
     return handleRouteError({
       error,
@@ -111,5 +127,35 @@ export async function uploadImageLogic({
       set,
       context: { uid },
     });
+  }
+}
+
+/**
+ * Ask GitHub to rebuild the public site so the new image URL ships.
+ *
+ * Non-critical: the timestamp is already stored, so the next profile edit
+ * rebuilds with it. Returns a warning for the caller to surface instead.
+ */
+async function requestRebuild({
+  slug,
+  logger,
+}: {
+  slug: string;
+  logger: Logger;
+}): Promise<string | undefined> {
+  try {
+    await triggerHugoRebuild({
+      slug,
+      action: "updated profile image",
+      notificationType: "image-update",
+    });
+    return undefined;
+  } catch (error: unknown) {
+    logger.error("Failed to trigger rebuild after profile image upload", {
+      errorId: ERROR_IDS.UPLOAD_PROFILE_IMAGE_FAILED,
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return "Image saved, but the public site rebuild could not be started. It will publish with the next profile update.";
   }
 }
