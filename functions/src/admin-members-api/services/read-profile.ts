@@ -25,19 +25,21 @@ export interface ReadProfileResult {
  * @param options.memberId - The Firestore document ID of the member
  * @returns The slug and profile data
  * @throws NotFoundError if member or profile does not exist
- * @throws ValidationError if member has no slug
+ * @throws ValidationError if member has no profile
  */
 export async function readProfile(options: {
   memberId: string;
 }): Promise<ReadProfileResult> {
   const { memberId } = options;
 
-  // 1. Verify member exists and get their slug
+  // 1. Verify member exists and has a completed profile
   const member = await verifyMemberExists(memberId);
 
-  if (!member.slug) {
+  // A slug can be reserved before a profile is created, so profileCreatedAt
+  // (not slug) is the signal that a profile actually exists.
+  if (!member.profileCreatedAt || !member.slug) {
     throw new ValidationError(
-      "Member does not have a profile slug. Cannot read profile.",
+      "Member does not have a profile. Cannot read profile.",
     );
   }
 
