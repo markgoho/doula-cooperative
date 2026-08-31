@@ -1,0 +1,18 @@
+{{- /*
+  Build the ImageKit URL for a doula profile photo.
+
+  ImageKit serves these with a year-long max-age and the path is derived from
+  the slug alone, so a replaced photo would otherwise keep the cached one.
+  Passing the profile's imageUpdatedAt appends a version, giving each new photo
+  a URL of its own. Profiles whose photo predates that field are unversioned,
+  exactly as before.
+
+  Params: slug, width, height, imageUpdatedAt (optional ISO 8601 string)
+  */
+-}}
+{{- $slug := .slug -}}
+{{- $url := printf "https://ik.imagekit.io/doulacoop/tr:w-%d,h-%d,fo-face,z-0.5,di-default-profile.png/doulas/%s/%s-profile" .width .height $slug $slug -}}
+{{- with .imageUpdatedAt -}}
+  {{- $url = printf "%s?updatedAt=%d" $url (time .).Unix -}}
+{{- end -}}
+{{- $url -}}

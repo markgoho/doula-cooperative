@@ -26,19 +26,20 @@
 
     <section class="headshot">
       {{ $slug := path.Base .File.Dir }}
+      {{ $imageUpdatedAt := .Params.imageUpdatedAt }}
       <picture>
         <source
           media="(min-width: 600px)"
           srcset="
-            https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face,z-0.5,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile    600w,
-            https://ik.imagekit.io/doulacoop/tr:w-1200,h-1200,fo-face,z-0.5,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile 1200w
+            {{ partial "profile-image-url.html" (dict "slug" $slug "width" 600 "height" 600 "imageUpdatedAt" $imageUpdatedAt) }}  600w,
+            {{ partial "profile-image-url.html" (dict "slug" $slug "width" 1200 "height" 1200 "imageUpdatedAt" $imageUpdatedAt) }} 1200w
           "
           sizes="(min-width: 600px) 600px" />
         <img
-          src="https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile"
+          src="{{ partial "profile-image-url.html" (dict "slug" $slug "width" 300 "height" 300 "imageUpdatedAt" $imageUpdatedAt) }}"
           srcset="
-            https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile 300w,
-            https://ik.imagekit.io/doulacoop/tr:w-600,h-600,fo-face,z-0.5,di-default-profile.png/doulas/{{ $slug }}/{{ $slug }}-profile 600w
+            {{ partial "profile-image-url.html" (dict "slug" $slug "width" 300 "height" 300 "imageUpdatedAt" $imageUpdatedAt) }} 300w,
+            {{ partial "profile-image-url.html" (dict "slug" $slug "width" 600 "height" 600 "imageUpdatedAt" $imageUpdatedAt) }} 600w
           "
           alt="Headshot of {{ .Title }}"
           class="headshot__image"
@@ -69,7 +70,11 @@
     <section class="contact-info" data-pagefind-ignore>
       {{ with .Params.contact }}
         <h3>
-          {{ with .business_name }}{{ . }}{{ else }}Contact Information{{ end }}
+          {{ with .business_name }}
+            {{ . }}
+          {{ else }}
+            Contact Information
+          {{ end }}
         </h3>
         <ul>
           {{ with .website }}

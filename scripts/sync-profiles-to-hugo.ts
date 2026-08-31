@@ -53,6 +53,7 @@ interface ProfileDocument {
   image?: string;
   createdAt?: string;
   updatedAt?: string;
+  imageUpdatedAt?: string;
   ownerUid?: string;
 }
 
@@ -60,6 +61,7 @@ interface HugoFrontMatter {
   title: string;
   type: string;
   updatedAt?: string;
+  imageUpdatedAt?: string;
   date?: string;
   createdAt?: string;
   draft?: boolean;
@@ -134,6 +136,12 @@ function serializeProfileToMarkdown(
 
   if (profile.updatedAt) {
     frontMatter.updatedAt = profile.updatedAt;
+  }
+
+  // Versions the public ImageKit URL so a replaced photo is fetched again
+  // instead of being served from a year-long cache under the same URL.
+  if (profile.imageUpdatedAt) {
+    frontMatter.imageUpdatedAt = profile.imageUpdatedAt;
   }
 
   if (profile.createdAt) {

@@ -1,5 +1,10 @@
 {{ $slug := .doula_slug }}
-{{ $imagePath := .image_path | default (printf "https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/%s/%s-profile" $slug $slug) }}
+{{ $imageUpdatedAt := "" }}
+{{ with site.GetPage (printf "/doulas/%s" $slug) }}
+  {{ $imageUpdatedAt = .Params.imageUpdatedAt | default "" }}
+{{ end }}
+{{ $defaultImagePath := partial "profile-image-url.html" (dict "slug" $slug "width" 300 "height" 300 "imageUpdatedAt" $imageUpdatedAt) }}
+{{ $imagePath := .image_path | default $defaultImagePath }}
 <div class="board-member-card">
   <div class="board-member-card__image">
     <img
