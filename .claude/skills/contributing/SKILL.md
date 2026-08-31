@@ -66,12 +66,12 @@ refactor(shared-api): extract email template helper
 chore(deps): update Angular packages to v21.2
 test(admin-members-api): add coverage for role validation
 docs: update CLAUDE.md with new conventions
-ci: add changelog generation to deploy pipeline
+ci: cache bun install in deploy pipeline
 ```
 
 ## Multi-scope changes
 
-When a change spans multiple scopes, prefer granular scoped commits over a single large commit. This produces better changelogs since each entry lands in the right folder's `CHANGELOG.md` with a targeted description.
+When a change spans multiple scopes, prefer granular scoped commits over a single large commit. This keeps the history readable, since each entry names the folder it touches.
 
 **Split into separate commits when** the changes for each scope are independently valid — staging just one scope's files wouldn't leave the repo broken:
 
