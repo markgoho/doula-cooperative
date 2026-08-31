@@ -95,6 +95,7 @@ describe("DELETE /:slug/image (delete profile image)", () => {
       request,
       mockDeleteFile,
       mockListFiles,
+      mockVerifyMembership,
     };
   }
 
@@ -169,6 +170,35 @@ describe("DELETE /:slug/image (delete profile image)", () => {
 
       expect(mockListFiles).toHaveBeenCalled();
       expect(mockDeleteFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Admin deletes for another member", () => {
+    it("should delete the image for the slug in the URL", async () => {
+      const { testApp, request, mockListFiles } = setup({
+        slug: "other-doula",
+        authToken: "admin-token",
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      expect(mockListFiles).toHaveBeenCalledWith(
+        expect.objectContaining({ path: "/doulas/other-doula" }),
+      );
+    });
+
+    it("should not require the admin to have a profile slug of their own", async () => {
+      const { testApp, request, mockVerifyMembership } = setup({
+        slug: "other-doula",
+        authToken: "admin-token",
+        memberHasNoSlug: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      expect(mockVerifyMembership).not.toHaveBeenCalled();
     });
   });
 

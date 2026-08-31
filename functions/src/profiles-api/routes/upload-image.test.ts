@@ -114,7 +114,7 @@ describe("POST /:slug/image (upload profile image)", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request, mockUpload };
+    return { testApp, request, mockUpload, mockVerifyMembership };
   }
 
   describe("Authentication", () => {
@@ -175,6 +175,38 @@ describe("POST /:slug/image (upload profile image)", () => {
       expect(response.status).toBe(428);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toContain("slug");
+    });
+  });
+
+  describe("Admin uploads for another member", () => {
+    it("should upload to the slug in the URL, not the admin's own slug", async () => {
+      const { testApp, request, mockUpload } = setup({
+        slug: "other-doula",
+        authToken: "admin-token",
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      expect(mockUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fileName: "other-doula-profile",
+          folder: "/doulas/other-doula",
+        }),
+      );
+    });
+
+    it("should not require the admin to have a profile slug of their own", async () => {
+      const { testApp, request, mockVerifyMembership } = setup({
+        slug: "other-doula",
+        authToken: "admin-token",
+        memberHasNoSlug: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      expect(mockVerifyMembership).not.toHaveBeenCalled();
     });
   });
 

@@ -369,6 +369,8 @@ export function createProfilesPlugin(services?: PartialServices) {
 
           return uploadImageLogic({
             uid: getUserUid(userToken, logger),
+            slug: params.slug,
+            isAdmin: userToken?.["admin"] === true,
             imageData: body.imageData,
             profileMemberService,
             logger,
@@ -395,6 +397,8 @@ export function createProfilesPlugin(services?: PartialServices) {
 
           return deleteImageLogic({
             uid: getUserUid(userToken, logger),
+            slug: params.slug,
+            isAdmin: userToken?.["admin"] === true,
             profileMemberService,
             logger,
             set,

@@ -6,26 +6,34 @@ import type { ProfileMemberService } from "../services/member/interface.js";
 
 export async function deleteImageLogic({
   uid,
+  slug,
+  isAdmin,
   profileMemberService,
   logger,
   set,
 }: {
   uid: string;
+  slug: string;
+  isAdmin: boolean;
   profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<{ success: true } | { error: string }> {
-  logger.info("Profile image delete initiated", { uid });
+  logger.info("Profile image delete initiated", { uid, slug, isAdmin });
 
   try {
-    const member = await profileMemberService.verifyActiveMembership(uid);
-    const slug = member.slug;
+    // Admins delete on behalf of a member, so the target is the slug in the
+    // URL. Members delete their own image and must still hold an active
+    // membership; route authorization has already proven the slug is theirs.
+    if (!isAdmin) {
+      const member = await profileMemberService.verifyActiveMembership(uid);
 
-    if (!slug) {
-      set.status = 428;
-      return {
-        error: "Profile slug is required. Please set up your profile first.",
-      };
+      if (!member.slug) {
+        set.status = 428;
+        return {
+          error: "Profile slug is required. Please set up your profile first.",
+        };
+      }
     }
 
     try {

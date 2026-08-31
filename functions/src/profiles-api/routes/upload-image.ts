@@ -9,28 +9,36 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function uploadImageLogic({
   uid,
+  slug,
+  isAdmin,
   imageData,
   profileMemberService,
   logger,
   set,
 }: {
   uid: string;
+  slug: string;
+  isAdmin: boolean;
   imageData: string;
   profileMemberService: ProfileMemberService;
   logger: Logger;
   set: { status?: number | string };
 }): Promise<{ success: true; url: string } | { error: string }> {
-  logger.info("Profile image upload initiated", { uid });
+  logger.info("Profile image upload initiated", { uid, slug, isAdmin });
 
   try {
-    const member = await profileMemberService.verifyActiveMembership(uid);
-    const slug = member.slug;
+    // Admins upload on behalf of a member, so the target is the slug in the
+    // URL. Members upload for themselves and must still hold an active
+    // membership; route authorization has already proven the slug is theirs.
+    if (!isAdmin) {
+      const member = await profileMemberService.verifyActiveMembership(uid);
 
-    if (!slug) {
-      set.status = 428;
-      return {
-        error: "Profile slug is required. Please set up your profile first.",
-      };
+      if (!member.slug) {
+        set.status = 428;
+        return {
+          error: "Profile slug is required. Please set up your profile first.",
+        };
+      }
     }
 
     const base64Content = imageData.replace(/^data:image\/\w+;base64,/, "");
