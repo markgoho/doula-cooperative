@@ -9,3 +9,36 @@
   gap: var(--space-s);
   flex-wrap: wrap;
 }
+
+.profile-image {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-s);
+}
+
+.profile-image__preview {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--border-radius-md);
+  object-fit: cover;
+  border: 8px solid var(--teal-500);
+}
+
+.profile-image__actions {
+  display: flex;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}
+
+// Keeps the file input reachable by its label without showing the native control
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

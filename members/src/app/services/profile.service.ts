@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, effect, inject, resource, Service, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { fileToBase64 } from '../shared/file-to-base64';
 import { buildImageKitDisplayUrl, IMAGEKIT_BASE_URL } from '../shared/profile-image-url';
 import { type ProfileData } from '../types/profile-data';
 import { MembershipService } from './membership.service';
@@ -277,7 +278,7 @@ export class ProfileService {
 
     try {
       // Convert file to base64
-      const imageData = await this.fileToBase64(file);
+      const imageData = await fileToBase64(file);
 
       await firstValueFrom(
         this.http.post<{ success: boolean; url: string }>(`/api/profiles/${slug}/image`, {
@@ -408,19 +409,6 @@ export class ProfileService {
 
       throw new Error('Failed to delete profile image. Please try again.', { cause: error });
     }
-  }
-
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        resolve(reader.result as string);
-      });
-      reader.addEventListener('error', () => {
-        reject(new Error('Failed to read file'));
-      });
-      reader.readAsDataURL(file);
-    });
   }
 
   private checkImageExists(slug: string): void {

@@ -168,6 +168,58 @@
       </div>
     </fieldset>
 
+    <fieldset class="form-fieldset">
+      <legend class="form__legend">Profile Image</legend>
+
+      @if (imageError()) {
+        <app-alert-banner variant="error">{{ imageError() }}</app-alert-banner>
+      }
+
+      @if (imageMessage()) {
+        <app-alert-banner variant="success">{{ imageMessage() }}</app-alert-banner>
+      }
+
+      <div class="profile-image">
+        @if (service.profileImageUrl()) {
+          <img
+            [src]="service.profileImageUrl()"
+            [alt]="'Profile image of ' + profile.title"
+            class="profile-image__preview"
+          />
+        }
+
+        <input
+          type="file"
+          id="admin-image-upload"
+          accept="image/jpeg,image/png,image/webp"
+          class="visually-hidden"
+          (change)="onImageSelected($event, member?.slug)"
+        />
+
+        <div class="profile-image__actions">
+          <label for="admin-image-upload" class="button button--secondary">
+            @if (imageBusy()) {
+              Working...
+            } @else {
+              Change Photo
+            }
+          </label>
+          <button
+            type="button"
+            class="button button--danger"
+            [disabled]="imageBusy()"
+            (click)="onRemoveImage(member?.slug)"
+          >
+            Remove Photo
+          </button>
+        </div>
+
+        <p class="form__help-text">
+          Image changes save immediately — they do not wait for Save Profile.
+        </p>
+      </div>
+    </fieldset>
+
     <div class="form-actions">
       <button type="button" class="button button--secondary" (click)="onCancel()">Cancel</button>
       <button
@@ -184,3 +236,13 @@
     </div>
   </form>
 }
+
+<app-confirm-dialog
+  title="Remove Profile Photo?"
+  message="This removes the member's profile photo. This cannot be undone."
+  confirmButtonText="Remove Photo"
+  confirmButtonVariant="danger"
+  [disabled]="imageBusy()"
+  (confirmed)="onConfirmRemoveImage()"
+  (cancelled)="onCancelRemoveImage()"
+/>

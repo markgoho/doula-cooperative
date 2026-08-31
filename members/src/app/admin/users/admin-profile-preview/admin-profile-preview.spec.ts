@@ -24,6 +24,7 @@ async function setup({
     subscriptionStart: '2024-01-01T00:00:00.000Z',
     membershipExpiresAt: '2025-01-01T00:00:00.000Z',
     slug: 'jane-doe',
+    profileCreatedAt: '2024-01-01T00:00:00.000Z',
   },
   profileTitle = 'Jane Doe',
 }: SetupOptions = {}): Promise<void> {
@@ -51,9 +52,10 @@ describe('AdminProfilePreview', () => {
 
     await waitFor(() => {
       const image = screen.getByRole('img', { name: 'Headshot of Jane Doe' });
-      expect(image).toHaveAttribute(
-        'src',
-        'https://ik.imagekit.io/doulacoop/tr:w-300,h-300,fo-face,z-0.5,di-default-profile.png/doulas/jane-doe/jane-doe-profile',
+      // The URL carries a cache-busting query so a new upload is not masked by
+      // the previously cached image.
+      expect(image.getAttribute('src')).toMatch(
+        /^https:\/\/ik\.imagekit\.io\/doulacoop\/tr:w-300,h-300,fo-face,z-0\.5,di-default-profile\.png\/doulas\/jane-doe\/jane-doe-profile\?v=\d+$/,
       );
     });
   });

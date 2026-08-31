@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProfileService } from '../services/profile.service';
+import {
+  ALLOWED_PROFILE_IMAGE_TYPES,
+  MAX_PROFILE_IMAGE_SIZE,
+} from '../shared/profile-image-limits';
 
 type EditorState = 'viewing' | 'selecting' | 'uploading' | 'deleting' | 'confirming-delete';
-
-const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 @Component({
   imports: [RouterLink],
@@ -48,13 +49,13 @@ export class EditProfileImage {
     }
 
     // Validate file type
-    if (!ALLOWED_TYPES.has(file.type)) {
+    if (!ALLOWED_PROFILE_IMAGE_TYPES.has(file.type)) {
       this.errorMessage.set('Please select a valid image (JPEG, PNG, or WebP).');
       return;
     }
 
     // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_PROFILE_IMAGE_SIZE) {
       this.errorMessage.set('Image is too large. Maximum size is 10MB.');
       return;
     }

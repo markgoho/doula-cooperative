@@ -20,3 +20,9 @@
   border: 8px solid var(--teal-500);
   margin-block: var(--space-xs);
 }
+
+// Link to the dedicated image editor, shown under the image preview
+.edit-image-link {
+  display: inline-block;
+  margin-block-start: var(--space-xs);
+}

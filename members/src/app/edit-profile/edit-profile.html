@@ -2,7 +2,6 @@
 
 <nav class="profile-nav">
   <a href="/profile/preview">Preview Profile</a>
-  <a href="/profile/image">Edit Profile Image</a>
 </nav>
 
 @let profileResource = profileService.profileResource;
@@ -225,6 +224,7 @@
           No custom profile image set. A default placeholder is shown on your public profile.
         </p>
       }
+      <a href="/profile/image" class="edit-image-link">Edit Profile Image</a>
     </div>
 
     <!-- Form Actions -->

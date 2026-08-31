@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, resource, signal, type Signal } from '@angular/core';
 import type { ApiMemberResponse } from '../../../api-types/api-member-response';
+import { fileToBase64 } from '../../../shared/file-to-base64';
 import { buildImageKitDisplayUrl } from '../../../shared/profile-image-url';
 import type { ProfileData } from '../../../types/profile-data';
 
@@ -50,6 +51,10 @@ export class AdminMemberDetailService {
     return error ? 'Failed to load profile content. Please try again.' : undefined;
   });
 
+  // Bumped after an image upload or delete so the CDN and the browser both
+  // re-fetch instead of showing the previous photo.
+  private readonly imageCacheBust = signal(Date.now());
+
   readonly profileImageUrl = computed(() => {
     const member = this.memberResource.hasValue() ? this.memberResource.value() : undefined;
     const profile = this.profileResource.hasValue() ? this.profileResource.value() : undefined;
@@ -58,7 +63,7 @@ export class AdminMemberDetailService {
       return;
     }
 
-    return buildImageKitDisplayUrl(member.slug, 300, 300);
+    return `${buildImageKitDisplayUrl(member.slug, 300, 300)}?v=${this.imageCacheBust()}`;
   });
 
   // Unlinked profiles resource — loads when member has no slug
@@ -261,6 +266,25 @@ export class AdminMemberDetailService {
     } finally {
       this.actionInProgress.set(false);
     }
+  }
+
+  /**
+   * Upload a new profile image for the current member's linked profile.
+   * Throws on failure so the caller can report it next to the image controls.
+   */
+  async uploadProfileImage(slug: string, file: File): Promise<void> {
+    const imageData = await fileToBase64(file);
+    await this.adminMembersService.uploadMemberProfileImage(slug, imageData, file.type);
+    this.imageCacheBust.set(Date.now());
+  }
+
+  /**
+   * Remove the profile image for the current member's linked profile.
+   * Throws on failure so the caller can report it next to the image controls.
+   */
+  async deleteProfileImage(slug: string): Promise<void> {
+    await this.adminMembersService.deleteMemberProfileImage(slug);
+    this.imageCacheBust.set(Date.now());
   }
 
   /**

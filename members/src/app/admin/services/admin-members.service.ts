@@ -176,6 +176,21 @@ export class AdminMembersService {
     return this.toMemberProfile(response.profile, response.slug);
   }
 
+  async uploadMemberProfileImage(slug: string, imageData: string, mimeType: string): Promise<void> {
+    await firstValueFrom(
+      this.httpClient.post<{ success: boolean; url: string }>(`/api/profiles/${slug}/image`, {
+        imageData,
+        mimeType,
+      }),
+    );
+  }
+
+  async deleteMemberProfileImage(slug: string): Promise<void> {
+    await firstValueFrom(
+      this.httpClient.delete<{ success: boolean }>(`/api/profiles/${slug}/image`),
+    );
+  }
+
   async listUnclaimedProfiles(limit = 100, offset = 0): Promise<ListUnclaimedProfilesResponse> {
     // Authorization header added automatically by authInterceptor
     const parameters = new HttpParams()

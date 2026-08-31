@@ -1,11 +1,24 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import {
   createProfileFormGroup,
   PROFILE_TAGS,
 } from '../../../shared/profile-form/profile-form-config';
+import {
+  ALLOWED_PROFILE_IMAGE_TYPES,
+  MAX_PROFILE_IMAGE_SIZE,
+} from '../../../shared/profile-image-limits';
 import {
   extractProfileData,
   initializeEditProfileForm,
@@ -14,7 +27,7 @@ import {
 import { AdminMemberDetailService } from '../admin-member-detail/admin-member-detail.service';
 
 @Component({
-  imports: [ReactiveFormsModule, AlertBanner, RouterLink],
+  imports: [ReactiveFormsModule, AlertBanner, ConfirmDialog, RouterLink],
   templateUrl: './admin-edit-profile.html',
   styleUrls: ['../../../shared/profile-form/profile-form-styles.scss', './admin-edit-profile.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +46,12 @@ export class AdminEditProfile {
   protected errorMessage = signal('');
   protected successMessage = signal('');
   protected infoMessage = signal('');
+  protected imageError = signal('');
+  protected imageMessage = signal('');
+  protected imageBusy = signal(false);
+
+  private confirmDialog = viewChild(ConfirmDialog);
+  private slugPendingImageRemoval = signal<string | undefined>(undefined);
 
   constructor() {
     this.service.init(this.uid);
@@ -90,6 +109,86 @@ export class AdminEditProfile {
     this.successMessage.set('');
     this.infoMessage.set('');
     await this.router.navigate(['/admin/members', this.uid(), 'profile']);
+  }
+
+  protected async onImageSelected(event: Event, slug: string | undefined): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    // Reset the input so the same file can be picked again after an error
+    input.value = '';
+    this.imageError.set('');
+
+    if (!file) {
+      return;
+    }
+
+    if (!slug) {
+      this.imageError.set('This member has no linked profile to attach an image to.');
+      return;
+    }
+
+    if (!ALLOWED_PROFILE_IMAGE_TYPES.has(file.type)) {
+      this.imageError.set('Please select a valid image (JPEG, PNG, or WebP).');
+      return;
+    }
+
+    if (file.size > MAX_PROFILE_IMAGE_SIZE) {
+      this.imageError.set('Image is too large. Maximum size is 10MB.');
+      return;
+    }
+
+    this.imageBusy.set(true);
+
+    try {
+      await this.service.uploadProfileImage(slug, file);
+      this.imageMessage.set('Profile image updated.');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      this.imageError.set('Failed to upload profile image. Please try again.');
+    } finally {
+      this.imageBusy.set(false);
+    }
+  }
+
+  protected onRemoveImage(slug: string | undefined): void {
+    this.imageError.set('');
+    this.imageMessage.set('');
+
+    if (!slug) {
+      this.imageError.set('This member has no linked profile to remove an image from.');
+      return;
+    }
+
+    this.slugPendingImageRemoval.set(slug);
+    this.confirmDialog()?.showModal();
+  }
+
+  protected async onConfirmRemoveImage(): Promise<void> {
+    const slug = this.slugPendingImageRemoval();
+    this.confirmDialog()?.close();
+    this.slugPendingImageRemoval.set(undefined);
+
+    if (!slug) {
+      return;
+    }
+
+    this.imageBusy.set(true);
+
+    try {
+      await this.service.deleteProfileImage(slug);
+      this.imageMessage.set('Profile image removed.');
+    } catch (error) {
+      console.error('Error removing profile image:', error);
+      this.imageError.set('Failed to remove profile image. Please try again.');
+    } finally {
+      this.imageBusy.set(false);
+    }
+  }
+
+  protected onCancelRemoveImage(): void {
+    this.confirmDialog()?.close();
+    this.slugPendingImageRemoval.set(undefined);
   }
 
   protected get titleControl() {

@@ -280,11 +280,15 @@ describe('EditProfile', () => {
       expect(image.getAttribute('src')).toContain('di-default-profile.png');
     });
 
-    it('should show edit profile image link', async () => {
+    it('should show edit profile image link beside the image', async () => {
       await setup();
 
       const editImageLink = screen.getByRole('link', { name: 'Edit Profile Image' });
       expect(editImageLink).toHaveAttribute('href', '/profile/image');
+
+      // The link belongs to the Profile Image form group, not the page nav
+      const image = screen.getByRole('img', { name: /profile image of jane doe/i });
+      expect(editImageLink.closest('.form-group')).toContainElement(image);
     });
 
     it('should show default image message when no custom image is set', async () => {
