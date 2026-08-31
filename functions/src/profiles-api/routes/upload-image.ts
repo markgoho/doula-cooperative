@@ -34,7 +34,9 @@ export async function uploadImageLogic({
     }
 
     const base64Content = imageData.replace(/^data:image\/\w+;base64,/, "");
-    const imageBuffer = Uint8Array.fromBase64(base64Content);
+    // Buffer.from, not Uint8Array.fromBase64: the deployed Node 24 runtime
+    // does not have the base64 Uint8Array methods, so they throw at runtime.
+    const imageBuffer = Buffer.from(base64Content, "base64");
 
     if (imageBuffer.byteLength > MAX_IMAGE_SIZE) {
       logger.warn("Image too large", {
