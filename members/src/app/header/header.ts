@@ -29,6 +29,4 @@ export class Header {
   protected readonly hasProfile = computed(() => {
     return !!this.membershipService.userDocument()?.profileCreatedAt;
   });
-
-  protected readonly isAdmin = this.authService.isAdmin;
 }

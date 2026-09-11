@@ -1,0 +1,67 @@
+<h1>Admin Portal</h1>
+<p class="subtitle">Sign in to your Doula Cooperative Administrator account</p>
+
+@if (message() === 'unauthorized') {
+  <div class="form__error-message">
+    Access denied. You must be signed in with an administrator account to view that page.
+  </div>
+}
+
+@if (errorMessage(); as error) {
+  <div class="form__error-message">
+    {{ error }}
+  </div>
+}
+
+<form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form">
+  <div class="form-group">
+    <label for="email" class="form__label">Email Address</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      placeholder="admin@doulacooperative.com"
+      class="form__input"
+      [class.error]="signInForm.get('email')?.invalid && signInForm.get('email')?.touched"
+    />
+    @if (signInForm.get('email')?.invalid && signInForm.get('email')?.touched) {
+      <div class="form__error-message">
+        @if (signInForm.get('email')?.errors?.['required']) {
+          Email is required
+        } @else if (signInForm.get('email')?.errors?.['email']) {
+          Please enter a valid email address
+        }
+      </div>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="password" class="form__label">Password</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      placeholder="Enter your password"
+      class="form__input"
+      [class.error]="signInForm.get('password')?.invalid && signInForm.get('password')?.touched"
+    />
+    @if (signInForm.get('password')?.invalid && signInForm.get('password')?.touched) {
+      <div class="form__error-message">
+        @if (signInForm.get('password')?.errors?.['required']) {
+          Password is required
+        }
+      </div>
+    }
+  </div>
+
+  <div class="full-width">
+    <button type="submit" class="button" [disabled]="isLoading() || signInForm.invalid">
+      @if (isLoading()) {
+        Signing In...
+      } @else {
+        Sign In
+      }
+    </button>
+    <a routerLink="/forgot-password">Forgot your password?</a>
+  </div>
+</form>

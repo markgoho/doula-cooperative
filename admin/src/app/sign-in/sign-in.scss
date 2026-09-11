@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.subtitle {
+  text-align: center;
+  margin-block: var(--space-m);
+}
+
+.full-width {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

@@ -8,25 +8,28 @@ Multi-platform doula cooperative website:
 
 - **Firebase Backend**: Cloud Functions (TypeScript), Firestore, Authentication
 - **Hugo Static Site**: Main public website with doula directory
-- **Angular Members App**: Member dashboard and management
+- **Angular Members App**: Member dashboard and self-service
+- **Angular Admin App**: Cooperative administration app served at admin.doulacooperative.com
 - **Bun**: Primary package manager
 
 ## Development Commands
 
 ```bash
-# Start all services (emulators, functions, Angular, Hugo)
+# Start all services (emulators, functions, Angular Members, Angular Admin, Hugo)
 bun start
 
 # Individual services
 bun run hugo:dev              # Hugo dev server (localhost:1313)
-bun run angular:start         # Angular dev server (localhost:4200)
+bun run members:start         # Angular Members dev server (localhost:4200)
+bun run admin:start           # Angular Admin dev server (localhost:4201)
 bun run emulators:start       # Firebase emulators (Firestore:8090, Auth:9099, Functions:5001)
 bun run functions:start       # Watch mode for TypeScript compilation
 
 # Build commands
 bun run build                 # Hugo production build
 bun run build:search          # Build with Pagefind search index
-cd members && bun run build   # Angular production build
+cd members && bun run build   # Angular Members production build
+cd admin && bun run build     # Angular Admin production build
 cd functions && bun run build # Compile TypeScript functions
 
 # Linting and formatting
@@ -35,10 +38,13 @@ bun run lint:fix              # Auto-fix ESLint issues
 bun run format                # Format with Prettier
 
 # Testing
-cd members && bun run test                              # Run all Angular tests
-cd members && bun run test --include path/to/spec.ts    # Run specific test
+cd members && bun run test                              # Run all Angular Members tests
+cd members && bun run test --include path/to/spec.ts    # Run specific Members test
+cd admin && bun run test                                # Run all Angular Admin tests
+cd admin && bun run test --include path/to/spec.ts      # Run specific Admin test
 cd functions && bun test                                # Run Firebase Functions tests
-
+bun run members:e2e                                     # Run Members Playwright E2E tests
+bun run admin:e2e                                       # Run Admin Playwright E2E tests
 ```
 
 ## End-to-end testing
@@ -133,6 +139,19 @@ import { onCall } from "firebase-functions/https";
 - **userEvent timing**: Always call `userEvent.setup()` AFTER `render()` to avoid ApplicationRef destroyed warnings
 - **Shared test utilities**: Use `src/test-utils/` for shared mocks and test helpers to maintain DRY principles
 
+### Angular Admin App (`/admin/`)
+
+Served at `admin.doulacooperative.com` (port 4201 locally). Contains cooperative administrative management features:
+
+- **Dashboard**: Cooperative metrics overview (`/`)
+- **Members**: Active member list and member detail management (`/members`, `/members/:id`)
+- **Unclaimed Profiles**: Legacy membership records and linking (`/unclaimed`, `/unclaimed/:slug`)
+- **Match Requests**: Match request intake tracking (`/match-requests`)
+- **Messages**: Public contact messages tracking (`/messages`)
+- **Analytics**: Cooperative analytics dashboard (`/analytics`)
+- **Authentication**: Admin-only auth guard requiring `claims.admin === true` (`/sign-in`, `/forgot-password`)
+- Backward compatibility redirects from `/admin/*` to `/*`
+
 ### Hugo Static Site (`/hugo/`)
 
 - Hugo extended v0.129.0+
@@ -219,7 +238,7 @@ test('user can claim profile', async ({ authenticatedUserPage }) => {
 
 ## Firebase Configuration
 
-Hosting targets: `main-site` (Hugo), `members-site` (Angular)
+Hosting targets: `main-site` (Hugo), `members-site` (Angular Members), `admin-site` (Angular Admin)
 Emulator ports: Auth:9099, Functions:5001, Firestore:8090
 
 ## Testing Accounts

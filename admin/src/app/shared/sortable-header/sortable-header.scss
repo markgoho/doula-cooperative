@@ -1,0 +1,14 @@
+:host {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--brown-200);
+  }
+}
+
+.sort-indicator {
+  margin-inline-start: var(--space-3xs);
+  color: var(--teal-500);
+}

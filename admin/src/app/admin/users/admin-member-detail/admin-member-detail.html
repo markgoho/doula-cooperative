@@ -1,0 +1,380 @@
+<h1>Member Details</h1>
+
+@let memberResource = service.memberResource;
+
+@if (service.successMessage(); as message) {
+  <app-alert-banner variant="success">{{ message }}</app-alert-banner>
+}
+
+@if (service.actionError(); as message) {
+  <app-alert-banner variant="error">{{ message }}</app-alert-banner>
+}
+
+@if (memberResource.isLoading()) {
+  <p class="loading">Loading details...</p>
+} @else if (service.errorMessage(); as errorMessage) {
+  <p class="error" role="alert">{{ errorMessage }}</p>
+} @else if (memberResource.value(); as member) {
+  <section class="user-info-card">
+    <h2>Account Information</h2>
+    <dl class="info-grid">
+      <dt id="member-name-label">Name:</dt>
+      <dd aria-labelledby="member-name-label">{{ member.name || '—' }}</dd>
+
+      <dt id="member-email-label">Email:</dt>
+      <dd aria-labelledby="member-email-label">{{ member.email }}</dd>
+
+      <dt id="member-uid-label">UID:</dt>
+      <dd class="monospace" aria-labelledby="member-uid-label">{{ member.uid }}</dd>
+
+      <dt id="member-created-label">Account Created:</dt>
+      <dd aria-labelledby="member-created-label">
+        {{ member.createdAt | date: 'MMM d, yyyy h:mm a' }}
+      </dd>
+
+      <dt id="member-membership-label">Membership:</dt>
+      <dd aria-labelledby="member-membership-label">
+        <span [class]="'status-badge ' + (member.membershipActive ? 'active' : 'inactive')">
+          {{ member.membershipActive ? 'Active' : 'Inactive' }}
+        </span>
+      </dd>
+    </dl>
+  </section>
+
+  <section class="subscription-card">
+    <h2>Membership Details</h2>
+    <dl class="info-grid">
+      <dt>Subscription Start:</dt>
+      <dd>
+        {{ member.subscriptionStart ? (member.subscriptionStart | date: 'MMM d, yyyy') : '—' }}
+      </dd>
+
+      <dt>Membership Expires:</dt>
+      <dd>
+        {{ member.membershipExpiresAt ? (member.membershipExpiresAt | date: 'MMM d, yyyy') : '—' }}
+      </dd>
+
+      @if (member.stripeCustomerId) {
+        <dt>Stripe Customer ID:</dt>
+        <dd class="monospace">{{ member.stripeCustomerId }}</dd>
+
+        <dt>Stripe Subscription ID:</dt>
+        <dd class="monospace">{{ member.stripeSubscriptionId || '—' }}</dd>
+
+        <dt>Subscription Status:</dt>
+        <dd>{{ member.subscriptionStatus || '—' }}</dd>
+      }
+
+      @if (member.subscriptionStatus === 'refunded') {
+        <dt>Refunded At:</dt>
+        <dd>{{ member.refundedAt ? (member.refundedAt | date: 'MMM d, yyyy h:mm a') : '—' }}</dd>
+
+        @if (member.refundReason) {
+          <dt>Refund Reason:</dt>
+          <dd>{{ member.refundReason }}</dd>
+        }
+      }
+
+      <dt>Has Profile:</dt>
+      <dd>
+        @if (member.profileCreatedAt) {
+          <a
+            [href]="'https://doulacooperative.com/doulas/' + member.slug"
+            target="_blank"
+            rel="noopener noreferrer"
+            >View Profile</a
+          >
+        } @else {
+          No
+        }
+      </dd>
+
+      @if (member.slug) {
+        <dt>Profile Slug:</dt>
+        <dd>
+          <span class="monospace">{{ member.slug }}</span>
+          <button type="button" class="button button-small" (click)="toggleChangeSlugForm()">
+            Rename Slug
+          </button>
+          @if (changeSlugFormOpen()) {
+            <form (submit)="$event.preventDefault(); showChangeSlugConfirm()">
+              <label for="new-slug-input">New slug</label>
+              <input
+                id="new-slug-input"
+                type="text"
+                class="form__input"
+                [(ngModel)]="newSlugValue"
+                name="newSlug"
+                placeholder="jane-doe"
+              />
+              @if (newSlugValue().trim().length > 0 && !newSlugFormatValid()) {
+                <p class="error" role="alert">
+                  Slug must be lowercase letters, numbers, and hyphens only (e.g., jane-doe).
+                </p>
+              } @else if (newSlugValue().trim().length > 0) {
+                <p>
+                  New URL:
+                  <span class="monospace"
+                    >doulacooperative.com/doulas/{{ newSlugValue().trim() }}</span
+                  >
+                </p>
+              }
+              <button
+                type="submit"
+                class="button button-small"
+                [disabled]="
+                  service.actionInProgress() ||
+                  newSlugValue().trim().length === 0 ||
+                  !newSlugFormatValid()
+                "
+              >
+                {{ service.actionInProgress() ? 'Processing...' : 'Update Slug' }}
+              </button>
+            </form>
+          }
+        </dd>
+      }
+
+      <dt>Profile Approval:</dt>
+      <dd>
+        @if (member.profileApprovedAt) {
+          Approved on {{ member.profileApprovedAt | date: 'MMM d, yyyy h:mm a' }}
+        } @else {
+          Not approved
+        }
+      </dd>
+    </dl>
+
+    <div class="actions">
+      <h3>Membership Actions</h3>
+      @if (member.stripeCustomerId) {
+        <p class="warning">
+          ⚠️ This membership is managed by Stripe. Manual changes may conflict with Stripe
+          subscription updates.
+        </p>
+      }
+
+      <div class="action-buttons">
+        @if (member.membershipActive) {
+          <button
+            type="button"
+            class="button button--danger"
+            (click)="showCancelConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : 'Cancel Membership' }}
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="button"
+            (click)="showActivateConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : 'Activate Membership' }}
+          </button>
+        }
+
+        @if (
+          member.stripeCustomerId &&
+          member.membershipActive &&
+          member.subscriptionStatus !== 'refunded'
+        ) {
+          @if (isRefundEligible()) {
+            <button
+              type="button"
+              class="button button--danger"
+              (click)="showRefundConfirm()"
+              [disabled]="service.actionInProgress()"
+            >
+              {{ service.actionInProgress() ? 'Processing...' : 'Refund Membership' }}
+            </button>
+          } @else {
+            <app-alert-banner variant="info"
+              >Refund window has expired (30 days from subscription start).</app-alert-banner
+            >
+          }
+        }
+      </div>
+    </div>
+  </section>
+
+  @if (!member.slug) {
+    <section class="subscription-card">
+      <h2>Link Existing Profile</h2>
+      <p>Linking an existing profile will also approve this member to edit that profile.</p>
+
+      @if (service.unlinkedProfilesResource.isLoading()) {
+        <p>Loading unlinked profiles...</p>
+      } @else if (service.unlinkedProfilesErrorMessage(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+        <button
+          type="button"
+          class="button"
+          (click)="service.unlinkedProfilesResource.reload()"
+          [disabled]="service.unlinkedProfilesResource.isLoading()"
+        >
+          Retry
+        </button>
+      } @else if (service.unlinkedProfilesResource.value(); as profiles) {
+        @if (profiles.length > 0) {
+          <label for="profile-search">Search profiles</label>
+          <input
+            id="profile-search"
+            type="search"
+            [(ngModel)]="profileSearchTerm"
+            placeholder="Search by name, email, or slug"
+          />
+          <p class="result-count">
+            {{ filteredUnlinkedProfiles().length }} of {{ profiles.length }} profiles
+          </p>
+
+          @if (filteredUnlinkedProfiles().length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Slug</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (profile of filteredUnlinkedProfiles(); track profile.slug) {
+                  <tr>
+                    <td>{{ profile.title }}</td>
+                    <td>{{ profile.email }}</td>
+                    <td class="monospace">{{ profile.slug }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="button"
+                        (click)="confirmLinkProfile(profile)"
+                        [disabled]="service.actionInProgress()"
+                      >
+                        Link
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else if (debouncedSearchTerm().length > 0) {
+            <p>No profiles match your search.</p>
+          }
+        } @else {
+          <p>No unlinked profiles are available.</p>
+        }
+      }
+    </section>
+  }
+
+  @if (!isTargetUserAdmin()) {
+    <section class="subscription-card danger-zone">
+      <h2>Danger Zone</h2>
+      <div class="actions">
+        <h3>Clean Slate Delete</h3>
+        <p class="warning">
+          ⚠️ <strong>Warning:</strong> This removes the user from ALL systems: Stripe customer,
+          MailerLite newsletter, Hugo profile, ImageKit profile image, Firestore document, and
+          Firebase Auth. Intended for testing cleanup.
+        </p>
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="button button--danger"
+            (click)="showCleanSlateConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{ service.actionInProgress() ? 'Processing...' : 'Clean Slate Delete' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <section class="subscription-card">
+      <h2>Admin Account</h2>
+      <app-alert-banner variant="info">
+        This user has admin privileges. Admin accounts cannot be deleted. To delete this account,
+        first remove their admin privileges.
+      </app-alert-banner>
+    </section>
+  }
+
+  @if (member.profileCreatedAt) {
+    <section class="subscription-card">
+      <h2>Profile</h2>
+      @let profileResource = service.profileResource;
+      @let profile = profileResource.value();
+
+      @if (!profile && !service.profileErrorMessage()) {
+        <button
+          type="button"
+          class="button"
+          (click)="loadProfile()"
+          [disabled]="profileResource.isLoading()"
+        >
+          {{ profileResource.isLoading() ? 'Loading...' : 'Load Profile Status' }}
+        </button>
+      }
+
+      @if (service.profileErrorMessage(); as error) {
+        <p class="error">{{ error }}</p>
+        <button type="button" class="button" (click)="loadProfile()">Retry</button>
+      }
+
+      @if (profile) {
+        <dl class="info-grid">
+          <dt>Status:</dt>
+          <dd>
+            <span [class]="'status-badge ' + (isProfileDraft() ? 'inactive' : 'active')">
+              {{ isProfileDraft() ? 'Draft (Unpublished)' : 'Published' }}
+            </span>
+          </dd>
+        </dl>
+
+        <div class="action-buttons">
+          <a [href]="'/members/' + member.uid + '/profile'" class="button">View Profile</a>
+          <a [href]="'/members/' + member.uid + '/profile/edit'" class="button">
+            Edit Profile
+          </a>
+          <button
+            type="button"
+            [class]="'button ' + (isProfileDraft() ? '' : 'button--danger')"
+            (click)="showToggleDraftConfirm()"
+            [disabled]="service.actionInProgress()"
+          >
+            {{
+              service.actionInProgress()
+                ? 'Processing...'
+                : isProfileDraft()
+                  ? 'Publish Profile'
+                  : 'Unpublish Profile'
+            }}
+          </button>
+
+          @if (isProfileDraft()) {
+            <button
+              type="button"
+              class="button button--danger"
+              (click)="showDeleteDraftConfirm()"
+              [disabled]="service.actionInProgress()"
+            >
+              {{ service.actionInProgress() ? 'Processing...' : 'Delete Draft Profile' }}
+            </button>
+          }
+        </div>
+      }
+    </section>
+  }
+}
+
+<app-confirm-dialog
+  [title]="dialogConfig().title"
+  [message]="dialogConfig().message"
+  [confirmButtonText]="dialogConfig().confirmText"
+  [confirmButtonVariant]="dialogConfig().variant"
+  [disabled]="service.actionInProgress()"
+  (confirmed)="onConfirmDialog()"
+  (cancelled)="onCancelDialog()"
+/>

@@ -4,7 +4,6 @@ import { Router, type Routes, RouterOutlet, provideRouter } from '@angular/route
 import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import { requireAuth, requireUnauth } from '../app.routes';
-import { redirectNonAdminToMembership } from './admin.guard';
 
 // The Angular unit-test system disallows vi.mock on relative imports, so we
 // mock at the firebase SDK boundary instead: getAuth returns our controllable
@@ -24,17 +23,26 @@ vi.mock('firebase/auth', () => ({
   getIdTokenResult: mockGetIdTokenResult,
 }));
 
-@Component({ selector: 'app-mock-sign-in', template: '<h1>Sign In</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({
+  selector: 'app-mock-sign-in',
+  template: '<h1>Sign In</h1>',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 class MockSignIn {}
 
-@Component({ selector: 'app-mock-membership', template: '<h1>Membership</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({
+  selector: 'app-mock-membership',
+  template: '<h1>Membership</h1>',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 class MockMembership {}
 
-@Component({ selector: 'app-mock-protected', template: '<h1>Protected</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({
+  selector: 'app-mock-protected',
+  template: '<h1>Protected</h1>',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 class MockProtected {}
-
-@Component({ selector: 'app-mock-admin', template: '<h1>Admin</h1>', changeDetection: ChangeDetectionStrategy.OnPush })
-class MockAdmin {}
 
 @Component({
   template: '<router-outlet></router-outlet>',
@@ -48,7 +56,6 @@ const routes: Routes = [
   { path: 'membership', component: MockMembership },
   { path: 'protected', component: MockProtected, canActivate: [requireAuth] },
   { path: 'guest-only', component: MockSignIn, canActivate: [requireUnauth] },
-  { path: 'admin', component: MockAdmin, canActivate: [redirectNonAdminToMembership] },
 ];
 
 describe('auth route guards', () => {
@@ -91,50 +98,6 @@ describe('auth route guards', () => {
       const { navigate } = await setup();
       await navigate('/guest-only');
       expect(screen.getByText('Sign In')).toBeVisible();
-    });
-  });
-
-  describe('redirectNonAdminToMembership', () => {
-    it('redirects to sign-in when there is no user', async () => {
-      const { navigate } = await setup();
-      await navigate('/admin');
-      expect(screen.getByText('Sign In')).toBeVisible();
-    });
-
-    it('allows a user with the admin claim', async () => {
-      const { navigate } = await setup({
-        currentUser: { uid: 'admin-1' },
-        idTokenResult: { claims: { admin: true } },
-      });
-      await navigate('/admin');
-      expect(screen.getByText('Admin')).toBeVisible();
-    });
-
-    it('redirects a non-admin to membership', async () => {
-      const { navigate } = await setup({
-        currentUser: { uid: 'user-1' },
-        idTokenResult: { claims: { admin: false } },
-      });
-      await navigate('/admin');
-      expect(screen.getByText('Membership')).toBeVisible();
-    });
-
-    it('treats a non-boolean admin claim as non-admin', async () => {
-      const { navigate } = await setup({
-        currentUser: { uid: 'user-1' },
-        idTokenResult: { claims: { admin: 'true' } },
-      });
-      await navigate('/admin');
-      expect(screen.getByText('Membership')).toBeVisible();
-    });
-
-    it('fails closed to membership when the token check rejects', async () => {
-      const { navigate } = await setup({
-        currentUser: { uid: 'user-1' },
-        idTokenError: new Error('network-request-failed'),
-      });
-      await navigate('/admin');
-      expect(screen.getByText('Membership')).toBeVisible();
     });
   });
 });

@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
-import type { MatchRequest } from '../admin/admin.types';
+import type { MatchRequest } from '../referrals/referral.types';
 
 export type ReferralDueDate = MatchRequest['estimatedDueDate'];
 
@@ -45,7 +45,9 @@ export class ReferralsService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 0: {
-            throw new Error('Unable to connect. Check your network and try again.', { cause: error });
+            throw new Error('Unable to connect. Check your network and try again.', {
+              cause: error,
+            });
           }
           case 401: {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
@@ -80,7 +82,9 @@ export class ReferralsService {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
           case 0: {
-            throw new Error('Unable to connect. Check your network and try again.', { cause: error });
+            throw new Error('Unable to connect. Check your network and try again.', {
+              cause: error,
+            });
           }
           case 401: {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
@@ -95,7 +99,9 @@ export class ReferralsService {
             throw new Error('Referral not found.', { cause: error });
           }
           case 422: {
-            throw new Error('Invalid referral link. Please check the URL and try again.', { cause: error });
+            throw new Error('Invalid referral link. Please check the URL and try again.', {
+              cause: error,
+            });
           }
         }
       }

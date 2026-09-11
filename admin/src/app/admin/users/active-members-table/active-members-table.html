@@ -1,0 +1,67 @@
+<section class="members-section">
+  <h2>Active Members</h2>
+  @if (membersResource().isLoading()) {
+    <p class="loading">Loading members...</p>
+  } @else if (error(); as errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  } @else {
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th
+            app-sortable-header="name"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
+            Name
+          </th>
+          <th
+            app-sortable-header="email"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
+            Email
+          </th>
+          <th
+            app-sortable-header="membership"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
+            Membership
+          </th>
+          <th
+            app-sortable-header="created"
+            [activeColumn]="sortColumn()"
+            [direction]="sortDirection()"
+            (sort)="handleSort($event)"
+          >
+            Created
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (member of sortedMembers(); track member.uid) {
+          <tr>
+            <td>{{ member.name || '—' }}</td>
+            <td>{{ member.email }}</td>
+            <td>
+              <app-tag [label]="member.membershipActive ? 'Active' : 'Inactive'" size="small" />
+            </td>
+            <td>{{ member.createdAt | date: 'MMM d, yyyy' }}</td>
+            <td>
+              <a [routerLink]="['/members', member.uid]" class="button small">View</a>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">No members found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

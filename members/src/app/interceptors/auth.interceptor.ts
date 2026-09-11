@@ -9,12 +9,7 @@ import { auth } from '../lib/firebase';
  * API paths that require authentication.
  * Add new authenticated API paths here to automatically include auth tokens.
  */
-const AUTHENTICATED_API_PATHS = [
-  '/api/admin/',
-  '/api/analytics/',
-  '/api/profiles/',
-  '/api/members/',
-];
+const AUTHENTICATED_API_PATHS = ['/api/profiles/', '/api/members/'];
 
 async function signOutAndRedirect(router: Router): Promise<void> {
   try {
@@ -40,7 +35,7 @@ async function signOutAndRedirect(router: Router): Promise<void> {
  * provideHttpClient(withInterceptors([authInterceptor]))
  *
  * // In services, no need to manually add headers:
- * this.httpClient.get('/api/admin/members/') // Token added automatically
+ * this.httpClient.get('/api/members/me') // Token added automatically
  * this.httpClient.get('/api/profiles/me') // Token added automatically
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {

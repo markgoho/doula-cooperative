@@ -176,7 +176,7 @@ describe("POST /slugs/link-request (request profile link)", () => {
         { message: { html: string } },
       ];
       expect(emailArgument[0].message.html).toContain(
-        "members.doulacooperative.com/admin/members/",
+        "admin.doulacooperative.com/members/",
       );
       expect(emailArgument[0].message.html).toContain("Link Existing Profile");
     });
