@@ -270,7 +270,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     expect(wasDeleteRequested).toBe(true);
 
     // === Verify navigation to unclaimed profiles list ===
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed$/);
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed$/);
   });
 
   test('admin cancels profile deletion when rejecting confirmation', async ({
@@ -328,7 +328,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(dialog).not.toBeVisible();
 
     // === Verify still on detail page ===
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed\/bob\.unclaimed@example\.com/);
     await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
   });
 
@@ -380,7 +380,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     });
 
     // === Verify still on detail page (deletion failed) ===
-    await expect(authenticatedAdminPage).toHaveURL(/\/admin\/unclaimed\/bob.unclaimed@example.com/);
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed\/bob\.unclaimed@example\.com/);
   });
 
   test('update email button visible for unclaimed profile', async ({ authenticatedAdminPage }) => {
@@ -519,9 +519,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     await expect(unclaimedProfilePage.errorMessage).toBeVisible({ timeout: 5000 });
 
     // === Verify still on original page (no navigation) ===
-    await expect(authenticatedAdminPage).toHaveURL(
-      /\/admin\/unclaimed\/bob\.unclaimed@example\.com/,
-    );
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed\/bob\.unclaimed@example\.com/);
   });
 
   test('admin cancels update email form', async ({ authenticatedAdminPage }) => {
@@ -719,9 +717,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     expect(wasDraftRequested).toBe(false);
 
     // === Verify still on detail page ===
-    await expect(authenticatedAdminPage).toHaveURL(
-      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
-    );
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed\/alice\.unclaimed@example\.com/);
     await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
   });
 
@@ -772,9 +768,7 @@ test.describe('Admin Unclaimed Profiles', () => {
     );
 
     // === Verify still on detail page ===
-    await expect(authenticatedAdminPage).toHaveURL(
-      /\/admin\/unclaimed\/alice\.unclaimed@example\.com/,
-    );
+    await expect(authenticatedAdminPage).toHaveURL(/\/unclaimed\/alice\.unclaimed@example\.com/);
     await expect(unclaimedProfilePage.sectionHeading).toBeVisible();
   });
 });
