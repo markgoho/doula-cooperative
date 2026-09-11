@@ -8,8 +8,8 @@ import {
   resource,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SERVICE_LABELS_LONG } from '../../admin/match-requests/match-request.constants';
-import { isValidDueDate, parseDueDate } from '../../admin/match-requests/match-request.utilities';
+import { SERVICE_LABELS_LONG } from '../referral.constants';
+import { isValidDueDate, parseDueDate } from '../referral.utilities';
 import {
   ReferralsService,
   type ReferralDetail as ReferralDetailModel,

@@ -1,12 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../tag/tag';
-import { SERVICE_LABELS } from '../admin/match-requests/match-request.constants';
-import {
-  getRelativeTime,
-  isValidDueDate,
-  parseDueDate,
-} from '../admin/match-requests/match-request.utilities';
+import { SERVICE_LABELS } from './referral.constants';
+import { getRelativeTime, isValidDueDate, parseDueDate } from './referral.utilities';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
 
 @Component({

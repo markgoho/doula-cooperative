@@ -1,6 +1,6 @@
 import { ADMIN_EMAIL } from "../../constants/admin.js";
 import { ERROR_IDS } from "../../constants/error-ids.js";
-import { MEMBERS_APP_URL, NO_REPLY_EMAIL } from "../../constants/index.js";
+import { ADMIN_APP_URL, NO_REPLY_EMAIL } from "../../constants/index.js";
 import { ConflictError } from "../../shared-api/errors/http-error.js";
 import type {
   EmailMessage,
@@ -62,7 +62,7 @@ async function sendProfileLinkRequestNotification({
   logger: Logger;
 }): Promise<void> {
   try {
-    const adminUrl = `${MEMBERS_APP_URL}/admin/members/${escapeHtml(uid)}`;
+    const adminUrl = `${ADMIN_APP_URL}/members/${escapeHtml(uid)}`;
 
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,

@@ -1,31 +1,6 @@
 {
-  "/api/admin/messages": {
-    "target": "http://localhost:5001/doula-cooperative/us-central1/adminMessagesApi",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/api/admin/unclaimed-profiles": {
-    "target": "http://localhost:5001/doula-cooperative/us-central1/adminUnclaimedProfilesApi",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/api/admin/match-requests": {
-    "target": "http://localhost:5001/doula-cooperative/us-central1/adminMatchRequestsApi",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/api/admin/members": {
-    "target": "http://localhost:5001/doula-cooperative/us-central1/adminMembersApi",
-    "secure": false,
-    "changeOrigin": true
-  },
   "/api/members": {
     "target": "http://localhost:5001/doula-cooperative/us-central1/membersApi",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/api/analytics": {
-    "target": "http://localhost:5001/doula-cooperative/us-central1/analyticsApi",
     "secure": false,
     "changeOrigin": true
   },

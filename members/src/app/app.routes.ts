@@ -1,6 +1,5 @@
 import { inject } from '@angular/core';
 import { Router, type CanActivateFn, type Routes } from '@angular/router';
-import { redirectNonAdminToMembership } from './guards/admin.guard';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 import { auth } from './lib/firebase';
 
@@ -106,83 +105,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
     canActivate: [requireAuth],
-  },
-
-  // Admin routes (require authentication and admin claim)
-  {
-    path: 'admin',
-    canActivate: [redirectNonAdminToMembership],
-    children: [
-      {
-        path: '',
-        loadComponent: () => import('./admin/admin-dashboard').then((m) => m.AdminDashboard),
-      },
-      {
-        path: 'members',
-        loadComponent: () => import('./admin/members/admin-members').then((m) => m.AdminMembers),
-      },
-      {
-        path: 'members/:uid',
-        loadComponent: () =>
-          import('./admin/users/admin-member-detail/admin-member-detail').then(
-            (m) => m.AdminMemberDetail,
-          ),
-      },
-      {
-        path: 'members/:uid/profile',
-        loadComponent: () =>
-          import('./admin/users/admin-profile-preview/admin-profile-preview').then(
-            (m) => m.AdminProfilePreview,
-          ),
-      },
-      {
-        path: 'members/:uid/profile/edit',
-        loadComponent: () =>
-          import('./admin/users/admin-edit-profile/admin-edit-profile').then(
-            (m) => m.AdminEditProfile,
-          ),
-      },
-      {
-        path: 'unclaimed',
-        loadComponent: () =>
-          import('./admin/unclaimed/admin-unclaimed').then((m) => m.AdminUnclaimed),
-      },
-      {
-        path: 'unclaimed/:email',
-        loadComponent: () =>
-          import('./admin/users/admin-unclaimed-profile-detail/admin-unclaimed-profile-detail').then(
-            (m) => m.AdminUnclaimedProfileDetail,
-          ),
-      },
-      {
-        path: 'match-requests',
-        loadComponent: () =>
-          import('./admin/match-requests/admin-match-requests').then((m) => m.AdminMatchRequests),
-      },
-      {
-        path: 'match-requests/:id',
-        loadComponent: () =>
-          import('./admin/match-requests/admin-match-request-detail/admin-match-request-detail').then(
-            (m) => m.AdminMatchRequestDetail,
-          ),
-      },
-      {
-        path: 'analytics',
-        loadComponent: () =>
-          import('./admin/analytics/admin-analytics').then((m) => m.AdminAnalytics),
-      },
-      {
-        path: 'messages',
-        loadComponent: () => import('./admin/messages/admin-messages').then((m) => m.AdminMessages),
-      },
-      {
-        path: 'messages/:id',
-        loadComponent: () =>
-          import('./admin/messages/admin-message-detail/admin-message-detail').then(
-            (m) => m.AdminMessageDetail,
-          ),
-      },
-    ],
   },
 
   // Authentication routes

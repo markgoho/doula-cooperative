@@ -2,8 +2,8 @@ import { getFirestore } from "firebase-admin/firestore";
 import { IMPORT_COLLECTION } from "../../collections/index.js";
 import { ADMIN_EMAIL } from "../../constants/admin.js";
 import {
+  ADMIN_APP_URL,
   ERROR_IDS,
-  MEMBERS_APP_URL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
 import type {
@@ -86,7 +86,7 @@ export async function sendNewMemberAdminNotification({
       );
     }
 
-    const adminUrl = `${MEMBERS_APP_URL}/admin/members/${escapeHtml(uid)}`;
+    const adminUrl = `${ADMIN_APP_URL}/members/${escapeHtml(uid)}`;
 
     const notificationEmail: EmailMessage = {
       from: `Doula Cooperative Alerts <${NO_REPLY_EMAIL}>`,

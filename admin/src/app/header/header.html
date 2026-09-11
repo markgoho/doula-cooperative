@@ -1,0 +1,32 @@
+<header class="header">
+  <nav class="navbar">
+    <a class="navbar__logo" routerLink="/">
+      <h2>{{ brandTitle }}</h2>
+    </a>
+    @if (isAuthenticated() && isAdmin()) {
+      <ul class="navbar__nav">
+        <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <a routerLink="/" class="navbar__link">Dashboard</a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/members" class="navbar__link">Members</a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/unclaimed" class="navbar__link">Unclaimed</a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/match-requests" class="navbar__link">Match Requests</a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/messages" class="navbar__link">Messages</a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/analytics" class="navbar__link">Analytics</a>
+        </li>
+      </ul>
+      <button type="button" class="button navbar__button navbar__cta" (click)="signOut()">
+        Sign Out
+      </button>
+    }
+  </nav>
+</header>

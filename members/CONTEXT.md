@@ -1,6 +1,6 @@
 # Members App
 
-Angular app for member self-service and cooperative administration.
+Angular app for member self-service.
 
 ## Language
 

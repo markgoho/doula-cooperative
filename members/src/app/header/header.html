@@ -8,11 +8,6 @@
         <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <a routerLink="/membership" class="navbar__link">Membership</a>
         </li>
-        @if (isAdmin()) {
-          <li routerLinkActive="active">
-            <a routerLink="/admin" class="navbar__link">Admin</a>
-          </li>
-        }
       </ul>
       @if (canEditProfile()) {
         @if (hasProfile()) {

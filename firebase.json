@@ -591,6 +591,25 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "/api/profiles{,/**}",
+          "function": "profilesApi"
+        },
+        {
+          "source": "/api/members{,/**}",
+          "function": "membersApi"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "admin-site",
+      "public": "admin/dist/admin/browser",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
           "source": "/api/admin/messages{,/**}",
           "function": "adminMessagesApi"
         },
@@ -613,10 +632,6 @@
         {
           "source": "/api/profiles{,/**}",
           "function": "profilesApi"
-        },
-        {
-          "source": "/api/members{,/**}",
-          "function": "membersApi"
         },
         {
           "source": "**",

@@ -1,7 +1,7 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import {
+  ADMIN_APP_URL,
   MARK_EMAIL,
-  MEMBERS_APP_URL,
   NO_REPLY_EMAIL,
 } from "../../constants/index.js";
 import { ForbiddenError } from "../../shared-api/errors/http-error.js";
@@ -29,7 +29,7 @@ function createNewProfileNotificationHtml({
   uid: string;
 }): string {
   const profileUrl = `https://doulacooperative.com/doulas/${escapeHtml(slug)}/`;
-  const adminUrl = `${MEMBERS_APP_URL}/admin/members/${escapeHtml(uid)}`;
+  const adminUrl = `${ADMIN_APP_URL}/members/${escapeHtml(uid)}`;
   return `
     <h2>New Doula Profile Created</h2>
     <p>A new member has created their doula profile and it needs to be reviewed before publishing.</p>
