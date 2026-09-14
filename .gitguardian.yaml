@@ -1,0 +1,6 @@
+# Firebase Auth emulator exports store test passwords in plain text by design.
+version: 2
+secret:
+  ignored_paths:
+    - "members/e2e/auth-export/**"
+    - "admin/e2e/auth-export/**"
