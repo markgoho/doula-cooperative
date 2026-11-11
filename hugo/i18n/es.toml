@@ -369,3 +369,13 @@ other = "Todos los servicios"
 [doula_count]
 one = "{{ .Count }} doula"
 other = "{{ .Count }} doulas"
+
+# Match Request form validation
+[form_phone_error]
+other = "Por favor ingresa tu número de teléfono."
+
+[form_zipcode_error]
+other = "Por favor ingresa tu código postal de 5 dígitos."
+
+[form_date_error]
+other = "Por favor ingresa el mes, el día y el año."

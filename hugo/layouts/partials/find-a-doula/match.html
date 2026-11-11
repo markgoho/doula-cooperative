@@ -27,7 +27,11 @@
           type="text"
           id="name"
           name="name"
-          autocomplete="name" />
+          autocomplete="name"
+          required />
+        <span class="form__error-message" aria-live="polite"
+          >{{ i18n "contact_name_error" }}</span
+        >
       </div>
 
       <div class="form__group single-column">
@@ -39,7 +43,11 @@
           type="tel"
           id="phone"
           name="phone"
-          autocomplete="tel" />
+          autocomplete="tel"
+          required />
+        <span class="form__error-message" aria-live="polite"
+          >{{ i18n "form_phone_error" }}</span
+        >
       </div>
 
       <div class="form__group single-column">
@@ -51,7 +59,11 @@
           type="email"
           id="email"
           name="email"
-          autocomplete="email" />
+          autocomplete="email"
+          required />
+        <span class="form__error-message" aria-live="polite"
+          >{{ i18n "contact_email_error" }}</span
+        >
       </div>
 
       <div class="form__group single-column">
@@ -63,7 +75,13 @@
           type="text"
           id="zipcode"
           name="zipcode"
-          autocomplete="postal-code" />
+          autocomplete="postal-code"
+          required
+          minlength="5"
+          inputmode="numeric" />
+        <span class="form__error-message" aria-live="polite"
+          >{{ i18n "form_zipcode_error" }}</span
+        >
       </div>
 
       <fieldset class="full-width">
@@ -78,7 +96,10 @@
               type="text"
               id="month"
               name="month"
-              autocomplete="off" />
+              autocomplete="off"
+              required
+              inputmode="numeric"
+              maxlength="2" />
           </div>
           <div class="form-group single-column">
             <label class="form__label" for="day"
@@ -89,7 +110,10 @@
               type="text"
               id="day"
               name="day"
-              autocomplete="off" />
+              autocomplete="off"
+              required
+              inputmode="numeric"
+              maxlength="2" />
           </div>
           <div class="form-group single-column">
             <label class="form__label" for="year"
@@ -100,9 +124,15 @@
               type="text"
               id="year"
               name="year"
-              autocomplete="off" />
+              autocomplete="off"
+              required
+              inputmode="numeric"
+              maxlength="4" />
           </div>
         </div>
+        <span class="form__error-message" aria-live="polite"
+          >{{ i18n "form_date_error" }}</span
+        >
       </fieldset>
 
       <div class="dynamic-layout-container full-width">

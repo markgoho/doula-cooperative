@@ -100,6 +100,8 @@ fieldset {
 }
 
 .form__error-message {
+  margin-block-start: var(--space-3xs);
+  font-size: var(--step--1);
   color: var(--color-error);
   display: none;
 }
@@ -109,6 +111,11 @@ fieldset {
 }
 
 .was-validated .form__input:invalid + .form__error-message {
+  display: block;
+}
+
+/* A group of fields, such as a date, shares one message. */
+.was-validated fieldset:has(.form__input:invalid) > .form__error-message {
   display: block;
 }
 

@@ -225,6 +225,15 @@ if (submitButton) {
   submitButton.addEventListener("click", (event: Event) => {
     event.preventDefault();
     event.stopPropagation();
+
+    // Show which required fields are missing before anything is sent.
+    if (matchForm && !matchForm.checkValidity()) {
+      matchForm.classList.add("was-validated");
+      matchForm.querySelector<HTMLElement>(":invalid")?.focus();
+      return;
+    }
+    matchForm?.classList.remove("was-validated");
+
     void doSubmit();
   });
 }
