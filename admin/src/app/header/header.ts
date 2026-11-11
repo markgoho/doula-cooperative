@@ -13,7 +13,7 @@ export class Header {
   private authService = inject(AuthService);
 
   readonly brandTitle = 'Doula Cooperative Admin';
-  readonly isAuthenticated = computed(() => this.authService.isAuthenticated);
+  readonly isAuthenticated = computed(() => this.authService.user() !== null);
   readonly isAdmin = this.authService.isAdmin;
 
   async signOut(): Promise<void> {
