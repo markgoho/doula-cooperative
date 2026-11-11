@@ -243,3 +243,127 @@ other = "Submit"
 
 [contact_doula_redirect]
 other = "Looking for information about Doula Support? Use our <a href=\"{url}\">special request form</a>."
+[home_lede]
+other = "Find a birth or postpartum doula in Rochester, NY and the surrounding communities."
+
+[home_guide_question]
+other = "What support are you looking for?"
+
+[home_choice_birth_title]
+other = "Birth doula"
+
+[home_choice_birth_description]
+other = "Support through pregnancy, labor, and birth."
+
+[home_choice_postpartum_title]
+other = "Postpartum doula"
+
+[home_choice_postpartum_description]
+other = "Help at home after your baby arrives."
+
+[home_choice_unsure_title]
+other = "I'm not sure yet"
+
+[home_choice_unsure_description]
+other = "Tell us what you need and doulas will contact you."
+
+[home_choice_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"
+
+[home_search_label]
+other = "Or search by name, practice, or service"
+
+[home_search_placeholder]
+other = "Name, practice, or service"
+
+[home_search_button]
+other = "Search"
+
+[home_browse_all]
+other = "Browse all {{ .Count }} doulas"
+
+[home_photo_alt]
+other = "A smiling parent holding a sleeping newborn against their cheek."
+
+[home_meet_title]
+other = "Meet our doulas"
+
+[home_match_title]
+other = "Not sure who to choose?"
+
+[home_match_cta]
+other = "Tell us what you need"
+
+[home_learn_cta]
+other = "Read all questions and answers"
+
+[home_join_cta]
+other = "Learn about membership"
+
+# Doula profile card and page
+[profile_card_view]
+other = "View profile"
+
+[profile_card_more]
+other = "+{{ . }} more"
+
+[profile_back]
+other = "All doulas"
+
+[profile_photo_alt]
+other = "Photo of {{ .Name }}"
+
+[profile_about_title]
+other = "About {{ .Name }}"
+
+[profile_services_title]
+other = "Services"
+
+[profile_contact_title]
+other = "Contact {{ .Name }}"
+
+[profile_contact_note]
+other = "Reach out directly to ask about availability and fees."
+
+[profile_email_label]
+other = "Email"
+
+[profile_call_label]
+other = "Call"
+
+[profile_website_label]
+other = "Website"
+
+[profile_match_prompt]
+other = "Would you rather doulas contact you?"
+
+[profile_match_link]
+other = "Tell us what you need"
+
+[profile_email_button]
+other = "Email {{ .Name }}"
+
+[profile_copy]
+other = "Copy"
+
+[profile_copied]
+other = "Copied"
+
+[profile_copy_email_label]
+other = "Copy email address"
+
+# Find a doula
+[find_browse_all_services]
+other = "See all services"
+
+# FAQ
+[faq_back]
+other = "All questions"
+
+[services_back]
+other = "All services"
+
+[doula_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"

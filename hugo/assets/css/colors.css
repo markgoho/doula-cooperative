@@ -1,58 +1,57 @@
 :root {
-  --brown-000: hsl(35, 69%, 94%);
-  --brown-100: hsl(34, 83%, 93%);
-  --brown-200: hsl(35, 67%, 88%);
-  --brown-300: hsl(34, 85%, 84%);
-  --brown-400: hsl(34, 59%, 69%);
-  --brown-450: hsl(35, 32%, 45%);
-  --brown-500: hsl(34, 70%, 16%);
-  --brown-600: hsl(33, 35%, 12%);
-  --brown-700: hsl(35, 74%, 5%);
-  --brown-700: hsl(35, 91%, 2%);
+  /* Semantic tokens: use these in new CSS. */
+  --color-ground: oklch(0.975 0.012 78);
+  --color-surface: oklch(0.995 0.004 80);
+  --color-sand: oklch(0.94 0.024 74);
+  --color-line: oklch(0.87 0.022 74);
+  --color-line-strong: oklch(0.74 0.03 74);
+  /* Boundaries of inputs and other controls: at least 3:1 on the surface. */
+  --color-control-border: oklch(0.55 0.03 74);
 
-  --teal-000: hsl(190, 43%, 96%);
-  --teal-100: hsl(190, 44%, 88%);
-  --teal-300: hsl(192, 49%, 53%);
-  --teal-400: hsl(192, 51%, 33%);
-  --teal-500: hsl(192, 58%, 25%);
-  --teal-600: hsl(192, 60%, 15%);
-  --teal-700: hsl(192, 62%, 10%);
+  --color-ink: oklch(0.25 0.03 205);
+  --color-ink-soft: oklch(0.43 0.03 205);
 
-  --brown-800: hsl(35, 74%, 5%);
-  --brown-900: hsl(35, 91%, 2%);
+  --color-primary: oklch(0.42 0.07 200);
+  --color-primary-strong: oklch(0.33 0.06 200);
+  --color-primary-soft: oklch(0.93 0.03 200);
+  --color-on-primary: oklch(0.99 0.005 200);
 
-  --light-bg: linear-gradient(
-    180deg,
-    var(--brown-100) 0%,
-    var(--brown-200) 100%
-  );
-  --dark-bg: linear-gradient(
-    180deg,
-    var(--brown-600) 0%,
-    var(--brown-700) 100%
-  );
-}
+  --color-clay: oklch(0.47 0.12 38);
+  --color-clay-soft: oklch(0.93 0.035 48);
+  --color-on-clay: oklch(0.985 0.01 60);
 
-@supports (color: oklch(0.9 0.01 76)) {
-  :root {
-    --brown-000: oklch(0.9631 0.0189 76.55);
-    --brown-100: oklch(0.9581 0.0262 74.76);
-    --brown-200: oklch(0.9258 0.0368 76.4);
-    --brown-300: oklch(0.9062 0.0613 74.32);
-    --brown-400: oklch(0.8005 0.0833 73.63);
-    --brown-450: oklch(0.595 0.0703 75.08);
-    --brown-500: oklch(0.3188 0.0583 69.76);
-    --brown-600: oklch(0.2499 0.0255 71.84);
-    --brown-700: oklch(0.1721 0.0267 78.3);
-    --brown-800: oklch(0.1244 0.0229 87.86);
-    --brown-900: oklch(0.0721 0.016 82);
+  --color-deep: oklch(0.22 0.03 205);
+  --color-on-deep: oklch(0.9 0.015 200);
+  --color-on-deep-soft: oklch(0.74 0.025 200);
+  --color-deep-line: oklch(0.34 0.03 205);
 
-    --teal-000: oklch(0.976 0.009 214);
-    --teal-100: oklch(0.906 0.024 214);
-    --teal-300: oklch(0.692 0.0943 216.79);
-    --teal-400: oklch(0.5022 0.0728 217.3);
-    --teal-500: oklch(0.422 0.064 217.78);
-    --teal-600: oklch(0.3035 0.0441 217.33);
-    --teal-700: oklch(0.235 0.034 217);
-  }
+  --color-focus: oklch(0.55 0.13 235);
+
+  --shadow-raised:
+    0 1px 2px oklch(0.25 0.03 205 / 8%), 0 6px 16px oklch(0.25 0.03 205 / 8%);
+
+  /* Legacy scale, remapped onto the palette above so existing page CSS
+     follows the new look. Prefer the semantic tokens in new code. */
+  --brown-000: var(--color-surface);
+  --brown-100: var(--color-ground);
+  --brown-200: oklch(0.958 0.018 76);
+  --brown-300: var(--color-sand);
+  --brown-400: var(--color-line-strong);
+  --brown-450: var(--color-ink-soft);
+  --brown-500: var(--color-ink);
+  --brown-600: oklch(0.2 0.028 205);
+  --brown-700: oklch(0.17 0.025 205);
+  --brown-800: oklch(0.15 0.022 205);
+  --brown-900: oklch(0.12 0.02 205);
+
+  --teal-000: oklch(0.975 0.012 200);
+  --teal-100: var(--color-primary-soft);
+  --teal-300: oklch(0.66 0.08 200);
+  --teal-400: oklch(0.5 0.075 200);
+  --teal-500: var(--color-primary);
+  --teal-600: var(--color-primary-strong);
+  --teal-700: oklch(0.27 0.05 200);
+
+  --light-bg: var(--color-ground);
+  --dark-bg: var(--color-deep);
 }

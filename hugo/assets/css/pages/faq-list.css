@@ -1,3 +1,56 @@
+/* Questions as a list of rows; the question is the link. */
+
+.faq-list .faq-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title arrow" "excerpt arrow";
+  column-gap: var(--space-s);
+  align-items: center;
+  padding-block: var(--space-s);
+  border-top: 1px solid var(--color-line);
+
+  &:last-child {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  & .icon-arrow {
+    grid-area: arrow;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--color-primary);
+  }
+
+  &:hover .icon-arrow {
+    translate: 0.25rem 0;
+  }
+
+  & p {
+    grid-area: excerpt;
+    margin: var(--space-3xs) 0 0;
+    font-size: var(--step--1);
+    color: var(--color-ink-soft);
+  }
+}
+
+.faq-list .faq-item__title {
+  grid-area: title;
+  margin: 0;
+  font-size: var(--step-1);
+}
+
 .faq-heading {
+  color: var(--color-ink);
   text-decoration: none;
+
+  /* The whole row is the target. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  &:hover {
+    color: var(--color-primary-strong);
+  }
 }

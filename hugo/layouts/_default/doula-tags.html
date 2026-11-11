@@ -9,15 +9,14 @@
 {{ end }}
 
 {{ define "main" }}
-  <section class="text-content doula-list">
-    <h1>{{ .Title }}</h1>
-    <ul>
-      {{ range .Site.Taxonomies.tags.ByCount }}
-        <li>
-          <a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a>
-          ({{ .Count }})
-        </li>
-      {{ end }}
-    </ul>
-  </section>
+  <h1>{{ .Title }}</h1>
+  <ul class="tag-group top-tags doula-tags">
+    {{ range .Site.Taxonomies.tags.ByCount }}
+      <li class="tag">
+        <a href="{{ .Page.RelPermalink }}"
+          >{{ .Page.Title | title }} ({{ .Count }})</a
+        >
+      </li>
+    {{ end }}
+  </ul>
 {{ end }}

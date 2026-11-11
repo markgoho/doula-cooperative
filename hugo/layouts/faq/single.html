@@ -1,5 +1,16 @@
+{{ define "head-styles" }}
+  {{ $css := resources.Get "css/components/text-link.css" | resources.Minify }}
+  <style>{{ $css.Content | safeCSS }}</style>
+{{ end }}
+
 {{ define "main" }}
-  <h1 style="view-transition-name: faq-title-{{ .Title | md5 }};">
+  <a class="back-link" href="{{ "/faq/" | relLangURL }}">
+    {{ partial "icons/arrow-right.html" . }}
+    {{ i18n "faq_back" }}
+  </a>
+  <h1
+    class="faq-question"
+    style="view-transition-name: faq-title-{{ .Title | md5 }};">
     {{ .Title }}
   </h1>
   <section
@@ -7,11 +18,5 @@
     class="text-content">
     {{ .Content }}
   </section>
-  <section class="text-content">
-    <p>
-      <a class="highlight" href="/faq" class="faq-item__read-more"
-        >Return to FAQ List</a
-      >
-    </p>
-  </section>
+  {{ partial "page-cta.html" . }}
 {{ end }}

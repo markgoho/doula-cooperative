@@ -1,5 +1,3 @@
-.browse-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-s);
+.find-content--browse .top-tags {
+  justify-content: center;
 }

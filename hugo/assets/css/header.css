@@ -1,33 +1,46 @@
 .header {
   container: header / inline-size;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .navbar {
   display: grid;
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: 1fr max-content;
   grid-template-areas: "logo cta" "nav nav";
   align-items: center;
-  background: var(--brown-300);
-  padding: var(--space-xs);
-  /* column-gap: var(--space-l); */
-  row-gap: var(--space-xs);
+  max-width: calc(var(--container-max-width) + 2 * var(--space-m));
+  margin-inline: auto;
+  padding: var(--space-2xs) var(--container-padding-inline);
+  row-gap: var(--space-3xs);
 }
 
 .navbar__logo {
   grid-area: logo;
+  display: grid;
   text-decoration: none;
+  color: var(--color-ink);
+  line-height: 1.15;
 }
 
-.navbar__logo h2 {
-  color: var(--color-text-main);
-  margin: 0;
+.navbar__logo-name {
+  font-size: var(--step-1);
+  font-weight: var(--font-weight-boldest);
+  letter-spacing: -0.015em;
+}
+
+.navbar__logo-place {
+  font-size: var(--step--2);
+  color: var(--color-ink-soft);
 }
 
 .navbar__nav {
   grid-area: nav;
   display: flex;
-  gap: var(--space-l);
-  justify-self: center;
+  gap: var(--space-m);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -40,25 +53,32 @@
 }
 
 .navbar__link {
-  color: var(--color-text-main);
+  display: inline-block;
+  padding-block: 0.6em;
+  color: var(--color-ink);
   text-decoration: none;
-  font-weight: var(--font-weight-boldest);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+
+  &:hover {
+    color: var(--color-primary);
+  }
 }
 
 .navbar__nav > li {
-  border-bottom: 5px solid transparent;
+  border-bottom: 2px solid transparent;
 }
 
 .navbar__nav > .active {
-  border-bottom-color: var(--teal-500);
+  border-bottom-color: var(--color-primary);
 }
 
-@container header (min-width: 60rem) {
+@container header (min-width: 46rem) {
   .navbar {
     grid-template-columns: max-content 1fr max-content;
     grid-template-areas: "logo nav cta";
-    grid-template-rows: auto;
-    padding: var(--space-s) var(--space-m);
+    padding-block: var(--space-xs);
+    padding-inline: var(--space-m);
     column-gap: var(--space-l);
   }
 

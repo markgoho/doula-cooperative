@@ -1,0 +1,35 @@
+/* The search box that sends a query to the Doula Search page. */
+
+.site-search__label {
+  display: block;
+  margin-block-end: var(--space-3xs);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
+}
+
+.site-search__row {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.site-search__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.6em 1em;
+  font-size: var(--step-0);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: 999px;
+
+  &::placeholder {
+    color: var(--color-ink-soft);
+    opacity: 1;
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}

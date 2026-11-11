@@ -1,23 +1,26 @@
 .callout {
-  /* Outer container */
-  border: var(--border-width-md) solid var(--brown-400);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-s) var(--space-m);
-  margin-block: var(--space-l);
-  max-width: max-content;
-  margin-inline: auto;
-
-  /* Inner content */
   display: flex;
   align-items: center;
   gap: var(--space-s);
+  max-width: 52ch;
+  margin: var(--space-l) auto;
+  padding: var(--space-s) var(--space-m);
+  background: var(--color-primary-soft);
+  border-radius: var(--border-radius-md);
 }
 
 .callout__icon {
-  height: var(--space-xl);
-  width: var(--space-xl);
+  flex: none;
+  height: var(--space-m);
+  width: var(--space-m);
 }
 
 .callout__text {
   margin: 0;
+
+  & a {
+    color: var(--color-primary-strong);
+    font-weight: var(--font-weight-bold);
+    text-underline-offset: 0.18em;
+  }
 }

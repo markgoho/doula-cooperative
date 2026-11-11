@@ -1,7 +1,8 @@
 {{ define "head-styles" }}
   {{ $css := slice
-    (resources.Get "css/components/callout.css")
-    (resources.Get "css/components/nav-card.css")
+    (resources.Get "css/components/text-link.css")
+    (resources.Get "css/components/site-search.css")
+    (resources.Get "css/components/steps.css")
     (resources.Get "css/components/forms.css")
     (resources.Get "css/components/tag.css")
     (resources.Get "css/partials/search.css")
@@ -29,11 +30,14 @@
 {{ define "main" }}
   {{ $searchType := "" }}
   {{ with .File }}{{ $searchType = .BaseFileName }}{{ end }}
+  {{ partial "find-a-doula-nav.html" . }}
+
+
   <h1 style="view-transition-name: title-{{ $searchType }}">
     {{ .Title }}
   </h1>
 
-  <section class="text-content">
+  <section class="find-content find-content--{{ $searchType }}">
     {{ if in .Permalink "/search/" }}
       {{ partial "find-a-doula/search.html" . }}
     {{ else if in .Permalink "/browse/" }}
@@ -42,14 +46,12 @@
       {{ partial "find-a-doula/match.html" . }}
     {{ end }}
   </section>
-
-  {{ partial "find-a-doula-nav.html" . }}
 {{ end }}
 
 {{ define "footer-scripts" }}
   {{ if in .Permalink "/search/" }}
     <script>
-      new PagefindUI({
+      const pagefindUi = new PagefindUI({
         element: "#search",
         showSubResults: true,
         showImages: true,
@@ -66,6 +68,11 @@
         },
         {{ end }}
       });
+
+      const initialQuery = new URLSearchParams(window.location.search).get("q");
+      if (initialQuery) {
+        pagefindUi.triggerSearch(initialQuery);
+      }
 
       const container = document.querySelector("#search");
       if (container) {
