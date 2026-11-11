@@ -184,6 +184,7 @@
 // Client notes
 .client-notes {
   margin: 0;
+  max-width: 70ch;
   color: var(--color-ink);
   font-size: var(--step-0);
   line-height: 1.6;
@@ -196,14 +197,15 @@
   font-size: var(--step-0);
 }
 
-// Loading and error states
-.loading {
+// Loading and error states. Scoped to <p> so the class does not also style
+// an <app-alert-banner variant="error">, whose host carries the class "error".
+p.loading {
   text-align: center;
   color: var(--color-ink-soft);
   padding: var(--space-l);
 }
 
-.error {
+p.error {
   text-align: center;
   color: var(--color-error);
   padding: var(--space-l);

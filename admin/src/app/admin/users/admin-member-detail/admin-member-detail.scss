@@ -6,14 +6,16 @@ section > h2 {
   margin-block-start: 0;
 }
 
-.loading,
-.error {
+// Page-level states. Scoped to <p> so the class does not also style an
+// <app-alert-banner variant="error">, whose host carries the class "error".
+p.loading,
+p.error {
   text-align: center;
   padding: var(--space-l);
   font-size: var(--step-1);
 }
 
-.error {
+p.error {
   color: var(--color-error);
 }
 
@@ -29,6 +31,7 @@ section > h2 {
   display: grid;
   grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
   gap: var(--space-xs) var(--space-m);
+  align-items: baseline;
   font-size: var(--step-0);
 
   dt {
@@ -43,6 +46,10 @@ section > h2 {
     color: var(--color-ink);
   }
 
+  dd.monospace {
+    justify-self: start;
+  }
+
   .monospace {
     font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     font-size: var(--step--1);
@@ -50,6 +57,55 @@ section > h2 {
     padding: var(--space-3xs) var(--space-2xs);
     border-radius: var(--border-radius-md);
   }
+
+  dd > .button-small {
+    margin-inline-start: var(--space-2xs);
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-sand);
+  color: var(--color-ink);
+
+  &.active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+}
+
+// Rename-slug form inside the Profile Slug value.
+dd form {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2xs);
+  max-width: 32rem;
+  margin-block-start: var(--space-s);
+
+  label {
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-bold);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--step--1);
+  }
+
+  .error {
+    padding: 0;
+    text-align: start;
+    font-size: var(--step--1);
+    color: var(--color-error);
+  }
+}
+
+.actions h3 {
+  margin-block-start: var(--space-m);
 }
 
 .warning {
@@ -62,6 +118,7 @@ section > h2 {
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-s);
   margin-block-start: var(--space-s);
 }
@@ -107,21 +164,33 @@ section > h2 {
   }
 }
 
+// Link Existing Profile: search field and results table.
 label[for='profile-search'] {
   display: block;
-  font-weight: var(--font-weight-semibold);
-  margin-block-end: var(--space-2xs);
+  margin-block: var(--space-s) var(--space-3xs);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
 }
 
 input[type='search'] {
   width: 100%;
-  padding: var(--space-xs) var(--space-s);
-  border: 1px solid var(--color-line);
-  border-radius: var(--border-radius-md);
+  max-width: 32rem;
+  min-height: 2.75rem;
+  padding: 0.6em 0.85em;
   font-size: var(--step-0);
+  line-height: 1.3;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: calc(var(--border-radius-md) - 2px);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
 
   &::placeholder {
-    color: var(--color-line-strong);
+    color: var(--color-ink-soft);
+    opacity: 1;
   }
 }
 
@@ -131,6 +200,42 @@ input[type='search'] {
   margin-block: var(--space-xs);
 }
 
+// The results table scrolls inside its card on narrow screens.
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--space-2xs) var(--space-s);
+    text-align: left;
+    border-block-end: 1px solid var(--color-line);
+    font-size: var(--step--1);
+    color: var(--color-ink);
+  }
+
+  thead {
+    background: var(--color-sand);
+
+    th {
+      font-weight: var(--font-weight-bold);
+    }
+  }
+
+  tbody tr:hover {
+    background: color-mix(in oklch, var(--color-primary-soft) 50%, var(--color-surface));
+  }
+
+  td:last-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
 .danger-zone {
   border: 1px solid var(--color-error);
 
@@ -138,8 +243,11 @@ input[type='search'] {
     color: var(--color-error);
   }
 
+  // A plain statement, as on the unclaimed detail page; the red border and
+  // heading already carry the warning.
   .warning {
-    background: var(--color-error-soft);
+    background: none;
+    padding: 0;
     color: var(--color-ink);
   }
 }

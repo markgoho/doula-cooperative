@@ -1,8 +1,5 @@
 .header {
   container: header / inline-size;
-  position: sticky;
-  top: 0;
-  z-index: 10;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-line);
 }
@@ -72,6 +69,16 @@
 
 .navbar__nav > .active {
   border-bottom-color: var(--color-primary);
+}
+
+// Wide screens keep the one-row header in view; the stacked phone header
+// would take too much of the screen.
+@media (min-width: 62rem) {
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 }
 
 @container header (min-width: 60rem) {

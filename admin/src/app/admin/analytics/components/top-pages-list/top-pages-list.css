@@ -12,30 +12,40 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
+/* Title above its path, view count on the right. */
 .page-item {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--space-s);
   align-items: baseline;
-  padding-block: 0.25rem;
+  padding-block: var(--space-2xs);
   border-block-end: 1px solid var(--color-line);
 }
 
 .page-title {
-  font-weight: 500;
+  grid-column: 1;
+  font-weight: var(--font-weight-medium);
+}
+
+.page-title:empty {
+  display: none;
 }
 
 .page-path {
+  grid-column: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--color-ink-soft);
-  font-size: 0.85rem;
-  font-family: monospace;
+  font-size: var(--step--2);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 }
 
 .page-views {
+  grid-column: 2;
+  grid-row: 1;
   color: var(--color-ink-soft);
-  font-size: 0.85rem;
+  font-size: var(--step--1);
   white-space: nowrap;
 }

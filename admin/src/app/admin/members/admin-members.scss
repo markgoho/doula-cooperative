@@ -10,3 +10,13 @@
   color: var(--color-ink-soft);
   font-weight: var(--font-weight-semibold);
 }
+
+// Shown when the API skipped records it could not read.
+.warning-banner {
+  margin-block-end: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
+  border-radius: var(--border-radius-md);
+  background: var(--color-warning-soft);
+  color: var(--color-ink);
+  font-size: var(--step--1);
+}
