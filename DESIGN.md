@@ -339,6 +339,15 @@ A numbered list where order is the information: `2.25rem` Teal Wash disc with a 
 - **Callout:** Teal Wash, 12px, icon plus one sentence with a bold Teal Ink link; 52ch wide.
 - **Contact panel:** Surface, Line border, 12px, Raised shadow; title, note, one full-width primary button, then contact rows separated by Line with a Copy button. Sticky beside the profile on wide containers.
 
+## Portals
+
+The member portal (`members/`) and the admin app (`admin/`) use this same system. Their shared styles live in one place, `portal-styles/`, which both apps load through `@use 'portal-styles/…'`; edit there, never in a per-app copy.
+
+- **Tokens.** `portal-styles/_global.scss` repeats the colour, type, spacing and radius tokens from `hugo/assets/css`. The two are separate files, so a token change has to be made in both.
+- **Smaller headings.** The portals are task screens: `h1` is `--step-4`, `h2` `--step-2`, `h3` `--step-1`, and page titles align to the start.
+- **Status colours.** The portals add `--color-error`, `--color-success` and `--color-warning`, each with a `-soft` tint to sit behind it. Status is a tinted box with text, never a side stripe.
+- **Third-party surfaces.** Leaflet map tiles and controls keep their own look.
+
 ## Do's and Don'ts
 
 ### Do:

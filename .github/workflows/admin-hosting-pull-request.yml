@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - "admin/**"
+      - "portal-styles/**"
       - ".github/workflows/admin-hosting-pull-request.yml"
 
 permissions:

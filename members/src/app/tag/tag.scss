@@ -1,20 +1,2 @@
-:host {
-  display: inline-block;
-  padding: 0.3em 0.8em;
-  border-radius: 999px;
-  width: max-content;
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary-strong);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--step--1);
-
-  &.small {
-    padding: 0.2em 0.7em;
-    font-size: var(--step--2);
-  }
-
-  &.accent {
-    background-color: var(--color-primary);
-    color: var(--color-on-primary);
-  }
-}
+// Shared with the other portal app; edit portal-styles/_tag.scss.
+@use 'portal-styles/tag';

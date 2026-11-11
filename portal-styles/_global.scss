@@ -1,0 +1,603 @@
+/* Global styles for the member portal and the admin app: reset, tokens,
+   typography, layout, buttons and forms. The values follow DESIGN.md and
+   match the public site (hugo/assets/css). Both apps load this file from
+   their own src/styles.scss. */
+
+/* Andy Bell’s More Modern CSS Reset (2024) */
+
+/* Enable size interpolation for animations */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Prevent font size inflation */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Remove default margin in favour of better control in authored CSS */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin-block-end: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role */
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+}
+
+/* Core body defaults */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+/* Shorter line heights on headings and interactive elements */
+h1,
+h2,
+h3,
+h4,
+button,
+input,
+label {
+  line-height: 1.1;
+}
+
+/* Balance text wrapping on headings */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: pretty;
+}
+
+a > h2 {
+  text-decoration: none;
+}
+
+/* Unclassed anchors */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+  color: currentColor;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Ensure textareas without rows aren't tiny */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Anchored targets get extra scroll margin */
+:target {
+  scroll-margin-block: 5ex;
+}
+
+/* Color tokens */
+:root {
+  /* Semantic tokens: use these in new CSS. */
+  --color-ground: oklch(0.975 0.012 78);
+  --color-surface: oklch(0.995 0.004 80);
+  --color-sand: oklch(0.94 0.024 74);
+  --color-line: oklch(0.87 0.022 74);
+  --color-line-strong: oklch(0.74 0.03 74);
+  /* Boundaries of inputs and other controls: at least 3:1 on the surface. */
+  --color-control-border: oklch(0.55 0.03 74);
+
+  --color-ink: oklch(0.25 0.03 205);
+  --color-ink-soft: oklch(0.43 0.03 205);
+
+  --color-primary: oklch(0.42 0.07 200);
+  --color-primary-strong: oklch(0.33 0.06 200);
+  --color-primary-soft: oklch(0.93 0.03 200);
+  --color-on-primary: oklch(0.99 0.005 200);
+
+  --color-clay: oklch(0.47 0.12 38);
+  --color-clay-soft: oklch(0.93 0.035 48);
+  --color-on-clay: oklch(0.985 0.01 60);
+
+  --color-deep: oklch(0.22 0.03 205);
+  --color-on-deep: oklch(0.9 0.015 200);
+  --color-on-deep-soft: oklch(0.74 0.025 200);
+  --color-deep-line: oklch(0.34 0.03 205);
+
+  --color-focus: oklch(0.55 0.13 235);
+
+  /* Status: each pairs a text colour with a tint to sit behind it. */
+  --color-error: oklch(0.5 0.17 27);
+  --color-error-soft: oklch(0.95 0.03 27);
+  --color-success: oklch(0.43 0.1 150);
+  --color-success-soft: oklch(0.95 0.04 150);
+  --color-warning: oklch(0.45 0.09 70);
+  --color-warning-soft: oklch(0.94 0.06 85);
+
+  --shadow-raised:
+    0 1px 2px oklch(0.25 0.03 205 / 8%), 0 6px 16px oklch(0.25 0.03 205 / 8%);
+
+  /* Legacy scale, remapped onto the palette above so existing component CSS
+     follows the new look. Prefer the semantic tokens in new code. */
+  --brown-000: var(--color-surface);
+  --brown-100: var(--color-ground);
+  --brown-200: oklch(0.958 0.018 76);
+  --brown-300: var(--color-sand);
+  --brown-400: var(--color-line-strong);
+  --brown-450: var(--color-ink-soft);
+  --brown-500: var(--color-ink);
+  --brown-600: oklch(0.2 0.028 205);
+  --brown-700: oklch(0.17 0.025 205);
+  --brown-800: oklch(0.15 0.022 205);
+  --brown-900: oklch(0.12 0.02 205);
+
+  --teal-000: oklch(0.975 0.012 200);
+  --teal-100: var(--color-primary-soft);
+  --teal-300: oklch(0.66 0.08 200);
+  --teal-400: oklch(0.5 0.075 200);
+  --teal-500: var(--color-primary);
+  --teal-600: var(--color-primary-strong);
+  --teal-700: oklch(0.27 0.05 200);
+
+  --light-bg: var(--color-ground);
+  --dark-bg: var(--color-deep);
+}
+
+/* Spacing and radii tokens */
+:root {
+  --spacing-nav-gap: 4.3125rem;
+
+  --border-width-md: 1px;
+  --border-radius-md: 12px;
+
+  --space-3xs: clamp(0.3125rem, 0.3rem + 0.0625cqi, 0.375rem);
+  --space-2xs: clamp(0.5625rem, 0.525rem + 0.1875cqi, 0.75rem);
+  --space-xs: clamp(0.875rem, 0.825rem + 0.25cqi, 1.125rem);
+  --space-s: clamp(1.125rem, 1.05rem + 0.375cqi, 1.5rem);
+  --space-m: clamp(1.6875rem, 1.575rem + 0.5625cqi, 2.25rem);
+  --space-l: clamp(2.25rem, 2.1rem + 0.75cqi, 3rem);
+  --space-xl: clamp(3.375rem, 3.15rem + 1.125cqi, 4.5rem);
+  --space-2xl: clamp(4.5rem, 4.2rem + 1.5cqi, 6rem);
+  --space-3xl: clamp(6.75rem, 6.3rem + 2.25cqi, 9rem);
+}
+
+/* Typography tokens */
+:root {
+  --font-family-main:
+    "Geologica", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-weight-boldest: 650;
+  --font-weight-bold: 600;
+  --font-weight-semibold: 550;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+  --font-weight-light: 350;
+
+  --line-height-tight: 1.25em;
+  --line-height-relaxed: 1.55em;
+  --color-text-main: var(--color-ink);
+
+  --step--2: clamp(0.8125rem, 0.8rem + 0.06vw, 0.875rem);
+  --step--1: clamp(0.9375rem, 0.92rem + 0.09vw, 1rem);
+  --step-0: clamp(1.0625rem, 1.03rem + 0.16vw, 1.1875rem);
+  --step-1: clamp(1.1875rem, 1.13rem + 0.28vw, 1.4rem);
+  --step-2: clamp(1.35rem, 1.26rem + 0.45vw, 1.7rem);
+  --step-3: clamp(1.55rem, 1.4rem + 0.75vw, 2.1rem);
+  --step-4: clamp(1.8rem, 1.56rem + 1.2vw, 2.7rem);
+  --step-5: clamp(2.1rem, 1.72rem + 1.9vw, 3.5rem);
+  --step-6: clamp(2.3rem, 1.78rem + 2.6vw, 4.25rem);
+}
+
+/* Font face: Geologica variable */
+@font-face {
+  font-family: "Geologica";
+  src: url("/assets/fonts/Geologica-VariableFont_CRSV,SHRP,slnt,wght.woff2")
+    format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-variation-settings: "slnt" 0;
+}
+
+/* Browser surfaces follow the palette */
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-ink);
+}
+
+:root {
+  accent-color: var(--color-primary);
+  caret-color: var(--color-primary);
+  scrollbar-color: var(--color-line-strong) var(--color-ground);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Global typography. The portals are task screens, so headings sit one or
+   two steps below the public site's. */
+body {
+  font-family: var(--font-family-main);
+  font-size: var(--step-0);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-main);
+  background: var(--color-ground);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-boldest);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.015em;
+  color: var(--color-text-main);
+  margin-block-end: 0.5em;
+}
+
+h1 {
+  font-size: var(--step-4);
+  text-wrap: balance;
+}
+h2 {
+  font-size: var(--step-2);
+}
+h3 {
+  font-size: var(--step-1);
+}
+h4,
+h5,
+h6 {
+  font-size: var(--step-0);
+}
+
+p,
+li,
+blockquote,
+dd {
+  font-size: var(--step-0);
+  line-height: var(--line-height-relaxed);
+}
+
+p {
+  margin-block-start: 0.75em;
+}
+p > a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a {
+  transition: color 0.2s;
+  color: var(--color-text-main);
+}
+
+main h1 {
+  margin-block-start: var(--space-l);
+}
+
+.highlight {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Layout container */
+:root {
+  --container-max-width: 75rem; /* 1200px */
+  --container-padding-inline: 1rem;
+}
+
+.container {
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding-inline: var(--container-padding-inline);
+  container-type: inline-size;
+  padding-block-end: var(--space-xl);
+}
+
+.main {
+  min-height: calc(100svh - 26rem);
+}
+
+/* Global button class */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  font-family: var(--font-family-main);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--step-0);
+  line-height: 1.2;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: 999px;
+  padding: 0.7em 1.4em;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-strong);
+    color: var(--color-on-primary);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: var(--color-line-strong);
+    color: var(--color-ink);
+    cursor: not-allowed;
+  }
+}
+
+.button-small,
+.button.small {
+  min-height: 2.5rem;
+  padding: 0.5em 1.1em;
+  font-size: var(--step--1);
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--color-primary-strong);
+  border-color: var(--color-primary);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: transparent;
+    border-color: var(--color-line-strong);
+    color: var(--color-ink-soft);
+  }
+}
+
+/* A quiet action beside a primary one, such as "Skip for now". */
+.button--tertiary {
+  background: transparent;
+  color: var(--color-primary-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+}
+
+.button--danger {
+  background: var(--color-error);
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in oklch, var(--color-error) 82%, black);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  a {
+    transition: none;
+  }
+}
+
+/* Messages */
+.form__success-message {
+  background-color: var(--color-primary-soft);
+  color: var(--color-ink);
+  padding: var(--space-xs) var(--space-s);
+  border-radius: var(--border-radius-md);
+  font-size: var(--step-0);
+
+  p {
+    margin: 0;
+  }
+}
+
+.message-note {
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+  margin-top: var(--space-xs) !important;
+}
+
+/* Forms, shared with the public site */
+
+.form-container {
+  container: form / inline-size;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: var(--space-s);
+  row-gap: var(--space-s);
+}
+
+.search-form {
+  grid-template-columns: 1fr max-content;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--space-s);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.single-column {
+  grid-column: span 1;
+}
+
+.form-group {
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.form__label {
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
+}
+
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-xs) var(--space-s) var(--space-s);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--border-radius-md);
+
+  legend {
+    padding-inline: var(--space-3xs);
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.4;
+  }
+}
+
+.form__input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6em 0.85em;
+  font-size: var(--step-0);
+  line-height: 1.3;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: calc(var(--border-radius-md) - 2px);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &::placeholder {
+    color: var(--color-ink-soft);
+    opacity: 1;
+  }
+
+  &[readonly],
+  &:disabled {
+    background-color: var(--color-sand);
+    color: var(--color-ink-soft);
+    cursor: not-allowed;
+  }
+}
+
+.form__input[type="checkbox"],
+.form__input[type="radio"] {
+  width: 1.35rem;
+  height: 1.35rem;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2xs) var(--space-xs);
+  align-items: center;
+
+  .form__label {
+    padding-block: 0.35em;
+    font-size: var(--step-0);
+    font-weight: var(--font-weight-regular);
+  }
+}
+
+.form__input--textarea {
+  resize: vertical;
+}
+
+.form__error-message {
+  color: var(--color-error);
+  font-size: var(--step--1);
+}
+
+.form__info-message {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+}
+
+.was-validated .form__input:invalid {
+  border-color: var(--color-error);
+}
+
+.was-validated .form__input:invalid + .form__error-message {
+  display: block;
+}
+
+.error {
+  border-color: var(--color-error) !important;
+}
+
+.form__confirmation {
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+@container form (min-width: 40rem) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+  }
+}

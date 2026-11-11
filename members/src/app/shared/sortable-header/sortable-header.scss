@@ -1,14 +1,2 @@
-:host {
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
-
-  &:hover {
-    background: var(--color-primary-soft);
-  }
-}
-
-.sort-indicator {
-  margin-inline-start: var(--space-3xs);
-  color: var(--color-primary);
-}
+// Shared with the other portal app; edit portal-styles/_sortable-header.scss.
+@use 'portal-styles/sortable-header';
