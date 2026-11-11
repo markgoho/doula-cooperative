@@ -1,5 +1,8 @@
 .confirm-dialog {
-  border: 1px solid var(--brown-300);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-raised);
   border-radius: var(--border-radius-md);
   padding: 0;
 
@@ -11,28 +14,28 @@
   min-width: min(20rem, 90vw); /* Minimum 320px or 90% of viewport */
 
   &::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+    background: oklch(0.22 0.03 205 / 55%);
   }
 
   .dialog-content {
-    padding: var(--space-l);
+    padding: var(--space-m);
 
     /* Enable container queries for responsive content */
     container-type: inline-size;
 
     h3 {
       margin-block-start: 0;
-      margin-block-end: var(--space-m);
+      margin-block-end: var(--space-xs);
       font-size: var(--step-1);
-      color: var(--brown-500);
+      color: var(--color-ink);
       /* Ensure heading wraps properly */
       text-wrap: balance;
       word-break: break-word;
     }
 
     p {
-      margin-block: var(--space-m);
-      color: var(--brown-500);
+      margin-block: var(--space-xs);
+      color: var(--color-ink);
       /* Better text wrapping */
       text-wrap: pretty;
     }
@@ -42,8 +45,8 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--space-s);
-    margin-block-start: var(--space-l);
+    gap: var(--space-xs);
+    margin-block-start: var(--space-m);
 
     /* Buttons */
     button {
@@ -94,5 +97,11 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation-duration: 3s;
   }
 }

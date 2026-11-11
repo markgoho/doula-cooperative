@@ -1,4 +1,6 @@
-/* Global styles ported from Hugo site: tokens, reset, typography, spacing, layout */
+/* Global styles shared with the public Hugo site: tokens, reset, typography,
+   spacing, layout. The values follow DESIGN.md; keep this file identical in
+   members/ and admin/. */
 
 @import 'leaflet/dist/leaflet.css';
 
@@ -108,51 +110,76 @@ textarea:not([rows]) {
 
 /* Color tokens */
 :root {
-  --brown-000: hsl(35, 69%, 94%);
-  --brown-100: hsl(34, 83%, 93%);
-  --brown-200: hsl(35, 67%, 88%);
-  --brown-300: hsl(34, 85%, 84%);
-  --brown-400: hsl(34, 59%, 69%);
-  --brown-450: hsl(35, 32%, 45%);
-  --brown-500: hsl(34, 70%, 16%);
-  --brown-600: hsl(33, 35%, 12%);
-  --brown-700: hsl(35, 74%, 5%);
+  /* Semantic tokens: use these in new CSS. */
+  --color-ground: oklch(0.975 0.012 78);
+  --color-surface: oklch(0.995 0.004 80);
+  --color-sand: oklch(0.94 0.024 74);
+  --color-line: oklch(0.87 0.022 74);
+  --color-line-strong: oklch(0.74 0.03 74);
+  /* Boundaries of inputs and other controls: at least 3:1 on the surface. */
+  --color-control-border: oklch(0.55 0.03 74);
 
-  --teal-300: hsl(192, 49%, 53%);
-  --teal-400: hsl(192, 51%, 33%);
-  --teal-500: hsl(192, 58%, 25%);
-  --teal-600: hsl(192, 60%, 15%);
+  --color-ink: oklch(0.25 0.03 205);
+  --color-ink-soft: oklch(0.43 0.03 205);
 
-  --light-bg: linear-gradient(180deg, var(--brown-100) 0%, var(--brown-200) 100%);
-  --dark-bg: linear-gradient(180deg, var(--brown-600) 0%, var(--brown-700) 100%);
-}
+  --color-primary: oklch(0.42 0.07 200);
+  --color-primary-strong: oklch(0.33 0.06 200);
+  --color-primary-soft: oklch(0.93 0.03 200);
+  --color-on-primary: oklch(0.99 0.005 200);
 
-@supports (color: oklch(0.9 0.01 76)) {
-  :root {
-    --brown-000: oklch(0.9631 0.0189 76.55);
-    --brown-100: oklch(0.9581 0.0262 74.76);
-    --brown-200: oklch(0.9258 0.0368 76.4);
-    --brown-300: oklch(0.9062 0.0613 74.32);
-    --brown-400: oklch(0.8005 0.0833 73.63);
-    --brown-450: oklch(0.595 0.0703 75.08);
-    --brown-500: oklch(0.3188 0.0583 69.76);
-    --brown-600: oklch(0.2499 0.0255 71.84);
-    --brown-700: oklch(0.1721 0.0267 78.3);
-    --brown-800: oklch(0.1244 0.0229 87.86);
+  --color-clay: oklch(0.47 0.12 38);
+  --color-clay-soft: oklch(0.93 0.035 48);
+  --color-on-clay: oklch(0.985 0.01 60);
 
-    --teal-300: oklch(0.692 0.0943 216.79);
-    --teal-400: oklch(0.5022 0.0728 217.3);
-    --teal-500: oklch(0.422 0.064 217.78);
-    --teal-600: oklch(0.3035 0.0441 217.33);
-  }
+  --color-deep: oklch(0.22 0.03 205);
+  --color-on-deep: oklch(0.9 0.015 200);
+  --color-on-deep-soft: oklch(0.74 0.025 200);
+  --color-deep-line: oklch(0.34 0.03 205);
+
+  --color-focus: oklch(0.55 0.13 235);
+
+  /* Status: each pairs a text colour with a tint to sit behind it. */
+  --color-error: oklch(0.5 0.17 27);
+  --color-error-soft: oklch(0.95 0.03 27);
+  --color-success: oklch(0.43 0.1 150);
+  --color-success-soft: oklch(0.95 0.04 150);
+  --color-warning: oklch(0.45 0.09 70);
+  --color-warning-soft: oklch(0.94 0.06 85);
+
+  --shadow-raised: 0 1px 2px oklch(0.25 0.03 205 / 8%), 0 6px 16px oklch(0.25 0.03 205 / 8%);
+
+  /* Legacy scale, remapped onto the palette above so existing component CSS
+     follows the new look. Prefer the semantic tokens in new code. */
+  --brown-000: var(--color-surface);
+  --brown-100: var(--color-ground);
+  --brown-200: oklch(0.958 0.018 76);
+  --brown-300: var(--color-sand);
+  --brown-400: var(--color-line-strong);
+  --brown-450: var(--color-ink-soft);
+  --brown-500: var(--color-ink);
+  --brown-600: oklch(0.2 0.028 205);
+  --brown-700: oklch(0.17 0.025 205);
+  --brown-800: oklch(0.15 0.022 205);
+  --brown-900: oklch(0.12 0.02 205);
+
+  --teal-000: oklch(0.975 0.012 200);
+  --teal-100: var(--color-primary-soft);
+  --teal-300: oklch(0.66 0.08 200);
+  --teal-400: oklch(0.5 0.075 200);
+  --teal-500: var(--color-primary);
+  --teal-600: var(--color-primary-strong);
+  --teal-700: oklch(0.27 0.05 200);
+
+  --light-bg: var(--color-ground);
+  --dark-bg: var(--color-deep);
 }
 
 /* Spacing and radii tokens */
 :root {
   --spacing-nav-gap: 4.3125rem;
 
-  --border-width-md: 5px;
-  --border-radius-md: 5px;
+  --border-width-md: 1px;
+  --border-radius-md: 12px;
 
   --space-3xs: clamp(0.3125rem, 0.3rem + 0.0625cqi, 0.375rem);
   --space-2xs: clamp(0.5625rem, 0.525rem + 0.1875cqi, 0.75rem);
@@ -170,25 +197,26 @@ textarea:not([rows]) {
   --font-family-main:
     'Geologica', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  --font-weight-boldest: 900;
-  --font-weight-bold: 700;
-  --font-weight-semibold: 600;
+  --font-weight-boldest: 650;
+  --font-weight-bold: 600;
+  --font-weight-semibold: 550;
+  --font-weight-medium: 500;
   --font-weight-regular: 400;
-  --font-weight-light: 300;
+  --font-weight-light: 350;
 
   --line-height-tight: 1.25em;
-  --line-height-relaxed: 1.5em;
-  --color-text-main: var(--brown-500);
+  --line-height-relaxed: 1.55em;
+  --color-text-main: var(--color-ink);
 
-  --step--2: clamp(0.8889rem, 0.8747rem + 0.0711vw, 0.96rem);
-  --step--1: clamp(1rem, 0.96rem + 0.2vw, 1.2rem);
-  --step-0: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);
-  --step-1: clamp(1.2656rem, 1.1438rem + 0.6094vw, 1.875rem);
-  --step-2: clamp(1.4238rem, 1.2398rem + 0.9199vw, 2.3438rem);
-  --step-3: clamp(1.6018rem, 1.3362rem + 1.3279vw, 2.9297rem);
-  --step-4: clamp(1.802rem, 1.43rem + 1.8601vw, 3.6621rem);
-  --step-5: clamp(2.0273rem, 1.5172rem + 2.5504vw, 4.5776rem);
-  --step-6: clamp(2.2807rem, 1.5924rem + 3.4413vw, 5.722rem);
+  --step--2: clamp(0.8125rem, 0.8rem + 0.06vw, 0.875rem);
+  --step--1: clamp(0.9375rem, 0.92rem + 0.09vw, 1rem);
+  --step-0: clamp(1.0625rem, 1.03rem + 0.16vw, 1.1875rem);
+  --step-1: clamp(1.1875rem, 1.13rem + 0.28vw, 1.4rem);
+  --step-2: clamp(1.35rem, 1.26rem + 0.45vw, 1.7rem);
+  --step-3: clamp(1.55rem, 1.4rem + 0.75vw, 2.1rem);
+  --step-4: clamp(1.8rem, 1.56rem + 1.2vw, 2.7rem);
+  --step-5: clamp(2.1rem, 1.72rem + 1.9vw, 3.5rem);
+  --step-6: clamp(2.3rem, 1.78rem + 2.6vw, 4.25rem);
 }
 
 /* Font face: Geologica variable */
@@ -200,14 +228,41 @@ textarea:not([rows]) {
   font-variation-settings: 'slnt' 0;
 }
 
-/* Global typography */
+/* Browser surfaces follow the palette */
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-ink);
+}
+
+:root {
+  accent-color: var(--color-primary);
+  caret-color: var(--color-primary);
+  scrollbar-color: var(--color-line-strong) var(--color-ground);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Global typography. The portals are task screens, so headings sit one or
+   two steps below the public site's. */
 body {
   font-family: var(--font-family-main);
   font-size: var(--step-0);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-regular);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-main);
-  background: var(--light-bg);
+  background: var(--color-ground);
 }
 
 h1,
@@ -219,23 +274,22 @@ h6 {
   font-family: var(--font-family-main);
   font-weight: var(--font-weight-boldest);
   line-height: var(--line-height-tight);
+  letter-spacing: -0.015em;
   color: var(--color-text-main);
   margin-block-end: 0.5em;
 }
 
 h1 {
-  font-size: var(--step-6);
+  font-size: var(--step-4);
   text-wrap: balance;
 }
 h2 {
-  font-size: var(--step-3);
-}
-h3 {
   font-size: var(--step-2);
 }
-h4 {
+h3 {
   font-size: var(--step-1);
 }
+h4,
 h5,
 h6 {
   font-size: var(--step-0);
@@ -254,6 +308,8 @@ p {
 }
 p > a {
   text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 a {
@@ -262,8 +318,7 @@ a {
 }
 
 main h1 {
-  text-align: center;
-  margin-block-start: var(--space-xl);
+  margin-block-start: var(--space-l);
 }
 
 .highlight {
@@ -290,74 +345,90 @@ main h1 {
 
 /* Global button class */
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
   font-family: var(--font-family-main);
-  font-weight: var(--font-weight-boldest);
-  font-size: var(--step-1);
-  color: var(--brown-100);
-  background: var(--teal-500);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-xs) var(--space-s);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--step-0);
+  line-height: 1.2;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: 999px;
+  padding: 0.7em 1.4em;
   text-decoration: none;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   transition:
     background 0.2s,
-    color 0.2s;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-.button:hover,
-.button:focus {
-  background: var(--teal-600);
-}
-.button--secondary:focus:not(:focus-visible):not(:hover) {
-  background-color: transparent;
-}
-.button-small {
-  font-size: var(--step-0);
-}
-
-.button.small {
-  font-size: var(--step-0);
-  padding: var(--space-3xs) var(--space-xs);
-}
-
-.button--secondary {
-  background-color: transparent;
-  color: var(--teal-500);
-  border: 2px solid var(--teal-500);
+    color 0.2s,
+    border-color 0.2s;
 
   &:hover,
   &:focus-visible {
-    background-color: var(--teal-500);
-    color: var(--brown-100);
+    background: var(--color-primary-strong);
+    color: var(--color-on-primary);
   }
 
-  &:disabled {
-    opacity: 0.5;
+  &:disabled,
+  &[aria-disabled='true'] {
+    background: var(--color-line-strong);
+    color: var(--color-ink);
     cursor: not-allowed;
+  }
+}
+
+.button-small,
+.button.small {
+  min-height: 2.5rem;
+  padding: 0.5em 1.1em;
+  font-size: var(--step--1);
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--color-primary-strong);
+  border-color: var(--color-primary);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    background: transparent;
+    border-color: var(--color-line-strong);
+    color: var(--color-ink-soft);
   }
 }
 
 .button--danger {
-  background: var(--color-error, #d93025);
+  background: var(--color-error);
 
   &:hover,
   &:focus-visible {
-    background: color-mix(in oklch, var(--color-error, #d93025) 85%, black);
+    background: color-mix(in oklch, var(--color-error) 82%, black);
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  a {
+    transition: none;
+  }
+}
+
+/* Messages */
 .form__success-message {
-  background-color: color-mix(in oklch, var(--teal-300) 30%, var(--brown-000));
-  color: var(--brown-600);
-  padding: var(--space-s);
+  background-color: var(--color-primary-soft);
+  color: var(--color-ink);
+  padding: var(--space-xs) var(--space-s);
   border-radius: var(--border-radius-md);
-  border-left: 4px solid var(--teal-500);
-  font-size: var(--step-1);
+  font-size: var(--step-0);
 
   p {
     margin: 0;
@@ -365,39 +436,34 @@ main h1 {
 }
 
 .message-note {
-  font-size: 0.875em;
-  opacity: 0.85;
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
   margin-top: var(--space-xs) !important;
 }
 
-/* Form Styles from Hugo App */
+/* Forms, shared with the public site */
 
-/* Form container with container queries */
 .form-container {
   container: form / inline-size;
 }
 
-/* Base form layout */
 .form {
   display: grid;
   grid-template-columns: 1fr;
   column-gap: var(--space-s);
-  row-gap: var(--space-l);
+  row-gap: var(--space-s);
 }
 
-/* Search form specific layout */
 .search-form {
   grid-template-columns: 1fr max-content;
 }
 
-/* Date grid for date inputs */
 .date-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: var(--space-s);
 }
 
-/* Grid utility classes */
 .full-width {
   grid-column: 1 / -1;
 }
@@ -411,99 +477,109 @@ main h1 {
   gap: var(--space-3xs);
 }
 
-/* Form labels */
 .form__label {
-  font-size: var(--step-1);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
 }
 
-/* Fieldsets */
 fieldset {
-  border: 3px solid var(--brown-400);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-xs) var(--space-s) var(--space-s);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--border-radius-md);
 
   legend {
-    font-size: var(--step-0);
+    padding-inline: var(--space-3xs);
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.4;
   }
 }
 
-/* Form inputs */
 .form__input {
-  background-color: var(--brown-000);
-  border: 1px solid var(--brown-500);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-xs);
-  font-size: var(--step-2);
   width: 100%;
-  line-height: 1.2;
+  min-height: 2.75rem;
+  padding: 0.6em 0.85em;
+  font-size: var(--step-0);
+  line-height: 1.3;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: calc(var(--border-radius-md) - 2px);
 
-  &:focus-visible {
-    outline: 3px solid var(--brown-400);
+  &:hover {
+    border-color: var(--color-primary);
   }
 
-  &[readonly] {
-    background-color: var(--brown-100);
-    color: var(--brown-450);
+  &::placeholder {
+    color: var(--color-ink-soft);
+    opacity: 1;
+  }
+
+  &[readonly],
+  &:disabled {
+    background-color: var(--color-sand);
+    color: var(--color-ink-soft);
     cursor: not-allowed;
   }
 }
 
-/* Checkbox and radio inputs */
 .form__input[type='checkbox'],
 .form__input[type='radio'] {
-  width: var(--space-l);
-  height: var(--space-l);
-  accent-color: var(--brown-400);
-  margin-inline-end: var(--space-2xs);
-  background-color: var(--brown-000);
+  width: 1.35rem;
+  height: 1.35rem;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--color-primary);
 }
 
-/* Input grid for checkbox/radio labels */
 .input-grid {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: var(--space-2xs);
+  gap: var(--space-2xs) var(--space-xs);
   align-items: center;
+
+  .form__label {
+    padding-block: 0.35em;
+    font-size: var(--step-0);
+    font-weight: var(--font-weight-regular);
+  }
 }
 
-/* Textarea specific styles */
 .form__input--textarea {
   resize: vertical;
 }
 
-/* Error messages */
 .form__error-message {
-  color: var(--color-error, #d93025);
+  color: var(--color-error);
   font-size: var(--step--1);
 }
 
-/* Info messages */
 .form__info-message {
-  color: var(--teal-500);
+  color: var(--color-ink-soft);
   font-size: var(--step--1);
-  font-style: italic;
 }
 
-/* Validation styles */
 .was-validated .form__input:invalid {
-  border-color: var(--color-error, #d93025);
+  border-color: var(--color-error);
 }
 
 .was-validated .form__input:invalid + .form__error-message {
   display: block;
 }
 
-/* Error class for form inputs */
 .error {
-  border-color: var(--color-error, #d93025) !important;
+  border-color: var(--color-error) !important;
 }
 
-/* Form confirmation message */
 .form__confirmation {
   text-align: center;
   padding: var(--space-xl);
 }
 
-/* Container query for responsive form layout */
 @container form (min-width: 40rem) {
   .form {
     grid-template-columns: 1fr 1fr;

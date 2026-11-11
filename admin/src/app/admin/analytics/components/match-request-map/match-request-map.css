@@ -1,10 +1,9 @@
 .map-status {
-  color: var(--color-text-muted, #666);
-  font-style: italic;
+  color: var(--color-ink-soft);
 }
 
 .map-status--error {
-  color: var(--color-error, #c00);
+  color: var(--color-error);
 }
 
 .map-container {
@@ -17,5 +16,5 @@
 .map-footnote {
   margin-block-start: 0.5rem;
   font-size: 0.8rem;
-  color: var(--color-text-muted, #666);
+  color: var(--color-ink-soft);
 }

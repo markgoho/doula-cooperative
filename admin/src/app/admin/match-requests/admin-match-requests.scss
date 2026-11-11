@@ -1,41 +1,41 @@
-// Page-level styles for admin match requests page
+// Counts at the top of the page.
 
 .header-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--space-m);
-  margin-block-end: var(--space-l);
-  max-width: 600px;
-  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-block-end: var(--space-m);
 }
 
 .stat-card {
-  background: var(--brown-000);
-  padding: var(--space-m);
-  border-radius: var(--border-radius-md);
-  border: 2px solid var(--brown-300);
-  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
+  gap: var(--space-3xs);
+  min-width: 9rem;
+  padding: var(--space-xs) var(--space-s);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius-md);
 
   &--pending {
-    border-color: var(--teal-400);
-    background: var(--brown-100);
+    background: var(--color-primary-soft);
+    border-color: transparent;
   }
 }
 
 .stat-label {
   font-size: var(--step--1);
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+
+.stat-card--pending .stat-label {
+  color: var(--color-ink);
 }
 
 .stat-value {
   font-size: var(--step-3);
-  color: var(--brown-500);
-  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+  font-weight: var(--font-weight-boldest);
   line-height: 1;
 }

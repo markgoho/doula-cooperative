@@ -1,10 +1,9 @@
 .chart-status {
-  color: var(--color-text-muted, #666);
-  font-style: italic;
+  color: var(--color-ink-soft);
 }
 
 .chart-status--error {
-  color: var(--color-error, #c00);
+  color: var(--color-error);
 }
 
 .bar-chart {
@@ -14,7 +13,7 @@
   align-items: end;
   height: 160px;
   gap: 4px;
-  border-block-end: 1px solid var(--color-border, #ddd);
+  border-block-end: 1px solid var(--color-line);
   padding-block-end: 4px;
 }
 
@@ -29,14 +28,14 @@
 .bar {
   width: 100%;
   min-height: 2px;
-  background: var(--color-primary, #4a90d9);
+  background: var(--color-primary);
   border-radius: 2px 2px 0 0;
   transition: height 0.2s ease;
 }
 
 .bar-label {
   font-size: 0.65rem;
-  color: var(--color-text-muted, #666);
+  color: var(--color-ink-soft);
   margin-block-start: 4px;
   white-space: nowrap;
 }

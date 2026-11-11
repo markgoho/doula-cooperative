@@ -1,10 +1,9 @@
 .stat-status {
-  color: var(--color-text-muted, #666);
-  font-style: italic;
+  color: var(--color-ink-soft);
 }
 
 .stat-status--error {
-  color: var(--color-error, #c00);
+  color: var(--color-error);
 }
 
 .stat-value {
