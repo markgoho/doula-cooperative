@@ -1,14 +1,2 @@
-:host {
-  display: block;
-}
-
-.subtitle {
-  text-align: center;
-  margin-block: var(--space-m);
-}
-
-.full-width {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+// Shared with the other portal app; edit portal-styles/_sign-in.scss.
+@use 'portal-styles/sign-in';

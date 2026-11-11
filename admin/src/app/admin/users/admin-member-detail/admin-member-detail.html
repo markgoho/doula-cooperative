@@ -230,35 +230,37 @@
           </p>
 
           @if (filteredUnlinkedProfiles().length > 0) {
-            <table>
-              <thead>
-                <tr>
-                  <th>Full Name</th>
-                  <th>Email</th>
-                  <th>Slug</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (profile of filteredUnlinkedProfiles(); track profile.slug) {
+            <div class="table-scroll">
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ profile.title }}</td>
-                    <td>{{ profile.email }}</td>
-                    <td class="monospace">{{ profile.slug }}</td>
-                    <td>
-                      <button
-                        type="button"
-                        class="button"
-                        (click)="confirmLinkProfile(profile)"
-                        [disabled]="service.actionInProgress()"
-                      >
-                        Link
-                      </button>
-                    </td>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Slug</th>
+                    <th>Action</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (profile of filteredUnlinkedProfiles(); track profile.slug) {
+                    <tr>
+                      <td>{{ profile.title }}</td>
+                      <td>{{ profile.email }}</td>
+                      <td class="monospace">{{ profile.slug }}</td>
+                      <td>
+                        <button
+                          type="button"
+                          class="button button-small"
+                          (click)="confirmLinkProfile(profile)"
+                          [disabled]="service.actionInProgress()"
+                        >
+                          Link
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           } @else if (debouncedSearchTerm().length > 0) {
             <p>No profiles match your search.</p>
           }
@@ -335,9 +337,7 @@
 
         <div class="action-buttons">
           <a [href]="'/members/' + member.uid + '/profile'" class="button">View Profile</a>
-          <a [href]="'/members/' + member.uid + '/profile/edit'" class="button">
-            Edit Profile
-          </a>
+          <a [href]="'/members/' + member.uid + '/profile/edit'" class="button"> Edit Profile </a>
           <button
             type="button"
             [class]="'button ' + (isProfileDraft() ? '' : 'button--danger')"

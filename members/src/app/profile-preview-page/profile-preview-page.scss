@@ -1,12 +1,19 @@
 :host {
   display: block;
+  padding-block-start: var(--space-s);
 }
 
 nav {
   margin-block-end: var(--space-s);
+
+  a {
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-strong);
+    text-underline-offset: 0.18em;
+  }
 }
 
 app-profile-preview {
-  margin-block-start: var(--space-xl);
-  padding-block-end: var(--space-xl);
+  margin-block-start: var(--space-m);
 }

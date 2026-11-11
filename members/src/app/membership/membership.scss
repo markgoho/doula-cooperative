@@ -1,158 +1,101 @@
-// ============================================
-// Membership Page Styles
-// ============================================
+// Membership page: one reading column of cards.
 
-// --- Animations ---
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// --- Layout ---
 .authenticated-view {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  gap: var(--space-m);
   width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
 }
 
-// --- Welcome Section ---
+// --- Welcome ---
 .welcome-section {
-  text-align: center;
-  margin-block-end: var(--space-l);
-  animation: fadeSlideUp 0.5s ease-out both;
+  display: grid;
+  gap: var(--space-2xs);
+  justify-items: start;
 }
 
 .welcome-greeting {
+  margin-block-end: 0;
   font-size: var(--step-3);
-  font-weight: var(--font-weight-light);
-  margin-block-end: var(--space-xs);
-  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
 }
 
 .welcome-name {
-  font-weight: var(--font-weight-bold);
-  color: var(--teal-600);
+  color: var(--color-primary-strong);
 }
 
 .membership-badge {
   display: inline-block;
-  background: var(--teal-500);
-  color: var(--brown-000);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
   font-size: var(--step--2);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: var(--space-3xs) var(--space-s);
+  font-weight: var(--font-weight-bold);
+  padding: 0.3em 0.9em;
   border-radius: 999px;
-  margin-block-start: var(--space-2xs);
 
   &--refunded {
-    background: var(--brown-400);
+    background: var(--color-sand);
+    color: var(--color-ink);
   }
 }
 
-// --- Card Grid ---
+// --- Cards ---
 .membership-cards {
   display: grid;
-  gap: var(--space-m);
+  gap: var(--space-s);
   width: 100%;
 }
 
-// --- Card Base ---
 .membership-card {
-  background: var(--brown-000);
-  border: 1px solid var(--brown-200);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: var(--border-radius-md);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
-  padding: var(--space-l);
-  animation: fadeSlideUp 0.5s ease-out both;
-
-  &.card-1 {
-    animation-delay: 0.1s;
-  }
-
-  &.card-2 {
-    animation-delay: 0.2s;
-  }
-
-  &.card-3 {
-    animation-delay: 0.3s;
-  }
-
-  &.card-4 {
-    animation-delay: 0.4s;
-  }
-
-  &.card-5 {
-    animation-delay: 0.5s;
-  }
+  padding: var(--space-m);
 }
 
-// --- Section Headings ---
 .section-heading {
   font-size: var(--step-1);
-  font-weight: var(--font-weight-semibold);
-  border-left: 4px solid var(--teal-500);
-  padding-left: var(--space-s);
-  margin-block-end: var(--space-m);
-
-  &::before {
-    margin-right: var(--space-2xs);
-  }
+  margin-block: 0 var(--space-s);
 }
 
-#account-heading::before {
-  content: '\1F464'; // 👤
-}
-
-#newsletter-heading::before {
-  content: '\2709'; // ✉
-}
-
-#payment-heading::before {
-  content: '\1F4B3'; // 💳
-}
-
-#community-heading::before {
-  content: '\1F465'; // 👥
-}
-
-// --- Definition List Details ---
+// --- Details ---
 .details-list {
   display: grid;
-  gap: var(--space-s) var(--space-3xs);
+  gap: var(--space-3xs);
+  margin: 0;
 
   @media (min-width: 30em) {
-    grid-template-columns: auto 1fr;
-    gap: var(--space-s);
+    grid-template-columns: minmax(10rem, auto) 1fr;
+    gap: var(--space-xs) var(--space-m);
     align-items: baseline;
   }
 
   dt {
-    font-size: var(--step--2);
-    font-weight: var(--font-weight-regular);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--brown-500);
+    font-size: var(--step--1);
+    color: var(--color-ink-soft);
   }
 
   dd {
     font-size: var(--step-0);
-    font-weight: var(--font-weight-regular);
-    margin: 0;
+    margin: 0 0 var(--space-xs);
+    overflow-wrap: anywhere;
+
+    @media (min-width: 30em) {
+      margin: 0;
+    }
+
+    a {
+      display: inline-block;
+      margin-inline-start: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--color-primary-strong);
+      text-underline-offset: 0.18em;
+    }
   }
 }
 
-// --- Newsletter Toggle Switch ---
+// --- Newsletter toggle ---
 .newsletter-content {
   display: flex;
   flex-direction: column;
@@ -162,7 +105,7 @@
 .toggle-switch {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: var(--space-xs);
   cursor: pointer;
 
   input[type='checkbox'] {
@@ -172,15 +115,17 @@
     height: 0;
 
     &:checked + .toggle-track {
-      background: var(--teal-500);
+      background: var(--color-primary);
+      border-color: var(--color-primary);
 
       &::after {
         transform: translateX(1.25rem);
+        background: var(--color-on-primary);
       }
     }
 
     &:focus-visible + .toggle-track {
-      outline: 2px solid var(--teal-500);
+      outline: 3px solid var(--color-focus);
       outline-offset: 2px;
     }
 
@@ -197,9 +142,10 @@
 
 .toggle-track {
   position: relative;
-  width: 2.75rem;
-  height: 1.5rem;
-  background: var(--brown-300);
+  width: 2.875rem;
+  height: 1.625rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
   border-radius: 999px;
   transition: background 0.2s ease;
   flex-shrink: 0;
@@ -211,185 +157,157 @@
     left: 0.125rem;
     width: 1.25rem;
     height: 1.25rem;
-    background: var(--brown-000);
+    background: var(--color-control-border);
     border-radius: 50%;
     transition: transform 0.2s ease;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
   }
 }
 
 .toggle-text {
   font-size: var(--step-0);
-  font-weight: var(--font-weight-regular);
 }
 
-.newsletter-description {
+.newsletter-description,
+.update-status {
   font-size: var(--step--1);
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   margin: 0;
 }
 
-.update-status {
-  font-size: var(--step--1);
-  color: var(--brown-450);
-}
-
-// --- Community Card ---
+// --- Community and referrals ---
 .community-description {
-  font-size: var(--step-0);
-  color: var(--brown-500);
-  margin-block-end: var(--space-m);
+  margin-block: 0 var(--space-s);
 }
 
 .community-link {
-  display: inline-block;
-  background: var(--teal-500);
-  color: var(--brown-000);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5em 1.1em;
+  background: transparent;
+  color: var(--color-primary-strong);
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
   font-size: var(--step--1);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
-  padding: var(--space-xs) var(--space-m);
-  border-radius: var(--border-radius-md);
   transition: background 0.2s ease;
 
   &:hover {
-    background: var(--teal-600);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--teal-500);
-    outline-offset: 2px;
+    background: var(--color-primary-soft);
   }
 }
 
-// --- Banners ---
-.create-profile-banner {
-  background: var(--brown-100);
-  border: 3px solid var(--brown-400);
+// --- Prompts above the cards ---
+.create-profile-banner,
+.welcome-name-prompt,
+.email-verification-banner {
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: start;
+  padding: var(--space-m);
   border-radius: var(--border-radius-md);
-  padding: var(--space-l);
-  padding-block-start: var(--space-xs);
-  margin-block-end: var(--space-l);
-  max-width: 50ch;
-  text-align: center;
-  animation: fadeSlideUp 0.5s ease-out both;
-}
 
-.welcome-name-prompt {
-  background: var(--teal-50, var(--brown-100));
-  border: 3px solid var(--teal-400, var(--brown-400));
-  border-radius: var(--border-radius-md);
-  padding: var(--space-l);
-  margin-block-end: var(--space-l);
-  max-width: 50ch;
-  text-align: center;
-  animation: fadeSlideUp 0.5s ease-out both;
-
-  h3 {
-    margin-block-end: var(--space-s);
-  }
-
+  h3,
   p {
-    margin-block-end: var(--space-m);
+    margin: 0;
   }
+}
+
+.create-profile-banner,
+.welcome-name-prompt {
+  // These open the page, so keep them off the header edge.
+  margin-block-start: var(--space-m);
+  background: var(--color-primary-soft);
+}
+
+.email-verification-banner {
+  background: var(--color-warning-soft);
 }
 
 .name-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-s);
-  align-items: center;
+  display: grid;
+  gap: var(--space-2xs);
+  justify-items: start;
+  width: 100%;
+  max-width: 28rem;
 
   label {
-    font-weight: var(--font-weight-semibold);
     font-size: var(--step--1);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--brown-500);
-    align-self: flex-start;
+    font-weight: var(--font-weight-bold);
   }
 
   input[type='text'] {
     width: 100%;
-    padding: var(--space-xs) var(--space-s);
+    min-height: 2.75rem;
+    padding: 0.6em 0.85em;
     font-size: var(--step-0);
-    border: 1px solid var(--brown-300);
-    border-radius: var(--border-radius-md);
-    background: var(--brown-000);
-    transition: border-color 0.2s ease;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 1px solid var(--color-control-border);
+    border-radius: calc(var(--border-radius-md) - 2px);
 
-    &:focus {
-      outline: none;
-      border-color: var(--teal-500);
-      box-shadow: 0 0 0 2px rgb(var(--teal-500-rgb, 0 128 128) / 0.2);
+    &:hover {
+      border-color: var(--color-primary);
     }
 
     &:disabled {
-      opacity: 0.5;
+      background: var(--color-sand);
       cursor: not-allowed;
     }
+  }
+
+  .button {
+    margin-block-start: var(--space-2xs);
   }
 }
 
 .profile-info {
-  background: var(--teal-50);
-  border: 2px solid var(--teal-200);
+  background: var(--color-primary-soft);
   border-radius: var(--border-radius-md);
-}
 
-.profile-info p {
-  margin: var(--space-3xs) 0;
-}
-
-.email-verification-banner {
-  background: var(--orange-100);
-  border: 3px solid var(--orange-400);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-l);
-  margin-block-end: var(--space-l);
-  text-align: center;
-}
-
-.email-verification-banner h3 {
-  margin-block-end: var(--space-s);
-}
-
-.email-verification-banner p {
-  margin-block-end: var(--space-m);
-}
-
-.verification-actions {
-  margin-block-end: var(--space-m);
+  p {
+    margin: var(--space-3xs) 0;
+  }
 }
 
 // --- Messages ---
-.success-message {
-  background: var(--teal-100);
-  padding: var(--space-xs);
+.success-message,
+.error-message,
+.cancel-notice {
+  margin: 0;
+  padding: var(--space-xs) var(--space-s);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--teal-200);
-  margin-block-end: var(--space-s);
-  text-align: center;
+  font-size: var(--step--1);
+}
+
+.success-message {
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 .error-message {
-  background: var(--brown-100);
-  padding: var(--space-xs);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--brown-200);
-  margin-block-end: var(--space-s);
-  text-align: center;
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.cancel-notice {
+  background: var(--color-warning-soft);
+  margin-block-start: var(--space-s);
+}
+
+.cancel-section {
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: start;
+  margin-block-start: var(--space-s);
+  padding-block-start: var(--space-s);
+  border-top: 1px solid var(--color-line);
 }
 
 // --- Actions ---
 .membership-actions {
-  margin-top: var(--space-xl);
-  animation: fadeSlideUp 0.5s ease-out 0.5s both;
-}
-
-.sign-out-button {
-  font-size: var(--step--1);
-  padding: var(--space-3xs) var(--space-m);
+  margin-block-start: var(--space-s);
 }
 
 .help-text {
@@ -397,34 +315,14 @@
   margin-top: var(--space-s);
 }
 
-// --- Loading ---
 .loading-info {
-  text-align: center;
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
 }
 
-// --- Responsive ---
-@media (max-width: 768px) {
-  .authenticated-view {
-    padding: var(--space-s);
-  }
-
-  .welcome-greeting {
-    font-size: var(--step-2);
-  }
-
-  .membership-card {
-    padding: var(--space-m);
-  }
-}
-
-// Prefer reduced motion
 @media (prefers-reduced-motion: reduce) {
-  .welcome-section,
-  .membership-card,
-  .membership-actions,
-  .create-profile-banner,
-  .welcome-name-prompt {
-    animation: none;
+  .toggle-track,
+  .toggle-track::after,
+  .community-link {
+    transition: none;
   }
 }

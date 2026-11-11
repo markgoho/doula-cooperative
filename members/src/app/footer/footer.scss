@@ -1,11 +1,16 @@
 .footer {
-  --icon-color: var(--teal-500);
+  --icon-color: var(--color-on-deep);
 
-  padding: var(--space-m) var(--space-l);
-  background-color: var(--brown-800);
-  border-top: 5px solid var(--brown-500);
+  padding: var(--space-l) var(--container-padding-inline) var(--space-m);
+  background-color: var(--color-deep);
   container: footer / inline-size;
-  color: var(--brown-450);
+  color: var(--color-on-deep);
+}
+
+.footer__main,
+.footer__bottom {
+  max-width: calc(var(--container-max-width) - 2 * var(--container-padding-inline));
+  margin-inline: auto;
 }
 
 .footer__main {
@@ -13,7 +18,7 @@
   grid-template-columns: 1fr;
   gap: var(--space-m);
   padding-block-end: var(--space-m);
-  border-bottom: 2px solid var(--brown-600);
+  border-bottom: 1px solid var(--color-deep-line);
 }
 
 .footer__nav {
@@ -35,8 +40,8 @@
 .footer__col-title {
   font-size: var(--step--2);
   font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  color: var(--brown-450);
+  color: var(--color-on-deep-soft);
+  margin-block-end: var(--space-xs);
 }
 
 .footer__links {
@@ -45,17 +50,19 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
+  gap: var(--space-2xs);
 }
 
 .footer__links a {
+  color: var(--color-on-deep);
   font-size: var(--step--1);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
 }
 
 .footer__links a:hover {
-  color: var(--brown-400);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 .footer__social {
@@ -69,7 +76,7 @@
   place-content: center;
 }
 .footer__social-link:hover .footer-icon {
-  color: var(--brown-400);
+  color: var(--color-surface);
 }
 .footer__social .twitter {
   display: none;
@@ -77,7 +84,11 @@
 .footer-icon {
   width: 44px;
   height: 44px;
-  color: var(--brown-500);
+  color: var(--color-on-deep-soft);
+}
+
+.footer :focus-visible {
+  outline-color: var(--color-on-deep);
 }
 
 .footer__bottom {
@@ -86,8 +97,9 @@
   align-items: center;
   gap: var(--space-s);
   text-align: center;
-  padding-block-start: var(--space-2xs);
+  padding-block-start: var(--space-s);
   font-size: var(--step--1);
+  color: var(--color-on-deep-soft);
 }
 
 .footer__login {

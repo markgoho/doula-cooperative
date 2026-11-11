@@ -3,12 +3,15 @@
 :host {
   display: block;
   container: profileform / inline-size;
+  max-width: 44rem;
+  margin-inline: auto;
 }
 
 .profile-nav {
   display: flex;
-  gap: var(--space-md);
-  margin-block-end: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-block-end: var(--space-m);
 }
 
 // Profile Image Preview
@@ -17,7 +20,7 @@
   height: 200px;
   border-radius: var(--border-radius-md);
   object-fit: cover;
-  border: 8px solid var(--teal-500);
+  background: var(--color-sand);
   margin-block: var(--space-xs);
 }
 

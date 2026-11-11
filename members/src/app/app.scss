@@ -1,19 +1,2 @@
-.main {
-  flex: 1;
-}
-
-.verification-banner {
-  background-color: var(--brown-400);
-  color: var(--brown-800);
-  padding: 1rem;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-
-  p {
-    margin: 0;
-    font-weight: 500;
-  }
-}
+// Shared with the other portal app; edit portal-styles/_app-shell.scss.
+@use 'portal-styles/app-shell';

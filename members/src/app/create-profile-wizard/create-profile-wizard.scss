@@ -1,6 +1,8 @@
 :host {
   display: block;
   container: profileform / inline-size;
+  max-width: 44rem;
+  margin-inline: auto;
 }
 
 .loading-message {

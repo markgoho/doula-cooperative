@@ -1,0 +1,215 @@
+// Mirrors the public profile page (hugo/assets/css/doula-profile.css): photo and
+// name at the top, the bio and services below, the contact card to the side.
+
+:host {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-areas:
+    "photo title"
+    "contact contact"
+    "bio bio"
+    "tags tags";
+  gap: var(--space-m) var(--space-s);
+  align-items: start;
+}
+
+/* The photo and the services live in one section in the markup; let each take
+   its own place in the layout. */
+.headshot {
+  display: contents;
+}
+
+.title {
+  grid-area: title;
+  align-self: center;
+  display: grid;
+  gap: var(--space-3xs);
+  justify-items: start;
+
+  h1 {
+    margin: 0;
+    font-size: var(--step-4);
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.credentials,
+.pronouns {
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+}
+
+.credentials {
+  font-size: var(--step-0);
+}
+
+.credentials:empty {
+  display: none;
+}
+
+.headshot__image,
+.headshot__placeholder {
+  grid-area: photo;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--border-radius-md);
+  background: var(--color-sand);
+}
+
+.headshot__image {
+  object-fit: cover;
+}
+
+.headshot__placeholder {
+  display: grid;
+  place-items: center;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.4;
+}
+
+.tags {
+  grid-area: tags;
+  display: grid;
+  gap: var(--space-2xs);
+  justify-items: start;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.tag {
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  width: max-content;
+  max-width: 100%;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--step--1);
+}
+
+.bio {
+  grid-area: bio;
+  display: grid;
+  gap: var(--space-2xs);
+  justify-items: start;
+}
+
+.bio-text {
+  max-width: 65ch;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.contact-info {
+  grid-area: contact;
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: start;
+  padding: var(--space-s);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-raised);
+
+  h3 {
+    margin: 0;
+    font-size: var(--step-2);
+  }
+
+  svg {
+    flex: none;
+    width: 1.4em;
+    height: 1.4em;
+  }
+
+  ul {
+    display: grid;
+    justify-self: stretch;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+    padding-block: var(--space-2xs);
+    border-top: 1px solid var(--color-line);
+  }
+
+  a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+    color: var(--color-ink);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+
+    &:hover {
+      color: var(--color-primary-strong);
+    }
+  }
+}
+
+.edit-link {
+  min-height: 2rem;
+  padding: 0.2em 0.9em;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--color-primary-strong);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-primary-soft);
+  }
+
+  /* Sits on the lower edge of the photo. */
+  &--photo {
+    grid-area: photo;
+    align-self: end;
+    justify-self: center;
+    margin-block-end: var(--space-3xs);
+    padding-inline: 0.6em;
+    white-space: nowrap;
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+@container (min-width: 52rem) {
+  :host {
+    grid-template-columns: 14rem minmax(0, 1fr) 24rem;
+    grid-template-areas:
+      "photo title contact"
+      "bio bio contact"
+      "tags tags contact";
+    column-gap: var(--space-m);
+    row-gap: var(--space-l);
+  }
+
+  .contact-info {
+    margin-inline-start: var(--space-m);
+  }
+}

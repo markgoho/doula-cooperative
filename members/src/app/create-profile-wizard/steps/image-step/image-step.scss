@@ -3,34 +3,35 @@
 }
 
 .step-description {
-  color: var(--brown-450);
-  margin-block-end: var(--space-l);
+  color: var(--color-ink-soft);
+  margin-block-end: var(--space-m);
 }
 
 .image-upload-area {
-  margin-block-end: var(--space-xl);
+  margin-block-end: var(--space-m);
 }
 
 .upload-prompt {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-s);
-  padding: var(--space-xl);
-  border: 2px dashed var(--brown-300);
+  gap: var(--space-xs);
+  padding: var(--space-l) var(--space-m);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-control-border);
   border-radius: var(--border-radius-md);
   text-align: center;
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
 }
 
 .upload-icon {
-  font-size: var(--step-5);
+  font-size: var(--step-4);
+  line-height: 1;
   margin: 0;
 }
 
 .upload-hint {
   font-size: var(--step--1);
-  font-style: italic;
   margin: 0;
 }
 
@@ -60,8 +61,8 @@
 .preview-image {
   max-width: 300px;
   max-height: 300px;
-  border-radius: 7px;
-  border: 8px solid var(--teal-500);
+  border-radius: var(--border-radius-md);
+  background: var(--color-sand);
   object-fit: cover;
   aspect-ratio: 1 / 1;
 }
@@ -74,12 +75,25 @@
 .uploading-message {
   text-align: center;
   padding: var(--space-xl);
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
 }
 
 .form-actions {
   display: flex;
-  gap: var(--space-s);
+  gap: var(--space-xs);
   justify-content: flex-end;
-  margin-block-start: var(--space-l);
+  margin-block-start: var(--space-s);
+}
+
+// Stack full-width on narrow screens, matching the other wizard steps.
+@container profileform (max-width: 30rem) {
+  .form-actions,
+  .preview-actions {
+    flex-direction: column;
+    align-self: stretch;
+
+    .button {
+      width: 100%;
+    }
+  }
 }

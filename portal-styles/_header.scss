@@ -1,0 +1,96 @@
+.header {
+  container: header / inline-size;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.navbar {
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  grid-template-areas: "logo cta" "nav nav";
+  align-items: center;
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding: var(--space-2xs) var(--container-padding-inline);
+  row-gap: var(--space-3xs);
+}
+
+.navbar__logo {
+  grid-area: logo;
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.navbar__logo h2 {
+  margin: 0;
+  font-size: var(--step-1);
+  line-height: 1.15;
+  color: var(--color-ink);
+}
+
+.navbar__nav {
+  grid-area: nav;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-s);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar__cta {
+  grid-area: cta;
+  justify-self: end;
+  max-width: max-content;
+}
+
+.navbar__button {
+  min-height: 2.5rem;
+  padding: 0.5em 1.1em;
+  font-size: var(--step--1);
+}
+
+.navbar__link {
+  display: inline-block;
+  padding-block: 0.6em;
+  color: var(--color-ink);
+  text-decoration: none;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-semibold);
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.navbar__nav > li {
+  border-bottom: 2px solid transparent;
+}
+
+.navbar__nav > .active {
+  border-bottom-color: var(--color-primary);
+}
+
+// Wide screens keep the one-row header in view; the stacked phone header
+// would take too much of the screen.
+@media (min-width: 62rem) {
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}
+
+@container header (min-width: 60rem) {
+  .navbar {
+    grid-template-columns: max-content 1fr max-content;
+    grid-template-areas: "logo nav cta";
+    padding-block: var(--space-xs);
+    column-gap: var(--space-l);
+  }
+
+  .navbar__nav {
+    justify-self: end;
+    gap: 0 var(--space-m);
+  }
+}

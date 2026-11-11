@@ -2,10 +2,11 @@
 
 .members-section,
 .unclaimed-section {
-  background: var(--brown-000);
-  padding: var(--space-l);
+  overflow-x: auto;
+  background: var(--color-surface);
+  padding: var(--space-m);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--brown-300);
+  border: 1px solid var(--color-line);
   margin-block-end: var(--space-l);
 
   h2 {
@@ -13,20 +14,24 @@
   }
 
   .section-description {
-    color: var(--brown-450);
+    color: var(--color-ink-soft);
     margin-block-end: var(--space-m);
   }
 }
 
-.loading,
-.error {
+// Same treatment as the messages and match-requests tables.
+.loading {
   text-align: center;
+  color: var(--color-ink-soft);
   padding: var(--space-l);
-  font-size: var(--step-1);
 }
 
 .error {
-  color: var(--color-error, #d93025);
+  text-align: center;
+  color: var(--color-error);
+  padding: var(--space-l);
+  background: var(--color-error-soft);
+  border-radius: var(--border-radius-md);
 }
 
 .table-container {
@@ -39,36 +44,35 @@
 
   th,
   td {
-    padding: var(--space-xs) var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
     text-align: left;
-    border-block-end: 1px solid var(--brown-200);
+    border-block-end: 1px solid var(--color-line);
   }
 
   thead {
-    background: var(--brown-100);
+    background: var(--color-sand);
 
     th {
       font-weight: var(--font-weight-bold);
-      color: var(--brown-500);
+      color: var(--color-ink);
       font-size: var(--step--1);
     }
   }
 
   tbody {
     tr:hover {
-      background: var(--brown-100);
+      background: color-mix(in oklch, var(--color-primary-soft) 50%, var(--color-surface));
     }
 
     td {
-      color: var(--brown-500);
-      font-size: var(--step--2);
+      color: var(--color-ink);
+      font-size: var(--step--1);
     }
   }
 
   .empty-state {
     text-align: center;
-    color: var(--brown-450);
-    font-style: italic;
+    color: var(--color-ink-soft);
     padding: var(--space-l);
   }
 
@@ -77,7 +81,7 @@
     color: inherit;
 
     &:hover app-tag {
-      outline: 2px solid var(--brown-400);
+      outline: 2px solid var(--color-line-strong);
     }
   }
 
@@ -104,7 +108,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--brown-500);
+    color: var(--color-ink);
     transition: color 0.2s;
 
     svg {
@@ -114,7 +118,7 @@
     }
 
     &:hover {
-      color: var(--teal-500);
+      color: var(--color-primary);
     }
   }
 }

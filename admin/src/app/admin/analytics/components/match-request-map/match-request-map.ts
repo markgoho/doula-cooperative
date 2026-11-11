@@ -28,9 +28,7 @@ export class MatchRequestMap implements OnDestroy {
   @Input({ required: true }) resource!: LocationsResource;
 
   protected readonly isLoading = computed(() => this.resource.isLoading());
-  protected readonly hasError = computed(
-    () => this.resource.error() !== undefined,
-  );
+  protected readonly hasError = computed(() => this.resource.error() !== undefined);
   protected readonly data = computed(() =>
     this.resource.isLoading() || this.resource.error() !== undefined
       ? undefined
@@ -54,16 +52,12 @@ export class MatchRequestMap implements OnDestroy {
     });
   }
 
-  private async initMap(
-    locations: MatchRequestLocationsResponse['locations'],
-  ): Promise<void> {
+  private async initMap(locations: MatchRequestLocationsResponse['locations']): Promise<void> {
     const leaflet = await import('leaflet');
     const L = leaflet.default ?? leaflet;
 
-    const mapContainer =
-      this.el.nativeElement.querySelector<HTMLElement>('.map-container');
+    const mapContainer = this.el.nativeElement.querySelector<HTMLElement>('.map-container');
     if (!mapContainer) return;
-
 
     this.map = L.map(mapContainer).setView(MAP_CENTER, MAP_ZOOM);
 
@@ -94,8 +88,8 @@ export class MatchRequestMap implements OnDestroy {
       const radius = 6 + Math.round((loc.count / maxCount) * 20);
       L.circleMarker([loc.lat, loc.lng], {
         radius,
-        color: '#4a90d9',
-        fillColor: '#4a90d9',
+        color: '#1c5b62',
+        fillColor: '#1c5b62',
         fillOpacity: 0.55,
         weight: 1,
       })

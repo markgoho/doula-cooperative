@@ -10,6 +10,7 @@ on:
       - trunk
     paths:
       - "admin/**"
+      - "portal-styles/**"
       - ".github/workflows/admin-hosting-merge.yml"
 jobs:
   lint:
