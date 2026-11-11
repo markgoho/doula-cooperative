@@ -192,6 +192,8 @@
     align-self: end;
     justify-self: center;
     margin-block-end: var(--space-3xs);
+    padding-inline: 0.6em;
+    white-space: nowrap;
     box-shadow: var(--shadow-raised);
   }
 }

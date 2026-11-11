@@ -127,6 +127,7 @@
   gap: var(--space-3xs);
   grid-area: view-link;
   justify-self: end;
+  min-block-size: 2.75rem;
   text-decoration: none;
 
   &:hover {
@@ -141,15 +142,12 @@
 }
 
 @media (max-width: 30rem) {
+  // Flex column so missing location or services leave no empty gap rows.
   .referral-card {
-    grid-template-areas:
-      'due-date'
-      'submitted'
-      'location'
-      'services'
-      'view-link';
-    grid-template-columns: 1fr;
-    row-gap: var(--space-xs);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
   }
 
   .referral-submitted,

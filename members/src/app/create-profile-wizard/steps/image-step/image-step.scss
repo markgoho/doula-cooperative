@@ -84,3 +84,16 @@
   justify-content: flex-end;
   margin-block-start: var(--space-s);
 }
+
+// Stack full-width on narrow screens, matching the other wizard steps.
+@container profileform (max-width: 30rem) {
+  .form-actions,
+  .preview-actions {
+    flex-direction: column;
+    align-self: stretch;
+
+    .button {
+      width: 100%;
+    }
+  }
+}

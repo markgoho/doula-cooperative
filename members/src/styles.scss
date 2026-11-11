@@ -406,6 +406,21 @@ main h1 {
   }
 }
 
+/* A quiet action beside a primary one, such as "Skip for now". */
+.button--tertiary {
+  background: transparent;
+  color: var(--color-primary-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+  }
+}
+
 .button--danger {
   background: var(--color-error);
 

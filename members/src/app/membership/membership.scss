@@ -216,6 +216,8 @@
 
 .create-profile-banner,
 .welcome-name-prompt {
+  // These open the page, so keep them off the header edge.
+  margin-block-start: var(--space-m);
   background: var(--color-primary-soft);
 }
 
