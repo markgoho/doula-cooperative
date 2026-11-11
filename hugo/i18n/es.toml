@@ -59,7 +59,7 @@ other = "Explorar"
 other = "Solicitar apoyo"
 
 [footer_browse_members]
-other = "Ver Miembros"
+other = "Ver por servicio"
 
 [footer_connect]
 other = "Conectar"
@@ -90,7 +90,7 @@ other = "Español"
 other = "Buscar"
 
 [nav_card_search_description]
-other = "Busca entre todos los perfiles de doulas, biografías, especializaciones y ubicaciones"
+other = "Busca entre todos los perfiles de doulas, biografías y servicios"
 
 [nav_card_browse_title]
 other = "Explorar"
@@ -102,7 +102,7 @@ other = "Descubre doulas en una variedad de categorías de servicios profesional
 other = "Solicitar apoyo"
 
 [nav_card_match_description]
-other = "Responde algunas preguntas para encontrar una doula que se adapte a tus necesidades."
+other = "Cuéntanos qué necesitas y las doulas se comunicarán contigo."
 
 # Match form labels
 [form_name_label]
@@ -181,7 +181,7 @@ other = "Carrot"
 other = "¿Hay alguna otra información que desees compartir con nosotros?"
 
 [form_submit_button]
-other = "Enviar información"
+other = "Enviar mi solicitud"
 
 [form_verifying_text]
 other = "Verificando..."
@@ -243,6 +243,8 @@ other = "Enviar"
 
 [contact_doula_redirect]
 other = "¿Buscas información sobre apoyo de doula? Usa nuestro <a href=\"{url}\">formulario especial de solicitud</a>."
+
+# Home page: guided start
 [home_lede]
 other = "Encuentra una doula de parto o posparto en Rochester, NY y las comunidades cercanas."
 

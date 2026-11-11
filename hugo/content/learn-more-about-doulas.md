@@ -1,5 +1,5 @@
 ---
-title: "Learn more about Doulas"
+title: "Learn more about doulas"
 type: "about-doulas"
 ---
 

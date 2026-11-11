@@ -4,4 +4,4 @@ description: Busca perfiles, biografías, especializaciones y ubicaciones de dou
 layout: list
 ---
 
-Busca entre todos los perfiles de doulas, biografías, especializaciones y ubicaciones.
+Busca entre todos los perfiles de doulas, biografías y servicios.

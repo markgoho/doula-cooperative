@@ -1,5 +1,5 @@
 ---
-title: Browse for a Doula
+title: Browse for a doula
 layout: list
 ---
 
