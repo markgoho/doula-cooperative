@@ -92,7 +92,7 @@ _Avoid_: Paused membership, closed membership
 
 - A **Family** uses **Doula Discovery** to find doula support
 - A **Match Request** includes one or more **Support Needs**
-- A **Match Request** may include a **Due Date**
+- A **Match Request** always includes a **Due Date**, whether or not the baby has been born; the timing is essential for sharing the request with the right doulas
 - A **Match Request** may include a **Birth Location** when birth doula support is requested
 - A **Match Request** may include **Cost Offsets**
 - A **Match Request** uses ZIP Code to understand the Family’s **Service Area**

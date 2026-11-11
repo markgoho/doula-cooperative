@@ -118,7 +118,7 @@ other = "Correo electrónico (requerido)"
 other = "Código postal (requerido)"
 
 [form_due_date_legend]
-other = "Fecha estimada de llegada del bebé o fecha de nacimiento"
+other = "Fecha estimada de llegada del bebé o fecha de nacimiento (requerida)"
 
 [form_month_label]
 other = "Mes"

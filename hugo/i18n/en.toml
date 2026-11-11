@@ -118,7 +118,7 @@ other = "Email (required)"
 other = "ZIP Code (required)"
 
 [form_due_date_legend]
-other = "Baby's estimated date of arrival or birthdate"
+other = "Baby's estimated date of arrival or birthdate (required)"
 
 [form_month_label]
 other = "Month"

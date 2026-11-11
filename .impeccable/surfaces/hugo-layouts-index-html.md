@@ -30,7 +30,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 ## Unresolved
 
 - Typeface: a serif display face like the references would need the user's approval to download.
-- New Spanish strings need a fluent review.
+- Spanish strings were drafted by Claude; the user accepted them without a separate review (2026-11-11).
 - Search results use the stock Pagefind UI, so they cannot show credentials, service chips or a View profile link like the doula card; matching the card fully needs a custom results renderer.
 - Page titles in content front matter still say "Match with a Doula" and capitalise "Doula" mid-phrase; left for the user.
 

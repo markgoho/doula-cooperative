@@ -60,7 +60,8 @@ function validateDueDateRange(
   day: string,
   year: string,
 ): { isError: boolean; message: string } {
-  // If any field is empty, don't validate (date is optional)
+  // The date is required and checked before submit; nothing to range-check
+  // until all three parts are present.
   if (!month || !day || !year) {
     return { isError: false, message: "" };
   }
