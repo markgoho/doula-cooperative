@@ -1,8 +1,10 @@
 :host {
   display: block;
+  max-width: 28rem;
+  margin-inline: auto;
 }
 
 .subtitle {
-  text-align: center;
-  margin-block: var(--space-m);
+  margin-block: 0 var(--space-m);
+  color: var(--color-ink-soft);
 }

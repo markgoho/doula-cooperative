@@ -1,37 +1,34 @@
 :host {
   display: block;
-  padding: var(--space-l);
+  padding-block: var(--space-xs);
 }
 
 .referrals-note {
-  background: var(--brown-100);
-  border-left: 4px solid var(--teal-500);
+  background: var(--color-primary-soft);
   border-radius: var(--border-radius-md);
-  color: var(--brown-500);
+  color: var(--color-ink);
   font-size: var(--step--1);
   margin-block-end: var(--space-l);
-  padding: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
 }
 
 .loading,
 .empty-state {
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   padding: var(--space-xl);
   text-align: center;
 }
 
 .error {
-  background: var(--brown-100);
-  border: 1px solid var(--brown-300);
+  background: var(--color-error-soft);
   border-radius: var(--border-radius-md);
-  color: var(--brown-600);
-  padding: var(--space-m);
-  text-align: center;
+  color: var(--color-error);
+  padding: var(--space-xs) var(--space-s);
 }
 
 .referral-list {
   display: grid;
-  gap: var(--space-m);
+  gap: var(--space-s);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   list-style: none;
   margin: 0;
@@ -39,8 +36,8 @@
 }
 
 .referral-card {
-  background: var(--brown-000);
-  border: 1px solid var(--brown-200);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: var(--border-radius-md);
   column-gap: var(--space-m);
   row-gap: var(--space-xs);
@@ -52,13 +49,12 @@
     '. view-link';
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto auto auto 1fr;
-  min-height: 12rem;
-  padding: var(--space-m);
+  padding: var(--space-s);
 }
 
 .referral-submitted {
   align-items: center;
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   display: inline-flex;
   font-size: var(--step--2);
   gap: var(--space-3xs);
@@ -87,25 +83,25 @@
 
 .due-date {
   grid-area: due-date;
-  color: var(--brown-600);
+  color: var(--color-ink);
   font-size: var(--step-1);
   font-weight: var(--font-weight-semibold);
 }
 
 .due-soon {
-  color: var(--brown-500);
+  color: var(--color-ink);
   font-size: var(--step--1);
   font-weight: var(--font-weight-semibold);
 }
 
 .birth-location {
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   font-size: var(--step--1);
   grid-area: location;
 }
 
 .fallback-heading {
-  color: var(--brown-600);
+  color: var(--color-ink);
   font-size: var(--step-1);
   font-weight: var(--font-weight-semibold);
   grid-area: due-date;
@@ -124,10 +120,10 @@
 
 .view-link {
   align-items: center;
-  color: var(--teal-600);
+  color: var(--color-primary-strong);
   display: inline-flex;
   font-size: var(--step--1);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   gap: var(--space-3xs);
   grid-area: view-link;
   justify-self: end;
@@ -135,12 +131,6 @@
 
   &:hover {
     text-decoration: underline;
-  }
-
-  &:focus-visible {
-    border-radius: 2px;
-    outline: 2px solid var(--teal-500);
-    outline-offset: 2px;
   }
 }
 
@@ -151,10 +141,6 @@
 }
 
 @media (max-width: 30rem) {
-  :host {
-    padding: var(--space-m);
-  }
-
   .referral-card {
     grid-template-areas:
       'due-date'

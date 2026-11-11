@@ -1,14 +1,30 @@
+/* A narrow column, the way sign-in screens usually sit. */
 :host {
   display: block;
+  max-width: 28rem;
+  margin-inline: auto;
 }
 
 .subtitle {
-  text-align: center;
-  margin-block: var(--space-m);
+  margin-block: 0 var(--space-m);
+  color: var(--color-ink-soft);
+}
+
+.form__info-message,
+:host > .form__error-message {
+  margin-block-end: var(--space-s);
 }
 
 .full-width {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-xs);
+
+  a {
+    font-size: var(--step--1);
+    color: var(--color-primary-strong);
+    text-underline-offset: 0.18em;
+  }
 }

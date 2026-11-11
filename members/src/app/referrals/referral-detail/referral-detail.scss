@@ -1,15 +1,16 @@
 :host {
   display: block;
-  padding: var(--space-l);
+  padding-block: var(--space-xs);
 }
 
 .back-link {
   align-items: center;
-  color: var(--teal-600);
+  color: var(--color-primary-strong);
   display: inline-flex;
   font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
   gap: var(--space-3xs);
-  margin-block-end: var(--space-l);
+  margin-block-end: var(--space-s);
   text-decoration: none;
 
   svg {
@@ -23,59 +24,49 @@
   &:hover {
     text-decoration: underline;
   }
-
-  &:focus-visible {
-    border-radius: 2px;
-    outline: 2px solid var(--teal-500);
-    outline-offset: 2px;
-  }
 }
 
 .loading,
 .error {
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   padding: var(--space-xl);
   text-align: center;
 }
 
 .error {
-  background: var(--brown-100);
-  border: 1px solid var(--brown-300);
+  background: var(--color-error-soft);
   border-radius: var(--border-radius-md);
-  color: var(--brown-600);
+  color: var(--color-error);
 }
 
 .referral-detail {
   display: grid;
-  gap: var(--space-l);
+  gap: var(--space-m);
 }
 
 .detail-header {
   display: grid;
-  gap: 0;
-  justify-items: center;
-  text-align: center;
+  gap: var(--space-3xs);
+  justify-items: start;
 }
 
 .due-date {
-  color: var(--brown-600);
+  color: var(--color-ink);
   font-size: var(--step-1);
   font-weight: var(--font-weight-semibold);
 }
 
 .due-date--missing {
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
   font-size: var(--step-0);
   font-weight: var(--font-weight-regular);
 }
 
 .eyebrow {
-  color: var(--teal-600);
+  color: var(--color-ink-soft);
   font-size: var(--step--1);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.04em;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .detail-header h1,
@@ -87,8 +78,8 @@
 
 .notes-section,
 .request-details {
-  background: var(--brown-000);
-  border: 1px solid var(--brown-200);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: var(--border-radius-md);
   padding: var(--space-m);
 }
@@ -100,17 +91,19 @@
 
 .notes-section p {
   font-size: var(--step-0);
-  line-height: var(--line-height-normal);
+  line-height: var(--line-height-relaxed);
+  max-width: 65ch;
   margin: 0;
   white-space: pre-wrap;
 }
 
 .contact-panel {
-  background: var(--brown-000);
-  border: 1px solid var(--brown-200);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-raised);
   display: grid;
-  gap: var(--space-m);
+  gap: var(--space-s);
   padding: var(--space-m);
 }
 
@@ -122,25 +115,20 @@
 
 .contact-action {
   align-items: center;
-  background: var(--brown-000);
-  border: 1px solid var(--teal-300);
-  border-radius: var(--border-radius-sm);
-  color: var(--teal-700);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-primary-strong);
   display: flex;
   font-weight: var(--font-weight-semibold);
-  gap: var(--space-s);
+  gap: var(--space-xs);
   min-width: 0;
-  padding: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
   text-decoration: none;
 }
 
 .contact-action:hover {
-  background: var(--teal-100);
-}
-
-.contact-action:focus-visible {
-  outline: 2px solid var(--teal-600);
-  outline-offset: 2px;
+  background: var(--color-primary-soft);
 }
 
 .contact-action svg {
@@ -158,7 +146,7 @@
 }
 
 .contact-action small {
-  color: var(--brown-500);
+  color: var(--color-ink-soft);
   display: block;
   font-size: var(--step--2);
   font-weight: var(--font-weight-regular);
@@ -182,10 +170,8 @@
 }
 
 .request-details dt {
-  color: var(--brown-500);
-  font-size: var(--step--2);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
 }
 
 .request-details dd {
@@ -203,7 +189,7 @@
 }
 
 .zip-code {
-  color: var(--brown-450);
+  color: var(--color-ink-soft);
 }
 
 .zip-code dt {
@@ -214,11 +200,5 @@
   .contact-actions,
   .request-details dl {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 30rem) {
-  :host {
-    padding: var(--space-m);
   }
 }

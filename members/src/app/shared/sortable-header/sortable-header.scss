@@ -4,11 +4,11 @@
   transition: background 0.2s;
 
   &:hover {
-    background: var(--brown-200);
+    background: var(--color-primary-soft);
   }
 }
 
 .sort-indicator {
   margin-inline-start: var(--space-3xs);
-  color: var(--teal-500);
+  color: var(--color-primary);
 }
