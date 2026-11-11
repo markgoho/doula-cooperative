@@ -6,5 +6,8 @@
 
 {{ define "main" }}
   <h1 style="view-transition-name: title-about-doulas">{{ .Title }}</h1>
-  {{ .Content }}
+  <section class="text-content">
+    {{ .Content }}
+  </section>
+  {{ partial "page-cta.html" . }}
 {{ end }}

@@ -28,19 +28,19 @@ other = "We offer comprehensive support"
 other = "from prenatal education to labor support, from postpartum care to specialized services, helping you feel confident throughout your journey into parenthood."
 
 [home_learn_title]
-other = "Learn more about Doulas"
+other = "Learn more about doulas"
 
 [home_learn_description]
 other = "Explore our resources to understand the role and benefits of a doula."
 
 [home_find_title]
-other = "Find the right Doula for you"
+other = "Find the right doula for you"
 
 [home_find_description]
 other = "Connect with the right doula for you using our powerful search tools."
 
 [home_join_title]
-other = "Join the Doula cooperative"
+other = "Join the Doula Cooperative"
 
 [home_join_description]
 other = "Join our community of doulas and support each other in our shared mission."
@@ -56,10 +56,10 @@ other = "Search"
 other = "Browse"
 
 [footer_match]
-other = "Match"
+other = "Request support"
 
 [footer_browse_members]
-other = "Browse Members"
+other = "Browse by service"
 
 [footer_connect]
 other = "Connect"
@@ -90,7 +90,7 @@ other = "Español"
 other = "Search"
 
 [nav_card_search_description]
-other = "Search across all Doula profiles, bios, specializations, and locations"
+other = "Search across all doula profiles, bios, and services"
 
 [nav_card_browse_title]
 other = "Browse"
@@ -99,10 +99,10 @@ other = "Browse"
 other = "Discover doulas across a variety of professional service categories"
 
 [nav_card_match_title]
-other = "Match"
+other = "Request support"
 
 [nav_card_match_description]
-other = "Answer a few questions to find a doula who matches your needs."
+other = "Tell us what you need and doulas will contact you."
 
 # Match form labels
 [form_name_label]
@@ -118,7 +118,7 @@ other = "Email (required)"
 other = "ZIP Code (required)"
 
 [form_due_date_legend]
-other = "Baby's estimated date of arrival or birthdate"
+other = "Baby's estimated date of arrival or birthdate (required)"
 
 [form_month_label]
 other = "Month"
@@ -169,7 +169,7 @@ other = "Other Hospital"
 other = "Other hospital name"
 
 [form_cost_offset_legend]
-other = "I plan to offset the cost for Doula Services with (optional):"
+other = "I plan to offset the cost for doula services with (optional):"
 
 [form_medicaid_label]
 other = "Medicaid"
@@ -181,7 +181,7 @@ other = "Carrot"
 other = "Is there any other information you'd like to share with us?"
 
 [form_submit_button]
-other = "Submit Information"
+other = "Send my request"
 
 [form_verifying_text]
 other = "Verifying..."
@@ -242,4 +242,140 @@ other = "Please enter a message."
 other = "Submit"
 
 [contact_doula_redirect]
-other = "Looking for information about Doula Support? Use our <a href=\"{url}\">special request form</a>."
+other = "Looking for information about doula support? Use our <a href=\"{url}\">special request form</a>."
+
+# Home page: guided start
+[home_lede]
+other = "Find a birth or postpartum doula in Rochester, NY and the surrounding communities."
+
+[home_guide_question]
+other = "What support are you looking for?"
+
+[home_choice_birth_title]
+other = "Birth doula"
+
+[home_choice_birth_description]
+other = "Support through pregnancy, labor, and birth."
+
+[home_choice_postpartum_title]
+other = "Postpartum doula"
+
+[home_choice_postpartum_description]
+other = "Help at home after your baby arrives."
+
+[home_choice_unsure_title]
+other = "I'm not sure yet"
+
+[home_choice_unsure_description]
+other = "Tell us what you need and doulas will contact you."
+
+[home_choice_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"
+
+[home_search_label]
+other = "Or search by name, practice, or service"
+
+[home_search_placeholder]
+other = "Name, practice, or service"
+
+[home_search_button]
+other = "Search"
+
+[home_browse_all]
+other = "Browse all {{ .Count }} doulas"
+
+[home_photo_alt]
+other = "A smiling parent holding a sleeping newborn against their cheek."
+
+[home_meet_title]
+other = "Meet our doulas"
+
+[home_match_title]
+other = "Not sure who to choose?"
+
+[home_match_cta]
+other = "Tell us what you need"
+
+[home_learn_cta]
+other = "Read all questions and answers"
+
+[home_join_cta]
+other = "Learn about membership"
+
+# Doula profile card and page
+[profile_card_view]
+other = "View profile"
+
+[profile_card_more]
+other = "+{{ . }} more"
+
+[profile_back]
+other = "All doulas"
+
+[profile_photo_alt]
+other = "Photo of {{ .Name }}"
+
+[profile_about_title]
+other = "About {{ .Name }}"
+
+[profile_services_title]
+other = "Services"
+
+[profile_contact_title]
+other = "Contact {{ .Name }}"
+
+[profile_contact_note]
+other = "Reach out directly to ask about availability and fees."
+
+[profile_email_label]
+other = "Email"
+
+[profile_call_label]
+other = "Call"
+
+[profile_website_label]
+other = "Website"
+
+[profile_match_prompt]
+other = "Would you rather doulas contact you?"
+
+[profile_match_link]
+other = "Tell us what you need"
+
+[profile_email_button]
+other = "Email {{ .Name }}"
+
+[profile_copy]
+other = "Copy"
+
+[profile_copied]
+other = "Copied"
+
+[profile_copy_email_label]
+other = "Copy email address"
+
+# Find a doula
+[find_browse_all_services]
+other = "See all services"
+
+# FAQ
+[faq_back]
+other = "All questions"
+
+[services_back]
+other = "All services"
+
+[doula_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"
+
+# Match Request form validation
+[form_phone_error]
+other = "Please enter your phone number."
+
+[form_zipcode_error]
+other = "Please enter your 5-digit ZIP code."
+
+[form_date_error]
+other = "Please enter the month, day, and year."

@@ -1,128 +1,239 @@
-:root {
-  --container-max-width: 87.5rem;
-}
+/* Doula profile: who they are, how to reach them, what they offer. */
 
-picture {
-  display: contents;
-}
-
-.profile-container {
+.profile {
   display: grid;
-  grid-template-columns: 1fr;
-  align-content: start;
-  margin-block-start: var(--space-xl);
-  padding-block-end: var(--space-xl);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "header" "contact" "body";
+  gap: var(--space-m);
+  padding-block: var(--space-xs) var(--space-l);
 }
 
-.title {
-  & h1 {
-    text-align: left;
-    font-size: var(--step-4);
+/* Header */
+
+.profile-header {
+  grid-area: header;
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--space-s);
+  align-items: center;
+}
+
+.profile-header__photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--border-radius-md);
+  background: var(--color-sand);
+}
+
+.profile-header__text {
+  display: grid;
+  gap: var(--space-3xs);
+
+  & p {
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.profile-header__name {
+  margin: 0;
+  text-align: start;
+  font-size: var(--step-4);
+}
+
+.profile-header__pronouns,
+.profile-header__credentials {
+  color: var(--color-ink-soft);
+}
+
+.profile-header__pronouns {
+  font-size: var(--step--1);
+}
+
+.profile-header__practice {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Contact */
+
+.profile-contact {
+  grid-area: contact;
+  align-self: start;
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-s);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-raised);
+
+  & p {
     margin: 0;
   }
 }
 
-.credentials {
+.profile-contact__title {
+  margin: 0;
+  font-size: var(--step-2);
+}
+
+.profile-contact__note {
   font-size: var(--step--1);
-  font-weight: 300;
-  font-variation-settings: "slnt" -12;
+  color: var(--color-ink-soft);
 }
 
-.headshot {
-  padding-block-end: var(--space-l);
+.profile-contact__icon {
+  flex: none;
+  width: 1.4em;
+  height: 1.4em;
 }
 
-.headshot .tag-group {
-  justify-content: center;
-}
-
-.headshot__image {
-  margin-block-end: var(--space-s);
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  aspect-ratio: 1 / 1;
-  border-radius: 7px;
-  border: 8px solid var(--teal-500);
-}
-
-.contact-info {
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  & h3 {
-    margin-block-start: var(--space-s);
-  }
-}
-
-.contact-info svg {
-  height: var(--space-m);
-  width: var(--space-m);
-}
-
-.contact-info ul {
-  list-style: none;
-  margin-block-start: var(--space-s);
-  margin-block-end: 0;
+.profile-contact__list {
+  display: grid;
+  margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-s);
-  align-items: start;
 
   & li {
-    display: flex;
-    gap: var(--space-2xs);
-    align-items: self-end;
+    display: grid;
+    grid-template-columns: 1.4em minmax(0, 1fr) auto;
+    grid-template-areas: "icon label action" "icon value value";
+    column-gap: var(--space-xs);
+    align-items: center;
+    padding-block: var(--space-2xs);
+    border-top: 1px solid var(--color-line);
+    color: var(--color-primary);
   }
 
-  & span {
-    align-self: baseline;
+  & .profile-contact__icon {
+    grid-area: icon;
+  }
+
+  & .profile-contact__label {
+    grid-area: label;
+    line-height: 1.3;
+  }
+
+  & a,
+  & .profile-contact__value {
+    grid-area: value;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: var(--step-0);
+    line-height: 1.35;
+    color: var(--color-ink);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  & a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+
+    &:hover {
+      color: var(--color-primary-strong);
+    }
   }
 }
 
-.bio {
-  max-width: 60ch;
+.profile-contact__primary {
+  width: 100%;
 }
 
-.credentials:empty {
-  display: none;
+.profile-contact__copy {
+  grid-area: action;
+  align-self: start;
+  min-width: 4.75rem;
+  min-height: 2.25rem;
+  padding: 0.3em 0.9em;
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--color-primary-strong);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  &:hover {
+    background: var(--color-primary-soft);
+  }
+
+  &[data-copied] {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
 }
 
-@container (min-width: 35em) {
-  .profile-container {
-    column-gap: var(--space-s);
-    grid-template-columns: minmax(300px, 1fr) 1fr;
-    grid-template-rows: max-content min-content 1fr;
+.profile-contact__label {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+}
+
+.profile-contact__match {
+  padding-block-start: var(--space-xs);
+  border-top: 1px solid var(--color-line);
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+
+  & a {
+    color: var(--color-primary-strong);
+    font-weight: var(--font-weight-bold);
+    text-underline-offset: 0.18em;
+  }
+}
+
+/* Body */
+
+.profile-body {
+  grid-area: body;
+  display: grid;
+  gap: var(--space-l);
+  align-content: start;
+
+  & h2 {
+    margin-block: 0 var(--space-xs);
+    font-size: var(--step-2);
+  }
+}
+
+.profile-bio {
+  max-width: 65ch;
+
+  & > p:first-of-type {
+    margin-block-start: 0;
+  }
+}
+
+.profile-services .tag-group {
+  gap: var(--space-2xs);
+}
+
+.profile-services .tag > a {
+  display: block;
+}
+
+@container (min-width: 52rem) {
+  .profile {
+    grid-template-columns: minmax(0, 1fr) 24rem;
     grid-template-areas:
-      "headshot title"
-      "headshot bio"
-      "headshot contact-info";
+      "header contact"
+      "body contact";
+    column-gap: var(--space-xl);
+    row-gap: var(--space-l);
   }
 
-  .headshot {
+  .profile-header {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--space-m);
+  }
+
+  .profile-contact {
     position: sticky;
-    top: var(--space-s);
-    grid-area: headshot;
-    padding-block-end: 0;
-  }
-
-  .contact-info {
-    grid-area: contact-info;
-  }
-
-  .title {
-    grid-area: title;
-  }
-
-  .bio {
-    grid-area: bio;
-  }
-}
-
-@container (min-width: 78rem) {
-  .profile-container {
-    grid-template-columns: 600px 1fr;
+    top: 6.5rem;
   }
 }

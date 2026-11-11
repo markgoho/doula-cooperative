@@ -1,5 +1,6 @@
 {{ define "head-styles" }}
   {{ $css := slice
+    (resources.Get "css/components/text-link.css")
     (resources.Get "css/components/profile-card.css")
     (resources.Get "css/components/tag.css")
     | resources.Concat "doula-list.css"
@@ -17,8 +18,20 @@
   {{ end }}
 
 
-  <section>
-    {{ range .Pages.ByTitle }}
+  <section class="doula-list text-content">
+    <ul class="tag-group top-tags doula-list__services">
+      {{ range first 6 (partial "find-a-doula/canonical-tags.html" .) }}
+        <li class="tag">
+          <a href="{{ .Page.RelPermalink }}"
+            >{{ .Page.Title | title }} ({{ .Count }})</a
+          >
+        </li>
+      {{ end }}
+    </ul>
+    <p class="doula-list__count">
+      {{ i18n "doula_count" (len .RegularPages) }}
+    </p>
+    {{ range .RegularPages.ByTitle }}
       {{ partial "profile-card.html" . }}
     {{ end }}
   </section>

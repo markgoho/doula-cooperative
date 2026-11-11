@@ -1,0 +1,53 @@
+/* A standalone link that reads as an action, with a trailing arrow. */
+
+.icon-arrow {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  transition: translate 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  color: var(--color-primary-strong);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+
+  &:hover .icon-arrow {
+    translate: 0.2em 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-arrow {
+    transition: none;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  margin-block-start: var(--space-s);
+  font-size: var(--step--1);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-strong);
+  text-decoration: none;
+
+  & .icon-arrow {
+    width: 1.1em;
+    height: 1.1em;
+    rotate: 180deg;
+  }
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+}

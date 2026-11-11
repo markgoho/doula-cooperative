@@ -1,8 +1,8 @@
 :root {
   --spacing-nav-gap: 4.3125rem; /* 69px */
 
-  --border-width-md: 5px;
-  --border-radius-md: 5px;
+  --border-width-md: 1px;
+  --border-radius-md: 12px;
 
   --space-3xs: clamp(0.3125rem, 0.3rem + 0.0625cqi, 0.375rem);
   --space-2xs: clamp(0.5625rem, 0.525rem + 0.1875cqi, 0.75rem);

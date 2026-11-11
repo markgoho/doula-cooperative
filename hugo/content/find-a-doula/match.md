@@ -1,6 +1,6 @@
 ---
-title: Match with a Doula
+title: Tell us what you need
 layout: list
 ---
 
-Answer a few questions to find a doula who matches your needs.
+We share your request with our member doulas, and the ones who can help will contact you.

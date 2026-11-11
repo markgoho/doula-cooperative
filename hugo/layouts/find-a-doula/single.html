@@ -1,7 +1,8 @@
 {{ define "head-styles" }}
   {{ $css := slice
-    (resources.Get "css/components/callout.css")
-    (resources.Get "css/components/nav-card.css")
+    (resources.Get "css/components/text-link.css")
+    (resources.Get "css/components/site-search.css")
+    (resources.Get "css/components/steps.css")
     (resources.Get "css/components/forms.css")
     (resources.Get "css/components/tag.css")
     (resources.Get "css/partials/search.css")
@@ -16,9 +17,74 @@
 
 {{ define "main" }}
   <h1 style="view-transition-name: title-find-doula">{{ .Title }}</h1>
-  <section class="text-content">
-    {{ .Content }}
-  </section>
+  <div class="find-intro">{{ .Content }}</div>
 
-  {{ partial "find-a-doula-nav.html" . }}
+  <div class="find-ways">
+    <section class="find-way">
+      <div class="find-way__intro">
+        <h2 style="view-transition-name: title-search">
+          {{ i18n "nav_card_search_title" }}
+        </h2>
+        <p>{{ i18n "nav_card_search_description" }}</p>
+      </div>
+      <form
+        class="site-search find-way__action"
+        role="search"
+        method="get"
+        action="{{ "/find-a-doula/search/" | relLangURL }}">
+        <label class="site-search__label" for="find-search-input"
+          >{{ i18n "home_search_placeholder" }}</label
+        >
+        <div class="site-search__row">
+          <input
+            class="site-search__input"
+            type="search"
+            id="find-search-input"
+            name="q"
+            autocomplete="off" />
+          <button class="button" type="submit">
+            {{ i18n "home_search_button" }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="find-way">
+      <div class="find-way__intro">
+        <h2 style="view-transition-name: title-browse">
+          {{ i18n "nav_card_browse_title" }}
+        </h2>
+        <p>{{ i18n "nav_card_browse_description" }}</p>
+      </div>
+      <div class="find-way__action">
+        <ul class="tag-group top-tags">
+          {{ range first 6 (partial "find-a-doula/canonical-tags.html" .) }}
+            <li class="tag">
+              <a href="{{ .Page.RelPermalink }}"
+                >{{ .Page.Title | title }} ({{ .Count }})</a
+              >
+            </li>
+          {{ end }}
+        </ul>
+        <a class="text-link" href="{{ "/find-a-doula/browse/" | relLangURL }}">
+          {{ i18n "find_browse_all_services" }}
+          {{ partial "icons/arrow-right.html" . }}
+        </a>
+      </div>
+    </section>
+
+    <section class="find-way">
+      <div class="find-way__intro">
+        <h2 style="view-transition-name: title-match">
+          {{ i18n "nav_card_match_title" }}
+        </h2>
+        <p>{{ i18n "nav_card_match_description" }}</p>
+      </div>
+      <div class="find-way__action">
+        <a class="button" href="{{ "/find-a-doula/match/" | relLangURL }}"
+          >{{ i18n "home_match_cta" }}</a
+        >
+      </div>
+    </section>
+  </div>
 {{ end }}

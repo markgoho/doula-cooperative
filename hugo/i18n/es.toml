@@ -59,7 +59,7 @@ other = "Explorar"
 other = "Solicitar apoyo"
 
 [footer_browse_members]
-other = "Ver Miembros"
+other = "Ver por servicio"
 
 [footer_connect]
 other = "Conectar"
@@ -90,7 +90,7 @@ other = "Español"
 other = "Buscar"
 
 [nav_card_search_description]
-other = "Busca entre todos los perfiles de doulas, biografías, especializaciones y ubicaciones"
+other = "Busca entre todos los perfiles de doulas, biografías y servicios"
 
 [nav_card_browse_title]
 other = "Explorar"
@@ -102,7 +102,7 @@ other = "Descubre doulas en una variedad de categorías de servicios profesional
 other = "Solicitar apoyo"
 
 [nav_card_match_description]
-other = "Responde algunas preguntas para encontrar una doula que se adapte a tus necesidades."
+other = "Cuéntanos qué necesitas y las doulas se comunicarán contigo."
 
 # Match form labels
 [form_name_label]
@@ -118,7 +118,7 @@ other = "Correo electrónico (requerido)"
 other = "Código postal (requerido)"
 
 [form_due_date_legend]
-other = "Fecha estimada de llegada del bebé o fecha de nacimiento"
+other = "Fecha estimada de llegada del bebé o fecha de nacimiento (requerida)"
 
 [form_month_label]
 other = "Mes"
@@ -181,7 +181,7 @@ other = "Carrot"
 other = "¿Hay alguna otra información que desees compartir con nosotros?"
 
 [form_submit_button]
-other = "Enviar información"
+other = "Enviar mi solicitud"
 
 [form_verifying_text]
 other = "Verificando..."
@@ -243,3 +243,139 @@ other = "Enviar"
 
 [contact_doula_redirect]
 other = "¿Buscas información sobre apoyo de doula? Usa nuestro <a href=\"{url}\">formulario especial de solicitud</a>."
+
+# Home page: guided start
+[home_lede]
+other = "Encuentra una doula de parto o posparto en Rochester, NY y las comunidades cercanas."
+
+[home_guide_question]
+other = "¿Qué tipo de apoyo buscas?"
+
+[home_choice_birth_title]
+other = "Doula de parto"
+
+[home_choice_birth_description]
+other = "Apoyo durante el embarazo, el trabajo de parto y el nacimiento."
+
+[home_choice_postpartum_title]
+other = "Doula de posparto"
+
+[home_choice_postpartum_description]
+other = "Ayuda en casa después de la llegada de tu bebé."
+
+[home_choice_unsure_title]
+other = "Todavía no lo sé"
+
+[home_choice_unsure_description]
+other = "Cuéntanos qué necesitas y las doulas se comunicarán contigo."
+
+[home_choice_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"
+
+[home_search_label]
+other = "O busca por nombre, práctica o servicio"
+
+[home_search_placeholder]
+other = "Nombre, práctica o servicio"
+
+[home_search_button]
+other = "Buscar"
+
+[home_browse_all]
+other = "Ver las {{ .Count }} doulas"
+
+[home_photo_alt]
+other = "Una persona sonriente sostiene a un recién nacido dormido junto a su mejilla."
+
+[home_meet_title]
+other = "Conoce a nuestras doulas"
+
+[home_match_title]
+other = "¿No sabes a quién elegir?"
+
+[home_match_cta]
+other = "Cuéntanos qué necesitas"
+
+[home_learn_cta]
+other = "Leer todas las preguntas y respuestas"
+
+[home_join_cta]
+other = "Conoce la membresía"
+
+# Doula profile card and page
+[profile_card_view]
+other = "Ver perfil"
+
+[profile_card_more]
+other = "+{{ . }} más"
+
+[profile_back]
+other = "Todas las doulas"
+
+[profile_photo_alt]
+other = "Foto de {{ .Name }}"
+
+[profile_about_title]
+other = "Sobre {{ .Name }}"
+
+[profile_services_title]
+other = "Servicios"
+
+[profile_contact_title]
+other = "Contactar a {{ .Name }}"
+
+[profile_contact_note]
+other = "Comunícate directamente para preguntar sobre disponibilidad y tarifas."
+
+[profile_email_label]
+other = "Correo"
+
+[profile_call_label]
+other = "Llamar"
+
+[profile_website_label]
+other = "Sitio web"
+
+[profile_match_prompt]
+other = "¿Prefieres que las doulas te contacten?"
+
+[profile_match_link]
+other = "Cuéntanos qué necesitas"
+
+[profile_email_button]
+other = "Enviar correo a {{ .Name }}"
+
+[profile_copy]
+other = "Copiar"
+
+[profile_copied]
+other = "Copiado"
+
+[profile_copy_email_label]
+other = "Copiar dirección de correo"
+
+# Find a doula
+[find_browse_all_services]
+other = "Ver todos los servicios"
+
+# FAQ
+[faq_back]
+other = "Todas las preguntas"
+
+[services_back]
+other = "Todos los servicios"
+
+[doula_count]
+one = "{{ .Count }} doula"
+other = "{{ .Count }} doulas"
+
+# Match Request form validation
+[form_phone_error]
+other = "Por favor ingresa tu número de teléfono."
+
+[form_zipcode_error]
+other = "Por favor ingresa tu código postal de 5 dígitos."
+
+[form_date_error]
+other = "Por favor ingresa el mes, el día y el año."

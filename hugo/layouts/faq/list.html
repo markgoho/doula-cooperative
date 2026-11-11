@@ -1,26 +1,29 @@
 {{ define "head-styles" }}
-  {{ $pageCSS := "css/pages/faq-list.css" }}
-  {{ $inlineCSS := resources.Get $pageCSS | resources.Minify }}
-  <style>{{ $inlineCSS.Content | safeCSS }}</style>
+  {{ $css := slice
+    (resources.Get "css/components/text-link.css")
+    (resources.Get "css/pages/faq-list.css")
+    | resources.Concat "faq-list.css"
+    | resources.Minify
+  }}
+  <style>{{ $css.Content | safeCSS }}</style>
 {{ end }}
 
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
   <section class="faq-list text-content">
     {{ range .Pages }}
-      <div class="faq-item">
-        <a href="{{ .RelPermalink }}" class="faq-heading">
-          <h2 style="view-transition-name: faq-title-{{ .Title | md5 }};">
-            {{ .Title }}
-          </h2>
-        </a>
+      <article class="faq-item">
+        <h2
+          class="faq-item__title"
+          style="view-transition-name: faq-title-{{ .Title | md5 }};">
+          <a href="{{ .RelPermalink }}" class="faq-heading">{{ .Title }}</a>
+        </h2>
         <p style="view-transition-name: faq-content-{{ .Title | md5 }};">
-          {{ .Content | plainify | truncate 200 }}
-          <a href="{{ .RelPermalink }}" class="faq-item__read-more"
-            >continue reading</a
-          >
+          {{ .Plain | htmlUnescape | truncate 200 }}
         </p>
-      </div>
+        {{ partial "icons/arrow-right.html" . }}
+      </article>
     {{ end }}
   </section>
+  {{ partial "page-cta.html" . }}
 {{ end }}

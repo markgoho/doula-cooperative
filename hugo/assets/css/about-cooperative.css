@@ -1,12 +1,14 @@
 :root {
-  --board-member-card-width: 18.75rem;
+  --board-member-card-width: 12rem;
 }
 
 .board-members {
   margin-block-start: var(--space-xl);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15.625rem, 1fr));
-  gap: var(--space-l);
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-m);
+  max-width: 62rem;
+  margin-inline: auto;
 }
 
 .board-member-card {
@@ -15,15 +17,16 @@
 }
 
 .board-member-card__image {
-  margin-bottom: var(--space-s);
+  margin-bottom: var(--space-2xs);
 
   & img {
+    margin-inline: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     width: var(--board-member-card-width);
     height: auto;
-    border: 5px solid var(--teal-500);
     border-radius: var(--border-radius-md);
+    background: var(--color-sand);
   }
 }
 
@@ -34,9 +37,9 @@
 }
 
 .board-member-card__role {
-  font-weight: var(--font-weight-light);
   margin: 0;
-  font-variation-settings: "slnt" -12;
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
 }
 
 @container (max-width: 40rem) {

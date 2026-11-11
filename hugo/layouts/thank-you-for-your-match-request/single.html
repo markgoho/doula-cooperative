@@ -1,6 +1,6 @@
 {{ define "head-styles" }}
   {{ $css := slice
-    (resources.Get "css/components/callout.css")
+    (resources.Get "css/components/steps.css")
     | resources.Concat "thank-you-match-request.css"
     | resources.Minify
   }}

@@ -1,6 +1,7 @@
 <nav class="navbar">
   <a class="navbar__logo" href="{{ "/" | relLangURL }}">
-    <h2>Doula Cooperative</h2>
+    <span class="navbar__logo-name">Doula Cooperative</span>
+    <span class="navbar__logo-place">Rochester, NY</span>
   </a>
   <ul class="navbar__nav">
     {{ range .Site.Menus.main }}
@@ -11,7 +12,7 @@
   </ul>
   <a
     href="{{ "/find-a-doula/" | relLangURL }}"
-    class="navbar__cta button navbar__button"
+    class="navbar__cta button button-small navbar__button"
     >{{ i18n "nav_find_a_doula" }}</a
   >
 </nav>

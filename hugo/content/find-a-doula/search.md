@@ -1,6 +1,6 @@
 ---
-title: Search for a Doula
+title: Search for a doula
 layout: list
 ---
 
-Search across all Doula profiles, bios, specializations, and locations
+Search across all doula profiles, bios, and services

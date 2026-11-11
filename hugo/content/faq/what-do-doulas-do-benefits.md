@@ -1,5 +1,5 @@
 ---
-title: "What do Doulas do and what are their benefits?"
+title: "What do doulas do and what are their benefits?"
 draft: false
 summary: ""
 ---

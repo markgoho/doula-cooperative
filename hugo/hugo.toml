@@ -49,6 +49,10 @@ enableGitInfo = true
   tags = "/doulas/tag/:slug/"
 
 [[languages.en.menu.main]]
+  name = "Learn"
+  pageRef = "/learn-more-about-doulas"
+  weight = 5
+[[languages.en.menu.main]]
   name = "About"
   pageRef = "/about-the-doula-cooperative"
   weight = 10
@@ -57,6 +61,10 @@ enableGitInfo = true
   pageRef = "/join-the-doula-cooperative"
   weight = 20
 
+[[languages.es.menu.main]]
+  name = "Aprende"
+  pageRef = "/learn-more-about-doulas"
+  weight = 5
 [[languages.es.menu.main]]
   name = "Sobre Nosotros"
   pageRef = "/about-the-doula-cooperative"

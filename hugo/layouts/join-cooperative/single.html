@@ -11,8 +11,9 @@
 
 {{ define "main" }}
   <h1 style="view-transition-name: title-join-coop">{{ .Title }}</h1>
-  {{ .Content }}
-
+  <section class="text-content">
+    {{ .Content }}
+  </section>
 
   <section class="membership-join text-content">
     <h2>{{ i18n "join_membership_heading" }}</h2>

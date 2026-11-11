@@ -11,35 +11,35 @@
 :root {
   /* Typography */
   --font-family-main: "Geologica", sans-serif;
-  --font-weight-boldest: 900;
-  --font-weight-bold: 700;
-  --font-weight-semibold: 600;
+  --font-weight-boldest: 650;
+  --font-weight-bold: 600;
+  --font-weight-semibold: 550;
   --font-weight-regular: 400;
-  --font-weight-light: 300;
+  --font-weight-light: 350;
 
   --line-height-tight: 1.25em;
-  --line-height-relaxed: 1.5em;
+  --line-height-relaxed: 1.55em;
   --color-text-main: var(--brown-500);
 
-  --step--2: clamp(0.8889rem, 0.8747rem + 0.0711vw, 0.96rem);
-  --step--1: clamp(1rem, 0.96rem + 0.2vw, 1.2rem);
-  --step-0: clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem);
-  --step-1: clamp(1.2656rem, 1.1438rem + 0.6094vw, 1.875rem);
-  --step-2: clamp(1.4238rem, 1.2398rem + 0.9199vw, 2.3438rem);
-  --step-3: clamp(1.6018rem, 1.3362rem + 1.3279vw, 2.9297rem);
-  --step-4: clamp(1.802rem, 1.43rem + 1.8601vw, 3.6621rem);
-  --step-5: clamp(2.0273rem, 1.5172rem + 2.5504vw, 4.5776rem);
-  --step-6: clamp(2.2807rem, 1.5924rem + 3.4413vw, 5.722rem);
+  --step--2: clamp(0.8125rem, 0.8rem + 0.06vw, 0.875rem);
+  --step--1: clamp(0.9375rem, 0.92rem + 0.09vw, 1rem);
+  --step-0: clamp(1.0625rem, 1.03rem + 0.16vw, 1.1875rem);
+  --step-1: clamp(1.1875rem, 1.13rem + 0.28vw, 1.4rem);
+  --step-2: clamp(1.35rem, 1.26rem + 0.45vw, 1.7rem);
+  --step-3: clamp(1.55rem, 1.4rem + 0.75vw, 2.1rem);
+  --step-4: clamp(1.8rem, 1.56rem + 1.2vw, 2.7rem);
+  --step-5: clamp(2.1rem, 1.72rem + 1.9vw, 3.5rem);
+  --step-6: clamp(2.3rem, 1.78rem + 2.6vw, 4.25rem);
 }
 
 /* Global Typography Styles */
 body {
   font-family: var(--font-family-main);
   font-size: var(--step-0);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-regular);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-main);
-  background: var(--light-bg);
+  background: var(--color-ground);
 }
 
 h1,
@@ -51,12 +51,13 @@ h6 {
   font-family: var(--font-family-main);
   font-weight: var(--font-weight-boldest);
   line-height: var(--line-height-tight);
+  letter-spacing: -0.015em;
   color: var(--color-text-main, #222);
   margin-block-end: 0.5em;
 }
 
 h1 {
-  font-size: var(--step-6);
+  font-size: var(--step-5);
   text-wrap: balance;
 }
 h2 {
@@ -86,6 +87,8 @@ p {
 
   > a {
     text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
   }
 }
 

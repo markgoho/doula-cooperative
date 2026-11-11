@@ -1,11 +1,16 @@
 .footer {
-  --icon-color: var(--teal-500);
+  --icon-color: var(--color-on-deep);
 
-  padding: var(--space-m) var(--space-l);
-  background-color: var(--brown-800);
-  border-top: 5px solid var(--brown-500);
+  padding: var(--space-l) var(--space-m) var(--space-m);
+  background-color: var(--color-deep);
   container: footer / inline-size;
-  color: var(--brown-450);
+  color: var(--color-on-deep);
+}
+
+.footer__main,
+.footer__bottom {
+  max-width: var(--container-max-width);
+  margin-inline: auto;
 }
 
 .footer__main {
@@ -13,7 +18,7 @@
   grid-template-columns: 1fr;
   gap: var(--space-m);
   padding-block-end: var(--space-m);
-  border-bottom: 2px solid var(--brown-600);
+  border-bottom: 1px solid var(--color-deep-line);
 }
 
 .footer__nav {
@@ -35,8 +40,8 @@
 .footer__col-title {
   font-size: var(--step--2);
   font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  color: var(--brown-450);
+  color: var(--color-on-deep-soft);
+  margin-block-end: var(--space-xs);
 }
 
 .footer__links {
@@ -45,16 +50,18 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-s);
+  gap: var(--space-2xs);
 
   & a {
+    color: var(--color-on-deep);
     font-size: var(--step--1);
     font-weight: var(--font-weight-semibold);
     text-decoration: none;
   }
 
   & a:hover {
-    color: var(--brown-400);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
   }
 }
 
@@ -68,7 +75,7 @@
     place-content: center;
 
     &:hover .footer-icon {
-      color: var(--brown-400);
+      color: var(--color-surface);
     }
   }
   & .twitter {
@@ -78,7 +85,7 @@
   & .footer-icon {
     width: 44px;
     height: 44px;
-    color: var(--brown-500);
+    color: var(--color-on-deep-soft);
   }
 }
 
@@ -88,8 +95,9 @@
   align-items: center;
   gap: var(--space-s);
   text-align: center;
-  padding-block-start: var(--space-2xs);
+  padding-block-start: var(--space-s);
   font-size: var(--step--1);
+  color: var(--color-on-deep-soft);
 }
 
 .footer__login {
@@ -115,21 +123,23 @@
   &:not(:last-child)::after {
     content: "·";
     margin-inline-start: var(--space-2xs);
-    color: var(--brown-600);
+    color: var(--color-on-deep-soft);
   }
 }
 
 .footer__language-current {
   font-weight: var(--font-weight-semibold);
-  color: var(--brown-300);
+  color: var(--color-surface);
 }
 
 .footer__language-link {
   font-weight: var(--font-weight-semibold);
-  text-decoration: none;
+  color: var(--color-on-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 
   &:hover {
-    color: var(--brown-400);
+    color: var(--color-surface);
   }
 }
 

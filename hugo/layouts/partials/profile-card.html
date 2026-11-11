@@ -1,35 +1,74 @@
-<div
+{{/* One doula in a list. The name is the link; it stretches over the whole
+  card so the card has a single, clearly named target.
+*/}}
+{{ $slug := path.Base .File.Dir }}
+{{ $tags := .Params.tags | default slice }}
+{{ $shown := first 3 $tags }}
+{{ $more := sub (len $tags) (len $shown) }}
+<article
   class="profile-card-container"
   style="view-transition-name: profile-{{ .Title | md5 }};">
-  <a href="{{ .RelPermalink }}" class="profile-card">
-    {{ $slug := path.Base .File.Dir }}
+  <div class="profile-card">
     <img
       loading="lazy"
       height="300"
       width="300"
       src="{{ partial "profile-image-url.html" (dict "slug" $slug "width" 300 "height" 300 "imageUpdatedAt" .Params.imageUpdatedAt) }}"
-      alt="Headshot of {{ .Title }}"
+      alt=""
       class="headshot"
       style="view-transition-name: headshot-{{ .Title | md5 }};" />
-    <h2 class="name" style="view-transition-name: name-{{ .Title | md5 }};">
-      {{ .Title }}
-    </h2>
-    <p
-      class="credentials"
-      style="view-transition-name: credentials-{{ .Title | md5 }};">
+    <div class="profile-card__body">
+      <h2 class="name">
+        <a
+          href="{{ .RelPermalink }}"
+          class="profile-card__link"
+          style="view-transition-name: name-{{ .Title | md5 }};"
+          >{{ .Title }}</a
+        >
+        {{ with .Params.pronouns }}
+          <span class="profile-card__pronouns">({{ . }})</span>
+        {{ end }}
+      </h2>
       {{ with .Params.credentials }}
-        {{ . }}
+        {{ if ne (lower .) "none" }}
+          <p
+            class="credentials"
+            style="view-transition-name: credentials-{{ $.Title | md5 }};">
+            {{ . }}
+          </p>
+        {{ end }}
       {{ end }}
-    </p>
-
-    <ul class="tag-group">
-      {{ range .Params.tags }}
-        <li
-          class="tag"
-          style="view-transition-name: tag-{{ . | md5 }}-{{ $.Title | md5 }};">
-          {{ . }}
-        </li>
+      {{ with .Plain }}
+        <p class="profile-card__excerpt">
+          {{ . | htmlUnescape | truncate 220 }}
+        </p>
       {{ end }}
-    </ul>
-  </a>
-</div>
+      {{ with $shown }}
+        <ul class="tag-group">
+          {{ range . }}
+            <li
+              class="tag"
+              style="view-transition-name: tag-{{ . | md5 }}-{{ $.Title | md5 }};">
+              {{ . }}
+            </li>
+          {{ end }}
+          {{ if gt $more 0 }}
+            <li class="tag tag--more tag--more-wide">
+              {{ i18n "profile_card_more" $more }}
+            </li>
+          {{ end }}
+          {{ $moreNarrow := sub (len $tags) 1 }}
+          {{ if gt $moreNarrow 0 }}
+            <li class="tag tag--more tag--more-narrow">
+              {{ i18n "profile_card_more" $moreNarrow }}
+            </li>
+          {{ end }}
+        </ul>
+      {{ end }}
+    </div>
+    <span class="profile-card__view" aria-hidden="true">
+      {{ i18n "profile_card_view" }}
+      {{ partial "icons/arrow-right.html" . }}
+    </span>
+  </div>
+</article>
