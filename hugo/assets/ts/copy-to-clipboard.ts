@@ -10,25 +10,25 @@ const copyButtons = document.querySelectorAll<HTMLButtonElement>(
 
 if ("clipboard" in navigator) {
   for (const button of copyButtons) {
-    const idleLabel = button.textContent ?? "";
-    const copiedLabel = button.dataset["copiedLabel"] ?? idleLabel;
+    const idleLabel = button.textContent;
+    const copiedLabel = button.dataset.copiedLabel ?? idleLabel;
     const status = button.parentElement?.querySelector("[data-copy-status]");
 
     button.hidden = false;
 
     button.addEventListener("click", () => {
       void navigator.clipboard
-        .writeText(button.dataset["copyText"] ?? "")
+        .writeText(button.dataset.copyText ?? "")
         .then(() => {
           button.textContent = copiedLabel;
-          button.dataset["copied"] = "true";
+          button.dataset.copied = "true";
           if (status) {
             status.textContent = copiedLabel;
           }
 
           setTimeout(() => {
             button.textContent = idleLabel;
-            delete button.dataset["copied"];
+            delete button.dataset.copied;
             if (status) {
               status.textContent = "";
             }
