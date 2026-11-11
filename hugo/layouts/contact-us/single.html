@@ -41,7 +41,7 @@
       data-api-url="{{ if hugo.IsProduction }}
         /api/forms/contact-us
       {{ else }}
-        http://127.0.0.1:5001/doula-cooperative/us-central1/formsApi/contact-us
+        http://127.0.0.1:5001/doula-cooperative/us-central1/formsApi/api/forms/contact-us
       {{ end }}"
       data-recaptcha-site-key="{{ .Site.Params.recaptchaSiteKey }}"
       data-success-url="{{ "/thank-you-for-contacting-us/" | relLangURL }}"
