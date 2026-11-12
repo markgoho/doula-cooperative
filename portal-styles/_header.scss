@@ -71,9 +71,13 @@
   border-bottom-color: var(--color-primary);
 }
 
-// Wide screens keep the one-row header in view; the stacked phone header
-// would take too much of the screen.
-@media (min-width: 62rem) {
+// Narrowest header that fits the logo, every nav link and the button on one
+// row. An app with more links sets a larger value when it loads this file.
+$one-row-min: 60rem !default;
+
+// The one-row header stays in view; the stacked header would take too much
+// of a small screen.
+@media (min-width: #{$one-row-min + 2rem}) {
   .header {
     position: sticky;
     top: 0;
@@ -81,16 +85,35 @@
   }
 }
 
-@container header (min-width: 60rem) {
+@container header (min-width: #{$one-row-min}) {
   .navbar {
     grid-template-columns: max-content 1fr max-content;
     grid-template-areas: "logo nav cta";
     padding-block: var(--space-xs);
-    column-gap: var(--space-l);
+    column-gap: var(--space-m);
   }
 
+  // One row means one row: links never wrap under each other here.
   .navbar__nav {
     justify-self: end;
-    gap: 0 var(--space-m);
+    flex-wrap: nowrap;
+    gap: var(--space-s);
+    white-space: nowrap;
+  }
+}
+
+// Phones: keep the links on one line. They tighten up first, and the row
+// scrolls sideways only if they still do not fit.
+@container header (max-width: 30rem) {
+  .navbar__nav {
+    flex-wrap: nowrap;
+    gap: var(--space-2xs);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  .navbar__link {
+    font-size: var(--step--2);
   }
 }
