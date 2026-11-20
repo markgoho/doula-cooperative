@@ -4,6 +4,8 @@ date: 2024-07-26T12:00:00Z
 draft: false
 layout: "thank-you-for-contacting-us"
 noindex: true
+sitemap:
+  disable: true
 ---
 
 ## Thank you for getting in touch!
