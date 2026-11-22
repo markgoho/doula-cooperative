@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { inject, isDevMode } from '@angular/core';
 import { Router, type CanActivateFn, type Routes } from '@angular/router';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 import { auth } from './lib/firebase';
@@ -93,6 +93,26 @@ export const routes: Routes = [
       import('./edit-profile-image/edit-profile-image').then((m) => m.EditProfileImage),
     canActivate: [requireAuth],
   },
+
+  // PROTOTYPE — throwaway Referral Portal v2 variants (ticket #107). Dev-only, unguarded, stub data.
+  ...(isDevMode()
+    ? [
+        {
+          path: 'referrals-prototype',
+          loadComponent: () =>
+            import('./referrals/prototype-v2/referrals-prototype').then(
+              (m) => m.ReferralsPrototype,
+            ),
+        },
+        {
+          path: 'referrals-prototype/:id',
+          loadComponent: () =>
+            import('./referrals/prototype-v2/referrals-prototype').then(
+              (m) => m.ReferralsPrototype,
+            ),
+        },
+      ]
+    : []),
 
   // Member referral routes (require authentication)
   {
