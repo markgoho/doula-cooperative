@@ -44,6 +44,18 @@ _Avoid_: Match request, lead
 Public request for help finding a doula.
 _Avoid_: Contact message, lead
 
+**Referral**:
+A **Match Request** as seen by **Members** in the member portal.
+_Avoid_: Lead, claim
+
+**Outreach**:
+A **Member**'s first message to a **Referral**'s requester, sent through the cooperative so the contact is recorded.
+_Avoid_: Response, claim, contact
+
+**Referral Outcome**:
+One **Member**'s own result for a **Referral**: hired, not hired, or not a fit. Never exclusive to one **Member**.
+_Avoid_: Claim, taken, status
+
 **Pending Intake Item**:
 A **Contact Message** or **Match Request** not yet handled by an admin.
 _Avoid_: Unsent item
@@ -86,6 +98,9 @@ _Avoid_: Traffic stats, Pirsch data
 
 ## Relationships
 
+- A **Match Request** is shown to **Members** as a **Referral**.
+- A **Referral** may receive **Outreach** from many **Members**.
+- A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may have zero or one **Doula Profile**.
 - An **Admin** may manage **Members**, **Doula Profiles**, **Contact Messages**, **Match Requests**, and **Legacy Memberships**.
 - A **Doula Profile** belongs to zero or one **Member** until linked.

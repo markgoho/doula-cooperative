@@ -116,6 +116,18 @@ _Avoid_: Match request, lead
 A public request for help finding a doula.
 _Avoid_: Contact message, lead
 
+**Referral**:
+A **Match Request** as seen by **Members** in the member portal.
+_Avoid_: Lead, claim
+
+**Outreach**:
+A **Member**'s first message to a **Referral**'s requester, sent through the cooperative so the contact is recorded.
+_Avoid_: Response, claim, contact
+
+**Referral Outcome**:
+One **Member**'s own result for a **Referral**: hired, not hired, or not a fit. Never exclusive to one **Member**.
+_Avoid_: Claim, taken, status
+
 **Public Form Intake**:
 The backend flow that validates, spam-checks, stores, and emails public form submissions.
 _Avoid_: Lead capture
@@ -134,6 +146,9 @@ _Avoid_: Sent item
 
 ## Relationships
 
+- A **Match Request** is shown to **Members** as a **Referral**.
+- A **Referral** may receive **Outreach** from many **Members**.
+- A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.
 - A **Profile Owner** is the **Member** linked by `ownerUid`.
