@@ -147,7 +147,8 @@ _Avoid_: Sent item
 ## Relationships
 
 - A **Match Request** is shown to **Members** as a **Referral**.
-- A **Referral** may receive **Outreach** from many **Members**.
+- A **Referral** may receive **Outreach** from many **Members**; each **Member** sends at most one **Outreach** per **Referral**.
+- Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.

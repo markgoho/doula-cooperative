@@ -99,7 +99,8 @@ _Avoid_: Traffic stats, Pirsch data
 ## Relationships
 
 - A **Match Request** is shown to **Members** as a **Referral**.
-- A **Referral** may receive **Outreach** from many **Members**.
+- A **Referral** may receive **Outreach** from many **Members**; each **Member** sends at most one **Outreach** per **Referral**.
+- Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may have zero or one **Doula Profile**.
 - An **Admin** may manage **Members**, **Doula Profiles**, **Contact Messages**, **Match Requests**, and **Legacy Memberships**.
