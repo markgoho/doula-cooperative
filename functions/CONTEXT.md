@@ -128,6 +128,10 @@ _Avoid_: Response, claim, contact
 One **Member**'s own result for a **Referral**: hired, not hired, or not a fit. Never exclusive to one **Member**.
 _Avoid_: Claim, taken, status
 
+**Referral Notification**:
+An email telling a **Member** that a new **Referral** is waiting in the member portal. Carries no requester contact or health details beyond due month, services, and general area.
+_Avoid_: Lead alert, referral blast
+
 **Public Form Intake**:
 The backend flow that validates, spam-checks, stores, and emails public form submissions.
 _Avoid_: Lead capture
@@ -151,6 +155,7 @@ _Avoid_: Sent item
 - Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
+- Each new **Match Request** sends one **Referral Notification** to every **Member** with an active membership who has not turned them off.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.
 - A **Profile Owner** is the **Member** linked by `ownerUid`.
