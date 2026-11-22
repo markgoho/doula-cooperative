@@ -136,6 +136,10 @@ _Avoid_: Lead alert, referral blast
 An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it since its **Referral Notification**. Sent once per **Referral**.
 _Avoid_: No-response alert, stale lead alert
 
+**Match Request Notification**:
+An email telling **Admins** that a new **Match Request** has arrived. Carries the same limited details as a **Referral Notification** plus a link to the **Match Request** in the admin app; never the requester's name, contact, or health details.
+_Avoid_: Doula match email, admin match email
+
 **Public Form Intake**:
 The backend flow that validates, spam-checks, stores, and emails public form submissions.
 _Avoid_: Lead capture
