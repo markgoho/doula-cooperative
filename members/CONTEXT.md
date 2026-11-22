@@ -60,6 +60,10 @@ _Avoid_: Claim, taken, status
 An email telling a **Member** that a new **Referral** is waiting in the member portal. Carries no requester contact or health details beyond due month, services, and general area.
 _Avoid_: Lead alert, referral blast
 
+**No-Outreach Alert**:
+An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it since its **Referral Notification**. Sent once per **Referral**.
+_Avoid_: No-response alert, stale lead alert
+
 **Pending Intake Item**:
 A **Contact Message** or **Match Request** not yet handled by an admin.
 _Avoid_: Unsent item
@@ -108,6 +112,7 @@ _Avoid_: Traffic stats, Pirsch data
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
 - Each new **Match Request** sends one **Referral Notification** to every **Member** with an active membership who has not turned them off.
+- A **Referral** with no **Outreach** for too long triggers one **No-Outreach Alert**; a hire made outside the portal does not prevent it.
 - A **Member** may have zero or one **Doula Profile**.
 - An **Admin** may manage **Members**, **Doula Profiles**, **Contact Messages**, **Match Requests**, and **Legacy Memberships**.
 - A **Doula Profile** belongs to zero or one **Member** until linked.

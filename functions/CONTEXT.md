@@ -132,6 +132,10 @@ _Avoid_: Claim, taken, status
 An email telling a **Member** that a new **Referral** is waiting in the member portal. Carries no requester contact or health details beyond due month, services, and general area.
 _Avoid_: Lead alert, referral blast
 
+**No-Outreach Alert**:
+An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it since its **Referral Notification**. Sent once per **Referral**.
+_Avoid_: No-response alert, stale lead alert
+
 **Public Form Intake**:
 The backend flow that validates, spam-checks, stores, and emails public form submissions.
 _Avoid_: Lead capture
@@ -156,6 +160,7 @@ _Avoid_: Sent item
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
 - A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
 - Each new **Match Request** sends one **Referral Notification** to every **Member** with an active membership who has not turned them off.
+- A **Referral** with no **Outreach** for too long triggers one **No-Outreach Alert**; a hire made outside the portal does not prevent it.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.
 - A **Profile Owner** is the **Member** linked by `ownerUid`.
