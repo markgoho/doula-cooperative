@@ -150,6 +150,7 @@ _Avoid_: Sent item
 - A **Referral** may receive **Outreach** from many **Members**; each **Member** sends at most one **Outreach** per **Referral**.
 - Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
+- A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.
 - A **Profile Owner** is the **Member** linked by `ownerUid`.

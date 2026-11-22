@@ -102,6 +102,7 @@ _Avoid_: Traffic stats, Pirsch data
 - A **Referral** may receive **Outreach** from many **Members**; each **Member** sends at most one **Outreach** per **Referral**.
 - Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
+- A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
 - A **Member** may have zero or one **Doula Profile**.
 - An **Admin** may manage **Members**, **Doula Profiles**, **Contact Messages**, **Match Requests**, and **Legacy Memberships**.
 - A **Doula Profile** belongs to zero or one **Member** until linked.
