@@ -115,6 +115,11 @@ const SENT = {
   contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
 };
 
+/** The Coordinator-only Responses panel. */
+function panel() {
+  return screen.getByRole('region', { name: 'Responses' });
+}
+
 describe('ReferralDetail pane', () => {
   it('shows a loading message while fetching', async () => {
     await setup({ loading: true });
@@ -407,10 +412,6 @@ describe('ReferralDetail pane', () => {
       outcome: 'hired' as const,
       outcomeUpdatedAt: '2026-11-21T09:00:00.000Z',
     };
-
-    function panel() {
-      return screen.getByRole('region', { name: 'Responses' });
-    }
 
     it('lists each member who sent Outreach with the time and their Outcome', async () => {
       await setup({
