@@ -1,6 +1,7 @@
 import type { MatchRequestDocument } from "../../collections/match-requests.js";
 import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 import type { ReferralListItem } from "./referral-schemas.js";
+import type { MemberResponsesSummary } from "./summarize-member-responses.js";
 import { toReferralArea } from "./to-referral-area.js";
 
 /**
@@ -11,6 +12,11 @@ import { toReferralArea } from "./to-referral-area.js";
 export function toReferralListItem(
   id: string,
   document: MatchRequestDocument,
+  {
+    responseCount,
+    ownOutreachSentAt,
+    isOpen,
+  }: MemberResponsesSummary & { isOpen: boolean },
 ): ReferralListItem {
   return {
     id,
@@ -18,7 +24,10 @@ export function toReferralListItem(
     estimatedDueDate: document.estimatedDueDate,
     services: document.services,
     area: toReferralArea(document.zipcode),
-    // No Outreach or Offline Responses are recorded yet.
-    responseCount: 0,
+    responseCount,
+    isOpen,
+    ...(ownOutreachSentAt && {
+      outreach: { sentAt: timestampToIso(ownOutreachSentAt) },
+    }),
   };
 }

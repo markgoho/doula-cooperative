@@ -8,6 +8,7 @@ import { cancelMembershipLogic } from "../routes/cancel-membership.js";
 import { getReferralLogic } from "../routes/get-referral.js";
 import { listReferralsLogic } from "../routes/list-referrals.js";
 import { getMemberLogic } from "../routes/members.js";
+import { sendOutreachLogic } from "../routes/send-outreach.js";
 import { syncEmailLogic } from "../routes/sync-email.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
@@ -29,9 +30,12 @@ import {
   ListReferralsRouteResponseSchema,
   ReferralDetailRouteResponseSchema,
   ReferralRequestIdParameterSchema,
+  SendOutreachBodySchema,
+  SendOutreachRouteResponseSchema,
 } from "../schemas/referral-schemas.js";
 import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
+import { OutreachServiceImpl } from "../services/outreach/outreach-service.js";
 import { ReferralsServiceImpl } from "../services/referrals/referrals-service.js";
 import { VerifyEmailServiceImpl } from "../services/verify-email/verify-email-service.js";
 import { SERVICE_KEYS, type PartialServices } from "../types/services.js";
@@ -80,6 +84,10 @@ export function createMembersPlugin(services?: PartialServices) {
         SERVICE_KEYS.REFERRAL_PORTAL_SETTINGS_SERVICE,
         services?.referralPortalSettingsService ??
           ReferralPortalSettingsService,
+      )
+      .decorate(
+        SERVICE_KEYS.OUTREACH_SERVICE,
+        services?.outreachService ?? OutreachServiceImpl,
       )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
@@ -300,6 +308,7 @@ export function createMembersPlugin(services?: PartialServices) {
           memberService,
           referralsService,
           referralPortalSettingsService,
+          outreachService,
           authService,
           logger,
           request,
@@ -311,6 +320,7 @@ export function createMembersPlugin(services?: PartialServices) {
             memberService,
             referralsService,
             referralPortalSettingsService,
+            outreachService,
             authService,
             logger,
             authorizationHeader:
@@ -323,6 +333,46 @@ export function createMembersPlugin(services?: PartialServices) {
             requestId: ReferralRequestIdParameterSchema.properties.requestId,
           }),
           response: ReferralDetailRouteResponseSchema,
+        },
+      )
+      // POST /:memberId/referrals/:requestId/outreach - Send this Member's one Outreach (owner only) - Served at /api/members/:memberId/referrals/:requestId/outreach
+      .post(
+        "/:memberId/referrals/:requestId/outreach",
+        async ({
+          params,
+          body,
+          memberService,
+          referralsService,
+          referralPortalSettingsService,
+          outreachService,
+          authService,
+          emailService,
+          logger,
+          request,
+          set,
+        }) =>
+          sendOutreachLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            message: body.message,
+            memberService,
+            referralsService,
+            referralPortalSettingsService,
+            outreachService,
+            authService,
+            emailService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: t.Object({
+            memberId: MemberIdParameterSchema.properties.memberId,
+            requestId: ReferralRequestIdParameterSchema.properties.requestId,
+          }),
+          body: SendOutreachBodySchema,
+          response: SendOutreachRouteResponseSchema,
         },
       )
   );

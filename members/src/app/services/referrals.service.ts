@@ -5,9 +5,9 @@ import { auth } from '../lib/firebase';
 import { MembershipRequiredError } from '../referrals/membership-required-error';
 import { ReferralNotOpenError } from '../referrals/referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
-import type { ReferralDetail, ReferralListItem } from '../referrals/referral.types';
+import type { ReferralDetail, ReferralListItem, SentOutreach } from '../referrals/referral.types';
 
-export type { ReferralDetail, ReferralListItem } from '../referrals/referral.types';
+export type { ReferralDetail, ReferralListItem, SentOutreach } from '../referrals/referral.types';
 
 const REFERRAL_PORTAL_DISABLED_CODE = 'REFERRAL_PORTAL_DISABLED';
 const REFERRAL_NOT_OPEN_CODE = 'REFERRAL_NOT_OPEN';
@@ -15,6 +15,18 @@ const REFERRAL_NOT_OPEN_CODE = 'REFERRAL_NOT_OPEN';
 function errorCode(error: HttpErrorResponse): unknown {
   const body: unknown = error.error;
   if (typeof body === 'object' && body !== null && 'code' in body) return body.code;
+  return undefined;
+}
+
+function errorMessage(error: HttpErrorResponse): string | undefined {
+  const body: unknown = error.error;
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'error' in body &&
+    typeof body.error === 'string'
+  )
+    return body.error;
   return undefined;
 }
 
@@ -102,6 +114,43 @@ export class ReferralsService {
         }
       }
       throw new Error('Failed to load referral. Please try again.', { cause: error });
+    }
+  }
+
+  /**
+   * Send your one Outreach on a Referral. Resolves once the email was accepted,
+   * with the sent time and the requester's now-revealed contact details.
+   * Rejects with a message to show beside the composer; nothing was shared.
+   */
+  async sendOutreach(id: string, message: string): Promise<SentOutreach> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('You must be signed in to send Outreach.');
+
+    const memberId = encodeURIComponent(uid);
+    const referralId = encodeURIComponent(id);
+    try {
+      return await firstValueFrom(
+        this.http.post<SentOutreach>(`/api/members/${memberId}/referrals/${referralId}/outreach`, {
+          message,
+        }),
+      );
+    } catch (error: unknown) {
+      console.error('Failed to send Outreach', { uid, id, error });
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 0) {
+          throw new Error('Unable to connect. Check your network and try again.', {
+            cause: error,
+          });
+        }
+        if (error.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.', { cause: error });
+        }
+        const serverMessage = errorMessage(error);
+        if (serverMessage) throw new Error(serverMessage, { cause: error });
+      }
+      throw new Error("Your message wasn't sent, and nothing was shared. Please try again.", {
+        cause: error,
+      });
     }
   }
 }

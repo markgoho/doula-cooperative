@@ -1,0 +1,56 @@
+:host {
+  display: block;
+  margin-block-start: var(--space-m);
+}
+
+.composer {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+h3 {
+  font-size: var(--step-0);
+  margin: 0;
+}
+
+textarea {
+  /* Grow with the message, within sensible bounds; fixed width avoids jumps. */
+  field-sizing: content;
+  font-size: max(1rem, 1em);
+  height: auto;
+  max-block-size: 28lh;
+  min-block-size: 10lh;
+  width: 100%;
+
+  &[aria-invalid='true'] {
+    border-color: var(--color-error);
+  }
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: var(--step--1);
+  margin: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.hint {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  margin: 0;
+}
+
+.send-error {
+  background: var(--color-error-soft);
+  border-radius: var(--border-radius-md);
+  color: var(--color-error);
+  margin: 0;
+  padding: var(--space-2xs) var(--space-xs);
+}
+
+button {
+  justify-self: start;
+}

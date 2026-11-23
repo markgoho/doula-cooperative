@@ -1,5 +1,6 @@
 // Re-export all collection names and types
 export * from "./match-requests.js";
+export * from "./member-responses.js";
 export * from "./members.js";
 export * from "./messages.js";
 export * from "./migrated-users-import.js";

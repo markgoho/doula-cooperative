@@ -14,8 +14,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 
 export type SyncEmailResponse =
-  | { success: true; synced: boolean; email: string }
-  | { error: string };
+  { success: true; synced: boolean; email: string } | { error: string };
 
 export async function syncEmailLogic({
   memberId,

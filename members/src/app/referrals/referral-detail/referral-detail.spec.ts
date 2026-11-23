@@ -1,12 +1,15 @@
 import { inputBinding } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular/zoneless';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
   ReferralsService,
   type ReferralDetail as ReferralDetailModel,
 } from '../../services/referrals.service';
 import { MembershipRequiredError } from '../membership-required-error';
+import { ReferralListRefresh } from '../referral-list-refresh';
 import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
 import { ReferralDetail } from './referral-detail';
@@ -36,11 +39,13 @@ async function setup({
   failure,
   id = 'req-1',
   referral = makeReferralDetail(),
+  sendFailure,
 }: {
   loading?: boolean;
   failure?: Error;
   id?: string;
   referral?: ReferralDetailModel;
+  sendFailure?: Error;
 } = {}) {
   let getReferral: ReturnType<typeof vi.fn>;
   if (loading) {
@@ -52,13 +57,32 @@ async function setup({
     getReferral = vi.fn().mockResolvedValue(referral);
   }
 
+  // A failed send fails once, so a retry succeeds.
+  const sendOutreach = vi.fn().mockResolvedValue(SENT);
+  if (sendFailure) sendOutreach.mockRejectedValueOnce(sendFailure);
+
   await render(ReferralDetail, {
     bindings: [inputBinding('id', () => id)],
-    providers: [{ provide: ReferralsService, useValue: { getReferral } }, provideRouter([])],
+    providers: [
+      { provide: ReferralsService, useValue: { getReferral, sendOutreach } },
+      provideRouter([]),
+    ],
   });
+  const user = userEvent.setup();
 
-  return { getReferral };
+  return { getReferral, sendOutreach, user, listRefresh: TestBed.inject(ReferralListRefresh) };
 }
+
+const SENDER = {
+  name: 'Dana Doula',
+  email: 'dana@example.com',
+  profileUrl: 'https://doulacooperative.com/doulas/dana-doula/',
+};
+
+const SENT = {
+  outreach: { sentAt: '2026-11-20T15:30:00.000Z' },
+  contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
+};
 
 describe('ReferralDetail pane', () => {
   it('shows a loading message while fetching', async () => {
@@ -98,7 +122,7 @@ describe('ReferralDetail pane', () => {
     expect(await screen.findByText('No one has responded yet')).toBeVisible();
   });
 
-  it('says contact details appear after Outreach, without a composer', async () => {
+  it('says contact details appear after Outreach, without a composer when you cannot send', async () => {
     await setup();
     expect(await screen.findByRole('heading', { name: 'Contact details' })).toBeVisible();
     expect(
@@ -106,6 +130,117 @@ describe('ReferralDetail pane', () => {
     ).toBeVisible();
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  describe('Outreach composer', () => {
+    const withSender = () => makeReferralDetail({ outreachSender: SENDER });
+
+    it('starts with an editable template greeting the requester, signed with your name and Doula Profile link', async () => {
+      await setup({ referral: withSender() });
+      const message = await screen.findByRole('textbox', { name: 'Message to Maya' });
+      const text = (message as HTMLTextAreaElement).value;
+      expect(text).toMatch(/^Hi Maya,/);
+      expect(text).toContain("I'm Dana Doula, a doula with the Rochester Doula Cooperative.");
+      expect(text).toContain('birth, postpartum support around Apr 12, 2027');
+      expect(text).toContain(
+        'You can read more about me here: https://doulacooperative.com/doulas/dana-doula/',
+      );
+      expect(text).toMatch(/Warmly,\nDana Doula$/);
+    });
+
+    it('leaves out the Doula Profile line when you have no published profile', async () => {
+      await setup({
+        referral: makeReferralDetail({
+          outreachSender: { name: 'Dana Doula', email: 'dana@example.com' },
+        }),
+      });
+      const message = await screen.findByRole('textbox', { name: 'Message to Maya' });
+      expect((message as HTMLTextAreaElement).value).not.toContain('read more about me');
+    });
+
+    it('explains who it comes from, where replies go, and the once-per-referral limit', async () => {
+      await setup({ referral: withSender() });
+      await screen.findByRole('textbox', { name: 'Message to Maya' });
+      expect(screen.getByText(/Sent from/)).toHaveTextContent(
+        'Sent from Dana Doula via Doula Cooperative. Replies go to dana@example.com, and you get a copy by BCC. You can send Outreach once per referral',
+      );
+    });
+
+    it('sends your edited message', async () => {
+      const { user, sendOutreach } = await setup({ referral: withSender() });
+      const message = await screen.findByRole('textbox', { name: 'Message to Maya' });
+      await user.clear(message);
+      await user.type(message, 'Hello Maya, I would love to help.');
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+      expect(sendOutreach).toHaveBeenCalledWith('req-1', 'Hello Maya, I would love to help.');
+    });
+
+    it('rejects an empty message without sending', async () => {
+      const { user, sendOutreach } = await setup({ referral: withSender() });
+      const message = await screen.findByRole('textbox', { name: 'Message to Maya' });
+      await user.clear(message);
+      await user.type(message, ' '.repeat(3));
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+
+      expect(screen.getByText('Write a message before sending Outreach.')).toBeVisible();
+      expect(message).toHaveAttribute('aria-invalid', 'true');
+      expect(message).toHaveFocus();
+      expect(sendOutreach).not.toHaveBeenCalled();
+    });
+
+    it('reveals full name, email and phone with the sent time after sending', async () => {
+      const { user, listRefresh } = await setup({ referral: withSender() });
+      await user.click(await screen.findByRole('button', { name: 'Send Outreach' }));
+
+      const name = await screen.findByRole('heading', { name: 'Maya Lopez' });
+      expect(name).toHaveFocus();
+      expect(screen.getByRole('link', { name: 'maya@example.com' })).toHaveAttribute(
+        'href',
+        'mailto:maya@example.com',
+      );
+      expect(screen.getByRole('link', { name: '555-0100' })).toHaveAttribute(
+        'href',
+        'tel:555-0100',
+      );
+      expect(screen.getByRole('status')).toHaveTextContent(/^You reached out Nov 20, /);
+      expect(screen.getByText('1 member responded')).toBeVisible();
+      expect(screen.queryByRole('textbox')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Send Outreach' })).toBeNull();
+      expect(listRefresh.version()).toBe(1);
+    });
+
+    it('shows a failed send with your message kept, and lets you retry', async () => {
+      const { user, sendOutreach } = await setup({
+        referral: withSender(),
+        sendFailure: new Error(
+          "Your message wasn't sent, and nothing was shared. Please try again.",
+        ),
+      });
+      const message = await screen.findByRole('textbox', { name: 'Message to Maya' });
+      await user.type(message, ' P.S. Thanks!');
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "Your message wasn't sent, and nothing was shared. Please try again.",
+      );
+      expect((message as HTMLTextAreaElement).value).toMatch(/P\.S\. Thanks!$/);
+      expect(screen.queryByRole('heading', { name: 'Maya Lopez' })).toBeNull();
+      expect(
+        screen.getByText("Maya's full name, email, and phone appear after you send Outreach."),
+      ).toBeVisible();
+
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+      expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toBeVisible();
+      expect(sendOutreach).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('shows revealed contact details for a Referral you already reached out on, without a composer', async () => {
+    await setup({ referral: makeReferralDetail({ ...SENT, responseCount: 2 }) });
+    expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'maya@example.com' })).toBeVisible();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.queryByText(/appear after you send Outreach/)).toBeNull();
   });
 
   it('flags a requester who prefers Spanish', async () => {

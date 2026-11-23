@@ -14,6 +14,7 @@ import type { MemberDocument } from "../../types/member-document.js";
 import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { OutreachService } from "../services/outreach/interface.js";
 import type { ReferralsService } from "../services/referrals/interface.js";
 import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
@@ -33,6 +34,7 @@ export function createMembersTestPlugin(overrides?: {
   memberFirestoreService?: Partial<MemberFirestoreService>;
   referralsService?: Partial<ReferralsService>;
   referralPortalSettingsService?: Partial<ReferralPortalSettingsService>;
+  outreachService?: Partial<OutreachService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -88,7 +90,20 @@ export function createMembersTestPlugin(overrides?: {
     getReferral: mock(() =>
       Promise.reject(new Error("getReferral not configured in test")),
     ),
+    listReferralsWithMemberResponse: mock(() => Promise.resolve([])),
+    listMemberResponses: mock(() => Promise.resolve([])),
     ...overrides?.referralsService,
+  };
+
+  const defaultOutreachService: OutreachService = {
+    reserveOutreach: mock(() => Promise.resolve("reserved" as const)),
+    recordOutreach: mock(() => Promise.resolve()),
+    releaseOutreach: mock(() => Promise.resolve()),
+    sendOutreachEmail: mock(() =>
+      Promise.resolve({ mailgunMessageId: "<mailgun-id@example.com>" }),
+    ),
+    findPublishedProfileUrl: mock(() => Promise.resolve(undefined)),
+    ...overrides?.outreachService,
   };
 
   // Default: Referral Portal v2 switch on, so tests exercise membership rules.
@@ -118,6 +133,7 @@ export function createMembersTestPlugin(overrides?: {
     memberFirestoreService: defaultMemberFirestoreService,
     referralsService: defaultReferralsService,
     referralPortalSettingsService: defaultReferralPortalSettingsService,
+    outreachService: defaultOutreachService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

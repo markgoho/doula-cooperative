@@ -23,13 +23,13 @@
           </div>
           <p class="referrals-note">Referrals stay open for 14 days after they're submitted.</p>
 
-          @if (referralsResource.isLoading()) {
-            <p class="loading" role="status">Loading referrals...</p>
-          } @else if (referralsResource.error(); as err) {
+          @if (referralsResource.error(); as err) {
             <p class="error" role="alert">{{ err.message }}</p>
+          } @else if (!referralsResource.hasValue()) {
+            <p class="loading" role="status">Loading referrals...</p>
           } @else {
             @if (rows().length === 0) {
-              <p class="empty-state">No open referrals right now. Check back soon.</p>
+              <p class="empty-state">{{ emptyMessage() }}</p>
             } @else {
               <ul class="rows" aria-label="Referrals">
                 @for (referral of rows(); track referral.id) {
@@ -47,6 +47,9 @@
                       <span class="row-meta">
                         <span>{{ submitted(referral) }}</span>
                         <span>{{ responses(referral) }}</span>
+                        @if (referral.outreach) {
+                          <span class="pill mine">You reached out</span>
+                        }
                       </span>
                     </a>
                   </li>
