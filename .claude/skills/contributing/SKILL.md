@@ -34,6 +34,7 @@ Choose the scope based on which folder the changes primarily affect:
 | Scope                          | Folder                                        |
 | ------------------------------ | --------------------------------------------- |
 | `members`                      | `members/`                                    |
+| `admin`                        | `admin/`                                      |
 | `forms-api`                    | `functions/src/forms-api/`                    |
 | `members-api`                  | `functions/src/members-api/`                  |
 | `profiles-api`                 | `functions/src/profiles-api/`                 |
@@ -41,6 +42,7 @@ Choose the scope based on which folder the changes primarily affect:
 | `admin-messages-api`           | `functions/src/admin-messages-api/`           |
 | `admin-match-requests-api`     | `functions/src/admin-match-requests-api/`     |
 | `admin-unclaimed-profiles-api` | `functions/src/admin-unclaimed-profiles-api/` |
+| `admin-settings-api`           | `functions/src/admin-settings-api/`           |
 | `stripe-webhook-api`           | `functions/src/stripe-webhook-api/`           |
 | `profile-webhook-api`          | `functions/src/profile-webhook-api/`          |
 | `shared-api`                   | `functions/src/shared-api/`                   |

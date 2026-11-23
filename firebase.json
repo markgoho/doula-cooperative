@@ -622,6 +622,10 @@
           "function": "adminMatchRequestsApi"
         },
         {
+          "source": "/api/admin/settings{,/**}",
+          "function": "adminSettingsApi"
+        },
+        {
           "source": "/api/admin/members{,/**}",
           "function": "adminMembersApi"
         },

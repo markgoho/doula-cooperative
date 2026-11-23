@@ -370,6 +370,14 @@ export const ERROR_IDS = {
   API_MEMBER_REFERRAL_NOT_FOUND: "api_member_referral_not_found",
   API_MEMBER_REFERRALS_ELIGIBILITY_FAILED:
     "api_member_referrals_eligibility_failed",
+  API_MEMBER_REFERRAL_PORTAL_SETTINGS_READ_FAILED:
+    "api_member_referral_portal_settings_read_failed",
+
+  // Admin settings errors
+  API_ADMIN_GET_REFERRAL_PORTAL_SETTINGS_FAILED:
+    "api_admin_get_referral_portal_settings_failed",
+  API_ADMIN_UPDATE_REFERRAL_PORTAL_SETTINGS_FAILED:
+    "api_admin_update_referral_portal_settings_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];
