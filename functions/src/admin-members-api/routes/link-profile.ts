@@ -11,7 +11,7 @@ import type { MemberAdminService } from "../services/interface.js";
 import type { LinkProfileResult } from "../services/link-profile.js";
 
 const CARRY_OVER_WARNING =
-  "Profile linked, but the Legacy Membership's Offline Responses could not be carried over to this Member. Admins have been emailed; linking the same profile again retries it.";
+  "Profile linked, but the Legacy Membership's Offline Responses could not be carried over to this Member. Admins have been emailed the records to move by hand.";
 
 interface CarryOverStatus {
   offlineResponsesCarried: boolean;
@@ -21,8 +21,9 @@ interface CarryOverStatus {
 /**
  * Carry the linked Legacy Membership's Offline Responses over to the Member,
  * then delete its import record. The link itself already succeeded, so
- * failures are reported, never thrown. The import record is kept when the
- * carry-over fails so that relinking can find the Legacy Membership again.
+ * failures are reported, never thrown. The import record is deleted even when
+ * the carry-over fails: left behind, it would show as an Unclaimed Legacy
+ * Membership whose deletion also deletes the now-linked profile.
  */
 async function completeLegacyMembershipLink({
   memberId,
@@ -47,7 +48,7 @@ async function completeLegacyMembershipLink({
     await sendAdminFailureNotification({
       subject: `Offline Responses not carried over for ${memberEmail}`,
       title: "Offline Responses not carried over",
-      description: `An Admin linked profile "${slug}" to this Member, but the Legacy Membership's Offline Responses could not be moved to them. Link the same profile to the same Member again to retry (it is safe to repeat), or move them by hand.`,
+      description: `An Admin linked profile "${slug}" to this Member, but the Legacy Membership's Offline Responses could not be moved to them. Until they are moved, those Referrals don't show this Member's Offline Response and the Member can't record an Outcome on them.`,
       email: legacyEmail ?? memberEmail,
       memberId,
       failures: [failure],
@@ -61,13 +62,15 @@ async function completeLegacyMembershipLink({
 
   if (legacyLookupFailed === true) {
     return reportFailure(
-      `Find this profile's Legacy Membership in migrated_users_import, then move its matchRequests/*/legacyResponses documents to matchRequests/*/memberResponses/${memberId}.offlineResponse`,
+      `Find this profile's Legacy Membership in migrated_users_import (slug "${slug}"), move its matchRequests/*/legacyResponses documents to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt), then delete the import record`,
     );
   }
 
   if (legacyEmail === undefined) {
     return { offlineResponsesCarried: true };
   }
+
+  let didCarryOverFail = false;
 
   try {
     await memberAdminService.carryOverOfflineResponses({
@@ -76,6 +79,7 @@ async function completeLegacyMembershipLink({
       logger,
     });
   } catch (error) {
+    didCarryOverFail = true;
     logger.error("Failed to carry Offline Responses over after admin link", {
       errorId:
         ERROR_IDS.API_ADMIN_LINK_PROFILE_OFFLINE_RESPONSES_CARRY_OVER_FAILED,
@@ -84,9 +88,6 @@ async function completeLegacyMembershipLink({
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
-    return reportFailure(
-      `Move every matchRequests/*/legacyResponses/${legacyEmail} document to matchRequests/*/memberResponses/${memberId}.offlineResponse`,
-    );
   }
 
   try {
@@ -100,6 +101,12 @@ async function completeLegacyMembershipLink({
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+
+  if (didCarryOverFail) {
+    return reportFailure(
+      `Move every matchRequests/*/legacyResponses/${legacyEmail} document to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt; skip Referrals where the Member already has outreachSentAt or offlineResponse), then delete the legacy document`,
+    );
   }
 
   return { offlineResponsesCarried: true };

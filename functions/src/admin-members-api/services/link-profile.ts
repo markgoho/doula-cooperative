@@ -20,7 +20,7 @@ export interface LinkProfileResult {
   /**
    * The linked Legacy Membership's `migrated_users_import` document ID (its
    * email exactly as stored), when one exists. The import record is left in
-   * place so the caller can carry its Offline Responses over before deleting it.
+   * place for the caller to delete once its Offline Responses are carried over.
    */
   legacyEmail?: string;
   /** True when the Legacy Membership lookup failed, so `legacyEmail` is unknown. */
@@ -57,15 +57,13 @@ async function findLegacyEmail(
  *   - members[memberId].slug = slug
  *   - members[memberId].profileCreatedAt = profile.createdAt
  *
- * Uses a Firestore batch write for atomicity. Idempotent: relinking the same
- * profile to the same member skips the write, so a retry can finish the
- * Legacy Membership steps that follow the link.
+ * Uses a Firestore batch write for atomicity.
  *
  * @param options.memberId - The Firestore document ID of the member
  * @param options.slug - The profile slug to link
  * @returns The updated member document and the linked Legacy Membership's email
  * @throws NotFoundError if member or profile does not exist
- * @throws ValidationError if member already has a different profile or the profile is linked to another member
+ * @throws ValidationError if member already has a profile or profile is already linked
  */
 export async function linkProfile(options: {
   memberId: string;
@@ -76,8 +74,8 @@ export async function linkProfile(options: {
   try {
     const member = await verifyMemberExists(memberId);
 
-    // 2. Verify member doesn't already have a different profile
-    if (member.slug !== undefined && member.slug !== slug) {
+    // 2. Verify member doesn't already have a slug
+    if (member.slug !== undefined) {
       throw new ValidationError(
         `Member already has a linked profile with slug: ${member.slug}`,
       );
@@ -97,39 +95,32 @@ export async function linkProfile(options: {
 
     const profileData = profileDocument.data() as ProfileDocument;
 
-    // 4. Verify profile is not already linked to another member
-    if (
-      profileData.ownerUid !== undefined &&
-      profileData.ownerUid !== memberId
-    ) {
+    // 4. Verify profile is not already linked
+    if (profileData.ownerUid !== undefined) {
       throw new ValidationError(
         `Profile "${slug}" is already linked to member: ${profileData.ownerUid}`,
       );
     }
 
+    // 5. Batch write: set both sides of the relationship atomically
+    const batch = firestore.batch();
+
     const memberReference = firestore
       .collection(MEMBERS_COLLECTION)
       .doc(memberId);
-    const isAlreadyLinked =
-      member.slug === slug && profileData.ownerUid === memberId;
 
-    // 5. Batch write: set both sides of the relationship atomically
-    if (!isAlreadyLinked) {
-      const batch = firestore.batch();
+    batch.update(profileReference, { ownerUid: memberId });
+    const profileCreatedAt = Timestamp.fromDate(
+      new Date(profileData.createdAt),
+    );
 
-      batch.update(profileReference, { ownerUid: memberId });
-      const profileCreatedAt = Timestamp.fromDate(
-        new Date(profileData.createdAt),
-      );
+    batch.update(memberReference, {
+      slug,
+      profileCreatedAt,
+      profileApprovedAt: FieldValue.serverTimestamp(),
+    });
 
-      batch.update(memberReference, {
-        slug,
-        profileCreatedAt,
-        profileApprovedAt: FieldValue.serverTimestamp(),
-      });
-
-      await batch.commit();
-    }
+    await batch.commit();
 
     // 6. Find the Legacy Membership; the link stands even if this fails
     let legacyEmail: string | undefined;
@@ -159,11 +150,7 @@ export async function linkProfile(options: {
 
     const updatedMember = updatedMemberDocument.data() as MemberDocument;
 
-    logger.info("Linked profile to member", {
-      memberId,
-      slug,
-      alreadyLinked: isAlreadyLinked,
-    });
+    logger.info("Linked profile to member", { memberId, slug });
 
     return {
       member: {

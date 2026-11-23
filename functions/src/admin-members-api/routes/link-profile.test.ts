@@ -278,7 +278,7 @@ describe("POST /:memberId/profile/link", () => {
       expect(mockDeleteLegacyMembership).not.toHaveBeenCalled();
     });
 
-    it("still links, warns, emails admins, and keeps the import record when the carry-over fails", async () => {
+    it("still links, warns, emails admins, and still deletes the import record when the carry-over fails", async () => {
       const { testApp, request, mockDeleteLegacyMembership, mockSendEmail } =
         setup({ carryOverFails: true });
 
@@ -293,7 +293,7 @@ describe("POST /:memberId/profile/link", () => {
         "Offline Responses could not be carried over",
       );
       expect(mockSendEmail).toHaveBeenCalledTimes(1);
-      expect(mockDeleteLegacyMembership).not.toHaveBeenCalled();
+      expect(mockDeleteLegacyMembership).toHaveBeenCalledTimes(1);
     });
 
     it("still links, warns, and emails admins when the Legacy Membership lookup fails", async () => {

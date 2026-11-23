@@ -243,12 +243,11 @@ export interface MemberAdminService {
   /**
    * Link an unlinked profile to a member account.
    * Creates a bidirectional relationship between profile and member.
-   * Idempotent when the same profile is already linked to the same member.
    *
    * @param options - Object containing memberId and slug
    * @returns Promise resolving to updated member document and the linked Legacy Membership's email
    * @throws NotFoundError if member or profile does not exist
-   * @throws ValidationError if member already has a different profile or profile is linked to another member
+   * @throws ValidationError if member already has a profile or profile is already linked
    */
   linkProfile(options: {
     memberId: string;
