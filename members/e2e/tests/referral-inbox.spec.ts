@@ -15,6 +15,7 @@ const referrals = [
     services: ['birth-doula'],
     area: 'Rochester, NY',
     responseCount: 0,
+    isOpen: true,
   },
   {
     id: 'req-2',
@@ -23,6 +24,7 @@ const referrals = [
     services: ['postpartum-doula'],
     area: 'Buffalo, NY',
     responseCount: 0,
+    isOpen: true,
   },
 ];
 

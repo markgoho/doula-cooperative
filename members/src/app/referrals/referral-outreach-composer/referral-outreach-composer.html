@@ -1,0 +1,39 @@
+<form class="composer" aria-labelledby="outreach-heading" novalidate (submit)="send($event)">
+  <h3 id="outreach-heading">Send Outreach</h3>
+
+  <label class="form__label" for="outreach-message">Message to {{ recipientName() }}</label>
+  <textarea
+    #textarea
+    id="outreach-message"
+    name="message"
+    class="form__input form__input--textarea"
+    rows="10"
+    required
+    [attr.maxlength]="maxLength"
+    [value]="message()"
+    [attr.aria-invalid]="isMessageMissing() ? 'true' : null"
+    aria-describedby="outreach-hint outreach-message-error"
+    [readOnly]="sending()"
+    (input)="updateMessage($event)"
+  ></textarea>
+
+  <p id="outreach-message-error" class="field-error" aria-live="polite">
+    @if (isMessageMissing()) {
+      Write a message before sending Outreach.
+    }
+  </p>
+
+  <p id="outreach-hint" class="hint">
+    Sent from <strong>{{ fromLabel() }}</strong
+    >. Replies go to {{ sender().email }}, and you get a copy by BCC. You can send Outreach once per
+    referral; after that, contact {{ recipientName() }} directly.
+  </p>
+
+  @if (sendError(); as error) {
+    <p class="send-error" role="alert">{{ error }}</p>
+  }
+
+  <button class="button" type="submit" [disabled]="sending()">
+    {{ sending() ? 'Sending…' : 'Send Outreach' }}
+  </button>
+</form>

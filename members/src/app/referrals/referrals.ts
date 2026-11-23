@@ -2,15 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { formatDueDate } from './format-due-date';
 import { formatResponseCount } from './format-response-count';
 import { formatServices } from './format-services';
 import { MembershipRequiredError } from './membership-required-error';
+import { ReferralListRefresh } from './referral-list-refresh';
 import { ReferralMembershipRequired } from './referral-membership-required/referral-membership-required';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { ReferralPortalUnavailable } from './referral-portal-unavailable/referral-portal-unavailable';
@@ -18,15 +21,28 @@ import type { ReferralListItem } from './referral.types';
 import { getRelativeTime } from './referral.utilities';
 import { ReferralsService } from '../services/referrals.service';
 
-/** List filters. My Outreach and Needs outcome join once Outreach and Referral Outcomes exist. */
-type ReferralFilter = 'open';
+/** List filters. Needs outcome joins once Referral Outcomes exist. */
+type ReferralFilter = 'open' | 'mine';
 
 const REFERRAL_FILTERS: Record<
   ReferralFilter,
-  { label: string; select: (referrals: ReferralListItem[]) => ReferralListItem[] }
+  {
+    label: string;
+    empty: string;
+    select: (referrals: ReferralListItem[]) => ReferralListItem[];
+  }
 > = {
-  // The API lists only open Referrals (last 14 days).
-  open: { label: 'Open', select: (referrals) => referrals },
+  open: {
+    label: 'Open',
+    empty: 'No open referrals right now. Check back soon.',
+    select: (referrals) => referrals.filter((referral) => referral.isOpen),
+  },
+  // Every Referral you reached out on, at any age.
+  mine: {
+    label: 'My Outreach',
+    empty: "You haven't sent Outreach yet.",
+    select: (referrals) => referrals.filter((referral) => referral.outreach !== undefined),
+  },
 };
 
 const FILTER_IDS = Object.keys(REFERRAL_FILTERS) as ReferralFilter[];
@@ -49,10 +65,22 @@ const FILTER_IDS = Object.keys(REFERRAL_FILTERS) as ReferralFilter[];
 })
 export class Referrals {
   private referralsService = inject(ReferralsService);
+  private listRefresh = inject(ReferralListRefresh);
 
   protected referralsResource = resource({
     loader: () => this.referralsService.listReferrals(),
   });
+
+  constructor() {
+    // Reload (keeping the current rows on screen) when the pane reports a
+    // change, such as sent Outreach.
+    effect(() => {
+      if (this.listRefresh.version() === 0) return;
+      untracked(() => this.referralsResource.reload());
+    });
+  }
+
+  protected emptyMessage = computed(() => REFERRAL_FILTERS[this.filter()].empty);
 
   protected isPortalDisabled = computed(
     () => this.referralsResource.error() instanceof ReferralPortalDisabledError,

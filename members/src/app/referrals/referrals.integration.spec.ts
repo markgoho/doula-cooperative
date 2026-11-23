@@ -41,6 +41,7 @@ const ROCHESTER: ReferralListItem = {
   services: ['birth-doula'],
   area: 'Rochester, NY',
   responseCount: 0,
+  isOpen: true,
 };
 
 const BUFFALO: ReferralListItem = {
@@ -50,6 +51,7 @@ const BUFFALO: ReferralListItem = {
   services: ['postpartum-doula'],
   area: 'Buffalo, NY',
   responseCount: 0,
+  isOpen: true,
 };
 
 const REFERRALS = [ROCHESTER, BUFFALO];
@@ -68,6 +70,7 @@ function toDetail(item: ReferralListItem, firstName: string): ReferralDetailMode
     otherInfo: '',
     insurance: [],
     submitted: item.submitted,
+    outreachSender: { name: 'Dana Doula', email: 'dana@example.com' },
   };
 }
 
@@ -79,10 +82,11 @@ const DETAILS: Record<string, ReferralDetailModel> = {
 async function setup({ url = '/referrals' }: { url?: string } = {}) {
   const listReferrals = vi.fn().mockResolvedValue(REFERRALS);
   const getReferral = vi.fn((id: string) => Promise.resolve(DETAILS[id]));
+  const sendOutreach = vi.fn();
 
   await render(TestApp, {
     providers: [
-      { provide: ReferralsService, useValue: { listReferrals, getReferral } },
+      { provide: ReferralsService, useValue: { listReferrals, getReferral, sendOutreach } },
       provideRouter(ROUTES, withComponentInputBinding()),
     ],
   });
@@ -91,7 +95,7 @@ async function setup({ url = '/referrals' }: { url?: string } = {}) {
   await router.navigateByUrl(url);
   const user = userEvent.setup();
 
-  return { user, listReferrals };
+  return { user, listReferrals, sendOutreach };
 }
 
 describe('Referral inbox routing', () => {
@@ -120,5 +124,28 @@ describe('Referral inbox routing', () => {
     expect(await screen.findByRole('heading', { name: 'Ana · Buffalo, NY' })).toBeVisible();
     expect(screen.queryByRole('heading', { name: 'Maya · Rochester, NY' })).toBeNull();
     expect(listReferrals).toHaveBeenCalledOnce();
+  });
+
+  it('marks the row as reached out after sending Outreach from the pane', async () => {
+    const { user, listReferrals, sendOutreach } = await setup({ url: '/referrals/req-1' });
+    await screen.findByRole('heading', { name: 'Maya · Rochester, NY' });
+    const sentAt = new Date().toISOString();
+    sendOutreach.mockResolvedValue({
+      outreach: { sentAt },
+      contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
+    });
+    listReferrals.mockResolvedValue([
+      { ...ROCHESTER, responseCount: 1, outreach: { sentAt } },
+      BUFFALO,
+    ]);
+
+    await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+
+    expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toBeVisible();
+    const row = screen.getByRole('link', { name: /Rochester, NY/ });
+    await vi.waitFor(() => {
+      expect(row).toHaveTextContent('You reached out');
+    });
+    expect(listReferrals).toHaveBeenCalledTimes(2);
   });
 });

@@ -53,9 +53,37 @@
       }
     </dl>
 
-    <section class="contact" aria-labelledby="contact-heading">
-      <h3 id="contact-heading">Contact details</h3>
-      <p>{{ v.contactHint }}</p>
-    </section>
+    @if (v.referral.contact; as contact) {
+      <section class="contact revealed" aria-labelledby="contact-heading">
+        <h3 id="contact-heading" #contactHeading tabindex="-1">
+          {{ contact.fullName || 'Contact details' }}
+        </h3>
+        <p class="contact-links">
+          @if (contact.email) {
+            <a [href]="'mailto:' + contact.email">{{ contact.email }}</a>
+          }
+          @if (contact.phone) {
+            <a [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
+          }
+        </p>
+        @if (v.sentAt) {
+          <p class="sent" role="status">You reached out {{ v.sentAt }}.</p>
+        }
+      </section>
+      <!-- #118: the Referral Outcome control goes here. -->
+    } @else {
+      <section class="contact" aria-labelledby="contact-heading">
+        <h3 id="contact-heading">Contact details</h3>
+        <p>{{ v.contactHint }}</p>
+      </section>
+
+      @if (v.referral.outreachSender; as sender) {
+        <app-referral-outreach-composer
+          [referral]="v.referral"
+          [sender]="sender"
+          (sent)="onOutreachSent($event)"
+        />
+      }
+    }
   </article>
 }

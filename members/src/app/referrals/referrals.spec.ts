@@ -1,8 +1,11 @@
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
 import { MembershipRequiredError } from './membership-required-error';
+import { ReferralListRefresh } from './referral-list-refresh';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { Referrals } from './referrals';
 
@@ -14,6 +17,7 @@ function makeReferral(overrides: Partial<ReferralListItem> = {}): ReferralListIt
     services: ['birth-doula'],
     area: 'Rochester, NY',
     responseCount: 0,
+    isOpen: true,
     ...overrides,
   };
 }
@@ -40,6 +44,8 @@ async function setup({
   await render(Referrals, {
     providers: [{ provide: ReferralsService, useValue: { listReferrals } }, provideRouter([])],
   });
+
+  return { listReferrals, listRefresh: TestBed.inject(ReferralListRefresh) };
 }
 
 describe('Referrals inbox', () => {
@@ -116,6 +122,72 @@ describe('Referrals inbox', () => {
       'href',
       '/referrals/req-abc',
     );
+  });
+
+  it('keeps older reached-out Referrals out of Open', async () => {
+    await setup({
+      referrals: [
+        makeReferral({ id: 'req-open' }),
+        makeReferral({
+          id: 'req-old',
+          area: 'Buffalo, NY',
+          isOpen: false,
+          outreach: { sentAt: new Date().toISOString() },
+        }),
+      ],
+    });
+    expect(await screen.findByRole('button', { name: 'Open (1)' })).toBeVisible();
+    expect(screen.getByRole('link', { name: /Rochester, NY/ })).toBeVisible();
+    expect(screen.queryByRole('link', { name: /Buffalo, NY/ })).toBeNull();
+  });
+
+  it('lists every Referral you reached out on under My Outreach, at any age', async () => {
+    await setup({
+      referrals: [
+        makeReferral({ id: 'req-open' }),
+        makeReferral({
+          id: 'req-mine-open',
+          area: 'Albany, NY',
+          outreach: { sentAt: new Date().toISOString() },
+        }),
+        makeReferral({
+          id: 'req-mine-old',
+          area: 'Buffalo, NY',
+          isOpen: false,
+          outreach: { sentAt: new Date().toISOString() },
+        }),
+      ],
+    });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'My Outreach (2)' }));
+
+    expect(screen.getByRole('button', { name: 'My Outreach (2)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('link', { name: /Albany, NY/ })).toHaveTextContent('You reached out');
+    expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toHaveTextContent('You reached out');
+    expect(screen.queryByRole('link', { name: /Rochester, NY/ })).toBeNull();
+  });
+
+  it('says when you have not sent Outreach yet', async () => {
+    await setup({ referrals: [makeReferral()] });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'My Outreach (0)' }));
+    expect(screen.getByText("You haven't sent Outreach yet.")).toBeVisible();
+  });
+
+  it('reloads the list when the pane reports sent Outreach', async () => {
+    const { listReferrals, listRefresh } = await setup({ referrals: [makeReferral()] });
+    await screen.findByRole('link', { name: /Rochester, NY/ });
+    listReferrals.mockResolvedValue([
+      makeReferral({ responseCount: 1, outreach: { sentAt: new Date().toISOString() } }),
+    ]);
+
+    listRefresh.request();
+
+    expect(await screen.findByText('You reached out')).toBeVisible();
+    expect(screen.getByText('1 member responded')).toBeVisible();
   });
 
   it('handles a Referral with no area or due date', async () => {
