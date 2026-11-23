@@ -10,7 +10,8 @@ Multi-platform doula cooperative website:
 - **Hugo Static Site**: Main public website with doula directory
 - **Angular Members App**: Member dashboard and self-service
 - **Angular Admin App**: Cooperative administration app served at admin.doulacooperative.com
-- **Bun**: Primary package manager
+- **Bun**: Primary package manager, except `functions/`
+- **npm for `functions/`**: install with `npm install`/`npm ci` and keep only `package-lock.json`. Never run `bun install` or `bun add` there; a `bun.lock` makes Cloud Build use the bun buildpack and fail the deploy. `bun test` and `bun run <script>.ts` are fine
 
 ## Development Commands
 
