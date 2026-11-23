@@ -1,70 +1,56 @@
-import type { MatchRequestLocale } from "../../collections/match-request-locale.js";
 import {
   MARK_EMAIL,
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../../constants/email-addresses.js";
+import { ADMIN_APP_URL } from "../../constants/urls.js";
 import type { EmailMessage } from "../../shared-api/services/email/index.js";
+import { formatDueMonth } from "../../shared-api/utils/format-due-month.js";
+import { formatZipArea } from "../../shared-api/utils/format-zip-area.js";
+import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import type { DoulaMatchData } from "./form-storage/types.js";
 
 /**
- * Build email notification message for doula match form submissions.
+ * Build the Match Request Notification sent to admins for a new Match Request.
  *
- * Sends notification to admin emails with form details and sets Reply-To
- * to the submitter's email for easy response.
+ * PHI stays in the platform: the email carries only due month/year, services,
+ * a "City, ST" area, a Spanish flag, and a link to the admin match-request
+ * detail page. It never includes the requester's name, contact details,
+ * insurance, birth location, or notes, and sets no Reply-To.
  *
- * SECURITY NOTE: This function does NOT escape HTML in form fields.
- * This is acceptable ONLY because emails are sent exclusively to trusted
- * admin recipients (MARK_EMAIL, REFERRAL_EMAIL). These recipients can safely
- * view HTML content from untrusted sources.
+ * SECURITY NOTE: services and the ZIP fallback are still requester-supplied,
+ * so every interpolated value is HTML-escaped. The subject is plain text and
+ * is not HTML-escaped.
  *
- * If the recipient list EVER changes to include non-admin users (e.g., sending
- * confirmation emails to form submitters), HTML escaping MUST be implemented
- * before deploying to production to prevent XSS attacks.
- *
- * @param parameters - Doula match form data
+ * @param parameters - Doula match form data and the pre-allocated Match Request id
  * @returns Email message ready to send via EmailService
  */
-const LOCALE_LABELS: Record<MatchRequestLocale, string> = {
-  en: "English (en)",
-  es: "Spanish (es)",
-};
-
 export function buildDoulaMatchNotification({
-  name,
-  phone,
-  email,
-  zipcode,
-  estimatedDueDate,
-  services,
-  birthLocation,
-  otherInfo,
-  insurance,
-  locale,
-}: DoulaMatchData): EmailMessage {
-  const localeLabel = locale ? LOCALE_LABELS[locale] : undefined;
+  data: { zipcode, estimatedDueDate, services, locale },
+  matchRequestId,
+}: {
+  data: DoulaMatchData;
+  matchRequestId: string;
+}): EmailMessage {
+  const dueMonth = formatDueMonth(estimatedDueDate);
+  const area = formatZipArea(zipcode);
+  const isSpanishPreferred = locale === "es";
+  const detailUrl = `${ADMIN_APP_URL}/match-requests/${encodeURIComponent(matchRequestId)}`;
+  const subjectSuffix = isSpanishPreferred ? " · Spanish" : "";
+  const spanishLine = isSpanishPreferred
+    ? "<p><strong>Requester prefers Spanish</strong></p>"
+    : "";
 
   return {
     from: `Doula Cooperative <${NO_REPLY_EMAIL}>`,
     to: [MARK_EMAIL, REFERRAL_EMAIL],
-    subject: `New Doula Match Request from ${name}`,
+    subject: `New match request: due ${dueMonth} · ${area}${subjectSuffix}`,
     html: `
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone}</p>
-      <p><strong>ZIP Code:</strong> ${zipcode}</p>
-      <p><strong>Estimated Due Date:</strong> ${estimatedDueDate.month}/${estimatedDueDate.day}/${estimatedDueDate.year}</p>
-      <p><strong>Services:</strong> ${services.join(", ")}</p>
-      ${
-        insurance.length > 0
-          ? `<p><strong>Insurance/Cost offset:</strong> ${insurance.join(", ")}</p>`
-          : ""
-      }
-      <p><strong>Birth Location:</strong> ${birthLocation}</p>
-      ${localeLabel ? `<p><strong>Language:</strong> ${localeLabel}</p>` : ""}
-      <p><strong>Other Info:</strong></p>
-      <p>${otherInfo}</p>
+      <p><strong>Due:</strong> ${escapeHtml(dueMonth)}</p>
+      <p><strong>Services:</strong> ${escapeHtml(services.join(", "))}</p>
+      <p><strong>Area:</strong> ${escapeHtml(area)}</p>
+      ${spanishLine}
+      <p><a href="${escapeHtml(detailUrl)}">View match request in the admin app</a></p>
     `,
-    "h:Reply-To": email,
   };
 }

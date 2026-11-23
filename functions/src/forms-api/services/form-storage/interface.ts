@@ -17,11 +17,17 @@ export interface FormStorageService {
   }): Promise<void>;
 
   /**
-   * Save a doula match request submission to Firestore.
+   * Allocate a Match Request document id without writing to Firestore.
+   */
+  createMatchRequestId(): string;
+
+  /**
+   * Save a doula match request submission to Firestore at the given id.
    *
-   * @param options - Match request data, reCAPTCHA score, and email send status
+   * @param options - Pre-allocated id, match request data, reCAPTCHA score, and email send status
    */
   saveMatchRequest(options: {
+    id: string;
     data: DoulaMatchData;
     recaptchaScore: number;
     emailSent?: boolean;

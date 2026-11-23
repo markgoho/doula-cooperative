@@ -21,6 +21,7 @@ export function createContactUsFormTestPlugin(overrides?: {
   };
 
   const defaultFormStorageService: FormStorageService = {
+    createMatchRequestId: mock(() => "test-match-request-id"),
     saveContactForm: mock(() => Promise.resolve()),
     saveMatchRequest: mock(() => Promise.resolve()),
     ...overrides?.formStorageService,
@@ -54,6 +55,7 @@ export function createDoulaMatchFormTestPlugin(overrides?: {
   };
 
   const defaultFormStorageService: FormStorageService = {
+    createMatchRequestId: mock(() => "test-match-request-id"),
     saveContactForm: mock(() => Promise.resolve()),
     saveMatchRequest: mock(() => Promise.resolve()),
     ...overrides?.formStorageService,
