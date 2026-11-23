@@ -118,6 +118,17 @@ export function createMockVerifyOwnerOrAdmin() {
         } as DecodedIdToken);
       }
 
+      if (
+        authorizationHeader === "Bearer referral-coordinator-token" &&
+        memberId === "test-member-id"
+      ) {
+        return Promise.resolve({
+          uid: "test-member-id",
+          email: "test@example.com",
+          referralCoordinator: true,
+        } as unknown as DecodedIdToken);
+      }
+
       if (authorizationHeader === "Bearer admin-token") {
         return Promise.resolve({
           uid: "admin-user",

@@ -1,7 +1,10 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { handleRouteError } from "../../shared-api/utils/route-error-handler.js";
-import { type UpdateClaimsResponse } from "../schemas/member-schemas.js";
+import {
+  type UpdateClaimsBody,
+  type UpdateClaimsResponse,
+} from "../schemas/member-schemas.js";
 import type { MemberAdminService } from "../services/interface.js";
 
 /**
@@ -19,7 +22,7 @@ export async function updateClaimsLogic({
   set,
 }: {
   uid: string;
-  claims: { admin?: boolean };
+  claims: UpdateClaimsBody;
   adminUid: string;
   memberAdminService: MemberAdminService;
   logger: Logger;

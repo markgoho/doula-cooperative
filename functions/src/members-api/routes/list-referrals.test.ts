@@ -234,6 +234,16 @@ describe("GET /:memberId/referrals", () => {
       expect(response.status).toBe(200);
     });
 
+    it("lets a Referral Coordinator without an active membership through while the switch is off", async () => {
+      const { testApp, request } = setup({
+        v2Enabled: false,
+        memberIsInactive: true,
+        authToken: "referral-coordinator-token",
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
     it("lets an active member through while the switch is on", async () => {
       const { testApp, request } = setup({ v2Enabled: true });
       const response = await handleRequest(testApp, request);

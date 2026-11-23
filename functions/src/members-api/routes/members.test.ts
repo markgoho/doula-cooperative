@@ -86,6 +86,17 @@ describe("GET /:memberId (authenticated)", () => {
           } as DecodedIdToken);
         }
 
+        if (
+          authorizationHeader === "Bearer referral-coordinator-token" &&
+          targetMemberId === "test-member-id"
+        ) {
+          return Promise.resolve({
+            uid: "test-member-id",
+            email: "test@example.com",
+            referralCoordinator: true,
+          } as unknown as DecodedIdToken);
+        }
+
         if (authorizationHeader === "Bearer admin-token") {
           return Promise.resolve({
             uid: "admin-user",
@@ -250,6 +261,22 @@ describe("GET /:memberId (authenticated)", () => {
     it("is true for an Admin while the switch is off", async () => {
       const { testApp, request } = setup({
         authToken: "admin-token",
+        v2Enabled: false,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(true);
+    });
+
+    it("is true for a Referral Coordinator without an active membership while the switch is off", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        activeStripeMember: false,
         v2Enabled: false,
       });
 

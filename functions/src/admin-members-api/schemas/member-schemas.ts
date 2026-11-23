@@ -55,6 +55,12 @@ export const MemberResponseSchema = t.Object({
   isAdmin: t.Boolean({
     description: "Whether the user has admin privileges (from custom claims)",
   }),
+  isReferralCoordinator: t.Optional(
+    t.Boolean({
+      description:
+        "Whether the user is a Referral Coordinator (from custom claims). Only returned by GET /:memberId",
+    }),
+  ),
   name: t.Optional(
     t.String({
       description: "User display name",
@@ -337,6 +343,12 @@ export const UpdateClaimsBodySchema = t.Object({
   admin: t.Optional(
     t.Boolean({
       description: "Set to true to grant admin privileges, false to revoke",
+    }),
+  ),
+  referralCoordinator: t.Optional(
+    t.Boolean({
+      description:
+        "Set to true to grant the Referral Coordinator role, false to revoke",
     }),
   ),
 });

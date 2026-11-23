@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from "../../shared-api/errors/http-error.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import type { UpdateClaimsBody } from "../schemas/member-schemas.js";
 
 interface FirebaseAuthError {
   code: string;
@@ -26,7 +27,7 @@ function isAuthError(error: unknown): error is FirebaseAuthError {
  * Claims are merged with existing claims. Set a claim to false to remove it.
  *
  * @param uid - The UID of the user to update claims for
- * @param claims - Claims to update (e.g., { admin: true })
+ * @param claims - Claims to update (e.g., { admin: true } or { referralCoordinator: false }); omitted keys are left unchanged
  * @param requestingAdminUid - The UID of the admin making the request
  * @param logger - Logger instance for error logging
  * @returns Promise resolving when claims are updated
@@ -42,7 +43,7 @@ export async function updateClaims({
   logger,
 }: {
   uid: string;
-  claims: { admin?: boolean };
+  claims: UpdateClaimsBody;
   requestingAdminUid: string;
   logger: Logger;
 }): Promise<void> {

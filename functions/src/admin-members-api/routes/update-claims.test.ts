@@ -41,7 +41,7 @@ describe("PATCH /:memberId/claims", () => {
         requestingAdminUid,
       }: {
         uid: string;
-        claims: { admin?: boolean };
+        claims: { admin?: boolean; referralCoordinator?: boolean };
         requestingAdminUid: string;
         logger: unknown;
       }): Promise<void> => {
@@ -84,7 +84,7 @@ describe("PATCH /:memberId/claims", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request };
+    return { testApp, request, mockUpdateClaims };
   }
 
   describe("Authentication", () => {
@@ -149,6 +149,55 @@ describe("PATCH /:memberId/claims", () => {
       expect(response.status).toBe(403);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("Cannot modify your own admin privileges");
+    });
+
+    it("grants the Referral Coordinator claim without touching the admin claim", async () => {
+      const { testApp, request, mockUpdateClaims } = setup({
+        body: { referralCoordinator: true },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateClaims).toHaveBeenCalledTimes(1);
+      const claims = mockUpdateClaims.mock.calls[0]?.[0].claims;
+      expect(claims).toEqual({ referralCoordinator: true });
+      expect(claims).not.toHaveProperty("admin");
+    });
+
+    it("revokes the Referral Coordinator claim without touching the admin claim", async () => {
+      const { testApp, request, mockUpdateClaims } = setup({
+        body: { referralCoordinator: false },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const claims = mockUpdateClaims.mock.calls[0]?.[0].claims;
+      expect(claims).toEqual({ referralCoordinator: false });
+      expect(claims).not.toHaveProperty("admin");
+    });
+
+    it("lets an Admin grant herself the Referral Coordinator claim", async () => {
+      const { testApp, request } = setup({
+        memberId: "admin-user",
+        body: { referralCoordinator: true },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+    });
+
+    it("rejects a non-boolean Referral Coordinator value", async () => {
+      const { testApp, request, mockUpdateClaims } = setup({
+        body: { referralCoordinator: "yes" },
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(422);
+      expect(mockUpdateClaims).not.toHaveBeenCalled();
     });
 
     it("should return 404 when user does not exist", async () => {

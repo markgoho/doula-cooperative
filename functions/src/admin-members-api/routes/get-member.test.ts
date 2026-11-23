@@ -20,6 +20,7 @@ describe("GET /:memberId (get member)", () => {
     // Scenario flags
     memberNotFound?: boolean;
     serverError?: boolean;
+    referralCoordinator?: boolean;
   }
 
   function setup({
@@ -27,6 +28,7 @@ describe("GET /:memberId (get member)", () => {
     authToken = "admin-token",
     memberNotFound = false,
     serverError = false,
+    referralCoordinator = false,
   }: SetupOptions = {}) {
     // Configure mock based on scenario
     const mockVerifyMemberExists = mock(() => {
@@ -51,6 +53,7 @@ describe("GET /:memberId (get member)", () => {
     const testApp = createAdminTestPlugin({
       memberAdminService: {
         verifyMemberExists: mockVerifyMemberExists,
+        isReferralCoordinator: mock(() => Promise.resolve(referralCoordinator)),
       },
     });
 
@@ -124,6 +127,31 @@ describe("GET /:memberId (get member)", () => {
       // Should NOT expose internal error details
       expect(body.error).not.toContain("Database connection");
       expect(body.error).toContain("get member");
+    });
+  });
+
+  describe("Referral Coordinator state", () => {
+    it("reports a Referral Coordinator", async () => {
+      const { testApp, request } = setup({ referralCoordinator: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        isReferralCoordinator?: boolean;
+      };
+      expect(body.isReferralCoordinator).toBe(true);
+    });
+
+    it("reports a member who is not a Referral Coordinator", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as {
+        isReferralCoordinator?: boolean;
+      };
+      expect(body.isReferralCoordinator).toBe(false);
     });
   });
 

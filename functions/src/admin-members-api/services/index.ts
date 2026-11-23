@@ -6,6 +6,7 @@ import { cleanSlateDelete } from "./clean-slate-delete.js";
 import { deleteDraftProfile } from "./delete-draft-profile.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
+import { isReferralCoordinator } from "./is-referral-coordinator.js";
 import { linkProfile } from "./link-profile.js";
 import { listMembers } from "./list-members.js";
 import { listUnlinkedProfiles } from "./list-unlinked-profiles.js";
@@ -30,6 +31,7 @@ export const MemberAdminService = {
   extendMembership,
   updateClaims,
   isAdmin,
+  isReferralCoordinator,
   refundMembership,
   cleanSlateDelete,
   toggleProfileDraft,
@@ -51,6 +53,7 @@ export { cleanSlateDelete } from "./clean-slate-delete.js";
 export { deleteDraftProfile } from "./delete-draft-profile.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
+export { isReferralCoordinator } from "./is-referral-coordinator.js";
 export { linkProfile } from "./link-profile.js";
 export { listMembers } from "./list-members.js";
 export { listUnlinkedProfiles } from "./list-unlinked-profiles.js";

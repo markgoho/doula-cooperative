@@ -2,6 +2,7 @@ import type { ProfileData } from "../../profiles-api/schemas/profile-schemas.js"
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { UpdateClaimsBody } from "../schemas/member-schemas.js";
 import type { ApproveProfileResult } from "./approve-profile.js";
 import type { ChangeSlugResult } from "./change-slug.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
@@ -116,7 +117,7 @@ export interface MemberAdminService {
    */
   updateClaims(options: {
     uid: string;
-    claims: { admin?: boolean };
+    claims: UpdateClaimsBody;
     requestingAdminUid: string;
     logger: Logger;
   }): Promise<void>;
@@ -129,6 +130,15 @@ export interface MemberAdminService {
    * @returns Promise resolving to true if user has admin claim, false otherwise
    */
   isAdmin(uid: string, logger: Logger): Promise<boolean>;
+
+  /**
+   * Check if a user holds the Referral Coordinator role.
+   *
+   * @param uid - The user's UID
+   * @param logger - Logger for error reporting
+   * @returns Promise resolving to true if user has the referralCoordinator claim
+   */
+  isReferralCoordinator(uid: string, logger: Logger): Promise<boolean>;
 
   /**
    * Refund a member's Stripe payment, cancel subscription, and deactivate membership.

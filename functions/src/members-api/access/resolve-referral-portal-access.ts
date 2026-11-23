@@ -17,7 +17,7 @@ export type ReferralPortalAccess =
 /**
  * Decide whether the authenticated requester can reach the Referral Portal.
  *
- * Order: preview roles (Admins) always pass; otherwise the Referral Portal v2
+ * Order: preview roles (Admins, Referral Coordinators) always pass; otherwise the Referral Portal v2
  * switch must be on, and the member must hold an active Stripe membership.
  *
  * @param loadMember - Loads the member document only when it is needed
