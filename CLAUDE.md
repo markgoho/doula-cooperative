@@ -125,6 +125,7 @@ import { onCall } from "firebase-functions/https";
 - Never import `CommonModule`; import only explicit modules needed
 - Components never access Firebase directly; always use services
 - Router has `withComponentInputBinding()` enabled for query params
+- Tabs, list filters, and other controls that change what a page shows are child routes (links + `routerLinkActive`), never component signal state, so views are linkable and back-button navigable
 - **Use `resource` API for reactive async data loading** - See `members/RESOURCE_PATTERN.md` for detailed guide
   - Replace manual loading/caching with declarative resource pattern
   - Automatic reactivity when signal dependencies change
