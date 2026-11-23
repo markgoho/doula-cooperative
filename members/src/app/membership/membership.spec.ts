@@ -857,6 +857,81 @@ describe('Membership', () => {
       expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
     });
   });
+
+  describe('referral emails toggle', () => {
+    const availableMember: Partial<Member> = {
+      createdAt: new Date(),
+      email: 'jane@example.com',
+      uid: 'user123',
+      membershipActive: true,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+      subscriptionStatus: 'active',
+      referralPortalAvailable: true,
+    };
+
+    it('is on by default when the member never changed it', async () => {
+      await setup({ isAuthenticated: true, userDocument: availableMember });
+
+      expect(screen.getByRole('switch', { name: 'Email me new referrals' })).toBeChecked();
+    });
+
+    it('is off when the member opted out', async () => {
+      await setup({
+        isAuthenticated: true,
+        userDocument: { ...availableMember, referralNotificationsEnabled: false },
+      });
+
+      expect(screen.getByRole('switch', { name: 'Email me new referrals' })).not.toBeChecked();
+    });
+
+    it('is hidden while the Referral Portal is unavailable', async () => {
+      await setup({
+        isAuthenticated: true,
+        userDocument: { ...availableMember, referralPortalAvailable: false },
+      });
+
+      expect(screen.queryByRole('switch', { name: 'Email me new referrals' })).toBeNull();
+    });
+
+    it('turns referral emails off when toggled', async () => {
+      const { user, updateReferralNotificationsMock } = await setup({
+        isAuthenticated: true,
+        userDocument: availableMember,
+      });
+
+      await user.click(screen.getByRole('switch', { name: 'Email me new referrals' }));
+
+      expect(updateReferralNotificationsMock).toHaveBeenCalledWith(false);
+    });
+
+    it('turns referral emails back on when toggled', async () => {
+      const { user, updateReferralNotificationsMock } = await setup({
+        isAuthenticated: true,
+        userDocument: { ...availableMember, referralNotificationsEnabled: false },
+      });
+
+      await user.click(screen.getByRole('switch', { name: 'Email me new referrals' }));
+
+      expect(updateReferralNotificationsMock).toHaveBeenCalledWith(true);
+    });
+
+    it('shows an error and keeps the saved state when saving fails', async () => {
+      const { user } = await setup({
+        isAuthenticated: true,
+        userDocument: availableMember,
+        updateReferralNotificationsShouldFail: true,
+      });
+
+      const toggle = screen.getByRole('switch', { name: 'Email me new referrals' });
+      await user.click(toggle);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Unable to update referral emails. Please try again.',
+      );
+      expect(toggle).toBeChecked();
+    });
+  });
 });
 
 interface SetupOptions {
@@ -872,6 +947,7 @@ interface SetupOptions {
   checkSlugAvailabilityResult?: { taken: boolean; unownedMatch?: { slug: string; title: string } };
   checkSlugExistsTakenSlugs?: string[];
   requestProfileLinkShouldFail?: boolean;
+  updateReferralNotificationsShouldFail?: boolean;
 }
 
 async function setup({
@@ -887,6 +963,7 @@ async function setup({
   checkSlugAvailabilityResult = { taken: false },
   checkSlugExistsTakenSlugs = [],
   requestProfileLinkShouldFail = false,
+  updateReferralNotificationsShouldFail = false,
 }: SetupOptions = {}) {
   const mockUser = isAuthenticated
     ? {
@@ -934,6 +1011,10 @@ async function setup({
     ? vi.fn().mockRejectedValue(new Error('Failed to cancel membership'))
     : vi.fn().mockResolvedValue(undefined);
 
+  const updateReferralNotificationsMock = updateReferralNotificationsShouldFail
+    ? vi.fn().mockRejectedValue(new Error('Unable to update referral emails. Please try again.'))
+    : vi.fn().mockResolvedValue(undefined);
+
   const mockMembershipService = {
     userDocument: signal(mockUserDocument),
     reloadUserDocument: vi.fn(),
@@ -943,6 +1024,7 @@ async function setup({
     checkSlugAvailability: checkSlugAvailabilityMock,
     requestProfileLink: requestProfileLinkMock,
     cancelMembership: cancelMembershipMock,
+    updateReferralNotifications: updateReferralNotificationsMock,
   };
 
   await render(Membership, {
@@ -971,5 +1053,6 @@ async function setup({
     checkSlugAvailabilityMock,
     requestProfileLinkMock,
     cancelMembershipMock,
+    updateReferralNotificationsMock,
   };
 }

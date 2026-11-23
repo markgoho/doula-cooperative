@@ -26,6 +26,19 @@ export interface MemberService {
   updateName(memberId: string, name: string): Promise<MemberDocument>;
 
   /**
+   * Turn a member's Referral Notification emails on or off.
+   *
+   * @param memberId - The Firestore document ID
+   * @param isEnabled - Whether the member wants Referral Notifications
+   * @returns Promise resolving to updated member document
+   * @throws NotFoundError if member does not exist
+   */
+  updateReferralNotifications(
+    memberId: string,
+    isEnabled: boolean,
+  ): Promise<MemberDocument>;
+
+  /**
    * Cancel a membership by scheduling Stripe subscription cancellation at period end.
    * Only available for members with Stripe subscription data.
    *

@@ -62,6 +62,8 @@ export interface MemberDocument {
   newsletterUnsubscribedAt?: Timestamp;
   refundedAt?: Timestamp;
   refundReason?: string;
+  /** Referral Notification opt-out. Missing means true (on by default). */
+  referralNotificationsEnabled?: boolean;
 }
 
 /**

@@ -27,6 +27,7 @@ export interface Member {
   newsletterSubscribedAt?: Date;
   newsletterUnsubscribedAt?: Date;
   referralPortalAvailable?: boolean;
+  referralNotificationsEnabled?: boolean;
 }
 
 @Service()
@@ -366,6 +367,39 @@ export class MembershipService {
   }
 
   /**
+   * Turn Referral Notification emails on or off for the signed-in member.
+   * Triggers `reloadUserDocument()` on success.
+   * @throws Error with user-friendly message
+   */
+  async updateReferralNotifications(isEnabled: boolean): Promise<void> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error('You must be signed in to change referral emails.');
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.patch<{ success: boolean; enabled: boolean }>(
+          `/api/members/${uid}/referral-notifications`,
+          { enabled: isEnabled },
+        ),
+      );
+      this.reloadUserDocument();
+    } catch (error: unknown) {
+      console.error('Failed to update referral email preference:', {
+        enabled: isEnabled,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        throw new Error('You must be signed in to change referral emails.', { cause: error });
+      }
+
+      throw new Error('Unable to update referral emails. Please try again.', { cause: error });
+    }
+  }
+
+  /**
    * Update the member's name.
    * Triggers `reloadUserDocument()` on success to refresh the cached member data.
    * @param name - The full name to set
@@ -646,6 +680,9 @@ export class MembershipService {
       }),
       ...(apiResponse.referralPortalAvailable !== undefined && {
         referralPortalAvailable: apiResponse.referralPortalAvailable,
+      }),
+      ...(apiResponse.referralNotificationsEnabled !== undefined && {
+        referralNotificationsEnabled: apiResponse.referralNotificationsEnabled,
       }),
     };
   }

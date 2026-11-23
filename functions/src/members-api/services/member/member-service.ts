@@ -59,6 +59,25 @@ export const MemberService: MemberServiceInterface = {
   },
 
   /**
+   * Turn a member's Referral Notification emails on or off.
+   *
+   * @param memberId - The Firestore document ID of the member
+   * @param isEnabled - Whether the member wants Referral Notifications
+   * @returns Updated member document data
+   * @throws NotFoundError if member does not exist
+   */
+  async updateReferralNotifications(
+    memberId: string,
+    isEnabled: boolean,
+  ): Promise<MemberDocument> {
+    return updateMemberWithValidation({
+      memberId,
+      updates: { referralNotificationsEnabled: isEnabled },
+      operation: "update member",
+    });
+  },
+
+  /**
    * Cancel a membership by scheduling Stripe subscription cancellation at period end.
    * Only available for members with Stripe subscription data.
    *

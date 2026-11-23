@@ -11,6 +11,7 @@ import { getMemberLogic } from "../routes/members.js";
 import { syncEmailLogic } from "../routes/sync-email.js";
 import { updateMemberNameLogic } from "../routes/update-member-name.js";
 import { updateNewsletterPreferenceLogic } from "../routes/update-newsletter-preference.js";
+import { updateReferralNotificationsLogic } from "../routes/update-referral-notifications.js";
 import { verifyEmailLogic } from "../routes/verify-email.js";
 import {
   CancelMembershipResponseSchema,
@@ -20,6 +21,8 @@ import {
   UpdateMemberNameResponseSchema,
   UpdateNewsletterPreferenceBodySchema,
   UpdateNewsletterPreferenceResponseSchema,
+  UpdateReferralNotificationsBodySchema,
+  UpdateReferralNotificationsResponseSchema,
   VerifyEmailResponseSchema,
 } from "../schemas/member-schemas.js";
 import {
@@ -212,6 +215,34 @@ export function createMembersPlugin(services?: PartialServices) {
           params: MemberIdParameterSchema,
           body: UpdateMemberNameBodySchema,
           response: UpdateMemberNameResponseSchema,
+        },
+      )
+      // PATCH /:memberId/referral-notifications - Turn Referral Notifications on/off (owner only) - Served at /api/members/:memberId/referral-notifications
+      .patch(
+        "/:memberId/referral-notifications",
+        async ({
+          params,
+          body,
+          memberService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          updateReferralNotificationsLogic({
+            memberId: params.memberId,
+            enabled: body.enabled,
+            memberService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          body: UpdateReferralNotificationsBodySchema,
+          response: UpdateReferralNotificationsResponseSchema,
         },
       )
       // POST /:memberId/membership/cancel - Cancel membership (owner or admin) - Served at /api/members/:memberId/membership/cancel

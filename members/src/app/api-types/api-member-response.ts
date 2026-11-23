@@ -28,6 +28,8 @@ export interface ApiMemberResponse {
   refundReason?: string;
   /** Server-computed: whether this member can reach the Referral Portal right now */
   referralPortalAvailable?: boolean;
+  /** Referral Notification emails; missing means on */
+  referralNotificationsEnabled?: boolean;
 }
 
 // export type Member = ApiMemberResponse;

@@ -378,6 +378,19 @@ export const ERROR_IDS = {
     "api_admin_get_referral_portal_settings_failed",
   API_ADMIN_UPDATE_REFERRAL_PORTAL_SETTINGS_FAILED:
     "api_admin_update_referral_portal_settings_failed",
+
+  // Referral Notification trigger errors
+  REFERRAL_NOTIFICATION_ATTEMPT_FAILED: "referral_notification_attempt_failed",
+  REFERRAL_NOTIFICATION_FINAL_FAILURE: "referral_notification_final_failure",
+  REFERRAL_NOTIFICATION_ALERT_FAILED: "referral_notification_alert_failed",
+  REFERRAL_NOTIFICATION_MARKER_WRITE_FAILED:
+    "referral_notification_marker_write_failed",
+  REFERRAL_NOTIFICATION_MATCH_REQUEST_NOT_FOUND:
+    "referral_notification_match_request_not_found",
+
+  // Referral Notification preference errors
+  UPDATE_REFERRAL_NOTIFICATIONS_ROUTE_FAILED:
+    "update_referral_notifications_route_failed",
 } as const;
 
 export type ErrorId = (typeof ERROR_IDS)[keyof typeof ERROR_IDS];
