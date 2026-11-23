@@ -49,8 +49,7 @@ describe("handleMembersApi", () => {
 
       // Verify error context includes expected fields
       const context = errorMock.mock.calls[0]?.[1] as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       expect(context).toBeDefined();
       expect(typeof context?.["errorMessage"]).toBe("string");
       expect(context?.["path"]).toBe("not-a-valid-url");

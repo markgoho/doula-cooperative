@@ -1,11 +1,60 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
+import type { MemberResponseDocument } from "../../collections/member-responses.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { ReferralItem } from "../services/referrals/interface.js";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
 const MEMBER_ID = "test-member-id";
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function daysAgo(days: number): Timestamp {
+  return Timestamp.fromMillis(Date.now() - days * DAY_MS);
+}
+
+function makeReferral(
+  id: string,
+  overrides: Partial<ReferralItem["document"]> = {},
+): ReferralItem {
+  return {
+    id,
+    document: {
+      name: "Jane Smith",
+      phone: "555-0100",
+      email: "jane@example.com",
+      zipcode: "14607",
+      estimatedDueDate: { month: "3", day: "15", year: "2027" },
+      services: ["birth-doula"],
+      birthLocation: "Hospital",
+      otherInfo: "",
+      insurance: [],
+      submitted: daysAgo(1),
+      sent: false,
+      ...overrides,
+    },
+  };
+}
+
+function outreachBy(
+  memberUid: string,
+  sentDaysAgo = 1,
+): MemberResponseDocument {
+  return { memberUid, outreachSentAt: daysAgo(sentDaysAgo) };
+}
+
+interface ListedReferral {
+  id: string;
+  responseCount: number;
+  isOpen: boolean;
+  outreach?: { sentAt: string };
+}
+
+async function listed(response: Response): Promise<ListedReferral[]> {
+  const body = (await response.json()) as { referrals: ListedReferral[] };
+  return body.referrals;
+}
 
 function makeActiveStripeMember(): MemberDocument {
   return {
@@ -41,22 +90,12 @@ describe("GET /:memberId/referrals", () => {
     v2Enabled?: boolean;
     settingsReadFails?: boolean;
     serverError?: boolean;
-    referrals?: {
-      id: string;
-      document: {
-        name: string;
-        phone: string;
-        email: string;
-        zipcode: string;
-        estimatedDueDate: { month: string; day: string; year: string };
-        services: string[];
-        birthLocation: string;
-        otherInfo: string;
-        insurance: string[];
-        submitted: ReturnType<typeof Timestamp.now>;
-        sent: boolean;
-      };
-    }[];
+    /** Open Referrals (the service applies the 14-day cutoff). */
+    referrals?: ReferralItem[];
+    /** Referrals of any age holding a response document for the viewer. */
+    respondedReferrals?: ReferralItem[];
+    /** Member response documents by Referral id. */
+    responses?: Record<string, MemberResponseDocument[]>;
   }
 
   function setup({
@@ -68,6 +107,8 @@ describe("GET /:memberId/referrals", () => {
     settingsReadFails = false,
     serverError = false,
     referrals = [],
+    respondedReferrals = [],
+    responses = {},
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
       if (memberNotFound)
@@ -78,11 +119,18 @@ describe("GET /:memberId/referrals", () => {
     });
 
     const mockListReferrals = mock(() => Promise.resolve(referrals));
+    const mockListResponded = mock<
+      (memberUid: string) => Promise<ReferralItem[]>
+    >(() => Promise.resolve(respondedReferrals));
 
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
       referralsService: {
         listReferrals: mockListReferrals,
+        listReferralsWithMemberResponse: mockListResponded,
+        listMemberResponses: mock((requestId: string) =>
+          Promise.resolve(responses[requestId] ?? []),
+        ),
       },
       referralPortalSettingsService: {
         getReferralPortalSettings: mock(() =>
@@ -101,7 +149,12 @@ describe("GET /:memberId/referrals", () => {
     const request = new Request(`http://localhost/${memberId}/referrals`, {
       headers,
     });
-    return { testApp, request, mockGet: mockListReferrals };
+    return {
+      testApp,
+      request,
+      mockGet: mockListReferrals,
+      mockListResponded,
+    };
   }
 
   describe("Authentication", () => {
@@ -219,6 +272,96 @@ describe("GET /:memberId/referrals", () => {
       });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("Outreach", () => {
+    it("counts distinct members who sent Outreach, ignoring in-flight sends", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1")],
+        responses: {
+          "req-1": [
+            outreachBy("member-a"),
+            outreachBy("member-b"),
+            { memberUid: "member-c", outreachPendingAt: Timestamp.now() },
+          ],
+        },
+      });
+      const [referral] = await listed(await handleRequest(testApp, request));
+      expect(referral?.responseCount).toBe(2);
+      expect(referral).not.toHaveProperty("outreach");
+    });
+
+    it("marks the Referrals the member reached out on", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-mine"), makeReferral("req-other")],
+        responses: {
+          "req-mine": [outreachBy(MEMBER_ID), outreachBy("member-b")],
+          "req-other": [outreachBy("member-b")],
+        },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      const mine = referrals.find(referral => referral.id === "req-mine");
+      const other = referrals.find(referral => referral.id === "req-other");
+      expect(typeof mine?.outreach?.sentAt).toBe("string");
+      expect(mine?.responseCount).toBe(2);
+      expect(other).not.toHaveProperty("outreach");
+    });
+
+    it("lists Referrals older than 14 days the member reached out on, as not open", async () => {
+      const old = makeReferral("req-old", { submitted: daysAgo(40) });
+      const { testApp, request, mockListResponded } = setup({
+        referrals: [makeReferral("req-open")],
+        respondedReferrals: [old],
+        responses: { "req-old": [outreachBy(MEMBER_ID, 35)] },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      expect(mockListResponded).toHaveBeenCalledWith(
+        MEMBER_ID,
+        expect.anything(),
+      );
+      expect(referrals.map(referral => referral.id)).toEqual([
+        "req-open",
+        "req-old",
+      ]);
+      expect(referrals[0]?.isOpen).toBe(true);
+      expect(referrals[1]?.isOpen).toBe(false);
+      expect(referrals[1]?.outreach).toBeDefined();
+    });
+
+    it("leaves out an old Referral whose only trace is an in-flight send", async () => {
+      const { testApp, request } = setup({
+        respondedReferrals: [
+          makeReferral("req-old", { submitted: daysAgo(40) }),
+        ],
+        responses: {
+          "req-old": [{ memberUid: MEMBER_ID, outreachPendingAt: daysAgo(30) }],
+        },
+      });
+      expect(await listed(await handleRequest(testApp, request))).toEqual([]);
+    });
+
+    it("lists a Referral that is both open and reached out on once", async () => {
+      const referral = makeReferral("req-1");
+      const { testApp, request } = setup({
+        referrals: [referral],
+        respondedReferrals: [referral],
+        responses: { "req-1": [outreachBy(MEMBER_ID)] },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      expect(referrals).toHaveLength(1);
+    });
+
+    it("never reveals contact details on reached-out rows", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1")],
+        responses: { "req-1": [outreachBy(MEMBER_ID)] },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
     });
   });
 

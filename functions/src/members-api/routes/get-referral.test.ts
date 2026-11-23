@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
+import type { MemberResponseDocument } from "../../collections/member-responses.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
@@ -74,6 +75,9 @@ describe("GET /:memberId/referrals/:requestId", () => {
     settingsReadFails?: boolean;
     referralNotFound?: boolean;
     referral?: Partial<ReferralItem["document"]>;
+    responses?: MemberResponseDocument[];
+    profileUrl?: string;
+    memberNotFound?: boolean;
   }
 
   function setup({
@@ -85,11 +89,23 @@ describe("GET /:memberId/referrals/:requestId", () => {
     settingsReadFails = false,
     referralNotFound = false,
     referral = {},
+    responses = [],
+    profileUrl,
+    memberNotFound = false,
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
+      if (memberNotFound)
+        return Promise.reject(new NotFoundError("Member not found"));
       if (memberIsInactive) return Promise.resolve(makeInactiveMember());
-      return Promise.resolve(makeActiveStripeMember());
+      return Promise.resolve({
+        ...makeActiveStripeMember(),
+        name: "Dana Doula",
+        slug: "dana-doula",
+      });
     });
+    const mockFindPublishedProfileUrl = mock((slug: string | undefined) =>
+      Promise.resolve(slug === "dana-doula" ? profileUrl : undefined),
+    );
 
     const mockGetReferral = mock((id: string): Promise<ReferralItem> => {
       if (referralNotFound || id !== REQUEST_ID) {
@@ -100,7 +116,11 @@ describe("GET /:memberId/referrals/:requestId", () => {
 
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
-      referralsService: { getReferral: mockGetReferral },
+      referralsService: {
+        getReferral: mockGetReferral,
+        listMemberResponses: mock(() => Promise.resolve(responses)),
+      },
+      outreachService: { findPublishedProfileUrl: mockFindPublishedProfileUrl },
       referralPortalSettingsService: {
         getReferralPortalSettings: mock(() =>
           settingsReadFails
@@ -165,6 +185,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
         otherInfo: "Looking for experienced doula",
         insurance: ["medicaid"],
         submitted: expect.any(String) as string,
+        outreachSender: { name: "Dana Doula", email: "test@example.com" },
       });
     });
 
@@ -273,6 +294,102 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(text).not.toContain("Smith");
       expect(text).not.toContain("jane@example.com");
       expect(text).not.toContain("555-0100");
+    });
+  });
+
+  describe("Outreach", () => {
+    const SENT_AT = Timestamp.fromDate(new Date("2026-11-20T15:30:00.000Z"));
+
+    it("reveals full name, email and phone with the sent time after the member's Outreach", async () => {
+      const { testApp, request } = setup({
+        responses: [{ memberUid: MEMBER_ID, outreachSentAt: SENT_AT }],
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["outreach"]).toEqual({ sentAt: "2026-11-20T15:30:00.000Z" });
+      expect(body["contact"]).toEqual({
+        fullName: "Jane Smith",
+        email: "jane@example.com",
+        phone: "555-0100",
+      });
+      expect(body).not.toHaveProperty("outreachSender");
+      expect(body["responseCount"]).toBe(1);
+    });
+
+    it("keeps contact details hidden when only other members reached out", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          { memberUid: "member-b", outreachSentAt: SENT_AT },
+          { memberUid: "member-c", outreachSentAt: SENT_AT },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body["responseCount"]).toBe(2);
+      expect(body).not.toHaveProperty("contact");
+      expect(body).not.toHaveProperty("outreach");
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+    });
+
+    it("keeps contact details hidden while the member's Outreach is still sending", async () => {
+      const { testApp, request } = setup({
+        responses: [{ memberUid: MEMBER_ID, outreachPendingAt: SENT_AT }],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("contact");
+      expect(body["responseCount"]).toBe(0);
+    });
+
+    it("opens a Referral older than 14 days that the member reached out on", async () => {
+      const { testApp, request } = setup({
+        referral: { submitted: daysAgo(40) },
+        responses: [{ memberUid: MEMBER_ID, outreachSentAt: SENT_AT }],
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["contact"]).toBeDefined();
+    });
+
+    it("doesn't reveal a member's contact details to an Admin on that member's path", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        responses: [{ memberUid: MEMBER_ID, outreachSentAt: SENT_AT }],
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("contact");
+      expect(body).not.toHaveProperty("outreachSender");
+    });
+
+    it("includes the published Doula Profile link for the composer template", async () => {
+      const { testApp, request } = setup({
+        profileUrl: "https://doulacooperative.com/doulas/dana-doula/",
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["outreachSender"]).toEqual({
+        name: "Dana Doula",
+        email: "test@example.com",
+        profileUrl: "https://doulacooperative.com/doulas/dana-doula/",
+      });
+    });
+
+    it("leaves out the composer sender for a preview role without a member document", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        memberNotFound: true,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("outreachSender");
     });
   });
 

@@ -373,6 +373,15 @@ export const ERROR_IDS = {
   API_MEMBER_REFERRAL_PORTAL_SETTINGS_READ_FAILED:
     "api_member_referral_portal_settings_read_failed",
 
+  // Member Outreach errors
+  API_MEMBER_SEND_OUTREACH_FAILED: "api_member_send_outreach_failed",
+  API_MEMBER_OUTREACH_EMAIL_FAILED: "api_member_outreach_email_failed",
+  API_MEMBER_OUTREACH_RESERVE_FAILED: "api_member_outreach_reserve_failed",
+  API_MEMBER_OUTREACH_RECORD_FAILED: "api_member_outreach_record_failed",
+  API_MEMBER_OUTREACH_RELEASE_FAILED: "api_member_outreach_release_failed",
+  API_MEMBER_OUTREACH_PROFILE_READ_FAILED:
+    "api_member_outreach_profile_read_failed",
+
   // Admin settings errors
   API_ADMIN_GET_REFERRAL_PORTAL_SETTINGS_FAILED:
     "api_admin_get_referral_portal_settings_failed",
