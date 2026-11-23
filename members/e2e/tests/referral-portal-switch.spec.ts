@@ -87,7 +87,7 @@ test.describe('Referral Portal v2 switch', () => {
     await expect(authenticatedUserPage.getByRole('alert')).toHaveCount(0);
   });
 
-  test('lapsed membership 403 still shows the membership message', async ({
+  test('lapsed membership 403 shows "Active membership required" with a membership link', async ({
     authenticatedUserPage,
   }) => {
     await mockMember(authenticatedUserPage, activeMember);
@@ -98,8 +98,11 @@ test.describe('Referral Portal v2 switch', () => {
 
     await authenticatedUserPage.goto('/referrals');
 
-    await expect(authenticatedUserPage.getByRole('alert')).toContainText(
-      'Your membership is not currently active',
-    );
+    await expect(
+      authenticatedUserPage.getByRole('heading', { name: 'Active membership required' }),
+    ).toBeVisible();
+    await expect(
+      authenticatedUserPage.getByRole('link', { name: 'Go to your membership' }),
+    ).toHaveAttribute('href', '/membership');
   });
 });

@@ -66,6 +66,13 @@ describe('auth route guards', () => {
       expect(screen.getByText('Sign In')).toBeVisible();
     });
 
+    it('keeps the requested path and query as the sign-in returnUrl', async () => {
+      const { navigate, currentUrl } = await setup();
+      await navigate('/protected?tab=open');
+      expect(screen.getByText('Sign In')).toBeVisible();
+      expect(currentUrl()).toBe('/sign-in?returnUrl=%2Fprotected%3Ftab%3Dopen');
+    });
+
     it('allows an authenticated user through', async () => {
       const { navigate } = await setup({ currentUser: { uid: 'user-1' } });
       await navigate('/protected');
@@ -136,5 +143,5 @@ async function setup({
     await router.navigateByUrl(path);
   };
 
-  return { navigate };
+  return { navigate, currentUrl: () => router.url };
 }

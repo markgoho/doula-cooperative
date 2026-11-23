@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MembershipService } from '../services/membership.service';
+import { safeReturnUrl } from './safe-return-url';
 
 @Component({
   imports: [RouterLink, ReactiveFormsModule],
@@ -17,6 +18,8 @@ export class SignIn {
   private fb = inject(FormBuilder);
 
   message = input<string>();
+  /** Page requested before sign-in, from the `returnUrl` query param. */
+  returnUrl = input<string>();
 
   signInForm: FormGroup = this.fb.group({
     email: ['', [Validators.required.bind(this), Validators.email.bind(this)]],
@@ -40,7 +43,7 @@ export class SignIn {
           await this.membershipService.syncAuthEmailToMember();
         }
 
-        await this.router.navigate(['/membership']);
+        await this.router.navigateByUrl(safeReturnUrl(this.returnUrl()));
       } catch (error) {
         if (error instanceof Error) {
           this.errorMessage.set(error.message);

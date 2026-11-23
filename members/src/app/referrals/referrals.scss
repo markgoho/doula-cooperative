@@ -3,19 +3,77 @@
   padding-block: var(--space-xs);
 }
 
-.referrals-note {
-  background: var(--color-primary-soft);
-  border-radius: var(--border-radius-md);
+.inbox-container {
+  container: referral-inbox / inline-size;
+}
+
+.inbox {
+  align-items: start;
+  display: grid;
+  gap: var(--space-m);
+  grid-template-columns: minmax(18rem, 2fr) 3fr;
+}
+
+/* Panes stack on narrow screens: the list, then the selected Referral. */
+@container referral-inbox (inline-size < 48rem) {
+  .inbox {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.list-pane,
+.detail-pane {
+  min-inline-size: 0;
+}
+
+.detail-pane {
+  inset-block-start: var(--space-s);
+  position: sticky;
+}
+
+@container referral-inbox (inline-size < 48rem) {
+  .detail-pane {
+    position: static;
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs);
+  margin-block-end: var(--space-xs);
+}
+
+.filter {
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: 999px;
   color: var(--color-ink);
+  cursor: pointer;
   font-size: var(--step--1);
-  margin-block-end: var(--space-l);
-  padding: var(--space-xs) var(--space-s);
+  padding: var(--space-3xs) var(--space-xs);
+
+  &[aria-pressed='true'] {
+    background: var(--color-deep);
+    border-color: var(--color-deep);
+    color: var(--color-on-deep);
+  }
+}
+
+.referrals-note {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  margin-block: 0 var(--space-xs);
 }
 
 .loading,
 .empty-state {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius-md);
   color: var(--color-ink-soft);
-  padding: var(--space-xl);
+  margin: 0;
+  padding: var(--space-l);
   text-align: center;
 }
 
@@ -23,135 +81,54 @@
   background: var(--color-error-soft);
   border-radius: var(--border-radius-md);
   color: var(--color-error);
+  margin: 0;
   padding: var(--space-xs) var(--space-s);
 }
 
-.referral-list {
-  display: grid;
-  gap: var(--space-s);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.referral-card {
+.rows {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: var(--border-radius-md);
-  column-gap: var(--space-m);
-  row-gap: var(--space-xs);
-  display: grid;
-  grid-template-areas:
-    'due-date submitted'
-    'location .'
-    'services services'
-    '. view-link';
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto auto 1fr;
-  padding: var(--space-s);
-}
-
-.referral-submitted {
-  align-items: center;
-  color: var(--color-ink-soft);
-  display: inline-flex;
-  font-size: var(--step--2);
-  gap: var(--space-3xs);
-  grid-area: submitted;
-  justify-self: end;
-}
-
-.meta-icon,
-.arrow-icon {
-  fill: none;
-  flex-shrink: 0;
-  height: 1.1rem;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
-  width: 1.1rem;
-}
-
-.due-date,
-.birth-location {
-  align-items: center;
-  display: flex;
-  gap: var(--space-2xs);
-}
-
-.due-date {
-  grid-area: due-date;
-  color: var(--color-ink);
-  font-size: var(--step-1);
-  font-weight: var(--font-weight-semibold);
-}
-
-.due-soon {
-  color: var(--color-ink);
-  font-size: var(--step--1);
-  font-weight: var(--font-weight-semibold);
-}
-
-.birth-location {
-  color: var(--color-ink-soft);
-  font-size: var(--step--1);
-  grid-area: location;
-}
-
-.fallback-heading {
-  color: var(--color-ink);
-  font-size: var(--step-1);
-  font-weight: var(--font-weight-semibold);
-  grid-area: due-date;
-  margin: 0;
-}
-
-.service-tags {
-  display: flex;
-  grid-area: services;
-  flex-wrap: wrap;
-  gap: var(--space-2xs);
   list-style: none;
   margin: 0;
   padding: 0;
+
+  li + li {
+    border-block-start: 1px solid var(--color-line);
+  }
 }
 
-.view-link {
-  align-items: center;
-  color: var(--color-primary-strong);
-  display: inline-flex;
-  font-size: var(--step--1);
-  font-weight: var(--font-weight-bold);
+.row {
+  color: inherit;
+  display: grid;
   gap: var(--space-3xs);
-  grid-area: view-link;
-  justify-self: end;
-  min-block-size: 2.75rem;
+  padding: var(--space-xs) var(--space-s);
   text-decoration: none;
 
   &:hover {
-    text-decoration: underline;
+    background: var(--color-ground);
+  }
+
+  &.active {
+    background: var(--color-primary-soft);
+    box-shadow: inset 3px 0 var(--color-primary);
   }
 }
 
-@media (max-width: 48rem) {
-  .referral-list {
-    grid-template-columns: 1fr;
+.row-main {
+  display: grid;
+
+  span {
+    color: var(--color-ink-soft);
+    font-size: var(--step--1);
   }
 }
 
-@media (max-width: 30rem) {
-  // Flex column so missing location or services leave no empty gap rows.
-  .referral-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-xs);
-  }
-
-  .referral-submitted,
-  .view-link {
-    justify-self: start;
-  }
+.row-meta {
+  align-items: center;
+  color: var(--color-ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--step--2);
+  gap: var(--space-2xs);
 }

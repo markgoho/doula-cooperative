@@ -1,161 +1,163 @@
 import { inputBinding } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import {
   ReferralsService,
   type ReferralDetail as ReferralDetailModel,
 } from '../../services/referrals.service';
+import { MembershipRequiredError } from '../membership-required-error';
+import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
 import { ReferralDetail } from './referral-detail';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function makeReferralDetail(overrides: Partial<ReferralDetailModel> = {}): ReferralDetailModel {
   return {
     id: 'req-1',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phone: '555-0100',
-    zipcode: '14607',
-    estimatedDueDate: { month: '3', day: '15', year: '2025' },
+    firstName: 'Maya',
+    zipcode: '11215',
+    area: 'Brooklyn, NY',
+    prefersSpanish: false,
+    responseCount: 0,
+    estimatedDueDate: { month: '4', day: '12', year: '2027' },
     services: ['birth-doula', 'postpartum-doula'],
-    birthLocation: 'Hospital',
-    otherInfo: 'Looking for experienced doula',
-    insurance: ['medicaid'],
-    submitted: '2025-01-15T10:00:00.000Z',
+    birthLocation: 'NYU Langone Brooklyn',
+    otherInfo: 'First baby.',
+    insurance: ['Medicaid'],
+    submitted: new Date(Date.now() - 4 * DAY_MS).toISOString(),
     ...overrides,
   };
 }
 
 async function setup({
   loading = false,
-  error = false,
-  portalDisabled = false,
+  failure,
   id = 'req-1',
   referral = makeReferralDetail(),
 }: {
   loading?: boolean;
-  error?: boolean;
-  portalDisabled?: boolean;
+  failure?: Error;
   id?: string;
   referral?: ReferralDetailModel;
 } = {}) {
-  let getReferralMock: ReturnType<typeof vi.fn>;
+  let getReferral: ReturnType<typeof vi.fn>;
   if (loading) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    getReferralMock = vi.fn().mockReturnValue(new Promise(() => {}));
-  } else if (portalDisabled) {
-    getReferralMock = vi.fn().mockRejectedValue(new ReferralPortalDisabledError());
-  } else if (error) {
-    getReferralMock = vi.fn().mockRejectedValue(new Error('Not found'));
+    getReferral = vi.fn().mockReturnValue(new Promise(() => {}));
+  } else if (failure) {
+    getReferral = vi.fn().mockRejectedValue(failure);
   } else {
-    getReferralMock = vi.fn().mockResolvedValue(referral);
+    getReferral = vi.fn().mockResolvedValue(referral);
   }
-
-  const mockReferralsService = {
-    getReferral: getReferralMock,
-  };
 
   await render(ReferralDetail, {
     bindings: [inputBinding('id', () => id)],
-    providers: [{ provide: ReferralsService, useValue: mockReferralsService }, provideRouter([])],
+    providers: [{ provide: ReferralsService, useValue: { getReferral } }, provideRouter([])],
   });
+
+  return { getReferral };
 }
 
-describe('ReferralDetail', () => {
-  describe('loading state', () => {
-    it('shows loading message', async () => {
-      await setup({ loading: true });
-      expect(await screen.findByRole('status')).toHaveTextContent('Loading referral...');
-    });
+describe('ReferralDetail pane', () => {
+  it('shows a loading message while fetching', async () => {
+    await setup({ loading: true });
+    expect(await screen.findByRole('status')).toHaveTextContent('Loading referral...');
   });
 
-  describe('referral portal not available yet', () => {
-    it('shows a friendly not-available state instead of an error', async () => {
-      await setup({ portalDisabled: true });
-      expect(
-        await screen.findByRole('heading', { name: "Referrals aren't available yet" }),
-      ).toBeVisible();
-      expect(screen.queryByRole('alert')).toBeNull();
-      expect(screen.queryByRole('link', { name: 'Back to referrals' })).toBeNull();
-    });
+  it('loads the Referral named by the route', async () => {
+    const { getReferral } = await setup({ id: 'req-abc' });
+    await screen.findByRole('heading', { level: 2 });
+    expect(getReferral).toHaveBeenCalledWith('req-abc');
   });
 
-  describe('error state', () => {
-    it('shows error message on failure', async () => {
-      await setup({ error: true });
-      expect(await screen.findByRole('alert')).toHaveTextContent('Not found');
-    });
+  it('titles the pane with the first name and area', async () => {
+    await setup();
+    expect(await screen.findByRole('heading', { name: 'Maya · Brooklyn, NY' })).toBeVisible();
   });
 
-  describe('loaded state', () => {
-    it('shows the requester name and due date in the heading', async () => {
-      await setup();
-      expect(await screen.findByRole('heading', { name: 'Jane Smith' })).toBeVisible();
-      expect(screen.getByText('Due March 15')).toBeVisible();
-    });
+  it('shows the pre-Outreach request facts', async () => {
+    await setup();
+    await screen.findByRole('heading', { name: 'Maya · Brooklyn, NY' });
+    expect(screen.getByText('Apr 12, 2027')).toBeVisible();
+    expect(screen.getByText('Birth, Postpartum')).toBeVisible();
+    expect(screen.getByText('Brooklyn, NY (11215)')).toBeVisible();
+    expect(screen.getByText('NYU Langone Brooklyn')).toBeVisible();
+    expect(screen.getByText('Medicaid')).toBeVisible();
+    expect(screen.getByText('First baby.')).toBeVisible();
+  });
 
-    it('shows a missing due-date fallback', async () => {
-      await setup({
-        referral: makeReferralDetail({ estimatedDueDate: { month: '', day: '', year: '' } }),
-      });
-      expect(await screen.findByText('Due date not provided')).toBeVisible();
-    });
+  it('shows when the Referral was submitted and how long it stays open', async () => {
+    await setup();
+    expect(await screen.findByText('4 days ago · Open 10 more days')).toBeVisible();
+  });
 
-    it('shows notes before contact information', async () => {
-      await setup();
-      const notes = await screen.findByRole('heading', { name: 'Additional notes' });
-      const contact = screen.getByRole('heading', { name: 'Contact information' });
-      expect(
-        notes.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-      expect(screen.getByText('Looking for experienced doula')).toBeVisible();
-    });
+  it('shows how many members responded', async () => {
+    await setup();
+    expect(await screen.findByText('No one has responded yet')).toBeVisible();
+  });
 
-    it('omits the notes section when no notes were supplied', async () => {
-      await setup({ referral: makeReferralDetail({ otherInfo: '' }) });
-      expect(screen.queryByRole('heading', { name: 'Additional notes' })).not.toBeInTheDocument();
-    });
+  it('says contact details appear after Outreach, without a composer', async () => {
+    await setup();
+    expect(await screen.findByRole('heading', { name: 'Contact details' })).toBeVisible();
+    expect(
+      screen.getByText("Maya's full name, email, and phone appear after you send Outreach."),
+    ).toBeVisible();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
 
-    it('shows equal full-value email and phone contact links', async () => {
-      await setup();
-      const email = await screen.findByRole('link', { name: /email.*jane@example.com/i });
-      const phone = screen.getByRole('link', { name: /call or text.*555-0100/i });
-      expect(email).toHaveAttribute('href', 'mailto:jane@example.com');
-      expect(phone).toHaveAttribute('href', 'tel:555-0100');
-    });
+  it('flags a requester who prefers Spanish', async () => {
+    await setup({ referral: makeReferralDetail({ prefersSpanish: true }) });
+    expect(await screen.findByText('Requester prefers Spanish')).toBeVisible();
+  });
 
-    it('consolidates secondary fields under request details', async () => {
-      await setup();
-      expect(await screen.findByRole('heading', { name: 'Request details' })).toBeVisible();
-      expect(screen.getByText('Hospital')).toBeVisible();
-      expect(screen.getByText('Birth doula support')).toBeVisible();
-      expect(screen.getByText('Postpartum doula support')).toBeVisible();
-      expect(screen.getByText('medicaid')).toBeVisible();
-      expect(screen.getByText('14607')).toBeVisible();
+  it('fills in missing facts with "Not provided"', async () => {
+    await setup({
+      referral: makeReferralDetail({
+        estimatedDueDate: { month: '', day: '', year: '' },
+        birthLocation: '',
+        insurance: [],
+        otherInfo: '',
+      }),
     });
+    await screen.findByRole('heading', { name: 'Maya · Brooklyn, NY' });
+    expect(screen.getAllByText('Not provided')).toHaveLength(3);
+    expect(screen.queryByText('Notes')).toBeNull();
+  });
 
-    it('does not show the member contact notice', async () => {
-      await setup();
-      await screen.findByRole('heading', { name: 'Jane Smith' });
-      expect(screen.queryByText(/cooperative norms/i)).not.toBeInTheDocument();
-    });
+  it('moves focus to the selected Referral', async () => {
+    await setup();
+    const heading = await screen.findByRole('heading', { name: 'Maya · Brooklyn, NY' });
+    expect(heading).toHaveFocus();
+  });
 
-    it('shows a due-soon cue for birth requests due within 30 days', async () => {
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + 7);
-      const estimatedDueDate = {
-        month: String(dueDate.getMonth() + 1),
-        day: String(dueDate.getDate()),
-        year: String(dueDate.getFullYear()),
-      };
-      const referral = makeReferralDetail({ estimatedDueDate });
-      await setup({ referral });
-      expect(await screen.findByText(/Due .+Due soon/)).toBeVisible();
-    });
+  it('says a Referral past its window is no longer open, with a link to the list', async () => {
+    await setup({ failure: new ReferralNotOpenError() });
+    expect(
+      await screen.findByRole('heading', { name: 'This referral is no longer open' }),
+    ).toBeVisible();
+    expect(screen.getByRole('link', { name: 'See open referrals' })).toHaveAttribute(
+      'href',
+      '/referrals',
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
 
-    it('shows back link to referrals list', async () => {
-      await setup();
-      expect(await screen.findByRole('link', { name: /Back to referrals/i })).toBeVisible();
+  it('shows other errors as an alert', async () => {
+    await setup({ failure: new Error('Referral not found.') });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Referral not found.');
+  });
+
+  it.each([
+    ['lapsed membership', new MembershipRequiredError()],
+    ['portal not available yet', new ReferralPortalDisabledError()],
+  ])('leaves the %s state to the inbox page', async (_name, failure) => {
+    await setup({ failure });
+    await waitFor(() => {
+      expect(screen.queryByRole('status')).toBeNull();
     });
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });
