@@ -285,15 +285,42 @@ describe("POST /:memberId/referrals/:requestId/outreach", () => {
       expect(response.status).toBe(404);
     });
 
-    it("returns 404 REFERRAL_NOT_OPEN for a Referral older than 14 days", async () => {
+    it.each([
+      ["a member", "valid-owner-token", MEMBER_ID],
+      ["a Referral Coordinator", "referral-coordinator-token", MEMBER_ID],
+      ["an Admin", "admin-token", "admin-user"],
+    ])(
+      "returns 403 REFERRAL_NOT_OPEN to %s on a Referral older than 14 days",
+      async (_who, authToken, memberId) => {
+        const { testApp, request, mockSendOutreachEmail, mockReserve } = setup({
+          authToken,
+          memberId,
+          referral: makeReferral({ submitted: daysAgo(15) }),
+        });
+        const response = await handleRequest(testApp, request);
+        expect(response.status).toBe(403);
+        const body = (await response.json()) as ErrorBody;
+        expect(body.code).toBe("REFERRAL_NOT_OPEN");
+        expect(mockReserve).not.toHaveBeenCalled();
+        expect(mockSendOutreachEmail).not.toHaveBeenCalled();
+      },
+    );
+
+    it("lets a member named by an Offline Response still send Outreach while the Referral is open", async () => {
       const { testApp, request, mockSendOutreachEmail } = setup({
-        referral: makeReferral({ submitted: daysAgo(15) }),
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            offlineResponse: {
+              recordedBy: "coordinator-uid",
+              recordedAt: daysAgo(1),
+            },
+          },
+        ],
       });
       const response = await handleRequest(testApp, request);
-      expect(response.status).toBe(404);
-      const body = (await response.json()) as ErrorBody;
-      expect(body.code).toBe("REFERRAL_NOT_OPEN");
-      expect(mockSendOutreachEmail).not.toHaveBeenCalled();
+      expect(response.status).toBe(201);
+      expect(mockSendOutreachEmail).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -327,10 +354,9 @@ describe("POST /:memberId/referrals/:requestId/outreach", () => {
       },
     );
 
-    it("lets a Referral Coordinator send her own Outreach on a Referral older than 14 days", async () => {
+    it("lets a Referral Coordinator send her own Outreach on an open Referral", async () => {
       const { testApp, request, mockSendOutreachEmail } = setup({
         authToken: "referral-coordinator-token",
-        referral: makeReferral({ submitted: daysAgo(30) }),
       });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(201);

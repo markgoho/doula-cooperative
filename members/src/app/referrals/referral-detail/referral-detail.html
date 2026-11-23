@@ -89,6 +89,17 @@
         <p>{{ v.contactHint }}</p>
       </section>
 
+      @if (v.referral.offlineResponse) {
+        <p class="offline-note">
+          The Referral Coordinator recorded that you responded outside the portal.
+        </p>
+        <app-referral-outcome-control
+          [referralId]="v.referral.id"
+          [outcome]="v.referral.outcome"
+          (saved)="onOutcomeSaved($event)"
+        />
+      }
+
       @if (v.referral.outreachSender; as sender) {
         <app-referral-outreach-composer
           [referral]="v.referral"
@@ -99,7 +110,11 @@
     }
 
     @if (v.referral.coordinator; as coordinator) {
-      <app-referral-responses-panel [responses]="coordinator.responses" />
+      <app-referral-responses-panel
+        [referralId]="v.referral.id"
+        [coordinator]="coordinator"
+        (changed)="onOfflineResponsesChanged()"
+      />
     }
   </article>
 }

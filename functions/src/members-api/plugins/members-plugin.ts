@@ -5,9 +5,12 @@ import { EmailService } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
 import { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/index.js";
 import { cancelMembershipLogic } from "../routes/cancel-membership.js";
+import { deleteOfflineResponseLogic } from "../routes/delete-offline-response.js";
 import { getReferralLogic } from "../routes/get-referral.js";
+import { listReferralDoulasLogic } from "../routes/list-referral-doulas.js";
 import { listReferralsLogic } from "../routes/list-referrals.js";
 import { getMemberLogic } from "../routes/members.js";
+import { recordOfflineResponseLogic } from "../routes/record-offline-response.js";
 import { recordReferralOutcomeLogic } from "../routes/record-referral-outcome.js";
 import { sendOutreachLogic } from "../routes/send-outreach.js";
 import { syncEmailLogic } from "../routes/sync-email.js";
@@ -28,7 +31,12 @@ import {
   VerifyEmailResponseSchema,
 } from "../schemas/member-schemas.js";
 import {
+  DeleteOfflineResponseRouteResponseSchema,
+  ListReferralDoulasRouteResponseSchema,
   ListReferralsRouteResponseSchema,
+  OfflineResponseParameterSchema,
+  RecordOfflineResponseBodySchema,
+  RecordOfflineResponseRouteResponseSchema,
   ReferralDetailRouteResponseSchema,
   ReferralOutcomeRouteResponseSchema,
   ReferralRequestIdParameterSchema,
@@ -38,6 +46,7 @@ import {
 } from "../schemas/referral-schemas.js";
 import { MemberService } from "../services/member/member-service.js";
 import { NewsletterService } from "../services/newsletter/newsletter-service.js";
+import { OfflineResponseServiceImpl } from "../services/offline-response/offline-response-service.js";
 import { OutreachServiceImpl } from "../services/outreach/outreach-service.js";
 import { ReferralOutcomeServiceImpl } from "../services/referral-outcome/referral-outcome-service.js";
 import { ReferralsServiceImpl } from "../services/referrals/referrals-service.js";
@@ -96,6 +105,10 @@ export function createMembersPlugin(services?: PartialServices) {
       .decorate(
         SERVICE_KEYS.REFERRAL_OUTCOME_SERVICE,
         services?.referralOutcomeService ?? ReferralOutcomeServiceImpl,
+      )
+      .decorate(
+        SERVICE_KEYS.OFFLINE_RESPONSE_SERVICE,
+        services?.offlineResponseService ?? OfflineResponseServiceImpl,
       )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
@@ -455,6 +468,98 @@ export function createMembersPlugin(services?: PartialServices) {
             requestId: ReferralRequestIdParameterSchema.properties.requestId,
           }),
           response: ReferralOutcomeRouteResponseSchema,
+        },
+      )
+      // GET /:memberId/referral-doulas - Doulas to name in an Offline Response (Referral Coordinator only) - Served at /api/members/:memberId/referral-doulas
+      .get(
+        "/:memberId/referral-doulas",
+        async ({
+          params,
+          offlineResponseService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          listReferralDoulasLogic({
+            memberId: params.memberId,
+            offlineResponseService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: MemberIdParameterSchema,
+          response: ListReferralDoulasRouteResponseSchema,
+        },
+      )
+      // POST /:memberId/referrals/:requestId/offline-responses - Record an Offline Response (Referral Coordinator only) - Served at /api/members/:memberId/referrals/:requestId/offline-responses
+      .post(
+        "/:memberId/referrals/:requestId/offline-responses",
+        async ({
+          params,
+          body,
+          memberService,
+          referralsService,
+          offlineResponseService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          recordOfflineResponseLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            kind: body.kind,
+            id: body.id,
+            memberService,
+            referralsService,
+            offlineResponseService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: t.Object({
+            memberId: MemberIdParameterSchema.properties.memberId,
+            requestId: ReferralRequestIdParameterSchema.properties.requestId,
+          }),
+          body: RecordOfflineResponseBodySchema,
+          response: RecordOfflineResponseRouteResponseSchema,
+        },
+      )
+      // DELETE /:memberId/referrals/:requestId/offline-responses/:kind/:id - Delete an Offline Response (its recorder, or a Coordinator who is an Admin) - Served at /api/members/:memberId/referrals/:requestId/offline-responses/:kind/:id
+      .delete(
+        "/:memberId/referrals/:requestId/offline-responses/:kind/:id",
+        async ({
+          params,
+          referralsService,
+          offlineResponseService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          deleteOfflineResponseLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            kind: params.kind,
+            id: params.id,
+            referralsService,
+            offlineResponseService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: OfflineResponseParameterSchema,
+          response: DeleteOfflineResponseRouteResponseSchema,
         },
       )
   );

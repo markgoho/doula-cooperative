@@ -36,7 +36,8 @@ const OUTCOME_ERRORS = {
 
 /**
  * Set, change or clear (`outcome` undefined) the requester's own Referral
- * Outcome on a Referral. Owner only, after their own Outreach. Stores the
+ * Outcome on a Referral. Owner only, after their own Outreach or an Offline
+ * Response a Referral Coordinator recorded for them. Stores the
  * current value and its time, with no history. Responds with the new value
  * and the recomputed hired badge.
  */
@@ -91,7 +92,8 @@ export async function recordReferralOutcomeLogic({
     }
 
     // 404 when the Referral doesn't exist. No window check: the prerequisite
-    // (own Outreach) already keeps the Referral visible to this Member.
+    // (own Outreach or an Offline Response) already keeps the Referral
+    // visible to this Member.
     await referralsService.getReferral(requestId, logger);
     const responses = await referralsService.listMemberResponses(
       requestId,

@@ -20,5 +20,100 @@
     </ul>
   }
 
-  <!-- Offline Responses (#121): list and add/delete go here, under their own h4. -->
+  <h4 id="offline-heading" #offlineHeading tabindex="-1">Offline Responses</h4>
+  @if (offlineRows().length === 0) {
+    <p class="empty">No Offline Responses recorded</p>
+  } @else {
+    <ul role="list" aria-labelledby="offline-heading">
+      @for (item of offlineRows(); track item.key) {
+        <li>
+          <span class="name">{{ item.name }}</span>
+          @if (item.kind) {
+            <span class="kind">{{ item.kind }}</span>
+          }
+          <span class="when">
+            Recorded <time [attr.datetime]="item.recordedAt">{{ item.recordedAtLabel }}</time> by
+            {{ item.recordedBy }}
+          </span>
+          @if (item.outcome) {
+            <span class="outcome">{{ item.outcome }}</span>
+          }
+          @if (item.row.canDelete) {
+            <button
+              type="button"
+              class="button button--secondary button-small delete"
+              [attr.aria-label]="'Delete Offline Response for ' + item.name"
+              (click)="remove(item.row)"
+            >
+              Delete
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (coordinator().canRecordOfflineResponses) {
+    <form class="add" aria-labelledby="add-offline-heading" (submit)="add($event)">
+      <h5 id="add-offline-heading">Add an Offline Response</h5>
+      <p id="add-offline-hint" class="hint">
+        Record that a doula responded outside the portal, such as on Facebook. It counts as a
+        response and lets a member record an outcome. It doesn't record a hire.
+      </p>
+
+      @if (doulasResource.isLoading()) {
+        <p class="empty" role="status">Loading doulas...</p>
+      } @else if (doulasResource.error(); as err) {
+        <p class="action-error" role="alert">{{ err.message }}</p>
+      } @else {
+        <div class="field">
+          <label for="offline-doula-filter">Find a doula</label>
+          <input
+            id="offline-doula-filter"
+            class="form__input"
+            type="search"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            aria-controls="offline-doula"
+            (input)="onQuery($event)"
+          />
+        </div>
+        <div class="field">
+          <label for="offline-doula">Doula</label>
+          <select
+            id="offline-doula"
+            class="form__input"
+            #doulaSelect
+            name="doula"
+            required
+            aria-describedby="add-offline-hint"
+          >
+            <option value="" disabled selected>
+              {{ optionCount() === 0 ? 'No matching doulas' : 'Choose a doula' }}
+            </option>
+            @for (group of options(); track group.label) {
+              <optgroup [label]="group.label">
+                @for (option of group.options; track option.key) {
+                  <option [value]="option.key">{{ option.doula.displayName }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+        </div>
+        <button
+          class="button button-small"
+          type="submit"
+          [attr.aria-disabled]="saving() ? 'true' : null"
+        >
+          Add Offline Response
+        </button>
+      }
+    </form>
+  }
+
+  <p class="status" role="status">{{ status() }}</p>
+  @if (actionError(); as error) {
+    <p class="action-error" role="alert">{{ error }}</p>
+  }
 </section>

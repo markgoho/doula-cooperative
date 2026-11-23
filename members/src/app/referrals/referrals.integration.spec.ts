@@ -72,6 +72,7 @@ function toDetail(item: ReferralListItem, firstName: string): ReferralDetailMode
     otherInfo: '',
     insurance: [],
     submitted: item.submitted,
+    isOpen: item.isOpen,
     outreachSender: { name: 'Dana Doula', email: 'dana@example.com' },
     hiredBadge: item.hiredBadge,
   };

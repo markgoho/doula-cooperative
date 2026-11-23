@@ -390,6 +390,16 @@ export const ERROR_IDS = {
   API_MEMBER_REFERRAL_OUTCOME_WRITE_FAILED:
     "api_member_referral_outcome_write_failed",
 
+  // Offline Response errors
+  API_MEMBER_LIST_REFERRAL_DOULAS_FAILED:
+    "api_member_list_referral_doulas_failed",
+  API_MEMBER_RECORD_OFFLINE_RESPONSE_FAILED:
+    "api_member_record_offline_response_failed",
+  API_MEMBER_DELETE_OFFLINE_RESPONSE_FAILED:
+    "api_member_delete_offline_response_failed",
+  API_MEMBER_OFFLINE_RESPONSE_WRITE_FAILED:
+    "api_member_offline_response_write_failed",
+
   // Admin settings errors
   API_ADMIN_GET_REFERRAL_PORTAL_SETTINGS_FAILED:
     "api_admin_get_referral_portal_settings_failed",

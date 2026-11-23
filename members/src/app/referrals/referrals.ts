@@ -22,6 +22,11 @@ import type { ReferralListItem } from './referral.types';
 import { getRelativeTime } from './referral.utilities';
 import { ReferralsService } from '../services/referrals.service';
 
+/** Whether you sent Outreach on this Referral, or an Offline Response names you. */
+function hasResponded(referral: ReferralListItem): boolean {
+  return referral.outreach !== undefined || referral.offlineResponse !== undefined;
+}
+
 /** List filters. `all` is offered only to Referral Coordinators. */
 type ReferralFilter = 'open' | 'mine' | 'needsOutcome' | 'all';
 
@@ -38,18 +43,19 @@ const REFERRAL_FILTERS: Record<
     empty: 'No open referrals right now. Check back soon.',
     select: (referrals) => referrals.filter((referral) => referral.isOpen),
   },
-  // Every Referral you reached out on, at any age.
+  // Every Referral you responded to, at any age: your Outreach, or an
+  // Offline Response the Referral Coordinator recorded for you.
   mine: {
     label: 'My Outreach',
     empty: "You haven't sent Outreach yet.",
-    select: (referrals) => referrals.filter((referral) => referral.outreach !== undefined),
+    select: (referrals) => referrals.filter((referral) => hasResponded(referral)),
   },
-  // Referrals you reached out on with no Referral Outcome yet.
+  // Referrals you responded to with no Referral Outcome yet.
   needsOutcome: {
     label: 'Needs outcome',
     empty: 'Nothing to record. After you send Outreach, record how it went here.',
     select: (referrals) =>
-      referrals.filter((referral) => referral.outreach !== undefined && !referral.outcome),
+      referrals.filter((referral) => hasResponded(referral) && !referral.outcome),
   },
   // Every Referral regardless of age, for the Referral Coordinator.
   all: {
@@ -70,6 +76,9 @@ function ownState(
     return { label: `You: ${OUTCOME_LABELS[referral.outcome]}`, tone: 'mine' };
   }
   if (referral.outreach) return { label: 'You reached out · Record outcome', tone: 'todo' };
+  if (referral.offlineResponse) {
+    return { label: 'You responded outside the portal · Record outcome', tone: 'todo' };
+  }
   return undefined;
 }
 

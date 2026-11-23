@@ -1,3 +1,4 @@
+import type { LegacyResponseDocument } from "../../../collections/legacy-responses.js";
 import type { MatchRequestDocument } from "../../../collections/match-requests.js";
 import type { MemberResponseDocument } from "../../../collections/member-responses.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
@@ -30,4 +31,9 @@ export interface ReferralsService {
     requestId: string,
     logger: Logger,
   ): Promise<MemberResponseDocument[]>;
+  /** Every Offline Response for an Unclaimed Legacy Membership on one Referral. */
+  listLegacyResponses(
+    requestId: string,
+    logger: Logger,
+  ): Promise<LegacyResponseDocument[]>;
 }

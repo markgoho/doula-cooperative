@@ -18,6 +18,8 @@ export interface ReferralListItem {
   isOpen: boolean;
   /** Present when you sent Outreach on this Referral. */
   outreach?: ReferralOutreach;
+  /** Present when the Referral Coordinator recorded that you responded outside the portal. */
+  offlineResponse?: OwnOfflineResponse;
   /** Your own Referral Outcome, when you recorded one. */
   outcome?: ReferralOutcome;
   /** Whether any member recorded a hired Referral Outcome. Never says who. */
@@ -46,6 +48,15 @@ export interface ReferralOutcomeState {
 export interface ReferralOutreach {
   /** ISO 8601 time Mailgun accepted it. */
   sentAt: string;
+}
+
+/**
+ * The Referral Coordinator's record that you responded outside the portal.
+ * Unlocks your Referral Outcome; never reveals contact details.
+ */
+export interface OwnOfflineResponse {
+  /** ISO 8601 time it was recorded. */
+  recordedAt: string;
 }
 
 /** The requester's contact details, sent only after your Outreach. */
@@ -86,7 +97,10 @@ export interface ReferralDetail extends ReferralOutcomeState {
   otherInfo: string;
   insurance: string[];
   submitted: string;
+  /** Under 14 days old. Outreach can only be sent while it is. */
+  isOpen: boolean;
   outreach?: ReferralOutreach;
+  offlineResponse?: OwnOfflineResponse;
   contact?: ReferralContact;
   /** Present before your Outreach when you can send it. */
   outreachSender?: OutreachSender;
@@ -105,11 +119,43 @@ export interface ReferralResponse {
   outcomeUpdatedAt?: string;
 }
 
+/** A Member, or an Unclaimed Legacy Membership ("Not yet migrated"). */
+export type ReferralDoulaKind = 'member' | 'legacy';
+
+/** A doula the Referral Coordinator can name in an Offline Response. */
+export interface ReferralDoula {
+  kind: ReferralDoulaKind;
+  /** A member's uid, or an opaque id for a Legacy Membership. */
+  id: string;
+  displayName: string;
+}
+
+/** One Offline Response on a Referral, as the Coordinator panel lists it. */
+export interface OfflineResponseRow {
+  kind: ReferralDoulaKind;
+  id: string;
+  /** Empty when the doula has no name set. */
+  displayName: string;
+  /** ISO 8601 time it was recorded. */
+  recordedAt: string;
+  /** Who recorded it; empty when unset. */
+  recordedByName: string;
+  /** Whether you may delete it. */
+  canDelete: boolean;
+  /** The member's Referral Outcome, if they recorded one. */
+  outcome?: ReferralOutcome;
+}
+
 /**
- * The Coordinator-only part of a Referral: who sent Outreach and each
- * member's Referral Outcome. Never the requester's contact details.
+ * The Coordinator-only part of a Referral: who sent Outreach, each member's
+ * Referral Outcome, and the Offline Responses. Never the requester's contact
+ * details.
  */
 export interface ReferralCoordinatorView {
   /** Members who sent Outreach, earliest first. */
   responses: ReferralResponse[];
+  /** Offline Responses, earliest first. */
+  offlineResponses: OfflineResponseRow[];
+  /** Whether you may record Offline Responses (Referral Coordinators only). */
+  canRecordOfflineResponses: boolean;
 }

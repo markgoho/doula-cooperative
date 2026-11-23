@@ -5,6 +5,7 @@ import type { ReferralPortalSettingsService } from "../../shared-api/services/re
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
+import type { OfflineResponseService } from "../services/offline-response/interface.js";
 import type { OutreachService } from "../services/outreach/interface.js";
 import type { ReferralOutcomeService } from "../services/referral-outcome/interface.js";
 import type { ReferralsService } from "../services/referrals/interface.js";
@@ -26,6 +27,7 @@ export const SERVICE_KEYS = {
   REFERRAL_PORTAL_SETTINGS_SERVICE: "referralPortalSettingsService",
   OUTREACH_SERVICE: "outreachService",
   REFERRAL_OUTCOME_SERVICE: "referralOutcomeService",
+  OFFLINE_RESPONSE_SERVICE: "offlineResponseService",
 } as const;
 
 /**
@@ -45,6 +47,7 @@ export interface Services {
   [SERVICE_KEYS.REFERRAL_PORTAL_SETTINGS_SERVICE]: ReferralPortalSettingsService;
   [SERVICE_KEYS.OUTREACH_SERVICE]: OutreachService;
   [SERVICE_KEYS.REFERRAL_OUTCOME_SERVICE]: ReferralOutcomeService;
+  [SERVICE_KEYS.OFFLINE_RESPONSE_SERVICE]: OfflineResponseService;
 }
 
 /**

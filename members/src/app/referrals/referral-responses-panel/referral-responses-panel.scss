@@ -61,3 +61,65 @@ li {
     color: var(--color-ink-soft);
   }
 }
+
+h4[tabindex='-1']:focus {
+  outline: none;
+}
+
+.kind {
+  background: var(--color-sand);
+  border-radius: 999px;
+  font-size: var(--step--2);
+  padding: 0.15em 0.6em;
+}
+
+/* Delete sits at the row's end, like the Outcome on Outreach rows. */
+.when + .delete {
+  margin-inline-start: auto;
+}
+
+.add {
+  border-block-start: 1px solid var(--color-line);
+  display: grid;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-s);
+  padding-block-start: var(--space-s);
+
+  button {
+    justify-self: start;
+  }
+}
+
+h5 {
+  font-size: var(--step--1);
+  margin: 0;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-3xs);
+
+  label {
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+}
+
+select.form__input:user-invalid {
+  border-color: var(--color-error);
+}
+
+.status {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  /* Stays rendered when empty so its live region announces the next change. */
+  margin: var(--space-2xs) 0 0;
+}
+
+.action-error {
+  background: var(--color-error-soft);
+  border-radius: var(--border-radius-md);
+  color: var(--color-error);
+  margin: var(--space-2xs) 0 0;
+  padding: var(--space-2xs) var(--space-xs);
+}

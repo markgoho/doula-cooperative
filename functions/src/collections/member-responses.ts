@@ -12,9 +12,9 @@ export type ReferralOutcome = "hired" | "not_hired" | "not_a_fit";
 
 /**
  * A Member's response to a Referral. Holds metadata only: the Outreach message
- * body is never stored. The Referral Outcome lives on the same document, and a
- * later slice adds the Offline Response, so a document existing does not mean Outreach
- * was sent: only `outreachSentAt` does.
+ * body is never stored. The Referral Outcome and the Offline Response live on
+ * the same document, so a document existing does not mean Outreach was sent:
+ * only `outreachSentAt` does.
  */
 export interface MemberResponseDocument {
   /** The Member's uid (also the document ID), for collection-group queries. */
@@ -29,4 +29,17 @@ export interface MemberResponseDocument {
   outcome?: ReferralOutcome;
   /** When `outcome` was last set (server time); cleared along with it. */
   outcomeUpdatedAt?: Timestamp;
+  /**
+   * A Referral Coordinator's record that this Member responded outside the
+   * member portal. Unlocks the Referral Outcome; never reveals contact details.
+   */
+  offlineResponse?: OfflineResponseRecord;
+}
+
+/** Who recorded an Offline Response, and when. */
+export interface OfflineResponseRecord {
+  /** uid of the Referral Coordinator who recorded it. */
+  recordedBy: string;
+  /** When it was recorded (server time). */
+  recordedAt: Timestamp;
 }
