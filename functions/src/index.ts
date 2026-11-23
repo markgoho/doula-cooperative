@@ -30,6 +30,8 @@ if (getApps().length === 0) {
 export const membersApi = onRequest(
   {
     invoker: "public",
+    // The Referral list reads every Referral's responses; 256MiB ran out.
+    memory: "512MiB",
     secrets: [...MAILERLITE_SECRETS, ...MAILGUN_SECRETS],
   },
   async (request, response) => {
