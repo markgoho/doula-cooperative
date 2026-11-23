@@ -186,6 +186,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
         insurance: ["medicaid"],
         submitted: expect.any(String) as string,
         outreachSender: { name: "Dana Doula", email: "test@example.com" },
+        hiredBadge: false,
       });
     });
 
@@ -390,6 +391,77 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as Record<string, unknown>;
       expect(body).not.toHaveProperty("outreachSender");
+    });
+  });
+
+  describe("Referral Outcome", () => {
+    const SENT_AT = Timestamp.fromDate(new Date("2026-11-20T15:30:00.000Z"));
+    const UPDATED_AT = Timestamp.fromDate(new Date("2026-11-21T09:00:00.000Z"));
+
+    it("includes the member's own Referral Outcome and when it was set", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            outreachSentAt: SENT_AT,
+            outcome: "not_a_fit",
+            outcomeUpdatedAt: UPDATED_AT,
+          },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["outcome"]).toBe("not_a_fit");
+      expect(body["outcomeUpdatedAt"]).toBe("2026-11-21T09:00:00.000Z");
+      expect(body["hiredBadge"]).toBe(false);
+    });
+
+    it("shows the hired badge before the member's Outreach, and Outreach stays open", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          {
+            memberUid: "member-b",
+            outreachSentAt: SENT_AT,
+            outcome: "hired",
+            outcomeUpdatedAt: UPDATED_AT,
+          },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body["hiredBadge"]).toBe(true);
+      expect(body["outreachSender"]).toBeDefined();
+      expect(body).not.toHaveProperty("outcome");
+      expect(body).not.toHaveProperty("outcomeUpdatedAt");
+      expect(text).not.toContain("member-b");
+    });
+
+    it("never shows other members' non-hired Outcomes", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          {
+            memberUid: "member-b",
+            outreachSentAt: SENT_AT,
+            outcome: "not_hired",
+            outcomeUpdatedAt: UPDATED_AT,
+          },
+          {
+            memberUid: "member-c",
+            outreachSentAt: SENT_AT,
+            outcome: "not_a_fit",
+            outcomeUpdatedAt: UPDATED_AT,
+          },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body["hiredBadge"]).toBe(false);
+      expect(body).not.toHaveProperty("outcome");
+      expect(text).not.toContain("not_hired");
+      expect(text).not.toContain("not_a_fit");
+      expect(text).not.toContain("member-b");
     });
   });
 

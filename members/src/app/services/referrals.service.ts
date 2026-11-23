@@ -1,13 +1,27 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, type Observable } from 'rxjs';
 import { auth } from '../lib/firebase';
 import { MembershipRequiredError } from '../referrals/membership-required-error';
 import { ReferralNotOpenError } from '../referrals/referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
-import type { ReferralDetail, ReferralListItem, SentOutreach } from '../referrals/referral.types';
+import type {
+  ReferralDetail,
+  ReferralListItem,
+  ReferralOutcome,
+  ReferralOutcomeState,
+  SentOutreach,
+} from '../referrals/referral.types';
 
-export type { ReferralDetail, ReferralListItem, SentOutreach } from '../referrals/referral.types';
+export type {
+  ReferralDetail,
+  ReferralListItem,
+  ReferralOutcome,
+  ReferralOutcomeState,
+  SentOutreach,
+} from '../referrals/referral.types';
+
+const OUTCOME_SAVE_FAILED = "Your outcome wasn't saved. Please try again.";
 
 const REFERRAL_PORTAL_DISABLED_CODE = 'REFERRAL_PORTAL_DISABLED';
 const REFERRAL_NOT_OPEN_CODE = 'REFERRAL_NOT_OPEN';
@@ -151,6 +165,50 @@ export class ReferralsService {
       throw new Error("Your message wasn't sent, and nothing was shared. Please try again.", {
         cause: error,
       });
+    }
+  }
+
+  /**
+   * Set or change your Referral Outcome on a Referral you reached out on.
+   * Resolves with the saved Outcome and the current hired badge.
+   */
+  async setOutcome(id: string, outcome: ReferralOutcome): Promise<ReferralOutcomeState> {
+    return this.saveOutcome(id, (url) => this.http.put<ReferralOutcomeState>(url, { outcome }));
+  }
+
+  /** Clear your Referral Outcome. Resolves with the current hired badge. */
+  async clearOutcome(id: string): Promise<ReferralOutcomeState> {
+    return this.saveOutcome(id, (url) => this.http.delete<ReferralOutcomeState>(url));
+  }
+
+  private async saveOutcome(
+    id: string,
+    request: (url: string) => Observable<ReferralOutcomeState>,
+  ): Promise<ReferralOutcomeState> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('You must be signed in to record an outcome.');
+
+    const memberId = encodeURIComponent(uid);
+    const referralId = encodeURIComponent(id);
+    try {
+      return await firstValueFrom(
+        request(`/api/members/${memberId}/referrals/${referralId}/outcome`),
+      );
+    } catch (error: unknown) {
+      console.error('Failed to save Referral Outcome', { uid, id, error });
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 0) {
+          throw new Error('Unable to connect. Check your network and try again.', {
+            cause: error,
+          });
+        }
+        if (error.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.', { cause: error });
+        }
+        const serverMessage = errorMessage(error);
+        if (serverMessage) throw new Error(serverMessage, { cause: error });
+      }
+      throw new Error(OUTCOME_SAVE_FAILED, { cause: error });
     }
   }
 }

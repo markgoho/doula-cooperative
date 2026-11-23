@@ -15,6 +15,7 @@ import { createMembersPlugin } from "../plugins/members-plugin.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
 import type { OutreachService } from "../services/outreach/interface.js";
+import type { ReferralOutcomeService } from "../services/referral-outcome/interface.js";
 import type { ReferralsService } from "../services/referrals/interface.js";
 import type { VerifyEmailService } from "../services/verify-email/interface.js";
 
@@ -35,6 +36,7 @@ export function createMembersTestPlugin(overrides?: {
   referralsService?: Partial<ReferralsService>;
   referralPortalSettingsService?: Partial<ReferralPortalSettingsService>;
   outreachService?: Partial<OutreachService>;
+  referralOutcomeService?: Partial<ReferralOutcomeService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -106,6 +108,12 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.outreachService,
   };
 
+  const defaultReferralOutcomeService: ReferralOutcomeService = {
+    setOutcome: mock(() => Promise.resolve()),
+    clearOutcome: mock(() => Promise.resolve()),
+    ...overrides?.referralOutcomeService,
+  };
+
   // Default: Referral Portal v2 switch on, so tests exercise membership rules.
   // Gate-off scenarios override getReferralPortalSettings explicitly.
   const defaultReferralPortalSettingsService: ReferralPortalSettingsService = {
@@ -134,6 +142,7 @@ export function createMembersTestPlugin(overrides?: {
     referralsService: defaultReferralsService,
     referralPortalSettingsService: defaultReferralPortalSettingsService,
     outreachService: defaultOutreachService,
+    referralOutcomeService: defaultReferralOutcomeService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

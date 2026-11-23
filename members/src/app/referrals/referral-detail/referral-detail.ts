@@ -20,8 +20,9 @@ import { MembershipRequiredError } from '../membership-required-error';
 import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
 import { ReferralListRefresh } from '../referral-list-refresh';
+import { ReferralOutcomeControl } from '../referral-outcome-control/referral-outcome-control';
 import { ReferralOutreachComposer } from '../referral-outreach-composer/referral-outreach-composer';
-import type { SentOutreach } from '../referral.types';
+import type { ReferralOutcomeState, SentOutreach } from '../referral.types';
 import { getRelativeTime } from '../referral.utilities';
 import { ReferralsService } from '../../services/referrals.service';
 
@@ -36,11 +37,13 @@ const SENT_AT_FORMAT = new Intl.DateTimeFormat('en-US', {
  * Right pane of the Referral inbox: the selected Referral.
  * Before your Outreach: request facts, where contact details will appear, and
  * the composer; never the requester's full name, email or phone. After it:
- * the revealed contact details with the sent time.
+ * the revealed contact details with the sent time, then your Referral Outcome.
+ * Everyone sees the hired badge once any member is hired; it never closes the
+ * Referral to Outreach.
  */
 @Component({
   selector: 'app-referral-detail',
-  imports: [RouterLink, ReferralOutreachComposer],
+  imports: [RouterLink, ReferralOutreachComposer, ReferralOutcomeControl],
   templateUrl: './referral-detail.html',
   styleUrl: './referral-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -108,6 +111,20 @@ export class ReferralDetail {
     afterNextRender(() => this.contactHeading()?.nativeElement.focus(), {
       injector: this.injector,
     });
+  }
+
+  /**
+   * Keep the pane in step with a saved Referral Outcome without reloading it
+   * (a reload would replace the control and drop focus), and refresh the list row.
+   */
+  protected onOutcomeSaved(state: ReferralOutcomeState): void {
+    if (!this.referralResource.hasValue()) return;
+    const updated = { ...this.referralResource.value() };
+    // The saved state replaces your Outcome entirely; a cleared one has neither field.
+    delete updated.outcome;
+    delete updated.outcomeUpdatedAt;
+    this.referralResource.set({ ...updated, ...state });
+    this.listRefresh.request();
   }
 
   constructor() {

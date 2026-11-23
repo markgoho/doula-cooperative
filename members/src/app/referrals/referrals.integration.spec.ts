@@ -42,6 +42,7 @@ const ROCHESTER: ReferralListItem = {
   area: 'Rochester, NY',
   responseCount: 0,
   isOpen: true,
+  hiredBadge: false,
 };
 
 const BUFFALO: ReferralListItem = {
@@ -52,6 +53,7 @@ const BUFFALO: ReferralListItem = {
   area: 'Buffalo, NY',
   responseCount: 0,
   isOpen: true,
+  hiredBadge: false,
 };
 
 const REFERRALS = [ROCHESTER, BUFFALO];
@@ -71,6 +73,7 @@ function toDetail(item: ReferralListItem, firstName: string): ReferralDetailMode
     insurance: [],
     submitted: item.submitted,
     outreachSender: { name: 'Dana Doula', email: 'dana@example.com' },
+    hiredBadge: item.hiredBadge,
   };
 }
 

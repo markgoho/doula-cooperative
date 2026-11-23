@@ -2,6 +2,31 @@ import { t, type Static } from "elysia";
 import { ErrorResponseSchema } from "./member-schemas.js";
 
 /**
+ * A Referral Outcome as the API names it (see `ReferralOutcome`).
+ */
+export const ReferralOutcomeSchema = t.Union(
+  [t.Literal("hired"), t.Literal("not_hired"), t.Literal("not_a_fit")],
+  { error: "Outcome must be one of: hired, not_hired, not_a_fit" },
+);
+
+/**
+ * The viewer's own Referral Outcome and the hired badge. Other Members'
+ * names and non-hired Outcomes are never included.
+ */
+const OutcomeFields = {
+  outcome: t.Optional(ReferralOutcomeSchema),
+  outcomeUpdatedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "When your Referral Outcome was last set (ISO 8601)",
+    }),
+  ),
+  hiredBadge: t.Boolean({
+    description: "Whether any Member recorded a hired Referral Outcome",
+  }),
+};
+
+/**
  * The requester's own Outreach on a Referral. Present only when they sent it.
  */
 export const OwnOutreachSchema = t.Object({
@@ -60,6 +85,8 @@ export const ReferralListItemSchema = t.Object({
     description: "Whether the Referral is under 14 days old",
   }),
   outreach: t.Optional(OwnOutreachSchema),
+  outcome: OutcomeFields.outcome,
+  hiredBadge: OutcomeFields.hiredBadge,
 });
 
 export type ReferralListItem = Static<typeof ReferralListItemSchema>;
@@ -100,6 +127,7 @@ export const ReferralDetailSchema = t.Object({
   outreach: t.Optional(OwnOutreachSchema),
   contact: t.Optional(ReferralContactSchema),
   outreachSender: t.Optional(OutreachSenderSchema),
+  ...OutcomeFields,
 });
 
 export type ReferralDetail = Static<typeof ReferralDetailSchema>;
@@ -148,6 +176,31 @@ export const SendOutreachResponseSchema = t.Object({
 });
 
 export type SendOutreachResponse = Static<typeof SendOutreachResponseSchema>;
+
+/**
+ * PUT /:memberId/referrals/:requestId/outcome body.
+ */
+export const SetReferralOutcomeBodySchema = t.Object({
+  outcome: ReferralOutcomeSchema,
+});
+
+/**
+ * The viewer's Referral Outcome after a set or clear, with the hired badge
+ * recomputed. After a clear, `outcome` and `outcomeUpdatedAt` are absent.
+ */
+export const ReferralOutcomeResponseSchema = t.Object(OutcomeFields);
+
+export type ReferralOutcomeResponse = Static<
+  typeof ReferralOutcomeResponseSchema
+>;
+
+/**
+ * Route response schema for PUT and DELETE /:memberId/referrals/:requestId/outcome.
+ */
+export const ReferralOutcomeRouteResponseSchema = t.Union([
+  ReferralOutcomeResponseSchema,
+  ErrorResponseSchema,
+]);
 
 /**
  * Route response schema for GET /:memberId/referrals.

@@ -105,7 +105,8 @@ test.describe('Referral Outreach', () => {
       'mailto:maya@example.com',
     );
     await expect(page.getByRole('link', { name: '555-0100' })).toBeVisible();
-    await expect(page.getByText(/^You reached out /)).toBeVisible();
+    // The sent time in the pane, not the row's "You reached out · Record outcome".
+    await expect(page.getByText(/^You reached out [A-Z][a-z]{2} \d/)).toBeVisible();
     await expect(page.getByRole('textbox')).toHaveCount(0);
     expect(sentMessages).toEqual(['Hi Maya, I would love to support your birth.']);
 

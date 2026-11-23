@@ -44,11 +44,24 @@ function outreachBy(
   return { memberUid, outreachSentAt: daysAgo(sentDaysAgo) };
 }
 
+function outcomeBy(
+  memberUid: string,
+  outcome: NonNullable<MemberResponseDocument["outcome"]>,
+): MemberResponseDocument {
+  return {
+    ...outreachBy(memberUid),
+    outcome,
+    outcomeUpdatedAt: daysAgo(0),
+  };
+}
+
 interface ListedReferral {
   id: string;
   responseCount: number;
   isOpen: boolean;
   outreach?: { sentAt: string };
+  outcome?: string;
+  hiredBadge: boolean;
 }
 
 async function listed(response: Response): Promise<ListedReferral[]> {
@@ -383,6 +396,55 @@ describe("GET /:memberId/referrals", () => {
       expect(text).not.toContain("Smith");
       expect(text).not.toContain("jane@example.com");
       expect(text).not.toContain("555-0100");
+    });
+  });
+
+  describe("Referral Outcome", () => {
+    it("marks the member's own Referral Outcome on each row", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1"), makeReferral("req-2")],
+        responses: {
+          "req-1": [outcomeBy(MEMBER_ID, "not_hired")],
+          "req-2": [outreachBy(MEMBER_ID)],
+        },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      const byId = new Map(referrals.map(referral => [referral.id, referral]));
+      expect(byId.get("req-1")?.outcome).toBe("not_hired");
+      expect(byId.get("req-2")).not.toHaveProperty("outcome");
+    });
+
+    it("shows the hired badge to every viewer once any member is hired", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1"), makeReferral("req-2")],
+        responses: { "req-1": [outcomeBy("member-b", "hired")] },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      const byId = new Map(referrals.map(referral => [referral.id, referral]));
+      expect(byId.get("req-1")?.hiredBadge).toBe(true);
+      expect(byId.get("req-1")).not.toHaveProperty("outcome");
+      expect(byId.get("req-2")?.hiredBadge).toBe(false);
+    });
+
+    it("never shows other members' names or non-hired Outcomes", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1")],
+        responses: {
+          "req-1": [
+            outcomeBy("member-b", "not_hired"),
+            outcomeBy("member-c", "not_a_fit"),
+          ],
+        },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      expect(text).not.toContain("member-b");
+      expect(text).not.toContain("not_hired");
+      expect(text).not.toContain("not_a_fit");
+      const [referral] = (JSON.parse(text) as { referrals: ListedReferral[] })
+        .referrals;
+      expect(referral?.hiredBadge).toBe(false);
+      expect(referral?.responseCount).toBe(2);
     });
   });
 

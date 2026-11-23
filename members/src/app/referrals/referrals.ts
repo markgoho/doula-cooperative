@@ -17,12 +17,13 @@ import { ReferralListRefresh } from './referral-list-refresh';
 import { ReferralMembershipRequired } from './referral-membership-required/referral-membership-required';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { ReferralPortalUnavailable } from './referral-portal-unavailable/referral-portal-unavailable';
+import { OUTCOME_LABELS } from './referral.constants';
 import type { ReferralListItem } from './referral.types';
 import { getRelativeTime } from './referral.utilities';
 import { ReferralsService } from '../services/referrals.service';
 
-/** List filters. Needs outcome joins once Referral Outcomes exist. */
-type ReferralFilter = 'open' | 'mine';
+/** List filters. */
+type ReferralFilter = 'open' | 'mine' | 'needsOutcome';
 
 const REFERRAL_FILTERS: Record<
   ReferralFilter,
@@ -43,9 +44,27 @@ const REFERRAL_FILTERS: Record<
     empty: "You haven't sent Outreach yet.",
     select: (referrals) => referrals.filter((referral) => referral.outreach !== undefined),
   },
+  // Referrals you reached out on with no Referral Outcome yet.
+  needsOutcome: {
+    label: 'Needs outcome',
+    empty: 'Nothing to record. After you send Outreach, record how it went here.',
+    select: (referrals) =>
+      referrals.filter((referral) => referral.outreach !== undefined && !referral.outcome),
+  },
 };
 
 const FILTER_IDS = Object.keys(REFERRAL_FILTERS) as ReferralFilter[];
+
+/** Your own state on a list row, when you reached out. */
+function ownState(
+  referral: ReferralListItem,
+): { label: string; tone: 'mine' | 'todo' } | undefined {
+  if (referral.outcome) {
+    return { label: `You: ${OUTCOME_LABELS[referral.outcome]}`, tone: 'mine' };
+  }
+  if (referral.outreach) return { label: 'You reached out · Record outcome', tone: 'todo' };
+  return undefined;
+}
 
 /**
  * Two-pane Referral inbox: the list on the left, the selected Referral
@@ -121,4 +140,6 @@ export class Referrals {
   protected responses(referral: ReferralListItem): string {
     return formatResponseCount(referral.responseCount);
   }
+
+  protected ownState = ownState;
 }

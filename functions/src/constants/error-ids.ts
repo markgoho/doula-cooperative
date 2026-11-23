@@ -384,6 +384,12 @@ export const ERROR_IDS = {
   API_MEMBER_OUTREACH_PROFILE_READ_FAILED:
     "api_member_outreach_profile_read_failed",
 
+  // Member Referral Outcome errors
+  API_MEMBER_RECORD_REFERRAL_OUTCOME_FAILED:
+    "api_member_record_referral_outcome_failed",
+  API_MEMBER_REFERRAL_OUTCOME_WRITE_FAILED:
+    "api_member_referral_outcome_write_failed",
+
   // Admin settings errors
   API_ADMIN_GET_REFERRAL_PORTAL_SETTINGS_FAILED:
     "api_admin_get_referral_portal_settings_failed",
