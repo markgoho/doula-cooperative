@@ -33,6 +33,9 @@ export interface ReferralList {
   showsAllReferrals: boolean;
 }
 
+/** Inbox list filters, as URL slugs. `all` is offered only to Referral Coordinators. */
+export type ReferralFilter = 'open' | 'my-outreach' | 'needs-outcome' | 'all';
+
 /** One member's own result for a Referral. Never exclusive to one member. */
 export type ReferralOutcome = 'hired' | 'not_hired' | 'not_a_fit';
 

@@ -1,13 +1,37 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import {
+  Router,
+  RouterOutlet,
+  provideRouter,
+  withComponentInputBinding,
+  type Routes,
+} from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
 import { MembershipRequiredError } from './membership-required-error';
 import { ReferralListRefresh } from './referral-list-refresh';
+import { ReferralPaneEmpty } from './referral-pane-empty/referral-pane-empty';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
+import type { ReferralFilter } from './referral.types';
 import { Referrals } from './referrals';
+
+@Component({
+  template: '<router-outlet />',
+  imports: [RouterOutlet],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+class TestApp {}
+
+const ROUTES: Routes = [
+  {
+    path: 'referrals/:filter',
+    component: Referrals,
+    children: [{ path: '', component: ReferralPaneEmpty }],
+  },
+];
 
 function makeReferral(overrides: Partial<ReferralListItem> = {}): ReferralListItem {
   return {
@@ -28,12 +52,14 @@ async function setup({
   failure,
   referrals = [] as ReferralListItem[],
   showsAllReferrals = false,
+  filter = 'open',
 }: {
   loading?: boolean;
   failure?: Error;
   referrals?: ReferralListItem[];
   /** True for a Referral Coordinator. */
   showsAllReferrals?: boolean;
+  filter?: ReferralFilter;
 } = {}) {
   let listReferrals: ReturnType<typeof vi.fn>;
   if (loading) {
@@ -45,9 +71,13 @@ async function setup({
     listReferrals = vi.fn().mockResolvedValue({ referrals, showsAllReferrals });
   }
 
-  await render(Referrals, {
-    providers: [{ provide: ReferralsService, useValue: { listReferrals } }, provideRouter([])],
+  await render(TestApp, {
+    providers: [
+      { provide: ReferralsService, useValue: { listReferrals } },
+      provideRouter(ROUTES, withComponentInputBinding()),
+    ],
   });
+  await TestBed.inject(Router).navigateByUrl(`/referrals/${filter}`);
 
   return { listReferrals, listRefresh: TestBed.inject(ReferralListRefresh) };
 }
@@ -99,9 +129,9 @@ describe('Referrals inbox', () => {
 
   it('offers the Open filter with its count, selected', async () => {
     await setup({ referrals: [makeReferral(), makeReferral({ id: 'req-2' })] });
-    expect(await screen.findByRole('button', { name: 'Open (2)' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+    expect(await screen.findByRole('link', { name: 'Open (2)' })).toHaveAttribute(
+      'aria-current',
+      'page',
     );
   });
 
@@ -124,8 +154,32 @@ describe('Referrals inbox', () => {
     await setup({ referrals: [makeReferral({ id: 'req-abc' })] });
     expect(await screen.findByRole('link', { name: /Rochester, NY/ })).toHaveAttribute(
       'href',
-      '/referrals/req-abc',
+      '/referrals/open/req-abc',
     );
+  });
+
+  it('shows the filter the URL names, keeping it in row links', async () => {
+    await setup({
+      filter: 'needs-outcome',
+      referrals: [
+        makeReferral({ id: 'req-open' }),
+        makeReferral({
+          id: 'req-todo',
+          area: 'Albany, NY',
+          outreach: { sentAt: new Date().toISOString() },
+        }),
+      ],
+    });
+    expect(await screen.findByRole('link', { name: 'Needs outcome (1)' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Open (2)' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: /Albany, NY/ })).toHaveAttribute(
+      'href',
+      '/referrals/needs-outcome/req-todo',
+    );
+    expect(screen.queryByRole('link', { name: /Rochester, NY/ })).toBeNull();
   });
 
   it('keeps older reached-out Referrals out of Open', async () => {
@@ -140,7 +194,7 @@ describe('Referrals inbox', () => {
         }),
       ],
     });
-    expect(await screen.findByRole('button', { name: 'Open (1)' })).toBeVisible();
+    expect(await screen.findByRole('link', { name: 'Open (1)' })).toBeVisible();
     expect(screen.getByRole('link', { name: /Rochester, NY/ })).toBeVisible();
     expect(screen.queryByRole('link', { name: /Buffalo, NY/ })).toBeNull();
   });
@@ -163,11 +217,11 @@ describe('Referrals inbox', () => {
       ],
     });
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'My Outreach (2)' }));
+    await user.click(await screen.findByRole('link', { name: 'My Outreach (2)' }));
 
-    expect(screen.getByRole('button', { name: 'My Outreach (2)' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+    expect(screen.getByRole('link', { name: 'My Outreach (2)' })).toHaveAttribute(
+      'aria-current',
+      'page',
     );
     expect(screen.getByRole('link', { name: /Albany, NY/ })).toHaveTextContent('You reached out');
     expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toHaveTextContent('You reached out');
@@ -177,7 +231,7 @@ describe('Referrals inbox', () => {
   it('says when you have not sent Outreach yet', async () => {
     await setup({ referrals: [makeReferral()] });
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'My Outreach (0)' }));
+    await user.click(await screen.findByRole('link', { name: 'My Outreach (0)' }));
     expect(screen.getByText("You haven't sent Outreach yet.")).toBeVisible();
   });
 
@@ -253,7 +307,7 @@ describe('Referrals inbox', () => {
         ],
       });
       const user = userEvent.setup();
-      await user.click(await screen.findByRole('button', { name: 'Needs outcome (2)' }));
+      await user.click(await screen.findByRole('link', { name: 'Needs outcome (2)' }));
 
       expect(screen.getByRole('link', { name: /Albany, NY/ })).toBeVisible();
       expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
@@ -274,20 +328,20 @@ describe('Referrals inbox', () => {
         ],
       });
       const user = userEvent.setup();
-      await user.click(await screen.findByRole('button', { name: 'My Outreach (1)' }));
+      await user.click(await screen.findByRole('link', { name: 'My Outreach (1)' }));
       expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toHaveTextContent(
         'You responded outside the portal · Record outcome',
       );
       expect(screen.queryByRole('link', { name: /Rochester, NY/ })).toBeNull();
 
-      await user.click(screen.getByRole('button', { name: 'Needs outcome (1)' }));
+      await user.click(screen.getByRole('link', { name: 'Needs outcome (1)' }));
       expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
     });
 
     it('says when nothing needs an outcome', async () => {
       await setup({ referrals: [makeReferral()] });
       const user = userEvent.setup();
-      await user.click(await screen.findByRole('button', { name: 'Needs outcome (0)' }));
+      await user.click(await screen.findByRole('link', { name: 'Needs outcome (0)' }));
       expect(
         screen.getByText('Nothing to record. After you send Outreach, record how it went here.'),
       ).toBeVisible();
@@ -305,8 +359,8 @@ describe('Referrals inbox', () => {
     it('offers All referrals, listing Referrals older than 14 days', async () => {
       await setup({ referrals: [makeReferral(), OLD], showsAllReferrals: true });
       const user = userEvent.setup();
-      expect(await screen.findByRole('button', { name: 'Open (1)' })).toBeVisible();
-      await user.click(screen.getByRole('button', { name: 'All referrals (2)' }));
+      expect(await screen.findByRole('link', { name: 'Open (1)' })).toBeVisible();
+      await user.click(screen.getByRole('link', { name: 'All referrals (2)' }));
 
       expect(screen.getByRole('link', { name: /Rochester, NY/ })).toBeVisible();
       expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
@@ -314,18 +368,18 @@ describe('Referrals inbox', () => {
 
     it('keeps Open, My Outreach and Needs outcome for a Coordinator', async () => {
       await setup({ referrals: [makeReferral(), OLD], showsAllReferrals: true });
-      expect(await screen.findByRole('button', { name: 'Open (1)' })).toHaveAttribute(
-        'aria-pressed',
-        'true',
+      expect(await screen.findByRole('link', { name: 'Open (1)' })).toHaveAttribute(
+        'aria-current',
+        'page',
       );
-      expect(screen.getByRole('button', { name: 'My Outreach (0)' })).toBeVisible();
-      expect(screen.getByRole('button', { name: 'Needs outcome (0)' })).toBeVisible();
+      expect(screen.getByRole('link', { name: 'My Outreach (0)' })).toBeVisible();
+      expect(screen.getByRole('link', { name: 'Needs outcome (0)' })).toBeVisible();
     });
 
     it('never offers All referrals to an ordinary member', async () => {
       await setup({ referrals: [makeReferral()] });
-      await screen.findByRole('button', { name: 'Open (1)' });
-      expect(screen.queryByRole('button', { name: /All referrals/ })).toBeNull();
+      await screen.findByRole('link', { name: 'Open (1)' });
+      expect(screen.queryByRole('link', { name: /All referrals/ })).toBeNull();
     });
   });
 

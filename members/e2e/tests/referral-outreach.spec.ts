@@ -110,7 +110,8 @@ test.describe('Referral Outreach', () => {
     await expect(page.getByRole('textbox')).toHaveCount(0);
     expect(sentMessages).toEqual(['Hi Maya, I would love to support your birth.']);
 
-    await page.getByRole('button', { name: 'My Outreach (1)' }).click();
+    await page.getByRole('link', { name: 'My Outreach (1)' }).click();
+    await expect(page).toHaveURL(/\/referrals\/my-outreach$/);
     await expect(page.getByRole('link', { name: /Rochester, NY/ })).toContainText(
       'You reached out',
     );

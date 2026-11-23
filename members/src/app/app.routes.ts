@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { Router, type CanActivateFn, type Routes } from '@angular/router';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 import { auth } from './lib/firebase';
+import { isReferralFilter } from './referrals/is-referral-filter';
 
 export const requireAuth: CanActivateFn = async (_route, state) => {
   const router = inject(Router);
@@ -99,21 +100,30 @@ export const routes: Routes = [
   // Member referral routes (require authentication)
   {
     path: 'referrals',
-    loadComponent: () => import('./referrals/referrals').then((m) => m.Referrals),
     canActivate: [requireAuth],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'open' },
       {
-        path: '',
-        loadComponent: () =>
-          import('./referrals/referral-pane-empty/referral-pane-empty').then(
-            (m) => m.ReferralPaneEmpty,
-          ),
+        path: ':filter',
+        canMatch: [isReferralFilter],
+        loadComponent: () => import('./referrals/referrals').then((m) => m.Referrals),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./referrals/referral-pane-empty/referral-pane-empty').then(
+                (m) => m.ReferralPaneEmpty,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
+          },
+        ],
       },
-      {
-        path: ':id',
-        loadComponent: () =>
-          import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
-      },
+      // Referral Notification emails link to /referrals/:id.
+      { path: ':id', redirectTo: 'open/:id' },
     ],
   },
 

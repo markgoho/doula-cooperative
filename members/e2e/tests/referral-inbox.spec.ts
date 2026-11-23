@@ -85,6 +85,7 @@ test.describe('Referral inbox', () => {
 
     await page.goto('/referrals/req-1');
 
+    await expect(page).toHaveURL(/\/referrals\/open\/req-1$/);
     await expect(page.getByRole('heading', { name: 'Maya · Rochester, NY' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Rochester, NY/ })).toHaveAttribute(
       'aria-current',
@@ -101,7 +102,7 @@ test.describe('Referral inbox', () => {
 
     await page.getByRole('link', { name: /Buffalo, NY/ }).click();
 
-    await expect(page).toHaveURL(/\/referrals\/req-2$/);
+    await expect(page).toHaveURL(/\/referrals\/open\/req-2$/);
     await expect(page.getByRole('heading', { name: 'Ana · Buffalo, NY' })).toBeVisible();
     await expect(page.getByText('Requester prefers Spanish')).toBeVisible();
   });
@@ -117,7 +118,7 @@ test.describe('Referral inbox', () => {
       page.getByRole('heading', { name: 'This referral is no longer open' }),
     ).toBeVisible();
     await page.getByRole('link', { name: 'See open referrals' }).click();
-    await expect(page).toHaveURL(/\/referrals$/);
+    await expect(page).toHaveURL(/\/referrals\/open$/);
   });
 
   test('panes stack on a narrow screen', async ({ authenticatedUserPage: page }) => {

@@ -49,11 +49,12 @@
   border: 1px solid var(--color-control-border);
   border-radius: 999px;
   color: var(--color-ink);
-  cursor: pointer;
+  display: inline-block;
   font-size: var(--step--1);
   padding: var(--space-3xs) var(--space-xs);
+  text-decoration: none;
 
-  &[aria-pressed='true'] {
+  &.active {
     background: var(--color-deep);
     border-color: var(--color-deep);
     color: var(--color-on-deep);

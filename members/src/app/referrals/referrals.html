@@ -11,14 +11,14 @@
         <div class="list-pane">
           <div class="filters" role="group" aria-label="Filter referrals">
             @for (option of filterOptions(); track option.id) {
-              <button
-                type="button"
+              <a
                 class="filter"
-                [attr.aria-pressed]="filter() === option.id"
-                (click)="filter.set(option.id)"
+                [routerLink]="['/referrals', option.id]"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
               >
                 {{ option.label }} ({{ option.count }})
-              </button>
+              </a>
             }
           </div>
           <p class="referrals-note">Referrals stay open for 14 days after they're submitted.</p>
@@ -36,7 +36,7 @@
                   <li>
                     <a
                       class="row"
-                      [routerLink]="['/referrals', referral.id]"
+                      [routerLink]="['/referrals', filter(), referral.id]"
                       routerLinkActive="active"
                       ariaCurrentWhenActive="page"
                     >
