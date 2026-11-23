@@ -69,3 +69,6 @@ TESTING_GAPS_SUMMARY.txt
 
 .sisyphus/
 .claude/settings.local.json
+
+# functions deploy uses npm; a bun.lock makes Cloud Build pick the bun buildpack
+functions/bun.lock
