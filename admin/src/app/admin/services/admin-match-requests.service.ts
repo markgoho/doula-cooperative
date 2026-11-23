@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { ListMatchRequestsResponse, MatchRequest } from '../admin.types';
+import type { ListMatchRequestsResponse, MatchRequestDetail } from '../admin.types';
 
 @Service()
 export class AdminMatchRequestsService {
@@ -24,9 +24,9 @@ export class AdminMatchRequestsService {
     );
   }
 
-  async getMatchRequest(id: string): Promise<MatchRequest> {
+  async getMatchRequest(id: string): Promise<MatchRequestDetail> {
     // Authorization header added automatically by authInterceptor
-    return firstValueFrom(this.httpClient.get<MatchRequest>(`${this.baseUrl}/${id}`));
+    return firstValueFrom(this.httpClient.get<MatchRequestDetail>(`${this.baseUrl}/${id}`));
   }
 
   async updateMatchRequestStatus(id: string, wasSent: boolean): Promise<{ success: boolean }> {

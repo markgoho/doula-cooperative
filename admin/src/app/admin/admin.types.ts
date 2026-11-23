@@ -55,6 +55,38 @@ export interface MatchRequest {
   recaptchaScore?: number;
 }
 
+export type ReferralOutcome = 'hired' | 'not_hired' | 'not_a_fit';
+
+/** A Member's Outreach and/or Offline Response on a Referral, with their Referral Outcome. */
+export interface MemberReferralResponse {
+  memberUid: string;
+  /** "" when the Member can't be found. */
+  memberName: string;
+  outreachSentAt?: string;
+  outcome?: ReferralOutcome;
+  outcomeUpdatedAt?: string;
+  offlineResponse?: {
+    /** "" when the recorder can't be found. */
+    recordedByName: string;
+    recordedAt: string;
+  };
+}
+
+/** An Offline Response recorded for an Unclaimed Legacy Membership. */
+export interface LegacyReferralResponse {
+  displayName: string;
+  /** "" when the recorder can't be found. */
+  recordedByName: string;
+  recordedAt: string;
+}
+
+export interface MatchRequestDetail extends MatchRequest {
+  responses: {
+    members: MemberReferralResponse[];
+    legacy: LegacyReferralResponse[];
+  };
+}
+
 export interface ListMatchRequestsResponse {
   requests: MatchRequest[];
   total: number;
