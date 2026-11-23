@@ -1,6 +1,9 @@
 import { describe, expect, it, mock } from "bun:test";
+import { MARK_EMAIL, REFERRAL_EMAIL } from "../../constants/email-addresses.js";
+import type { EmailMessage } from "../../shared-api/services/email/index.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { DoulaMatchFormBody } from "../schemas/form-response-schemas.js";
+import type { DoulaMatchData } from "../services/form-storage/types.js";
 import type { RecaptchaService } from "../services/recaptcha/interface.js";
 import { createDoulaMatchFormTestPlugin } from "../test-utils/create-forms-test-plugins.js";
 
@@ -22,6 +25,7 @@ describe("POST /doula-match", () => {
     recaptchaScoreTooLow?: boolean;
     emailSendFails?: boolean;
     firestoreSaveFails?: boolean;
+    matchRequestId?: string;
   }
 
   function setup({
@@ -29,11 +33,11 @@ describe("POST /doula-match", () => {
       name: "Jane Smith",
       phone: "555-1234",
       email: "jane@example.com",
-      zipcode: "12345",
+      zipcode: "14620",
       estimatedDueDate: {
-        month: "12",
+        month: "3",
         day: "25",
-        year: "2024",
+        year: "2027",
       },
       services: ["Birth Support", "Postpartum Care"],
       birthLocation: "Hospital ABC",
@@ -46,6 +50,7 @@ describe("POST /doula-match", () => {
     recaptchaScoreTooLow = false,
     emailSendFails = false,
     firestoreSaveFails = false,
+    matchRequestId = "abc123",
   }: SetupOptions = {}) {
     // Set environment variable for this test
     if (recaptchaSecretKey === null) {
@@ -77,7 +82,9 @@ describe("POST /doula-match", () => {
       }),
     };
 
-    const mockSaveMatchRequest = mock(() => {
+    const mockSaveMatchRequest = mock<
+      (options: { id: string; data: DoulaMatchData }) => Promise<void>
+    >(() => {
       if (firestoreSaveFails) {
         return Promise.reject(
           new Error(
@@ -88,7 +95,9 @@ describe("POST /doula-match", () => {
       return Promise.resolve();
     });
 
-    const mockSendEmail = mock(() => {
+    const mockSendEmail = mock<
+      (options: { message: EmailMessage }) => Promise<void>
+    >(() => {
       if (emailSendFails) {
         return Promise.reject(new Error("Mailgun timeout"));
       }
@@ -97,7 +106,10 @@ describe("POST /doula-match", () => {
 
     // Create plugin with mocked services
     const plugin = createDoulaMatchFormTestPlugin({
-      formStorageService: { saveMatchRequest: mockSaveMatchRequest },
+      formStorageService: {
+        createMatchRequestId: mock(() => matchRequestId),
+        saveMatchRequest: mockSaveMatchRequest,
+      },
       emailService: { sendEmail: mockSendEmail },
       recaptchaService: mockRecaptchaService,
     });
@@ -109,7 +121,15 @@ describe("POST /doula-match", () => {
       body: JSON.stringify(body),
     });
 
-    return { plugin, request };
+    function sentMessage(): EmailMessage {
+      const [call] = mockSendEmail.mock.calls;
+      if (call === undefined) {
+        throw new Error("Expected a notification email to be sent");
+      }
+      return call[0].message;
+    }
+
+    return { plugin, request, mockSaveMatchRequest, sentMessage };
   }
 
   describe("Validation", () => {
@@ -272,59 +292,42 @@ describe("POST /doula-match", () => {
       expect(body.emailSent).toBe(true);
     });
 
-    it("should accept Spanish locale submission and include Language row in notification email", async () => {
-      let savedData: { locale?: string } | undefined;
-      let sentEmailHtml: string | undefined;
-      const mockSaveMatchRequest = mock(
-        ({ data }: { data: { locale?: string } }) => {
-          savedData = data;
-          return Promise.resolve();
-        },
-      );
-      const mockSendEmail = mock(
-        ({ message }: { message: { html?: string } }) => {
-          sentEmailHtml = message.html;
-          return Promise.resolve();
-        },
-      );
-      const mockRecaptchaService = {
-        verifyToken: mock(() => Promise.resolve({ success: true, score: 0.9 })),
-      };
-      const { createDoulaMatchFormTestPlugin } =
-        await import("../test-utils/create-forms-test-plugins.js");
-      const plugin = createDoulaMatchFormTestPlugin({
-        formStorageService: { saveMatchRequest: mockSaveMatchRequest },
-        emailService: { sendEmail: mockSendEmail },
-        recaptchaService: mockRecaptchaService,
+    it("should save the Match Request under the id linked from the notification", async () => {
+      const { plugin, request, mockSaveMatchRequest, sentMessage } = setup({
+        matchRequestId: "match-42",
       });
 
-      const request = new Request("http://localhost/doula-match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await handleRequest(plugin, request);
+
+      expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
+      expect(mockSaveMatchRequest.mock.calls[0]?.[0].id).toBe("match-42");
+      expect(sentMessage().html).toContain(
+        'href="https://admin.doulacooperative.com/match-requests/match-42"',
+      );
+    });
+
+    it("should accept Spanish locale submission and save the locale", async () => {
+      const { plugin, request, mockSaveMatchRequest } = setup({
+        body: {
           name: "María García",
           phone: "555-5678",
           email: "maria@example.com",
-          zipcode: "12345",
-          estimatedDueDate: { month: "6", day: "15", year: "2025" },
+          zipcode: "14620",
+          estimatedDueDate: { month: "6", day: "15", year: "2027" },
           services: ["apoyo de doula de parto"],
           birthLocation: "Highland Hospital",
           otherInfo: "",
           insurance: [],
           recaptchaToken: "valid-token",
           locale: "es",
-        }),
+        },
       });
 
       const response = await handleRequest(plugin, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as { success: boolean };
-      expect(body.success).toBe(true);
       expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
-      expect(savedData?.locale).toBe("es");
-      expect(sentEmailHtml).toContain("Language:");
-      expect(sentEmailHtml).toContain("Spanish (es)");
+      expect(mockSaveMatchRequest.mock.calls[0]?.[0].data.locale).toBe("es");
     });
 
     it("should return 422 when locale is an unsupported value", async () => {
@@ -348,6 +351,162 @@ describe("POST /doula-match", () => {
       const response = await handleRequest(plugin, request);
 
       expect(response.status).toBe(422);
+    });
+  });
+
+  describe("Match Request Notification content", () => {
+    const requesterDetails = {
+      name: "Jane Smith",
+      phone: "555-1234",
+      email: "jane@example.com",
+      birthLocation: "Hospital ABC",
+      otherInfo: "First time parent",
+      insurance: ["Aetna"],
+    };
+
+    function bodyWith(
+      overrides: Partial<DoulaMatchFormBody> = {},
+    ): Partial<DoulaMatchFormBody> {
+      return {
+        ...requesterDetails,
+        zipcode: "14620",
+        estimatedDueDate: { month: "3", day: "25", year: "2027" },
+        services: ["Birth Support", "Postpartum Care"],
+        recaptchaToken: "valid-token",
+        ...overrides,
+      };
+    }
+
+    it("should send to the unchanged admin recipients with no Reply-To", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
+
+      await handleRequest(plugin, request);
+
+      const message = sentMessage();
+      expect(message.to).toEqual([MARK_EMAIL, REFERRAL_EMAIL]);
+      expect(message).not.toHaveProperty("h:Reply-To");
+    });
+
+    it("should use a subject with due month and area but no requester name", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
+
+      await handleRequest(plugin, request);
+
+      expect(sentMessage().subject).toBe(
+        "New match request: due Mar 2027 · Rochester, NY",
+      );
+    });
+
+    it("should include due month/year, services, area and admin link", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith(),
+        matchRequestId: "abc123",
+      });
+
+      await handleRequest(plugin, request);
+
+      const { html } = sentMessage();
+      expect(html).toContain("Mar 2027");
+      expect(html).toContain("Birth Support, Postpartum Care");
+      expect(html).toContain("Rochester, NY");
+      expect(html).toContain(
+        "https://admin.doulacooperative.com/match-requests/abc123",
+      );
+      expect(html).not.toContain("Spanish");
+    });
+
+    it("should leave out every requester detail outside the allowed fields", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
+
+      await handleRequest(plugin, request);
+
+      const { subject, html } = sentMessage();
+      const content = `${subject}\n${html}`;
+      expect(content).not.toContain("Jane");
+      expect(content).not.toContain("Smith");
+      expect(content).not.toContain("jane@example.com");
+      expect(content).not.toContain("555-1234");
+      expect(content).not.toContain("Hospital ABC");
+      expect(content).not.toContain("First time parent");
+      expect(content).not.toContain("Aetna");
+      expect(content).not.toContain("14620");
+      expect(content).not.toMatch(/\b25\b/);
+    });
+
+    it("should flag Spanish in the subject and body when locale is es", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ locale: "es" }),
+      });
+
+      await handleRequest(plugin, request);
+
+      const { subject, html } = sentMessage();
+      expect(subject).toBe(
+        "New match request: due Mar 2027 · Rochester, NY · Spanish",
+      );
+      expect(html).toContain("Requester prefers Spanish");
+    });
+
+    it("should not flag Spanish when locale is en", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ locale: "en" }),
+      });
+
+      await handleRequest(plugin, request);
+
+      const { subject, html } = sentMessage();
+      expect(subject).not.toContain("Spanish");
+      expect(html).not.toContain("Spanish");
+    });
+
+    it("should fall back to the raw ZIP when the area lookup fails", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ zipcode: "00000" }),
+      });
+
+      await handleRequest(plugin, request);
+
+      const { subject, html } = sentMessage();
+      expect(subject).toBe("New match request: due Mar 2027 · ZIP 00000");
+      expect(html).toContain("ZIP 00000");
+    });
+
+    it("should resolve the area from a ZIP+4 code", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ zipcode: "14620-1234" }),
+      });
+
+      await handleRequest(plugin, request);
+
+      expect(sentMessage().subject).toBe(
+        "New match request: due Mar 2027 · Rochester, NY",
+      );
+    });
+
+    it("should fall back to the year alone for an unrecognized month", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({
+          estimatedDueDate: { month: "13", day: "1", year: "2027" },
+        }),
+      });
+
+      await handleRequest(plugin, request);
+
+      expect(sentMessage().subject).toBe(
+        "New match request: due 2027 · Rochester, NY",
+      );
+    });
+
+    it("should HTML-escape requester-supplied services", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ services: ["<script>alert(1)</script>"] }),
+      });
+
+      await handleRequest(plugin, request);
+
+      const { html } = sentMessage();
+      expect(html).not.toContain("<script>");
+      expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     });
   });
 

@@ -14,16 +14,22 @@ import type { DoulaMatchData } from "./types.js";
  * This allows manual follow-up for submissions where email delivery failed.
  * Firestore document serves as the source of truth for all submissions.
  *
+ * Writes to the pre-allocated document id with set(), so a retry with the
+ * same id overwrites rather than duplicating the Match Request.
+ *
+ * @param id - Pre-allocated Match Request document id
  * @param data - The doula match request data
  * @param recaptchaScore - The reCAPTCHA verification score
  * @param emailSent - Whether the notification email was successfully sent (defaults to false)
  * @throws Error if Firestore write fails
  */
 export async function saveMatchRequest({
+  id,
   data,
   recaptchaScore,
   emailSent = false,
 }: {
+  id: string;
   data: DoulaMatchData;
   recaptchaScore: number;
   emailSent?: boolean;
@@ -38,13 +44,14 @@ export async function saveMatchRequest({
   };
 
   try {
-    await firestore.collection(MATCH_REQUESTS_COLLECTION).add(document);
+    await firestore.collection(MATCH_REQUESTS_COLLECTION).doc(id).set(document);
   } catch (error) {
     logger.error("Failed to save doula match request to Firestore", {
       errorId: ERROR_IDS.DOULA_MATCH_FORM_FIRESTORE_WRITE_FAILED,
       error,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
+      matchRequestId: id,
       emailSent, // Critical: indicates if email was already sent
       email: data.email,
       recaptchaScore,

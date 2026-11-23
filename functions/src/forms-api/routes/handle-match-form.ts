@@ -27,6 +27,10 @@ export async function handleMatchFormLogic({
   logger: Logger;
   set: { status?: number | string };
 }): Promise<FormResponse> {
+  // Allocated up front (no Firestore write) so the notification can link to
+  // the admin detail page while keeping the send-then-persist order.
+  const matchRequestId = formStorageService.createMatchRequestId();
+
   return processPublicFormIntake({
     recaptchaToken,
     recaptchaSecretKey,
@@ -44,9 +48,11 @@ export async function handleMatchFormLogic({
     getSpamPolicy: recaptchaScore => ({
       recaptcha: { score: recaptchaScore },
     }),
-    buildEmail: () => buildDoulaMatchNotification(formData),
+    buildEmail: () =>
+      buildDoulaMatchNotification({ data: formData, matchRequestId }),
     persist: ({ emailSent, recaptchaScore }) =>
       formStorageService.saveMatchRequest({
+        id: matchRequestId,
         data: formData,
         recaptchaScore,
         emailSent,
