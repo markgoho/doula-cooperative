@@ -34,7 +34,6 @@ Choose the scope based on which folder the changes primarily affect:
 | Scope                          | Folder                                        |
 | ------------------------------ | --------------------------------------------- |
 | `members`                      | `members/`                                    |
-| `admin`                        | `admin/`                                      |
 | `forms-api`                    | `functions/src/forms-api/`                    |
 | `members-api`                  | `functions/src/members-api/`                  |
 | `profiles-api`                 | `functions/src/profiles-api/`                 |
