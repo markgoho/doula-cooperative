@@ -26,6 +26,7 @@ export interface Member {
   newsletterSubscribed?: boolean;
   newsletterSubscribedAt?: Date;
   newsletterUnsubscribedAt?: Date;
+  referralPortalAvailable?: boolean;
 }
 
 @Service()
@@ -626,6 +627,9 @@ export class MembershipService {
       }),
       ...(apiResponse.newsletterUnsubscribedAt !== undefined && {
         newsletterUnsubscribedAt: new Date(apiResponse.newsletterUnsubscribedAt),
+      }),
+      ...(apiResponse.referralPortalAvailable !== undefined && {
+        referralPortalAvailable: apiResponse.referralPortalAvailable,
       }),
     };
   }

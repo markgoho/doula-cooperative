@@ -15,10 +15,12 @@ import {
   type ReferralDetail as ReferralDetailModel,
 } from '../../services/referrals.service';
 import { Tag } from '../../tag/tag';
+import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
+import { ReferralPortalUnavailable } from '../referral-portal-unavailable/referral-portal-unavailable';
 
 @Component({
   selector: 'app-referral-detail',
-  imports: [DatePipe, RouterLink, Tag],
+  imports: [DatePipe, RouterLink, Tag, ReferralPortalUnavailable],
   templateUrl: './referral-detail.html',
   styleUrl: './referral-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,10 @@ export class ReferralDetail {
     params: () => ({ id: this.id() }),
     loader: ({ params }) => this.referralsService.getReferral(params.id),
   });
+
+  protected isPortalDisabled = computed(
+    () => this.referralResource.error() instanceof ReferralPortalDisabledError,
+  );
 
   protected parsedDueDate = computed(() => {
     const referral = this.referralResource.value();

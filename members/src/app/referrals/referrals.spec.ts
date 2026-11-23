@@ -3,6 +3,7 @@ import type { Routes } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
+import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { Referrals } from './referrals';
 
 const TEST_ROUTES: Routes = [{ path: 'referrals/:id', component: Referrals }];
@@ -22,12 +23,15 @@ function makeReferral(overrides: Partial<ReferralListItem> = {}): ReferralListIt
 async function setup({
   loading = false,
   error = false,
+  portalDisabled = false,
   referrals = [] as ReferralListItem[],
 } = {}) {
   let listReferralsMock: ReturnType<typeof vi.fn>;
   if (loading) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     listReferralsMock = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
+  } else if (portalDisabled) {
+    listReferralsMock = vi.fn().mockRejectedValue(new ReferralPortalDisabledError());
   } else if (error) {
     listReferralsMock = vi.fn().mockRejectedValue(new Error('Network error'));
   } else {
@@ -58,6 +62,20 @@ describe('Referrals list', () => {
     it('shows error message on failure', async () => {
       await setup({ error: true });
       expect(await screen.findByRole('alert')).toHaveTextContent('Network error');
+    });
+  });
+
+  describe('referral portal not available yet', () => {
+    it('shows a friendly not-available state instead of an error', async () => {
+      await setup({ portalDisabled: true });
+      expect(
+        await screen.findByRole('heading', { name: "Referrals aren't available yet" }),
+      ).toBeVisible();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByRole('link', { name: 'Back to your membership' })).toHaveAttribute(
+        'href',
+        '/membership',
+      );
     });
   });
 

@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
+import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
 import type { MatchRequest } from '../referrals/referral.types';
 
 export type ReferralDueDate = MatchRequest['estimatedDueDate'];
@@ -25,6 +26,18 @@ export type ReferralDetail = Pick<
   | 'insurance'
   | 'submitted'
 >;
+
+const REFERRAL_PORTAL_DISABLED_CODE = 'REFERRAL_PORTAL_DISABLED';
+
+function isReferralPortalDisabled(error: HttpErrorResponse): boolean {
+  const body: unknown = error.error;
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'code' in body &&
+    body.code === REFERRAL_PORTAL_DISABLED_CODE
+  );
+}
 
 @Service()
 export class ReferralsService {
@@ -53,6 +66,9 @@ export class ReferralsService {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
+            if (isReferralPortalDisabled(error)) {
+              throw new ReferralPortalDisabledError({ cause: error });
+            }
             throw new Error(
               'Your membership is not currently active. Renew your membership to view referrals.',
               { cause: error },
@@ -90,6 +106,9 @@ export class ReferralsService {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
+            if (isReferralPortalDisabled(error)) {
+              throw new ReferralPortalDisabledError({ cause: error });
+            }
             throw new Error(
               'Your membership is not currently active. Renew your membership to view referrals.',
               { cause: error },

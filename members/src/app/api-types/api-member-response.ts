@@ -26,6 +26,8 @@ export interface ApiMemberResponse {
   newsletterUnsubscribedAt?: string;
   refundedAt?: string;
   refundReason?: string;
+  /** Server-computed: whether this member can reach the Referral Portal right now */
+  referralPortalAvailable?: boolean;
 }
 
 // export type Member = ApiMemberResponse;

@@ -6,6 +6,7 @@ import {
   ReferralsService,
   type ReferralDetail as ReferralDetailModel,
 } from '../../services/referrals.service';
+import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
 import { ReferralDetail } from './referral-detail';
 
 function makeReferralDetail(overrides: Partial<ReferralDetailModel> = {}): ReferralDetailModel {
@@ -28,11 +29,13 @@ function makeReferralDetail(overrides: Partial<ReferralDetailModel> = {}): Refer
 async function setup({
   loading = false,
   error = false,
+  portalDisabled = false,
   id = 'req-1',
   referral = makeReferralDetail(),
 }: {
   loading?: boolean;
   error?: boolean;
+  portalDisabled?: boolean;
   id?: string;
   referral?: ReferralDetailModel;
 } = {}) {
@@ -40,6 +43,8 @@ async function setup({
   if (loading) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     getReferralMock = vi.fn().mockReturnValue(new Promise(() => {}));
+  } else if (portalDisabled) {
+    getReferralMock = vi.fn().mockRejectedValue(new ReferralPortalDisabledError());
   } else if (error) {
     getReferralMock = vi.fn().mockRejectedValue(new Error('Not found'));
   } else {
@@ -61,6 +66,17 @@ describe('ReferralDetail', () => {
     it('shows loading message', async () => {
       await setup({ loading: true });
       expect(await screen.findByRole('status')).toHaveTextContent('Loading referral...');
+    });
+  });
+
+  describe('referral portal not available yet', () => {
+    it('shows a friendly not-available state instead of an error', async () => {
+      await setup({ portalDisabled: true });
+      expect(
+        await screen.findByRole('heading', { name: "Referrals aren't available yet" }),
+      ).toBeVisible();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Back to referrals' })).toBeNull();
     });
   });
 
