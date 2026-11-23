@@ -3,6 +3,7 @@ import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 import type { ReferralDetail } from "./referral-schemas.js";
 import type { MemberResponsesSummary } from "./summarize-member-responses.js";
 import { toFirstName } from "./to-first-name.js";
+import { toOutcomeFields } from "./to-outcome-fields.js";
 import { toReferralArea } from "./to-referral-area.js";
 
 /**
@@ -11,18 +12,20 @@ import { toReferralArea } from "./to-referral-area.js";
  * - Before the viewer's own Outreach, the requester's full name, email and
  *   phone are never included; `outreachSender` feeds the composer.
  * - After it, `outreach` (sent time) and `contact` are added.
+ * - The viewer's own Referral Outcome and the hired badge are always included;
+ *   other Members' names and non-hired Outcomes never are.
  */
 export function toReferralDetail(
   id: string,
   document: MatchRequestDocument,
   {
-    responseCount,
-    ownOutreachSentAt,
     outreachSender,
+    ...summary
   }: MemberResponsesSummary & {
     outreachSender: ReferralDetail["outreachSender"];
   },
 ): ReferralDetail {
+  const { responseCount, ownOutreachSentAt } = summary;
   const base: ReferralDetail = {
     id,
     firstName: toFirstName(document.name),
@@ -36,6 +39,7 @@ export function toReferralDetail(
     otherInfo: document.otherInfo,
     insurance: document.insurance,
     submitted: timestampToIso(document.submitted),
+    ...toOutcomeFields(summary),
   };
 
   if (ownOutreachSentAt) {

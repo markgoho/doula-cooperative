@@ -7,10 +7,13 @@ import type { Timestamp } from "firebase-admin/firestore";
  */
 export const MEMBER_RESPONSES_SUBCOLLECTION = "memberResponses";
 
+/** One Member's own result for a Referral. Never exclusive to one Member. */
+export type ReferralOutcome = "hired" | "not_hired" | "not_a_fit";
+
 /**
  * A Member's response to a Referral. Holds metadata only: the Outreach message
- * body is never stored. Later slices add the Offline Response and the Referral
- * Outcome to the same document, so a document existing does not mean Outreach
+ * body is never stored. The Referral Outcome lives on the same document, and a
+ * later slice adds the Offline Response, so a document existing does not mean Outreach
  * was sent: only `outreachSentAt` does.
  */
 export interface MemberResponseDocument {
@@ -22,4 +25,8 @@ export interface MemberResponseDocument {
   mailgunMessageId?: string;
   /** Set while an Outreach send is in flight, so a double submit can't send twice. */
   outreachPendingAt?: Timestamp;
+  /** This Member's current Referral Outcome; absent when none or cleared. No history. */
+  outcome?: ReferralOutcome;
+  /** When `outcome` was last set (server time); cleared along with it. */
+  outcomeUpdatedAt?: Timestamp;
 }
