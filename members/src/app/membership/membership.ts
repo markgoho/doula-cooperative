@@ -33,6 +33,8 @@ export class Membership {
   protected createProfileError = signal<string | undefined>(undefined);
   protected newsletterUpdateInProgress = signal(false);
   protected newsletterUpdateError = signal<string | undefined>(undefined);
+  protected referralNotificationsUpdateInProgress = signal(false);
+  protected referralNotificationsUpdateError = signal<string | undefined>(undefined);
   protected nameInput = signal('');
   protected nameUpdateInProgress = signal(false);
   protected nameUpdateError = signal<string | undefined>(undefined);
@@ -102,6 +104,11 @@ export class Membership {
     return userDocument?.newsletterSubscribed ?? false;
   });
 
+  // Referral Notifications are on unless the member turned them off
+  protected referralNotificationsEnabled = computed(
+    () => this.userDocument()?.referralNotificationsEnabled !== false,
+  );
+
   protected isRefunded = computed(() => {
     const userDocument = this.userDocument();
     return userDocument?.subscriptionStatus === 'refunded';
@@ -162,6 +169,23 @@ export class Membership {
       this.newsletterUpdateError.set(errorMessage);
     } finally {
       this.newsletterUpdateInProgress.set(false);
+    }
+  }
+
+  protected async onUpdateReferralNotifications(isEnabled: boolean) {
+    this.referralNotificationsUpdateInProgress.set(true);
+    this.referralNotificationsUpdateError.set(undefined);
+
+    try {
+      await this.membershipService.updateReferralNotifications(isEnabled);
+    } catch (error) {
+      this.referralNotificationsUpdateError.set(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update referral emails. Please try again.',
+      );
+    } finally {
+      this.referralNotificationsUpdateInProgress.set(false);
     }
   }
 

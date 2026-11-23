@@ -231,6 +231,25 @@
               View doula match requests submitted by families looking for support.
             </p>
             <a routerLink="/referrals" class="community-link">View Referrals</a>
+            <div class="referral-notifications">
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  [checked]="referralNotificationsEnabled()"
+                  (change)="onUpdateReferralNotifications(!referralNotificationsEnabled())"
+                  [disabled]="referralNotificationsUpdateInProgress()"
+                />
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span class="toggle-text">Email me new referrals</span>
+              </label>
+              @if (referralNotificationsUpdateInProgress()) {
+                <span class="update-status">Updating...</span>
+              }
+              @if (referralNotificationsUpdateError(); as error) {
+                <p class="error-message" role="alert">{{ error }}</p>
+              }
+            </div>
           </section>
         }
       </div>
