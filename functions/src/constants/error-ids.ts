@@ -415,6 +415,16 @@ export const ERROR_IDS = {
   REFERRAL_NOTIFICATION_MATCH_REQUEST_NOT_FOUND:
     "referral_notification_match_request_not_found",
 
+  // No-Outreach Alert sweep errors
+  NO_OUTREACH_ALERT_RESPONSES_READ_FAILED:
+    "no_outreach_alert_responses_read_failed",
+  NO_OUTREACH_ALERT_SEND_FAILED: "no_outreach_alert_send_failed",
+  NO_OUTREACH_ALERT_MARKER_WRITE_FAILED:
+    "no_outreach_alert_marker_write_failed",
+  NO_OUTREACH_ALERT_SWEEP_FAILED: "no_outreach_alert_sweep_failed",
+  NO_OUTREACH_ALERT_FAILURE_ALERT_FAILED:
+    "no_outreach_alert_failure_alert_failed",
+
   // Referral Notification preference errors
   UPDATE_REFERRAL_NOTIFICATIONS_ROUTE_FAILED:
     "update_referral_notifications_route_failed",

@@ -10,6 +10,7 @@
 import { getApps, initializeApp } from "firebase-admin/app";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onRequest } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { MATCH_REQUESTS_COLLECTION } from "./collections/match-requests.js";
 import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
@@ -176,6 +177,20 @@ export const referralNotification = onDocumentCreated(
       matchRequestId: event.params.matchRequestId,
       eventTime: event.time,
     });
+  },
+);
+
+// No-Outreach Alert: daily sweep emailing Admins about unanswered Referrals
+export const noOutreachAlertSweep = onSchedule(
+  {
+    schedule: "every day 09:00",
+    timeZone: "America/New_York",
+    secrets: [...MAILGUN_SECRETS],
+  },
+  async () => {
+    const { handleNoOutreachAlertSweep } =
+      await import("./no-outreach-alert/handler.js");
+    await handleNoOutreachAlertSweep();
   },
 );
 
