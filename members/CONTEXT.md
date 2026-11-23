@@ -60,6 +60,10 @@ _Avoid_: Claim, taken, status
 An email telling a **Member** that a new **Referral** is waiting in the member portal. Carries no requester contact or health details beyond due month, services, and general area.
 _Avoid_: Lead alert, referral blast
 
+**Referral Coordinator**:
+A **Member** who handles **Referrals** for the cooperative and can see their **Outreach** and **Referral Outcomes**, but is not an **Admin**.
+_Avoid_: Coordinator admin, referral admin
+
 **No-Outreach Alert**:
 An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it since its **Referral Notification**. Sent once per **Referral**.
 _Avoid_: No-response alert, stale lead alert
