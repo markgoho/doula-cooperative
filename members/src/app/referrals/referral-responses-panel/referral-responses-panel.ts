@@ -80,13 +80,15 @@ export class ReferralResponsesPanel {
     })),
   );
 
+  /** Read on its own so a refreshed Coordinator view doesn't reload the doulas. */
+  private canRecord = computed(() => this.coordinator().canRecordOfflineResponses);
+
   protected doulasResource = resource({
-    params: () => (this.coordinator().canRecordOfflineResponses ? { load: true } : undefined),
+    params: () => (this.canRecord() ? true : undefined),
     loader: () => this.referralsService.listReferralDoulas(),
   });
 
   protected query = signal('');
-  protected selectedKey = signal('');
   protected saving = signal(false);
   protected status = signal('');
   protected actionError = signal('');
@@ -126,27 +128,21 @@ export class ReferralResponsesPanel {
     this.query.set((event.target as HTMLInputElement).value);
   }
 
-  protected onSelect(event: Event): void {
-    this.selectedKey.set((event.target as HTMLSelectElement).value);
-  }
-
   protected async add(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     if (this.saving()) return;
+    // Read what the select shows: filtering can change its selection without a change event.
+    const select = this.doulaSelect()?.nativeElement;
     const choice = this.options()
       .flatMap((group) => group.options)
-      .find(({ key }) => key === this.selectedKey());
-    if (!choice) return;
+      .find(({ key }) => key === select?.value);
+    if (!select || !choice) return;
 
     await this.run(
       () => this.referralsService.recordOfflineResponse(this.referralId(), choice.doula),
       `Recorded an Offline Response for ${choice.doula.displayName}.`,
     );
-    const select = this.doulaSelect()?.nativeElement;
-    if (select && !this.actionError()) {
-      select.value = '';
-      this.selectedKey.set('');
-    }
+    if (!this.actionError()) select.value = '';
   }
 
   protected async remove(row: OfflineResponseRow): Promise<void> {

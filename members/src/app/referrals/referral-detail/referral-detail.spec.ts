@@ -752,7 +752,7 @@ describe('ReferralDetail pane', () => {
       });
 
       it('adds an Offline Response for the doula you pick, then refreshes the panel', async () => {
-        const { user, recordOfflineResponse, getReferral } = await setup({
+        const { user, recordOfflineResponse, getReferral, listReferralDoulas } = await setup({
           referral: makeReferralDetail({
             responseCount: 3,
             coordinator: coordinatorView(),
@@ -782,6 +782,27 @@ describe('ReferralDetail pane', () => {
         expect(
           within(panel()).getByText('Recorded an Offline Response for Mia Legacy.'),
         ).toBeVisible();
+        // The refresh keeps the picker in place rather than reloading the doulas.
+        expect(listReferralDoulas).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole('button', { name: 'Add Offline Response' })).toHaveFocus();
+      });
+
+      it('records the doula the picker shows after you filter', async () => {
+        const { user, recordOfflineResponse } = await setup({
+          referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          doulas: DOULAS,
+        });
+        const select = await screen.findByRole('combobox', { name: 'Doula' });
+        await user.selectOptions(select, 'Ana Doula');
+        const filter = screen.getByRole('searchbox', { name: 'Find a doula' });
+        await user.type(filter, 'mia');
+        await user.clear(filter);
+        const shown = (select as HTMLSelectElement).selectedOptions[0]?.textContent.trim();
+        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+
+        // Whatever the select ends up showing is what gets recorded, never a stale pick.
+        expect(shown).toBe('Mia Legacy');
+        expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
       });
 
       it('does not add anything until you pick a doula', async () => {
