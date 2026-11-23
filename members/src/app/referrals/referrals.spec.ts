@@ -18,6 +18,7 @@ function makeReferral(overrides: Partial<ReferralListItem> = {}): ReferralListIt
     area: 'Rochester, NY',
     responseCount: 0,
     isOpen: true,
+    hiredBadge: false,
     ...overrides,
   };
 }
@@ -186,8 +187,82 @@ describe('Referrals inbox', () => {
 
     listRefresh.request();
 
-    expect(await screen.findByText('You reached out')).toBeVisible();
+    expect(await screen.findByText('You reached out · Record outcome')).toBeVisible();
     expect(screen.getByText('1 member responded')).toBeVisible();
+  });
+
+  describe('Referral Outcome', () => {
+    const sentAt = new Date().toISOString();
+
+    it('prompts you to record an outcome on a Referral you reached out on', async () => {
+      await setup({ referrals: [makeReferral({ outreach: { sentAt } })] });
+      expect(await screen.findByRole('link', { name: /Rochester, NY/ })).toHaveTextContent(
+        'You reached out · Record outcome',
+      );
+    });
+
+    it.each([
+      ['hired', 'You: Hired'],
+      ['not_hired', 'You: Not hired'],
+      ['not_a_fit', 'You: Not a fit'],
+    ] as const)('shows your %s Outcome on the row', async (outcome, label) => {
+      await setup({ referrals: [makeReferral({ outreach: { sentAt }, outcome })] });
+      const row = await screen.findByRole('link', { name: /Rochester, NY/ });
+      expect(row).toHaveTextContent(label);
+      expect(row).not.toHaveTextContent('Record outcome');
+    });
+
+    it('shows "A member was hired" on a Referral where any member was hired', async () => {
+      await setup({
+        referrals: [
+          makeReferral({ hiredBadge: true }),
+          makeReferral({ id: 'req-2', area: 'Albany, NY' }),
+        ],
+      });
+      expect(await screen.findByRole('link', { name: /Rochester, NY/ })).toHaveTextContent(
+        'A member was hired',
+      );
+      expect(screen.getByRole('link', { name: /Albany, NY/ })).not.toHaveTextContent(
+        'A member was hired',
+      );
+    });
+
+    it('lists only Referrals you reached out on without an Outcome under Needs outcome', async () => {
+      await setup({
+        referrals: [
+          makeReferral({ id: 'req-open', area: 'Rochester, NY' }),
+          makeReferral({ id: 'req-todo', area: 'Albany, NY', outreach: { sentAt } }),
+          makeReferral({
+            id: 'req-old-todo',
+            area: 'Buffalo, NY',
+            isOpen: false,
+            outreach: { sentAt },
+          }),
+          makeReferral({
+            id: 'req-done',
+            area: 'Ithaca, NY',
+            outreach: { sentAt },
+            outcome: 'not_a_fit',
+          }),
+        ],
+      });
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: 'Needs outcome (2)' }));
+
+      expect(screen.getByRole('link', { name: /Albany, NY/ })).toBeVisible();
+      expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
+      expect(screen.queryByRole('link', { name: /Rochester, NY/ })).toBeNull();
+      expect(screen.queryByRole('link', { name: /Ithaca, NY/ })).toBeNull();
+    });
+
+    it('says when nothing needs an outcome', async () => {
+      await setup({ referrals: [makeReferral()] });
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: 'Needs outcome (0)' }));
+      expect(
+        screen.getByText('Nothing to record. After you send Outreach, record how it went here.'),
+      ).toBeVisible();
+    });
   });
 
   it('handles a Referral with no area or due date', async () => {

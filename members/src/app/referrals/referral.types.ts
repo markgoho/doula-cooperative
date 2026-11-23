@@ -18,6 +18,21 @@ export interface ReferralListItem {
   isOpen: boolean;
   /** Present when you sent Outreach on this Referral. */
   outreach?: ReferralOutreach;
+  /** Your own Referral Outcome, when you recorded one. */
+  outcome?: ReferralOutcome;
+  /** Whether any member recorded a hired Referral Outcome. Never says who. */
+  hiredBadge: boolean;
+}
+
+/** One member's own result for a Referral. Never exclusive to one member. */
+export type ReferralOutcome = 'hired' | 'not_hired' | 'not_a_fit';
+
+/** Your Referral Outcome and the hired badge, as the API returns them after a save. */
+export interface ReferralOutcomeState {
+  outcome?: ReferralOutcome;
+  /** ISO 8601 time your Referral Outcome was last set. */
+  outcomeUpdatedAt?: string;
+  hiredBadge: boolean;
 }
 
 /** Your own Outreach on a Referral. */
@@ -49,8 +64,9 @@ export interface SentOutreach {
 /**
  * A Referral's detail. Before your Outreach: first name only, never the
  * requester's full name, email or phone. After it: `outreach` and `contact`.
+ * Always carries your own Referral Outcome (if any) and the hired badge.
  */
-export interface ReferralDetail {
+export interface ReferralDetail extends ReferralOutcomeState {
   id: string;
   firstName: string;
   zipcode: string;

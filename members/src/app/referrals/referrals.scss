@@ -139,6 +139,18 @@
   padding: 1px var(--space-2xs);
 }
 
+/* You reached out but haven't recorded an outcome. */
+.todo {
+  background: var(--color-clay-soft);
+  color: var(--color-clay);
+}
+
+/* A member was hired: informational only, the Referral stays open to Outreach. */
+.hired {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
 .mine {
   background: var(--color-primary-soft);
   color: var(--color-primary-strong);

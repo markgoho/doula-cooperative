@@ -15,7 +15,15 @@
     <header>
       <p class="eyebrow">{{ v.submitted }} · {{ v.daysOpen }}</p>
       <h2 id="referral-heading" #heading tabindex="-1">{{ v.title }}</h2>
-      <p class="meta">{{ v.responses }}</p>
+      <p class="meta">
+        {{ v.responses }}
+        @if (v.referral.hiredBadge) {
+          · <span class="pill hired">A member was hired</span>
+          @if (!v.referral.outreach) {
+            <span>You can still reach out.</span>
+          }
+        }
+      </p>
     </header>
 
     <dl class="facts">
@@ -70,7 +78,11 @@
           <p class="sent" role="status">You reached out {{ v.sentAt }}.</p>
         }
       </section>
-      <!-- #118: the Referral Outcome control goes here. -->
+      <app-referral-outcome-control
+        [referralId]="v.referral.id"
+        [outcome]="v.referral.outcome"
+        (saved)="onOutcomeSaved($event)"
+      />
     } @else {
       <section class="contact" aria-labelledby="contact-heading">
         <h3 id="contact-heading">Contact details</h3>

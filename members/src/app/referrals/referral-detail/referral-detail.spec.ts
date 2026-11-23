@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ReferralsService,
   type ReferralDetail as ReferralDetailModel,
+  type ReferralOutcome,
 } from '../../services/referrals.service';
 import { MembershipRequiredError } from '../membership-required-error';
 import { ReferralListRefresh } from '../referral-list-refresh';
@@ -30,6 +31,7 @@ function makeReferralDetail(overrides: Partial<ReferralDetailModel> = {}): Refer
     otherInfo: 'First baby.',
     insurance: ['Medicaid'],
     submitted: new Date(Date.now() - 4 * DAY_MS).toISOString(),
+    hiredBadge: false,
     ...overrides,
   };
 }
@@ -40,12 +42,18 @@ async function setup({
   id = 'req-1',
   referral = makeReferralDetail(),
   sendFailure,
+  outcomeFailure,
+  hiredBadgeAfterSave = false,
 }: {
   loading?: boolean;
   failure?: Error;
   id?: string;
   referral?: ReferralDetailModel;
   sendFailure?: Error;
+  /** The next Outcome save fails once with this error. */
+  outcomeFailure?: Error;
+  /** The hired badge the API reports after an Outcome save. */
+  hiredBadgeAfterSave?: boolean;
 } = {}) {
   let getReferral: ReturnType<typeof vi.fn>;
   if (loading) {
@@ -61,16 +69,39 @@ async function setup({
   const sendOutreach = vi.fn().mockResolvedValue(SENT);
   if (sendFailure) sendOutreach.mockRejectedValueOnce(sendFailure);
 
+  const setOutcome = vi.fn((_id: string, outcome: ReferralOutcome) =>
+    Promise.resolve({
+      outcome,
+      outcomeUpdatedAt: '2026-11-22T10:00:00.000Z',
+      hiredBadge: hiredBadgeAfterSave || outcome === 'hired',
+    }),
+  );
+  const clearOutcome = vi.fn(() => Promise.resolve({ hiredBadge: hiredBadgeAfterSave }));
+  if (outcomeFailure) {
+    setOutcome.mockRejectedValueOnce(outcomeFailure);
+    clearOutcome.mockRejectedValueOnce(outcomeFailure);
+  }
+
   await render(ReferralDetail, {
     bindings: [inputBinding('id', () => id)],
     providers: [
-      { provide: ReferralsService, useValue: { getReferral, sendOutreach } },
+      {
+        provide: ReferralsService,
+        useValue: { getReferral, sendOutreach, setOutcome, clearOutcome },
+      },
       provideRouter([]),
     ],
   });
   const user = userEvent.setup();
 
-  return { getReferral, sendOutreach, user, listRefresh: TestBed.inject(ReferralListRefresh) };
+  return {
+    getReferral,
+    sendOutreach,
+    setOutcome,
+    clearOutcome,
+    user,
+    listRefresh: TestBed.inject(ReferralListRefresh),
+  };
 }
 
 const SENDER = {
@@ -202,7 +233,7 @@ describe('ReferralDetail pane', () => {
         'href',
         'tel:555-0100',
       );
-      expect(screen.getByRole('status')).toHaveTextContent(/^You reached out Nov 20, /);
+      expect(screen.getByText(/^You reached out Nov 20, /)).toBeVisible();
       expect(screen.getByText('1 member responded')).toBeVisible();
       expect(screen.queryByRole('textbox')).toBeNull();
       expect(screen.queryByRole('button', { name: 'Send Outreach' })).toBeNull();
@@ -241,6 +272,141 @@ describe('ReferralDetail pane', () => {
     expect(screen.getByRole('link', { name: 'maya@example.com' })).toBeVisible();
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(screen.queryByText(/appear after you send Outreach/)).toBeNull();
+  });
+
+  describe('Referral Outcome', () => {
+    const reachedOut = (overrides: Partial<ReferralDetailModel> = {}) =>
+      makeReferralDetail({ ...SENT, responseCount: 1, ...overrides });
+
+    it('offers no Outcome control before your Outreach', async () => {
+      await setup({ referral: makeReferralDetail({ outreachSender: SENDER }) });
+      await screen.findByRole('button', { name: 'Send Outreach' });
+      expect(screen.queryByRole('group', { name: 'Record outcome' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Hired' })).toBeNull();
+    });
+
+    it('prompts you to record an outcome after your Outreach', async () => {
+      await setup({ referral: reachedOut() });
+      const group = await screen.findByRole('group', { name: 'Record outcome' });
+      expect(group).toBeVisible();
+      for (const name of ['Hired', 'Not hired', 'Not a fit']) {
+        expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false');
+      }
+      expect(screen.queryByRole('button', { name: 'Clear outcome' })).toBeNull();
+    });
+
+    it('saves an Outcome as soon as you choose it, and refreshes the list', async () => {
+      const { user, setOutcome, listRefresh } = await setup({ referral: reachedOut() });
+      await user.click(await screen.findByRole('button', { name: 'Not hired' }));
+
+      expect(setOutcome).toHaveBeenCalledWith('req-1', 'not_hired');
+      expect(await screen.findByText('Saved')).toBeVisible();
+      expect(screen.getByRole('group', { name: 'Your outcome' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Not hired' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'Not hired' })).toHaveFocus();
+      expect(listRefresh.version()).toBe(1);
+    });
+
+    it('shows "A member was hired" after you record hired', async () => {
+      const { user } = await setup({ referral: reachedOut() });
+      await user.click(await screen.findByRole('button', { name: 'Hired' }));
+      expect(await screen.findByText('A member was hired')).toBeVisible();
+    });
+
+    it('changes a saved Outcome', async () => {
+      const { user, setOutcome } = await setup({
+        referral: reachedOut({ outcome: 'not_a_fit' }),
+      });
+      expect(await screen.findByRole('button', { name: 'Not a fit' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await user.click(screen.getByRole('button', { name: 'Hired' }));
+
+      expect(setOutcome).toHaveBeenCalledWith('req-1', 'hired');
+      await screen.findByText('Saved');
+      expect(screen.getByRole('button', { name: 'Hired' })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('button', { name: 'Not a fit' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+    });
+
+    it('does not save again when you choose the Outcome already saved', async () => {
+      const { user, setOutcome } = await setup({
+        referral: reachedOut({ outcome: 'hired', hiredBadge: true }),
+      });
+      await user.click(await screen.findByRole('button', { name: 'Hired' }));
+      expect(setOutcome).not.toHaveBeenCalled();
+    });
+
+    it('clears a saved Outcome, keeping focus in the control', async () => {
+      const { user, clearOutcome } = await setup({
+        referral: reachedOut({ outcome: 'hired', hiredBadge: true }),
+      });
+      expect(await screen.findByText('A member was hired')).toBeVisible();
+      await user.click(screen.getByRole('button', { name: 'Clear outcome' }));
+
+      expect(clearOutcome).toHaveBeenCalledWith('req-1');
+      expect(await screen.findByText('Outcome cleared')).toBeVisible();
+      expect(screen.getByRole('group', { name: 'Record outcome' })).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Clear outcome' })).toBeNull();
+      expect(screen.getByRole('button', { name: 'Hired' })).toHaveFocus();
+      expect(screen.queryByText('A member was hired')).toBeNull();
+    });
+
+    it('keeps "A member was hired" after clearing when another member was hired', async () => {
+      const { user } = await setup({
+        referral: reachedOut({ outcome: 'hired', hiredBadge: true }),
+        hiredBadgeAfterSave: true,
+      });
+      await user.click(await screen.findByRole('button', { name: 'Clear outcome' }));
+      await screen.findByText('Outcome cleared');
+      expect(screen.getByText('A member was hired')).toBeVisible();
+    });
+
+    it('puts back your saved Outcome and explains when a save fails', async () => {
+      const { user } = await setup({
+        referral: reachedOut({ outcome: 'not_hired' }),
+        outcomeFailure: new Error("Your outcome wasn't saved. Please try again."),
+      });
+      await user.click(await screen.findByRole('button', { name: 'Hired' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "Your outcome wasn't saved. Please try again.",
+      );
+      expect(screen.getByRole('button', { name: 'Not hired' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'Hired' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+      expect(screen.queryByText('A member was hired')).toBeNull();
+
+      await user.click(screen.getByRole('button', { name: 'Hired' }));
+      expect(await screen.findByText('Saved')).toBeVisible();
+      expect(screen.queryByRole('alert')).toBeNull();
+    });
+  });
+
+  describe('Hired badge', () => {
+    it('tells you a member was hired before your Outreach, and that you can still reach out', async () => {
+      await setup({ referral: makeReferralDetail({ hiredBadge: true, outreachSender: SENDER }) });
+      expect(await screen.findByText('A member was hired')).toBeVisible();
+      expect(screen.getByText('You can still reach out.')).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Send Outreach' })).toBeEnabled();
+    });
+
+    it('shows no badge while no member was hired', async () => {
+      await setup();
+      await screen.findByRole('heading', { name: 'Maya · Brooklyn, NY' });
+      expect(screen.queryByText('A member was hired')).toBeNull();
+    });
   });
 
   it('flags a requester who prefers Spanish', async () => {

@@ -47,8 +47,11 @@
                       <span class="row-meta">
                         <span>{{ submitted(referral) }}</span>
                         <span>{{ responses(referral) }}</span>
-                        @if (referral.outreach) {
-                          <span class="pill mine">You reached out</span>
+                        @if (ownState(referral); as state) {
+                          <span class="pill" [class]="state.tone">{{ state.label }}</span>
+                        }
+                        @if (referral.hiredBadge) {
+                          <span class="pill hired">A member was hired</span>
                         }
                       </span>
                     </a>
