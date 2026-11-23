@@ -261,6 +261,29 @@ describe('Referrals inbox', () => {
       expect(screen.queryByRole('link', { name: /Ithaca, NY/ })).toBeNull();
     });
 
+    it('lists a Referral an Offline Response names you on under My Outreach and Needs outcome, prompting an outcome', async () => {
+      await setup({
+        referrals: [
+          makeReferral({ id: 'req-open', area: 'Rochester, NY' }),
+          makeReferral({
+            id: 'req-offline',
+            area: 'Buffalo, NY',
+            isOpen: false,
+            offlineResponse: { recordedAt: sentAt },
+          }),
+        ],
+      });
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: 'My Outreach (1)' }));
+      expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toHaveTextContent(
+        'You responded outside the portal · Record outcome',
+      );
+      expect(screen.queryByRole('link', { name: /Rochester, NY/ })).toBeNull();
+
+      await user.click(screen.getByRole('button', { name: 'Needs outcome (1)' }));
+      expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
+    });
+
     it('says when nothing needs an outcome', async () => {
       await setup({ referrals: [makeReferral()] });
       const user = userEvent.setup();

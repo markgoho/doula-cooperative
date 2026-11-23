@@ -6,7 +6,9 @@ import { MembershipRequiredError } from '../referrals/membership-required-error'
 import { ReferralNotOpenError } from '../referrals/referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
 import type {
+  OfflineResponseRow,
   ReferralDetail,
+  ReferralDoula,
   ReferralList,
   ReferralOutcome,
   ReferralOutcomeState,
@@ -183,6 +185,90 @@ export class ReferralsService {
   /** Clear your Referral Outcome. Resolves with the current hired badge. */
   async clearOutcome(id: string): Promise<ReferralOutcomeState> {
     return this.saveOutcome(id, (url) => this.http.delete<ReferralOutcomeState>(url));
+  }
+
+  /** Members and Unclaimed Legacy Memberships to name in an Offline Response (Referral Coordinator only). */
+  async listReferralDoulas(): Promise<ReferralDoula[]> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('You must be signed in to load the doula list.');
+
+    const memberId = encodeURIComponent(uid);
+    try {
+      const { doulas } = await firstValueFrom(
+        this.http.get<{ doulas: ReferralDoula[] }>(`/api/members/${memberId}/referral-doulas`),
+      );
+      return doulas;
+    } catch (error: unknown) {
+      console.error('Failed to load the doula list', { uid, error });
+      throw this.offlineResponseError(error, "The doula list didn't load. Please try again.");
+    }
+  }
+
+  /** Record that a doula responded to a Referral outside the portal. Resolves with the new row. */
+  async recordOfflineResponse(
+    id: string,
+    doula: Pick<ReferralDoula, 'kind' | 'id'>,
+  ): Promise<OfflineResponseRow> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('You must be signed in to record an Offline Response.');
+
+    const memberId = encodeURIComponent(uid);
+    const referralId = encodeURIComponent(id);
+    try {
+      const { offlineResponse } = await firstValueFrom(
+        this.http.post<{ offlineResponse: OfflineResponseRow }>(
+          `/api/members/${memberId}/referrals/${referralId}/offline-responses`,
+          { kind: doula.kind, id: doula.id },
+        ),
+      );
+      return offlineResponse;
+    } catch (error: unknown) {
+      console.error('Failed to record Offline Response', { uid, id, error });
+      throw this.offlineResponseError(
+        error,
+        "The Offline Response wasn't saved. Please try again.",
+      );
+    }
+  }
+
+  /** Delete an Offline Response you recorded. */
+  async deleteOfflineResponse(
+    id: string,
+    doula: Pick<OfflineResponseRow, 'kind' | 'id'>,
+  ): Promise<void> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('You must be signed in to delete an Offline Response.');
+
+    const memberId = encodeURIComponent(uid);
+    const referralId = encodeURIComponent(id);
+    const doulaId = encodeURIComponent(doula.id);
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `/api/members/${memberId}/referrals/${referralId}/offline-responses/${doula.kind}/${doulaId}`,
+        ),
+      );
+    } catch (error: unknown) {
+      console.error('Failed to delete Offline Response', { uid, id, error });
+      throw this.offlineResponseError(
+        error,
+        "The Offline Response wasn't deleted. Please try again.",
+      );
+    }
+  }
+
+  private offlineResponseError(error: unknown, fallback: string): Error {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return new Error('Unable to connect. Check your network and try again.', { cause: error });
+      }
+      if (error.status === 401) {
+        return new Error('Your session has expired. Please sign in again.', { cause: error });
+      }
+      const serverMessage = errorMessage(error);
+      if (serverMessage) return new Error(serverMessage, { cause: error });
+    }
+    return new Error(fallback, { cause: error });
   }
 
   private async saveOutcome(

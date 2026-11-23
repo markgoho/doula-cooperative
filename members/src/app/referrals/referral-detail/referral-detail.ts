@@ -83,7 +83,9 @@ export class ReferralDetail {
       services: formatServices(referral.services) || 'Not provided',
       area: this.formatArea(referral.area, referral.zipcode),
       costOffset: referral.insurance.join(', ') || 'Not provided',
-      contactHint: `${firstName}'s full name, email, and phone appear after you send Outreach.`,
+      contactHint: referral.isOpen
+        ? `${firstName}'s full name, email, and phone appear after you send Outreach.`
+        : 'This referral is past its 14 days, so Outreach is closed.',
       sentAt: referral.outreach ? formatSentAt(referral.outreach.sentAt) : '',
     };
   });
@@ -96,7 +98,8 @@ export class ReferralDetail {
       ...referral,
       outreach,
       contact,
-      responseCount: referral.responseCount + 1,
+      // An Offline Response already counted you.
+      responseCount: referral.offlineResponse ? referral.responseCount : referral.responseCount + 1,
     };
     // The composer's sender no longer applies once Outreach is sent.
     delete updated.outreachSender;
@@ -124,19 +127,25 @@ export class ReferralDetail {
     void this.refreshCoordinatorView();
   }
 
+  /** An Offline Response was added or deleted: refresh the panel, the count and the list row. */
+  protected onOfflineResponsesChanged(): void {
+    this.listRefresh.request();
+    void this.refreshCoordinatorView();
+  }
+
   /**
-   * A Coordinator's own Outreach or Outcome also appears in her Responses
-   * panel. Re-fetch in the background and swap in only that block, so the
-   * pane is not replaced and focus stays put. On failure the panel keeps its
-   * last state; it refreshes on the next open.
+   * A Coordinator's own Outreach, Outcome or Offline Responses also appear in
+   * her Responses panel. Re-fetch in the background and swap in only that
+   * block and the count, so the pane is not replaced and focus stays put. On
+   * failure the panel keeps its last state; it refreshes on the next open.
    */
   private async refreshCoordinatorView(): Promise<void> {
     if (!this.referralResource.hasValue() || !this.referralResource.value().coordinator) return;
     const id = this.id();
     try {
-      const { coordinator } = await this.referralsService.getReferral(id);
+      const { coordinator, responseCount } = await this.referralsService.getReferral(id);
       if (!coordinator || this.id() !== id || !this.referralResource.hasValue()) return;
-      this.referralResource.set({ ...this.referralResource.value(), coordinator });
+      this.referralResource.set({ ...this.referralResource.value(), coordinator, responseCount });
     } catch (error: unknown) {
       console.error('Failed to refresh the Responses panel', { id, error });
     }

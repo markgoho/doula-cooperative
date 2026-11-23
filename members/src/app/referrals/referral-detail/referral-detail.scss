@@ -134,3 +134,9 @@ dd {
     }
   }
 }
+
+/* An Offline Response names you: you responded outside the portal. */
+.offline-note {
+  font-size: var(--step--1);
+  margin: var(--space-s) 0 0;
+}

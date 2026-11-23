@@ -9,6 +9,7 @@ import {
   type ReferralDetail as ReferralDetailModel,
   type ReferralOutcome,
 } from '../../services/referrals.service';
+import type { OfflineResponseRow, ReferralDoula } from '../referral.types';
 import { MembershipRequiredError } from '../membership-required-error';
 import { ReferralListRefresh } from '../referral-list-refresh';
 import { ReferralNotOpenError } from '../referral-not-open-error';
@@ -31,6 +32,7 @@ function makeReferralDetail(overrides: Partial<ReferralDetailModel> = {}): Refer
     otherInfo: 'First baby.',
     insurance: ['Medicaid'],
     submitted: new Date(Date.now() - 4 * DAY_MS).toISOString(),
+    isOpen: true,
     hiredBadge: false,
     ...overrides,
   };
@@ -44,6 +46,8 @@ async function setup({
   sendFailure,
   outcomeFailure,
   hiredBadgeAfterSave = false,
+  doulas = [],
+  offlineFailure,
 }: {
   loading?: boolean;
   failure?: Error;
@@ -54,6 +58,10 @@ async function setup({
   outcomeFailure?: Error;
   /** The hired badge the API reports after an Outcome save. */
   hiredBadgeAfterSave?: boolean;
+  /** The doula picker's list (Referral Coordinators). */
+  doulas?: ReferralDoula[];
+  /** The next Offline Response add or delete fails once with this error. */
+  offlineFailure?: Error;
 } = {}) {
   let getReferral: ReturnType<typeof vi.fn>;
   if (loading) {
@@ -82,12 +90,28 @@ async function setup({
     clearOutcome.mockRejectedValueOnce(outcomeFailure);
   }
 
+  const listReferralDoulas = vi.fn().mockResolvedValue(doulas);
+  const recordOfflineResponse = vi.fn().mockResolvedValue({});
+  const deleteOfflineResponse = vi.fn().mockResolvedValue(undefined);
+  if (offlineFailure) {
+    recordOfflineResponse.mockRejectedValueOnce(offlineFailure);
+    deleteOfflineResponse.mockRejectedValueOnce(offlineFailure);
+  }
+
   await render(ReferralDetail, {
     bindings: [inputBinding('id', () => id)],
     providers: [
       {
         provide: ReferralsService,
-        useValue: { getReferral, sendOutreach, setOutcome, clearOutcome },
+        useValue: {
+          getReferral,
+          sendOutreach,
+          setOutcome,
+          clearOutcome,
+          listReferralDoulas,
+          recordOfflineResponse,
+          deleteOfflineResponse,
+        },
       },
       provideRouter([]),
     ],
@@ -99,6 +123,9 @@ async function setup({
     sendOutreach,
     setOutcome,
     clearOutcome,
+    listReferralDoulas,
+    recordOfflineResponse,
+    deleteOfflineResponse,
     user,
     listRefresh: TestBed.inject(ReferralListRefresh),
   };
@@ -118,6 +145,11 @@ const SENT = {
 /** The Coordinator-only Responses panel. */
 function panel() {
   return screen.getByRole('region', { name: 'Responses' });
+}
+
+/** The Offline Responses list in the Coordinator panel. */
+function offlineList() {
+  return within(panel()).getByRole('list', { name: 'Offline Responses' });
 }
 
 describe('ReferralDetail pane', () => {
@@ -418,6 +450,8 @@ describe('ReferralDetail pane', () => {
         referral: makeReferralDetail({
           responseCount: 2,
           coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
             responses: [BEA, CASS, { ...BEA, memberUid: 'member-d', outcome: 'not_a_fit' }],
           },
         }),
@@ -434,7 +468,11 @@ describe('ReferralDetail pane', () => {
     });
 
     it('says when no one has responded yet', async () => {
-      await setup({ referral: makeReferralDetail({ coordinator: { responses: [] } }) });
+      await setup({
+        referral: makeReferralDetail({
+          coordinator: { offlineResponses: [], canRecordOfflineResponses: false, responses: [] },
+        }),
+      });
       await screen.findByRole('heading', { name: 'Responses' });
       expect(within(panel()).getByText('No one has responded yet')).toBeVisible();
       expect(within(panel()).queryByRole('list')).toBeNull();
@@ -443,7 +481,11 @@ describe('ReferralDetail pane', () => {
     it('names a member without a name as such', async () => {
       await setup({
         referral: makeReferralDetail({
-          coordinator: { responses: [{ ...BEA, memberName: '' }] },
+          coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
+            responses: [{ ...BEA, memberName: '' }],
+          },
         }),
       });
       await screen.findByRole('heading', { name: 'Responses' });
@@ -455,7 +497,11 @@ describe('ReferralDetail pane', () => {
         referral: makeReferralDetail({
           outreachSender: SENDER,
           responseCount: 1,
-          coordinator: { responses: [CASS] },
+          coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
+            responses: [CASS],
+          },
         }),
       });
       expect(await screen.findByRole('button', { name: 'Send Outreach' })).toBeVisible();
@@ -474,7 +520,7 @@ describe('ReferralDetail pane', () => {
       const { user, getReferral } = await setup({
         referral: makeReferralDetail({
           outreachSender: SENDER,
-          coordinator: { responses: [] },
+          coordinator: { offlineResponses: [], canRecordOfflineResponses: false, responses: [] },
         }),
       });
       await user.type(await screen.findByRole('textbox', { name: 'Message to Maya' }), '!');
@@ -483,6 +529,8 @@ describe('ReferralDetail pane', () => {
           ...SENT,
           responseCount: 1,
           coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
             responses: [
               {
                 memberUid: 'me',
@@ -512,14 +560,22 @@ describe('ReferralDetail pane', () => {
         referral: makeReferralDetail({
           ...SENT,
           responseCount: 1,
-          coordinator: { responses: [mine] },
+          coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
+            responses: [mine],
+          },
         }),
       });
       getReferral.mockResolvedValue(
         makeReferralDetail({
           ...SENT,
           responseCount: 1,
-          coordinator: { responses: [{ ...mine, outcome: 'not_hired' }] },
+          coordinator: {
+            offlineResponses: [],
+            canRecordOfflineResponses: false,
+            responses: [{ ...mine, outcome: 'not_hired' }],
+          },
         }),
       );
       await user.click(await screen.findByRole('button', { name: 'Not hired' }));
@@ -528,6 +584,256 @@ describe('ReferralDetail pane', () => {
         expect(within(panel()).getByRole('listitem')).toHaveTextContent('Not hired');
       });
       expect(screen.getByRole('button', { name: 'Not hired' })).toHaveFocus();
+    });
+  });
+
+  describe('Offline Responses', () => {
+    const RECORDED_AT = '2026-11-20T15:30:00.000Z';
+    const BEA_OFFLINE: OfflineResponseRow = {
+      kind: 'member',
+      id: 'member-b',
+      displayName: 'Bea Doula',
+      recordedAt: RECORDED_AT,
+      recordedByName: 'Dana Coordinator',
+      canDelete: true,
+    };
+    const LEE_OFFLINE: OfflineResponseRow = {
+      kind: 'legacy',
+      id: 'legacy-lee',
+      displayName: 'Lee Legacy',
+      recordedAt: RECORDED_AT,
+      recordedByName: 'Olive Coordinator',
+      canDelete: false,
+    };
+    const DOULAS: ReferralDoula[] = [
+      { kind: 'member', id: 'member-a', displayName: 'Ana Doula' },
+      { kind: 'member', id: 'member-b', displayName: 'Bea Doula' },
+      { kind: 'member', id: 'member-c', displayName: 'Cass Doula' },
+      { kind: 'legacy', id: 'legacy-mia', displayName: 'Mia Legacy' },
+    ];
+    const coordinatorView = (
+      overrides: Partial<NonNullable<ReferralDetailModel['coordinator']>> = {},
+    ) => ({
+      responses: [
+        {
+          memberUid: 'member-c',
+          memberName: 'Cass Doula',
+          outreachSentAt: RECORDED_AT,
+        },
+      ],
+      offlineResponses: [BEA_OFFLINE, LEE_OFFLINE],
+      canRecordOfflineResponses: true,
+      ...overrides,
+    });
+
+    describe('for the member it names', () => {
+      it('says the Coordinator recorded your response and lets you record an outcome, without contact details', async () => {
+        await setup({
+          referral: makeReferralDetail({
+            isOpen: false,
+            responseCount: 1,
+            offlineResponse: { recordedAt: RECORDED_AT },
+          }),
+        });
+        expect(
+          await screen.findByText(
+            'The Referral Coordinator recorded that you responded outside the portal.',
+          ),
+        ).toBeVisible();
+        expect(screen.getByRole('group', { name: 'Record outcome' })).toBeVisible();
+        expect(
+          screen.getByText('This referral is past its 14 days, so Outreach is closed.'),
+        ).toBeVisible();
+        expect(screen.queryByRole('button', { name: 'Send Outreach' })).toBeNull();
+        expect(screen.queryByRole('link', { name: /@/ })).toBeNull();
+      });
+
+      it('saves an Outcome', async () => {
+        const { user, setOutcome } = await setup({
+          referral: makeReferralDetail({ offlineResponse: { recordedAt: RECORDED_AT } }),
+        });
+        await user.click(await screen.findByRole('button', { name: 'Hired' }));
+        expect(setOutcome).toHaveBeenCalledWith('req-1', 'hired');
+      });
+
+      it('still offers Outreach while the Referral is open, and counts you once after sending', async () => {
+        const { user } = await setup({
+          referral: makeReferralDetail({
+            responseCount: 1,
+            outreachSender: SENDER,
+            offlineResponse: { recordedAt: RECORDED_AT },
+          }),
+        });
+        await user.type(await screen.findByRole('textbox', { name: 'Message to Maya' }), '!');
+        await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+
+        expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toBeVisible();
+        expect(screen.getByText('1 member responded')).toBeVisible();
+      });
+    });
+
+    describe('in the Coordinator panel', () => {
+      it('lists each Offline Response with who recorded it and when, labelling Legacy Memberships', async () => {
+        await setup({ referral: makeReferralDetail({ coordinator: coordinatorView() }) });
+        await screen.findByRole('heading', { name: 'Offline Responses' });
+        const items = within(offlineList()).getAllByRole('listitem');
+        expect(items).toHaveLength(2);
+        expect(items[0]).toHaveTextContent('Bea Doula');
+        expect(items[0]).toHaveTextContent('by Dana Coordinator');
+        expect(items[0]).toHaveTextContent('No outcome yet');
+        expect(items[0]).not.toHaveTextContent('Not yet migrated');
+        expect(items[1]).toHaveTextContent('Lee Legacy');
+        expect(items[1]).toHaveTextContent('Not yet migrated');
+        expect(items[1]).toHaveTextContent('by Olive Coordinator');
+      });
+
+      it('offers Delete only on the ones you may delete', async () => {
+        await setup({ referral: makeReferralDetail({ coordinator: coordinatorView() }) });
+        await screen.findByRole('heading', { name: 'Offline Responses' });
+        expect(
+          within(panel()).getByRole('button', { name: 'Delete Offline Response for Bea Doula' }),
+        ).toBeVisible();
+        expect(
+          within(panel()).queryByRole('button', {
+            name: 'Delete Offline Response for Lee Legacy',
+          }),
+        ).toBeNull();
+      });
+
+      it('deletes one, then refreshes the panel, the count and the list', async () => {
+        const { user, deleteOfflineResponse, getReferral, listRefresh } = await setup({
+          referral: makeReferralDetail({ responseCount: 3, coordinator: coordinatorView() }),
+        });
+        getReferral.mockResolvedValue(
+          makeReferralDetail({
+            responseCount: 2,
+            coordinator: coordinatorView({ offlineResponses: [LEE_OFFLINE] }),
+          }),
+        );
+        await user.click(
+          await screen.findByRole('button', { name: 'Delete Offline Response for Bea Doula' }),
+        );
+
+        expect(deleteOfflineResponse).toHaveBeenCalledWith('req-1', BEA_OFFLINE);
+        await waitFor(() => {
+          expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(1);
+        });
+        expect(screen.getByText('2 members responded')).toBeVisible();
+        expect(
+          within(panel()).getByText('Deleted the Offline Response for Bea Doula.'),
+        ).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Offline Responses' })).toHaveFocus();
+        expect(listRefresh.version()).toBe(1);
+      });
+
+      it('picks from doulas who have not responded, grouped as Members and Not yet migrated', async () => {
+        await setup({
+          referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          doulas: DOULAS,
+        });
+        const select = await screen.findByRole('combobox', { name: 'Doula' });
+        const options = within(select)
+          .getAllByRole('option')
+          .map((option) => option.textContent.trim());
+        // Bea has an Offline Response and Cass sent Outreach.
+        expect(options).toEqual(['Choose a doula', 'Ana Doula', 'Mia Legacy']);
+        expect(within(select).getByRole('group', { name: 'Not yet migrated' })).toBeInTheDocument();
+      });
+
+      it('narrows the picker as you type', async () => {
+        const { user } = await setup({
+          referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          doulas: DOULAS,
+        });
+        await user.type(await screen.findByRole('searchbox', { name: 'Find a doula' }), 'mia');
+        const select = screen.getByRole('combobox', { name: 'Doula' });
+        expect(within(select).queryByRole('option', { name: 'Ana Doula' })).toBeNull();
+        expect(within(select).getByRole('option', { name: 'Mia Legacy' })).toBeInTheDocument();
+      });
+
+      it('adds an Offline Response for the doula you pick, then refreshes the panel', async () => {
+        const { user, recordOfflineResponse, getReferral } = await setup({
+          referral: makeReferralDetail({
+            responseCount: 3,
+            coordinator: coordinatorView(),
+          }),
+          doulas: DOULAS,
+        });
+        const mia = { ...LEE_OFFLINE, id: 'legacy-mia', displayName: 'Mia Legacy' };
+        getReferral.mockResolvedValue(
+          makeReferralDetail({
+            responseCount: 4,
+            coordinator: coordinatorView({
+              offlineResponses: [BEA_OFFLINE, LEE_OFFLINE, mia],
+            }),
+          }),
+        );
+        await user.selectOptions(
+          await screen.findByRole('combobox', { name: 'Doula' }),
+          'Mia Legacy',
+        );
+        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+
+        expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
+        await waitFor(() => {
+          expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(3);
+        });
+        expect(screen.getByText('4 members responded')).toBeVisible();
+        expect(
+          within(panel()).getByText('Recorded an Offline Response for Mia Legacy.'),
+        ).toBeVisible();
+      });
+
+      it('does not add anything until you pick a doula', async () => {
+        const { user, recordOfflineResponse } = await setup({
+          referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          doulas: DOULAS,
+        });
+        await user.click(await screen.findByRole('button', { name: 'Add Offline Response' }));
+        expect(recordOfflineResponse).not.toHaveBeenCalled();
+      });
+
+      it('explains a failed add', async () => {
+        const { user } = await setup({
+          referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          doulas: DOULAS,
+          offlineFailure: new Error('This member already sent Outreach on this referral'),
+        });
+        await user.selectOptions(
+          await screen.findByRole('combobox', { name: 'Doula' }),
+          'Ana Doula',
+        );
+        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+        expect(await within(panel()).findByRole('alert')).toHaveTextContent(
+          'This member already sent Outreach on this referral',
+        );
+      });
+
+      it('shows an Admin the Offline Responses without the picker', async () => {
+        const { listReferralDoulas } = await setup({
+          referral: makeReferralDetail({
+            coordinator: coordinatorView({
+              canRecordOfflineResponses: false,
+              offlineResponses: [{ ...BEA_OFFLINE, canDelete: false }],
+            }),
+          }),
+        });
+        await screen.findByRole('heading', { name: 'Offline Responses' });
+        expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(1);
+        expect(screen.queryByRole('combobox', { name: 'Doula' })).toBeNull();
+        expect(within(panel()).queryByRole('button')).toBeNull();
+        expect(listReferralDoulas).not.toHaveBeenCalled();
+      });
+
+      it('says when none are recorded', async () => {
+        await setup({
+          referral: makeReferralDetail({
+            coordinator: coordinatorView({ offlineResponses: [] }),
+          }),
+        });
+        await screen.findByRole('heading', { name: 'Offline Responses' });
+        expect(within(panel()).getByText('No Offline Responses recorded')).toBeVisible();
+      });
     });
   });
 
