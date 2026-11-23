@@ -4,6 +4,7 @@ import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import { canViewReferral } from "../access/can-view-referral.js";
+import { isReferralCoordinator } from "../access/is-referral-coordinator.js";
 import { referralOpenCutoff } from "../access/referral-open-cutoff.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
@@ -52,7 +53,11 @@ export async function listReferralsLogic({
       return REFERRAL_PORTAL_DENIAL[access];
     }
 
-    // Open Referrals, plus older ones the viewer responded to (My Outreach).
+    // A Referral Coordinator sees every Referral (newest 200); everyone else
+    // sees open Referrals.
+    const isListingAll = isReferralCoordinator(decodedToken);
+
+    // Those, plus older ones the viewer responded to (My Outreach).
     // If the older ones can't be read (e.g. the collection-group index is
     // missing), still list open Referrals rather than failing the inbox.
     const listReachedOut = async (): Promise<ReferralItem[]> => {
@@ -75,14 +80,16 @@ export async function listReferralsLogic({
         return [];
       }
     };
-    const [open, responded] = await Promise.all([
-      referralsService.listReferrals(logger),
+    const [primary, responded] = await Promise.all([
+      isListingAll
+        ? referralsService.listAllReferrals(logger)
+        : referralsService.listReferrals(logger),
       listReachedOut(),
     ]);
-    const openIds = new Set(open.map(item => item.id));
+    const primaryIds = new Set(primary.map(item => item.id));
     const candidates = [
-      ...open,
-      ...responded.filter(item => !openIds.has(item.id)),
+      ...primary,
+      ...responded.filter(item => !primaryIds.has(item.id)),
     ];
 
     const now = new Date();
@@ -108,6 +115,7 @@ export async function listReferralsLogic({
     );
 
     return {
+      showsAllReferrals: isListingAll,
       referrals: listed
         .filter(item => item !== undefined)
         .toSorted((a, b) => b.submitted.localeCompare(a.submitted)),

@@ -44,6 +44,38 @@ async function listReferrals(logger: Logger): Promise<ReferralItem[]> {
   }
 }
 
+/**
+ * Newest Referrals listed for a Referral Coordinator. Co-op scale is small
+ * (a few Referrals a week), so a cap stands in for pagination.
+ */
+const ALL_REFERRALS_LIMIT = 200;
+
+/**
+ * Every Referral regardless of age, newest first, capped at the newest
+ * `ALL_REFERRALS_LIMIT`. Uses the automatic single-field `submitted` index.
+ */
+async function listAllReferrals(logger: Logger): Promise<ReferralItem[]> {
+  try {
+    const snapshot = await getFirestore()
+      .collection(MATCH_REQUESTS_COLLECTION)
+      .orderBy("submitted", "desc")
+      .limit(ALL_REFERRALS_LIMIT)
+      .get();
+
+    return snapshot.docs.map(matchDocument => ({
+      id: matchDocument.id,
+      document: matchDocument.data() as MatchRequestDocument,
+    }));
+  } catch (error) {
+    logger.error("Failed to list all referrals from Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}
+
 async function getReferral(
   requestId: string,
   logger: Logger,
@@ -149,6 +181,7 @@ async function listMemberResponses(
 
 export const ReferralsServiceImpl: ReferralsService = {
   listReferrals,
+  listAllReferrals,
   getReferral,
   listReferralsWithMemberResponse,
   listMemberResponses,

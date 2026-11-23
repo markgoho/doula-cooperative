@@ -1,3 +1,5 @@
+import { getFirestore } from "firebase-admin/firestore";
+import { MEMBERS_COLLECTION } from "../../../collections/members.js";
 import {
   NotFoundError,
   ValidationError,
@@ -28,6 +30,31 @@ export const MemberService: MemberServiceInterface = {
     }
 
     return document.data() as MemberDocument;
+  },
+
+  /**
+   * Look up several members' names in one batch read.
+   *
+   * @param memberIds - Firestore document IDs
+   * @returns Name by member ID; a missing member or unset name is absent
+   */
+  async findNamesByIds(memberIds: string[]): Promise<Map<string, string>> {
+    const names = new Map<string, string>();
+    if (memberIds.length === 0) return names;
+
+    const firestore = getFirestore();
+    const snapshots = await firestore.getAll(
+      ...memberIds.map(memberId =>
+        firestore.collection(MEMBERS_COLLECTION).doc(memberId),
+      ),
+    );
+    for (const snapshot of snapshots) {
+      const name = (
+        snapshot.data() as MemberDocument | undefined
+      )?.name?.trim();
+      if (name) names.set(snapshot.id, name);
+    }
+    return names;
   },
 
   /**

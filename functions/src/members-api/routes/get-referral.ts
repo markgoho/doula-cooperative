@@ -4,11 +4,13 @@ import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import { canViewReferralResponses } from "../access/can-view-referral-responses.js";
 import { canViewReferral } from "../access/can-view-referral.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import { type ReferralDetail } from "../schemas/referral-schemas.js";
 import { summarizeMemberResponses } from "../schemas/summarize-member-responses.js";
+import { toReferralCoordinatorView } from "../schemas/to-referral-coordinator-view.js";
 import { toReferralDetail } from "../schemas/to-referral-detail.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { OutreachService } from "../services/outreach/interface.js";
@@ -97,7 +99,24 @@ export async function getReferralLogic({
           })
         : undefined;
 
-    return toReferralDetail(id, document, { ...summary, outreachSender });
+    const detail = toReferralDetail(id, document, {
+      ...summary,
+      outreachSender,
+    });
+    if (!canViewReferralResponses(decodedToken)) return detail;
+
+    // Coordinator panel: who sent Outreach and each Member's Referral Outcome.
+    // Never the requester's contact details; those still follow the viewer's
+    // own Outreach only.
+    const names = await memberService.findNamesByIds(
+      responses
+        .filter(response => response.outreachSentAt !== undefined)
+        .map(response => response.memberUid),
+    );
+    return {
+      ...detail,
+      coordinator: toReferralCoordinatorView(responses, names),
+    };
   } catch (error) {
     if (error instanceof HttpError) {
       set.status = error.statusCode;

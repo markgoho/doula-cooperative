@@ -10,6 +10,11 @@ export interface ReferralItem {
 export interface ReferralsService {
   /** Open Referrals (submitted within the last 14 days), newest first. */
   listReferrals(logger: Logger): Promise<ReferralItem[]>;
+  /**
+   * Every Referral regardless of age, newest first, capped at the newest 200
+   * (for Referral Coordinators).
+   */
+  listAllReferrals(logger: Logger): Promise<ReferralItem[]>;
   getReferral(requestId: string, logger: Logger): Promise<ReferralItem>;
   /**
    * Referrals of any age that hold a response document for this Member.

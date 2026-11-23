@@ -78,6 +78,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
     responses?: MemberResponseDocument[];
     profileUrl?: string;
     memberNotFound?: boolean;
+    /** Member names by uid, for the Coordinator panel. */
+    names?: Record<string, string>;
   }
 
   function setup({
@@ -92,6 +94,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
     responses = [],
     profileUrl,
     memberNotFound = false,
+    names = {},
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
       if (memberNotFound)
@@ -115,7 +118,19 @@ describe("GET /:memberId/referrals/:requestId", () => {
     });
 
     const testApp = createMembersTestPlugin({
-      memberService: { findById: mockFindById },
+      memberService: {
+        findById: mockFindById,
+        findNamesByIds: mock((memberIds: string[]) =>
+          Promise.resolve(
+            new Map(
+              memberIds.flatMap(memberId => {
+                const name = names[memberId];
+                return name ? [[memberId, name] as const] : [];
+              }),
+            ),
+          ),
+        ),
+      },
       referralsService: {
         getReferral: mockGetReferral,
         listMemberResponses: mock(() => Promise.resolve(responses)),
@@ -391,6 +406,145 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as Record<string, unknown>;
       expect(body).not.toHaveProperty("outreachSender");
+    });
+  });
+
+  describe("Coordinator panel", () => {
+    const EARLIER = Timestamp.fromDate(new Date("2026-11-19T10:00:00.000Z"));
+    const LATER = Timestamp.fromDate(new Date("2026-11-20T15:30:00.000Z"));
+    const UPDATED_AT = Timestamp.fromDate(new Date("2026-11-21T09:00:00.000Z"));
+    const OTHERS_RESPONSES: MemberResponseDocument[] = [
+      {
+        memberUid: "member-c",
+        outreachSentAt: LATER,
+        outcome: "hired",
+        outcomeUpdatedAt: UPDATED_AT,
+      },
+      { memberUid: "member-b", outreachSentAt: EARLIER },
+      // An in-flight send is not Outreach and is not listed.
+      { memberUid: "member-d", outreachPendingAt: LATER },
+    ];
+    const NAMES = {
+      "member-b": "Bea Doula",
+      "member-c": "Cass Doula",
+      "member-d": "Dee Doula",
+    };
+
+    it("lists each Member who sent Outreach, earliest first, with their Referral Outcome", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        responses: OTHERS_RESPONSES,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["coordinator"]).toEqual({
+        responses: [
+          {
+            memberUid: "member-b",
+            memberName: "Bea Doula",
+            outreachSentAt: "2026-11-19T10:00:00.000Z",
+          },
+          {
+            memberUid: "member-c",
+            memberName: "Cass Doula",
+            outreachSentAt: "2026-11-20T15:30:00.000Z",
+            outcome: "hired",
+            outcomeUpdatedAt: "2026-11-21T09:00:00.000Z",
+          },
+        ],
+      });
+    });
+
+    it("never gives a Coordinator the requester's full name, email or phone from others' Outreach", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        referral: { submitted: daysAgo(30) },
+        responses: OTHERS_RESPONSES,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("contact");
+      expect(body).not.toHaveProperty("outreach");
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+    });
+
+    it("reveals contact details to a Coordinator only after her own Outreach, alongside the panel", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        responses: [{ memberUid: MEMBER_ID, outreachSentAt: LATER }],
+        names: { [MEMBER_ID]: "Dana Doula" },
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["contact"]).toEqual({
+        fullName: "Jane Smith",
+        email: "jane@example.com",
+        phone: "555-0100",
+      });
+      expect(body["coordinator"]).toEqual({
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            memberName: "Dana Doula",
+            outreachSentAt: "2026-11-20T15:30:00.000Z",
+          },
+        ],
+      });
+    });
+
+    it("leaves the name empty for a Member without one", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        responses: [{ memberUid: "member-b", outreachSentAt: EARLIER }],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        coordinator: { responses: { memberName: string }[] };
+      };
+      expect(body.coordinator.responses[0]?.memberName).toBe("");
+    });
+
+    it("shows an empty panel when no one has sent Outreach", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["coordinator"]).toEqual({ responses: [] });
+    });
+
+    it("gives the panel to an Admin", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        responses: OTHERS_RESPONSES,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        coordinator?: { responses: unknown[] };
+      };
+      expect(body.coordinator?.responses).toHaveLength(2);
+    });
+
+    it("never gives the panel or other Members' names to an ordinary Member", async () => {
+      const { testApp, request } = setup({
+        responses: OTHERS_RESPONSES,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("coordinator");
+      expect(text).not.toContain("member-b");
+      expect(text).not.toContain("Bea Doula");
+      expect(text).not.toContain("Cass Doula");
     });
   });
 

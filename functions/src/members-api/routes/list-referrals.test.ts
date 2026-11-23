@@ -105,6 +105,8 @@ describe("GET /:memberId/referrals", () => {
     serverError?: boolean;
     /** Open Referrals (the service applies the 14-day cutoff). */
     referrals?: ReferralItem[];
+    /** Every Referral regardless of age (what a Referral Coordinator gets). */
+    allReferrals?: ReferralItem[];
     /** Referrals of any age holding a response document for the viewer. */
     respondedReferrals?: ReferralItem[];
     /** Member response documents by Referral id. */
@@ -120,6 +122,7 @@ describe("GET /:memberId/referrals", () => {
     settingsReadFails = false,
     serverError = false,
     referrals = [],
+    allReferrals = [],
     respondedReferrals = [],
     responses = {},
   }: SetupOptions = {}) {
@@ -140,6 +143,7 @@ describe("GET /:memberId/referrals", () => {
       memberService: { findById: mockFindById },
       referralsService: {
         listReferrals: mockListReferrals,
+        listAllReferrals: mock(() => Promise.resolve(allReferrals)),
         listReferralsWithMemberResponse: mockListResponded,
         listMemberResponses: mock((requestId: string) =>
           Promise.resolve(responses[requestId] ?? []),
@@ -445,6 +449,79 @@ describe("GET /:memberId/referrals", () => {
         .referrals;
       expect(referral?.hiredBadge).toBe(false);
       expect(referral?.responseCount).toBe(2);
+    });
+  });
+
+  describe("Referral Coordinator", () => {
+    it("lists every Referral for a Coordinator, including ones older than 14 days she never reached out on", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        referrals: [makeReferral("req-open")],
+        allReferrals: [
+          makeReferral("req-open"),
+          makeReferral("req-old", { submitted: daysAgo(30) }),
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referrals: ListedReferral[];
+        showsAllReferrals: boolean;
+      };
+      expect(body.showsAllReferrals).toBe(true);
+      expect(body.referrals.map(referral => referral.id)).toEqual([
+        "req-open",
+        "req-old",
+      ]);
+      expect(body.referrals[1]?.isOpen).toBe(false);
+      expect(body.referrals[1]).not.toHaveProperty("outreach");
+    });
+
+    it("still lists a Coordinator's own reached-out Referral beyond the newest ones", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        allReferrals: [makeReferral("req-recent")],
+        respondedReferrals: [
+          makeReferral("req-ancient", { submitted: daysAgo(400) }),
+        ],
+        responses: { "req-ancient": [outreachBy(MEMBER_ID, 399)] },
+      });
+      const referrals = await listed(await handleRequest(testApp, request));
+      expect(referrals.map(referral => referral.id)).toEqual([
+        "req-recent",
+        "req-ancient",
+      ]);
+    });
+
+    it("never reveals contact details or other members' names to a Coordinator", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        allReferrals: [makeReferral("req-old", { submitted: daysAgo(30) })],
+        responses: { "req-old": [outcomeBy("other-member", "not_hired")] },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+      expect(text).not.toContain("other-member");
+    });
+
+    it("keeps an ordinary member's list to open Referrals", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-open")],
+        allReferrals: [
+          makeReferral("req-open"),
+          makeReferral("req-old", { submitted: daysAgo(30) }),
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        referrals: ListedReferral[];
+        showsAllReferrals: boolean;
+      };
+      expect(body.showsAllReferrals).toBe(false);
+      expect(body.referrals.map(referral => referral.id)).toEqual(["req-open"]);
     });
   });
 
