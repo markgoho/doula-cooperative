@@ -3,12 +3,22 @@ import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { canViewReferral } from "../access/can-view-referral.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import { type ReferralDetail } from "../schemas/referral-schemas.js";
 import { toReferralDetail } from "../schemas/to-referral-detail.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { ReferralsService } from "../services/referrals/interface.js";
+
+/**
+ * 404 body for a Referral outside the requester's window.
+ * `code` lets the members app show "This referral is no longer open".
+ */
+const REFERRAL_NOT_OPEN = {
+  error: "This referral is no longer open",
+  code: "REFERRAL_NOT_OPEN",
+};
 
 export async function getReferralLogic({
   memberId,
@@ -52,6 +62,12 @@ export async function getReferralLogic({
       requestId,
       logger,
     );
+
+    if (!canViewReferral({ decodedToken, document })) {
+      set.status = 404;
+      return REFERRAL_NOT_OPEN;
+    }
+
     return toReferralDetail(id, document);
   } catch (error) {
     if (error instanceof HttpError) {

@@ -34,7 +34,16 @@ function makeInactiveMember(): MemberDocument {
   };
 }
 
-function makeReferralItem(id = REQUEST_ID): ReferralItem {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function daysAgo(days: number): Timestamp {
+  return Timestamp.fromMillis(Date.now() - days * DAY_MS);
+}
+
+function makeReferralItem(
+  id = REQUEST_ID,
+  overrides: Partial<ReferralItem["document"]> = {},
+): ReferralItem {
   return {
     id,
     document: {
@@ -50,6 +59,7 @@ function makeReferralItem(id = REQUEST_ID): ReferralItem {
       submitted: Timestamp.now(),
       sent: false,
       recaptchaScore: 0.9,
+      ...overrides,
     },
   };
 }
@@ -63,6 +73,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
     v2Enabled?: boolean;
     settingsReadFails?: boolean;
     referralNotFound?: boolean;
+    referral?: Partial<ReferralItem["document"]>;
   }
 
   function setup({
@@ -73,6 +84,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
     v2Enabled = true,
     settingsReadFails = false,
     referralNotFound = false,
+    referral = {},
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
       if (memberIsInactive) return Promise.resolve(makeInactiveMember());
@@ -83,7 +95,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
       if (referralNotFound || id !== REQUEST_ID) {
         return Promise.reject(new NotFoundError(`Referral ${id} not found`));
       }
-      return Promise.resolve(makeReferralItem(id));
+      return Promise.resolve(makeReferralItem(id, referral));
     });
 
     const testApp = createMembersTestPlugin({
@@ -135,34 +147,69 @@ describe("GET /:memberId/referrals/:requestId", () => {
   });
 
   describe("Success", () => {
-    it("returns 200 with full detail including contact info", async () => {
+    it("returns 200 with the pre-Outreach view", async () => {
       const { testApp, request } = setup();
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
-      const body = (await response.json()) as {
-        id: string;
-        name: string;
-        email: string;
-        phone: string;
-        zipcode: string;
-        services: string[];
-        birthLocation: string;
-        otherInfo: string;
-        insurance: string[];
-        submitted: string;
-      };
-      expect(body.id).toBe(REQUEST_ID);
-      expect(body.name).toBe("Jane Smith");
-      expect(body.email).toBe("jane@example.com");
-      expect(body.phone).toBe("555-0100");
-      expect(body.zipcode).toBe("14607");
-      expect(body.services).toContain("birth-doula");
-      expect(body.birthLocation).toBe("Hospital");
-      expect(body.otherInfo).toBe("Looking for experienced doula");
-      expect(typeof body.submitted).toBe("string");
-      // Privacy: admin-only fields must not leak
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body).toEqual({
+        id: REQUEST_ID,
+        firstName: "Jane",
+        zipcode: "14607",
+        area: "Rochester, NY",
+        prefersSpanish: false,
+        responseCount: 0,
+        estimatedDueDate: { month: "3", day: "15", year: "2025" },
+        services: ["birth-doula"],
+        birthLocation: "Hospital",
+        otherInfo: "Looking for experienced doula",
+        insurance: ["medicaid"],
+        submitted: expect.any(String) as string,
+      });
+    });
+
+    it("never returns the requester's full name, email or phone", async () => {
+      const { testApp, request } = setup();
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("name");
+      expect(body).not.toHaveProperty("email");
+      expect(body).not.toHaveProperty("phone");
       expect(body).not.toHaveProperty("sent");
       expect(body).not.toHaveProperty("recaptchaScore");
+    });
+
+    it("returns a single-word name as the first name", async () => {
+      const { testApp, request } = setup({ referral: { name: "  Maya " } });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as { firstName: string };
+      expect(body.firstName).toBe("Maya");
+    });
+
+    it("returns an empty first name when no name was given", async () => {
+      const { testApp, request } = setup({ referral: { name: "" } });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { firstName: string };
+      expect(body.firstName).toBe("");
+    });
+
+    it("returns an empty area when no ZIP code was given", async () => {
+      const { testApp, request } = setup({ referral: { zipcode: "" } });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as { area: string };
+      expect(body.area).toBe("");
+    });
+
+    it("flags a requester who used the Spanish form", async () => {
+      const { testApp, request } = setup({ referral: { locale: "es" } });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as { prefersSpanish: boolean };
+      expect(body.prefersSpanish).toBe(true);
     });
 
     it("returns 200 for admin access even when membership is inactive", async () => {
@@ -180,6 +227,39 @@ describe("GET /:memberId/referrals/:requestId", () => {
       const { testApp, request } = setup({ referralNotFound: true });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("14-day window", () => {
+    it("returns a Referral submitted 13 days ago", async () => {
+      const { testApp, request } = setup({
+        referral: { submitted: daysAgo(13) },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
+    it("returns 404 REFERRAL_NOT_OPEN to a member for a Referral older than 14 days", async () => {
+      const { testApp, request } = setup({
+        referral: { submitted: daysAgo(15) },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(404);
+      const text = await response.text();
+      expect(JSON.parse(text)).toEqual({
+        error: "This referral is no longer open",
+        code: "REFERRAL_NOT_OPEN",
+      });
+      expect(text).not.toContain("Jane");
+    });
+
+    it("lets an Admin open a Referral older than 14 days", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        referral: { submitted: daysAgo(30) },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
     });
   });
 

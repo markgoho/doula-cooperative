@@ -3,33 +3,51 @@ import { ErrorResponseSchema } from "./member-schemas.js";
 
 /**
  * Referral list item schema - minimal fields for list display.
- * Contact info excluded; detail endpoint provides full data.
+ * No requester name or contact info; the ZIP code is reduced to a "City, ST" area.
  */
 export const ReferralListItemSchema = t.Object({
   id: t.String({ description: "Match request document ID" }),
-  submitted: t.String({ format: "date-time", description: "ISO 8601 timestamp" }),
+  submitted: t.String({
+    format: "date-time",
+    description: "ISO 8601 timestamp",
+  }),
   estimatedDueDate: t.Object({
     month: t.String(),
     day: t.String(),
     year: t.String(),
   }),
   services: t.Array(t.String()),
-  zipcode: t.String(),
-  birthLocation: t.String(),
+  area: t.String({
+    description: '"City, ST" from the ZIP code; empty when no ZIP code',
+  }),
+  responseCount: t.Integer({
+    minimum: 0,
+    description:
+      "Distinct doulas who sent Outreach or have an Offline Response",
+  }),
 });
 
 export type ReferralListItem = Static<typeof ReferralListItemSchema>;
 
 /**
- * Referral detail schema - full request including contact info.
- * Only returned to active Stripe members.
+ * Referral detail schema - the pre-Outreach view.
+ * First name only: the requester's full name, email and phone are never included.
  */
 export const ReferralDetailSchema = t.Object({
   id: t.String({ description: "Match request document ID" }),
-  name: t.String(),
-  email: t.String({ format: "email" }),
-  phone: t.String(),
+  firstName: t.String({ description: "First word of the requester's name" }),
   zipcode: t.String(),
+  area: t.String({
+    description: '"City, ST" from the ZIP code; empty when no ZIP code',
+  }),
+  prefersSpanish: t.Boolean({
+    description: "Whether the requester used the Spanish match form",
+  }),
+  responseCount: t.Integer({
+    minimum: 0,
+    description:
+      "Distinct doulas who sent Outreach or have an Offline Response",
+  }),
   estimatedDueDate: t.Object({
     month: t.String(),
     day: t.String(),
@@ -39,7 +57,10 @@ export const ReferralDetailSchema = t.Object({
   birthLocation: t.String(),
   otherInfo: t.String(),
   insurance: t.Array(t.String()),
-  submitted: t.String({ format: "date-time", description: "ISO 8601 timestamp" }),
+  submitted: t.String({
+    format: "date-time",
+    description: "ISO 8601 timestamp",
+  }),
 });
 
 export type ReferralDetail = Static<typeof ReferralDetailSchema>;
