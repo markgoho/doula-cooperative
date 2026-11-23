@@ -4,6 +4,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import type { UpdateClaimsBody } from "../schemas/member-schemas.js";
 import type { ApproveProfileResult } from "./approve-profile.js";
+import type { CarryOverOfflineResponsesResult } from "./carry-over-offline-responses.js";
 import type { ChangeSlugResult } from "./change-slug.js";
 import type { CleanSlateResult } from "./clean-slate-delete.js";
 import type { DeleteDraftProfileResult } from "./delete-draft-profile.js";
@@ -244,7 +245,7 @@ export interface MemberAdminService {
    * Creates a bidirectional relationship between profile and member.
    *
    * @param options - Object containing memberId and slug
-   * @returns Promise resolving to updated member document
+   * @returns Promise resolving to updated member document and the linked Legacy Membership's email
    * @throws NotFoundError if member or profile does not exist
    * @throws ValidationError if member already has a profile or profile is already linked
    */
@@ -252,6 +253,27 @@ export interface MemberAdminService {
     memberId: string;
     slug: string;
   }): Promise<LinkProfileResult>;
+
+  /**
+   * Move a linked Legacy Membership's Offline Responses onto the Member.
+   * Idempotent on retry.
+   *
+   * @param options - The Member's uid, the Legacy Membership's import document ID, and logger
+   * @returns Promise resolving to how many legacy records were carried over
+   * @throws Error if any Offline Response could not be carried over
+   */
+  carryOverOfflineResponses(options: {
+    memberUid: string;
+    legacyEmail: string;
+    logger: Logger;
+  }): Promise<CarryOverOfflineResponsesResult>;
+
+  /**
+   * Delete a linked Legacy Membership's import record.
+   *
+   * @param options - The Legacy Membership's import document ID
+   */
+  deleteLegacyMembership(options: { legacyEmail: string }): Promise<void>;
 
   /**
    * Change a member's profile slug, moving the underlying Firestore profile

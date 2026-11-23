@@ -279,6 +279,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
               body,
               adminToken,
               memberAdminService,
+              emailService,
               logger,
               set,
             }) => {
@@ -288,6 +289,7 @@ export function createAdminMembersPlugin(services?: PartialServices) {
                 slug: typedBody.slug,
                 adminUid: getAdminUid(adminToken, logger),
                 memberAdminService,
+                emailService,
                 logger,
                 set,
               });

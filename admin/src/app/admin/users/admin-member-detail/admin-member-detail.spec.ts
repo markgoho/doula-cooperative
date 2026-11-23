@@ -29,6 +29,7 @@ interface SetupOptions {
   shouldFailUpdateClaims?: boolean;
   changeSlugErrorMessage?: string;
   changeSlugImageMoveWarning?: string;
+  linkProfileWarning?: string;
   shouldFailUnlinkedProfilesLoad?: boolean;
   shouldKeepLoading?: boolean;
   useFakeTimers?: boolean;
@@ -76,6 +77,7 @@ function createMockAdminMembersService({
   shouldFailUpdateClaims,
   changeSlugErrorMessage,
   changeSlugImageMoveWarning,
+  linkProfileWarning,
   overrideListUnlinkedProfiles,
 }: {
   shouldKeepLoading: boolean;
@@ -95,6 +97,7 @@ function createMockAdminMembersService({
   shouldFailUpdateClaims: boolean;
   changeSlugErrorMessage: string;
   changeSlugImageMoveWarning?: string;
+  linkProfileWarning?: string;
   overrideListUnlinkedProfiles?: ReturnType<typeof vi.fn<() => Promise<UnlinkedProfileFixture[]>>>;
 }): {
   mockAdminMembersService: {
@@ -166,7 +169,10 @@ function createMockAdminMembersService({
         : vi.fn().mockResolvedValue(unlinkedProfiles)),
     linkProfile: shouldFailLinkProfile
       ? vi.fn().mockRejectedValue(new Error('Failed'))
-      : vi.fn().mockResolvedValue(memberToUse),
+      : vi.fn().mockResolvedValue({
+          member: memberToUse,
+          ...(linkProfileWarning !== undefined && { warning: linkProfileWarning }),
+        }),
     changeSlug: shouldFailChangeSlug
       ? vi.fn().mockRejectedValue(new Error(changeSlugErrorMessage))
       : vi.fn().mockResolvedValue({
@@ -242,6 +248,7 @@ async function setup({
   shouldFailUpdateClaims = false,
   changeSlugErrorMessage = 'Failed to change slug.',
   changeSlugImageMoveWarning,
+  linkProfileWarning,
   shouldFailUnlinkedProfilesLoad = false,
   shouldKeepLoading = false,
   useFakeTimers = false,
@@ -275,6 +282,7 @@ async function setup({
     shouldFailUpdateClaims,
     changeSlugErrorMessage,
     ...(changeSlugImageMoveWarning !== undefined && { changeSlugImageMoveWarning }),
+    ...(linkProfileWarning !== undefined && { linkProfileWarning }),
     ...(overrideListUnlinkedProfiles !== undefined && { overrideListUnlinkedProfiles }),
   });
 
@@ -457,6 +465,24 @@ describe('AdminUserDetail', () => {
     expect(
       await screen.findByText('Profile "matching-doula" linked and approved successfully'),
     ).toBeVisible();
+  });
+
+  it('should show the warning when Offline Responses were not carried over on link', async () => {
+    const member = createMockMemberWithoutSlug({
+      membershipActive: true,
+    });
+    const { user } = await setup({
+      member,
+      useFakeTimers: true,
+      unlinkedProfiles: [createUnlinkedProfile()],
+      linkProfileWarning:
+        "Profile linked, but the Legacy Membership's Offline Responses could not be carried over to this Member.",
+    });
+
+    await user.click(await screen.findByRole('button', { name: 'Link' }));
+    await user.click(screen.getByRole('button', { name: 'Link Profile' }));
+
+    expect(await screen.findByText(/Offline Responses could not be carried over/)).toBeVisible();
   });
 
   it('should keep existing link success behavior visible to admins', async () => {

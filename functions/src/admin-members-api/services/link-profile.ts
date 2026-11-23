@@ -17,6 +17,37 @@ import { verifyMemberExists } from "./verify-member-exists.js";
 
 export interface LinkProfileResult {
   member: MemberDocument;
+  /**
+   * The linked Legacy Membership's `migrated_users_import` document ID (its
+   * email exactly as stored), when one exists. The import record is left in
+   * place for the caller to delete once its Offline Responses are carried over.
+   */
+  legacyEmail?: string;
+  /** True when the Legacy Membership lookup failed, so `legacyEmail` is unknown. */
+  legacyLookupFailed?: true;
+}
+
+/**
+ * Find the Legacy Membership being linked: the import record with this slug,
+ * else the one keyed by the Member's email.
+ */
+async function findLegacyEmail(
+  slug: string,
+  memberEmail: string,
+): Promise<string | undefined> {
+  const importCollection = getFirestore().collection(IMPORT_COLLECTION);
+  const importSlugSnapshot = await importCollection
+    .where("slug", "==", slug)
+    .limit(1)
+    .get();
+  const importSlugDocument = importSlugSnapshot.docs[0];
+
+  if (importSlugDocument !== undefined) {
+    return importSlugDocument.id;
+  }
+
+  const importDocument = await importCollection.doc(memberEmail).get();
+  return importDocument.exists ? importDocument.id : undefined;
 }
 
 /**
@@ -30,7 +61,7 @@ export interface LinkProfileResult {
  *
  * @param options.memberId - The Firestore document ID of the member
  * @param options.slug - The profile slug to link
- * @returns The updated member document
+ * @returns The updated member document and the linked Legacy Membership's email
  * @throws NotFoundError if member or profile does not exist
  * @throws ValidationError if member already has a profile or profile is already linked
  */
@@ -91,48 +122,26 @@ export async function linkProfile(options: {
 
     await batch.commit();
 
+    // 6. Find the Legacy Membership; the link stands even if this fails
+    let legacyEmail: string | undefined;
+    let didLegacyLookupFail = false;
+
     try {
-      const importCollection = firestore.collection(IMPORT_COLLECTION);
-      const importSlugSnapshot = await importCollection
-        .where("slug", "==", slug)
-        .limit(1)
-        .get();
-
-      const importSlugDocument = importSlugSnapshot.docs[0];
-
-      if (importSlugDocument === undefined) {
-        const importReference = importCollection.doc(member.email);
-        const importDocument = await importReference.get();
-
-        if (importDocument.exists) {
-          await importReference.delete();
-          logger.info("Deleted import record after admin link", {
-            email: member.email,
-            memberId,
-            slug,
-          });
-        }
-      } else {
-        await importSlugDocument.ref.delete();
-        logger.info("Deleted import record after admin link", {
-          email: importSlugDocument.id,
-          memberId,
-          slug,
-        });
-      }
-    } catch (deleteError) {
-      logger.error("Failed to delete import record after admin link", {
-        errorId: ERROR_IDS.API_ADMIN_LINK_PROFILE_IMPORT_DELETE_FAILED,
-        email: member.email,
+      legacyEmail = await findLegacyEmail(slug, member.email);
+    } catch (lookupError) {
+      didLegacyLookupFail = true;
+      logger.error("Failed to find Legacy Membership after admin link", {
+        errorId:
+          ERROR_IDS.API_ADMIN_LINK_PROFILE_OFFLINE_RESPONSES_CARRY_OVER_FAILED,
         memberId,
         slug,
-        error: deleteError,
+        error: lookupError,
         errorMessage:
-          deleteError instanceof Error ? deleteError.message : "Unknown error",
+          lookupError instanceof Error ? lookupError.message : "Unknown error",
       });
     }
 
-    // 6. Read and return the updated member document
+    // 7. Read and return the updated member document
     const updatedMemberDocument = await memberReference.get();
 
     if (!updatedMemberDocument.exists) {
@@ -148,6 +157,8 @@ export async function linkProfile(options: {
         ...updatedMember,
         uid: updatedMemberDocument.id,
       },
+      ...(legacyEmail !== undefined && { legacyEmail }),
+      ...(didLegacyLookupFail && { legacyLookupFailed: true as const }),
     };
   } catch (error) {
     if (error instanceof HttpError) {
