@@ -1,9 +1,11 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
+import type { LegacyResponseDocument } from "../../collections/legacy-responses.js";
 import type { MemberResponseDocument } from "../../collections/member-responses.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import { toLegacyDoulaId } from "../schemas/to-legacy-doula-id.js";
 import type { ReferralItem } from "../services/referrals/interface.js";
 import { createMembersTestPlugin } from "../test-utils/create-members-test-plugin.js";
 
@@ -76,6 +78,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
     referralNotFound?: boolean;
     referral?: Partial<ReferralItem["document"]>;
     responses?: MemberResponseDocument[];
+    legacyResponses?: LegacyResponseDocument[];
     profileUrl?: string;
     memberNotFound?: boolean;
     /** Member names by uid, for the Coordinator panel. */
@@ -92,6 +95,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
     referralNotFound = false,
     referral = {},
     responses = [],
+    legacyResponses = [],
     profileUrl,
     memberNotFound = false,
     names = {},
@@ -134,6 +138,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
       referralsService: {
         getReferral: mockGetReferral,
         listMemberResponses: mock(() => Promise.resolve(responses)),
+        listLegacyResponses: mock(() => Promise.resolve(legacyResponses)),
       },
       outreachService: { findPublishedProfileUrl: mockFindPublishedProfileUrl },
       referralPortalSettingsService: {
@@ -200,6 +205,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
         otherInfo: "Looking for experienced doula",
         insurance: ["medicaid"],
         submitted: expect.any(String) as string,
+        isOpen: true,
         outreachSender: { name: "Dana Doula", email: "test@example.com" },
         hiredBadge: false,
       });
@@ -310,6 +316,17 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(text).not.toContain("Smith");
       expect(text).not.toContain("jane@example.com");
       expect(text).not.toContain("555-0100");
+    });
+
+    it("leaves out the composer on a Referral that is no longer open, even for a Coordinator", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        referral: { submitted: daysAgo(30) },
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["isOpen"]).toBe(false);
+      expect(body).not.toHaveProperty("outreachSender");
     });
   });
 
@@ -454,6 +471,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
             outcomeUpdatedAt: "2026-11-21T09:00:00.000Z",
           },
         ],
+        offlineResponses: [],
+        canRecordOfflineResponses: true,
       });
     });
 
@@ -495,6 +514,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
             outreachSentAt: "2026-11-20T15:30:00.000Z",
           },
         ],
+        offlineResponses: [],
+        canRecordOfflineResponses: true,
       });
     });
 
@@ -516,7 +537,11 @@ describe("GET /:memberId/referrals/:requestId", () => {
       });
       const response = await handleRequest(testApp, request);
       const body = (await response.json()) as Record<string, unknown>;
-      expect(body["coordinator"]).toEqual({ responses: [] });
+      expect(body["coordinator"]).toEqual({
+        responses: [],
+        offlineResponses: [],
+        canRecordOfflineResponses: true,
+      });
     });
 
     it("gives the panel to an Admin", async () => {
@@ -568,6 +593,159 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(text).not.toContain("member-b");
       expect(text).not.toContain("Bea Doula");
       expect(text).not.toContain("Cass Doula");
+    });
+  });
+
+  describe("Offline Responses", () => {
+    const EARLIER = Timestamp.fromDate(new Date("2026-11-19T10:00:00.000Z"));
+    const LATER = Timestamp.fromDate(new Date("2026-11-20T15:30:00.000Z"));
+    const SENT_AT = Timestamp.fromDate(new Date("2026-11-21T09:00:00.000Z"));
+    const LEGACY_EMAIL = "lee.legacy@example.com";
+    const RESPONSES: MemberResponseDocument[] = [
+      {
+        memberUid: "member-b",
+        offlineResponse: { recordedBy: "other-coordinator", recordedAt: LATER },
+        outcome: "not_hired",
+        outcomeUpdatedAt: SENT_AT,
+      },
+      { memberUid: "member-c", outreachSentAt: SENT_AT },
+    ];
+    const LEGACY: LegacyResponseDocument[] = [
+      {
+        legacyEmail: LEGACY_EMAIL,
+        displayName: "Lee Legacy",
+        recordedBy: MEMBER_ID,
+        recordedAt: EARLIER,
+      },
+    ];
+    const NAMES = {
+      [MEMBER_ID]: "Dana Coordinator",
+      "member-b": "Bea Doula",
+      "other-coordinator": "Olive Coordinator",
+    };
+
+    it("lists Offline Responses earliest first, with who recorded them and which the Coordinator may delete", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        responses: RESPONSES,
+        legacyResponses: LEGACY,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        coordinator: Record<string, unknown>;
+      };
+      expect(body.coordinator["offlineResponses"]).toEqual([
+        {
+          kind: "legacy",
+          id: toLegacyDoulaId(LEGACY_EMAIL),
+          displayName: "Lee Legacy",
+          recordedAt: "2026-11-19T10:00:00.000Z",
+          recordedByName: "Dana Coordinator",
+          canDelete: true,
+        },
+        {
+          kind: "member",
+          id: "member-b",
+          displayName: "Bea Doula",
+          recordedAt: "2026-11-20T15:30:00.000Z",
+          recordedByName: "Olive Coordinator",
+          canDelete: false,
+          outcome: "not_hired",
+        },
+      ]);
+    });
+
+    it("never sends a Legacy Membership's email", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        legacyResponses: LEGACY,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(await response.text()).not.toContain(LEGACY_EMAIL);
+    });
+
+    it("shows an Admin the Offline Responses but not the controls to record or delete them", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        responses: RESPONSES,
+        legacyResponses: LEGACY,
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        coordinator: {
+          offlineResponses: { canDelete: boolean }[];
+          canRecordOfflineResponses: boolean;
+        };
+      };
+      expect(body.coordinator.canRecordOfflineResponses).toBe(false);
+      expect(body.coordinator.offlineResponses).toHaveLength(2);
+      expect(
+        body.coordinator.offlineResponses.every(row => !row.canDelete),
+      ).toBe(true);
+    });
+
+    it("counts each doula once across Outreach and Offline Responses for Members and Legacy Memberships", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          ...RESPONSES,
+          // Outreach sent after an Offline Response counts once.
+          {
+            memberUid: "member-d",
+            outreachSentAt: SENT_AT,
+            offlineResponse: { recordedBy: MEMBER_ID, recordedAt: EARLIER },
+          },
+        ],
+        legacyResponses: LEGACY,
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as { responseCount: number };
+      expect(body.responseCount).toBe(4);
+    });
+
+    it("lets a named member open a Referral of any age, without revealing contact details", async () => {
+      const { testApp, request } = setup({
+        referral: { submitted: daysAgo(40) },
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            offlineResponse: { recordedBy: "coord-uid", recordedAt: LATER },
+          },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body["offlineResponse"]).toEqual({
+        recordedAt: "2026-11-20T15:30:00.000Z",
+      });
+      expect(body).not.toHaveProperty("contact");
+      expect(body).not.toHaveProperty("outreach");
+      // Closed to Outreach, so no composer.
+      expect(body).not.toHaveProperty("outreachSender");
+      expect(body).not.toHaveProperty("coordinator");
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+      expect(text).not.toContain("coord-uid");
+    });
+
+    it("keeps the composer for a named member while the Referral is open", async () => {
+      const { testApp, request } = setup({
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            offlineResponse: { recordedBy: "coord-uid", recordedAt: LATER },
+          },
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body["outreachSender"]).toBeDefined();
+      expect(body).not.toHaveProperty("contact");
     });
   });
 

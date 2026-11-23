@@ -1,5 +1,8 @@
 import { t, type Static } from "elysia";
-import { ErrorResponseSchema } from "./member-schemas.js";
+import {
+  ErrorResponseSchema,
+  MemberIdParameterSchema,
+} from "./member-schemas.js";
 
 /**
  * A Referral Outcome as the API names it (see `ReferralOutcome`).
@@ -33,6 +36,17 @@ export const OwnOutreachSchema = t.Object({
   sentAt: t.String({
     format: "date-time",
     description: "When Mailgun accepted the Outreach (ISO 8601)",
+  }),
+});
+
+/**
+ * The Offline Response a Referral Coordinator recorded for the viewer.
+ * Unlocks the viewer's Referral Outcome; never reveals contact details.
+ */
+export const OwnOfflineResponseSchema = t.Object({
+  recordedAt: t.String({
+    format: "date-time",
+    description: "When the Offline Response was recorded (ISO 8601)",
   }),
 });
 
@@ -79,13 +93,65 @@ export const ReferralResponseSchema = t.Object({
 export type ReferralResponse = Static<typeof ReferralResponseSchema>;
 
 /**
- * Coordinator-only part of a Referral detail: who sent Outreach and each
- * Member's Referral Outcome. Present only for Referral Coordinators and Admins.
- * Never carries the requester's contact details.
+ * Which kind of doula an Offline Response names: a Member, or an Unclaimed
+ * Legacy Membership ("Not yet migrated").
+ */
+export const ReferralDoulaKindSchema = t.Union(
+  [t.Literal("member"), t.Literal("legacy")],
+  { error: "Kind must be one of: member, legacy" },
+);
+
+export type ReferralDoulaKind = Static<typeof ReferralDoulaKindSchema>;
+
+/**
+ * Id of a doula in the picker: a Member's uid, or an opaque id for an
+ * Unclaimed Legacy Membership (never its email).
+ */
+const ReferralDoulaIdSchema = t.String({
+  minLength: 1,
+  maxLength: 128,
+  error: "Doula id must be a non-empty string (max 128 characters)",
+});
+
+/**
+ * One Offline Response on a Referral, as the Coordinator panel lists it.
+ */
+export const OfflineResponseRowSchema = t.Object({
+  kind: ReferralDoulaKindSchema,
+  id: ReferralDoulaIdSchema,
+  displayName: t.String({ description: "The doula's name; empty when unset" }),
+  recordedAt: t.String({
+    format: "date-time",
+    description: "When the Offline Response was recorded (ISO 8601)",
+  }),
+  recordedByName: t.String({
+    description:
+      "Name of the Referral Coordinator who recorded it; empty when unset",
+  }),
+  canDelete: t.Boolean({
+    description: "Whether the viewer may delete this Offline Response",
+  }),
+  outcome: t.Optional(ReferralOutcomeSchema),
+});
+
+export type OfflineResponseRow = Static<typeof OfflineResponseRowSchema>;
+
+/**
+ * Coordinator-only part of a Referral detail: who sent Outreach, each
+ * Member's Referral Outcome, and the Offline Responses. Present only for
+ * Referral Coordinators and Admins. Never carries the requester's contact
+ * details.
  */
 export const ReferralCoordinatorViewSchema = t.Object({
   responses: t.Array(ReferralResponseSchema, {
     description: "Members who sent Outreach, earliest first",
+  }),
+  offlineResponses: t.Array(OfflineResponseRowSchema, {
+    description: "Offline Responses, earliest first",
+  }),
+  canRecordOfflineResponses: t.Boolean({
+    description:
+      "Whether the viewer may record Offline Responses (Referral Coordinators only)",
   }),
 });
 
@@ -121,6 +187,7 @@ export const ReferralListItemSchema = t.Object({
     description: "Whether the Referral is under 14 days old",
   }),
   outreach: t.Optional(OwnOutreachSchema),
+  offlineResponse: t.Optional(OwnOfflineResponseSchema),
   outcome: OutcomeFields.outcome,
   hiredBadge: OutcomeFields.hiredBadge,
 });
@@ -160,7 +227,12 @@ export const ReferralDetailSchema = t.Object({
     format: "date-time",
     description: "ISO 8601 timestamp",
   }),
+  isOpen: t.Boolean({
+    description:
+      "Whether the Referral is under 14 days old; Outreach can only be sent while it is",
+  }),
   outreach: t.Optional(OwnOutreachSchema),
+  offlineResponse: t.Optional(OwnOfflineResponseSchema),
   contact: t.Optional(ReferralContactSchema),
   outreachSender: t.Optional(OutreachSenderSchema),
   coordinator: t.Optional(ReferralCoordinatorViewSchema),
@@ -240,6 +312,81 @@ export type ReferralOutcomeResponse = Static<
  */
 export const ReferralOutcomeRouteResponseSchema = t.Union([
   ReferralOutcomeResponseSchema,
+  ErrorResponseSchema,
+]);
+
+/**
+ * One doula the Referral Coordinator can name in an Offline Response.
+ * Display name and id only.
+ */
+export const ReferralDoulaSchema = t.Object({
+  kind: ReferralDoulaKindSchema,
+  id: ReferralDoulaIdSchema,
+  displayName: t.String(),
+});
+
+export type ReferralDoula = Static<typeof ReferralDoulaSchema>;
+
+/**
+ * GET /:memberId/referral-doulas response: Members and Unclaimed Legacy
+ * Memberships, sorted by name.
+ */
+export const ListReferralDoulasResponseSchema = t.Object({
+  doulas: t.Array(ReferralDoulaSchema),
+});
+
+export type ListReferralDoulasResponse = Static<
+  typeof ListReferralDoulasResponseSchema
+>;
+
+export const ListReferralDoulasRouteResponseSchema = t.Union([
+  ListReferralDoulasResponseSchema,
+  ErrorResponseSchema,
+]);
+
+/**
+ * POST /:memberId/referrals/:requestId/offline-responses body: the doula, as
+ * the picker lists it.
+ */
+export const RecordOfflineResponseBodySchema = t.Object({
+  kind: ReferralDoulaKindSchema,
+  id: ReferralDoulaIdSchema,
+});
+
+/**
+ * DELETE /:memberId/referrals/:requestId/offline-responses/:kind/:id params.
+ */
+export const OfflineResponseParameterSchema = t.Object({
+  memberId: MemberIdParameterSchema.properties.memberId,
+  requestId: ReferralRequestIdParameterSchema.properties.requestId,
+  kind: ReferralDoulaKindSchema,
+  id: ReferralDoulaIdSchema,
+});
+
+/** The Offline Response just recorded, as the Coordinator panel lists it. */
+export const RecordOfflineResponseResponseSchema = t.Object({
+  offlineResponse: OfflineResponseRowSchema,
+});
+
+export type RecordOfflineResponseResponse = Static<
+  typeof RecordOfflineResponseResponseSchema
+>;
+
+export const RecordOfflineResponseRouteResponseSchema = t.Union([
+  RecordOfflineResponseResponseSchema,
+  ErrorResponseSchema,
+]);
+
+export const DeleteOfflineResponseResponseSchema = t.Object({
+  deleted: t.Literal(true),
+});
+
+export type DeleteOfflineResponseResponse = Static<
+  typeof DeleteOfflineResponseResponseSchema
+>;
+
+export const DeleteOfflineResponseRouteResponseSchema = t.Union([
+  DeleteOfflineResponseResponseSchema,
   ErrorResponseSchema,
 ]);
 

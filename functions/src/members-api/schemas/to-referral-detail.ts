@@ -12,6 +12,8 @@ import { toReferralArea } from "./to-referral-area.js";
  * - Before the viewer's own Outreach, the requester's full name, email and
  *   phone are never included; `outreachSender` feeds the composer.
  * - After it, `outreach` (sent time) and `contact` are added.
+ * - An Offline Response naming the viewer adds `offlineResponse` (recorded
+ *   time) but never `contact`.
  * - The viewer's own Referral Outcome and the hired badge are always included;
  *   other Members' names and non-hired Outcomes never are.
  */
@@ -20,12 +22,14 @@ export function toReferralDetail(
   document: MatchRequestDocument,
   {
     outreachSender,
+    isOpen,
     ...summary
   }: MemberResponsesSummary & {
     outreachSender: ReferralDetail["outreachSender"];
+    isOpen: boolean;
   },
 ): ReferralDetail {
-  const { responseCount, ownOutreachSentAt } = summary;
+  const { responseCount, ownOutreachSentAt, ownOfflineResponse } = summary;
   const base: ReferralDetail = {
     id,
     firstName: toFirstName(document.name),
@@ -39,6 +43,12 @@ export function toReferralDetail(
     otherInfo: document.otherInfo,
     insurance: document.insurance,
     submitted: timestampToIso(document.submitted),
+    isOpen,
+    ...(ownOfflineResponse && {
+      offlineResponse: {
+        recordedAt: timestampToIso(ownOfflineResponse.recordedAt),
+      },
+    }),
     ...toOutcomeFields(summary),
   };
 

@@ -6,6 +6,7 @@ import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberDocument } from "../../types/member-document.js";
 import { canViewReferralResponses } from "../access/can-view-referral-responses.js";
 import { canViewReferral } from "../access/can-view-referral.js";
+import { isReferralOpen } from "../access/is-referral-open.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import { type ReferralDetail } from "../schemas/referral-schemas.js";
@@ -70,27 +71,39 @@ export async function getReferralLogic({
       return REFERRAL_PORTAL_DENIAL[access];
     }
 
-    const [{ id, document }, responses] = await Promise.all([
+    const [{ id, document }, responses, legacyResponses] = await Promise.all([
       referralsService.getReferral(requestId, logger),
       referralsService.listMemberResponses(requestId, logger),
+      referralsService.listLegacyResponses(requestId, logger),
     ]);
-    // The viewer's own Outreach decides the window and the reveal, so an
-    // Admin on another Member's path never gets contact details for free.
-    const summary = summarizeMemberResponses(responses, decodedToken.uid);
+    // The viewer's own responses decide the window, and only their own
+    // Outreach decides the reveal, so an Admin on another Member's path never
+    // gets contact details for free, nor does an Offline Response.
+    const summary = summarizeMemberResponses(
+      responses,
+      decodedToken.uid,
+      legacyResponses,
+    );
 
     if (
       !canViewReferral({
         decodedToken,
         document,
-        hasOutreach: summary.ownOutreachSentAt !== undefined,
+        hasOwnResponse:
+          summary.ownOutreachSentAt !== undefined ||
+          summary.ownOfflineResponse !== undefined,
       })
     ) {
       set.status = 404;
       return REFERRAL_NOT_OPEN;
     }
 
+    // Outreach can only be sent while the Referral is open, for everyone.
+    const isOpen = isReferralOpen(document);
     const outreachSender =
-      summary.ownOutreachSentAt === undefined && decodedToken.uid === memberId
+      isOpen &&
+      summary.ownOutreachSentAt === undefined &&
+      decodedToken.uid === memberId
         ? await loadOutreachSender({
             loadMember,
             fallbackEmail: decodedToken.email,
@@ -102,20 +115,36 @@ export async function getReferralLogic({
     const detail = toReferralDetail(id, document, {
       ...summary,
       outreachSender,
+      isOpen,
     });
     if (!canViewReferralResponses(decodedToken)) return detail;
 
-    // Coordinator panel: who sent Outreach and each Member's Referral Outcome.
-    // Never the requester's contact details; those still follow the viewer's
-    // own Outreach only.
-    const names = await memberService.findNamesByIds(
-      responses
-        .filter(response => response.outreachSentAt !== undefined)
-        .map(response => response.memberUid),
-    );
+    // Coordinator panel: who sent Outreach, each Member's Referral Outcome,
+    // and the Offline Responses. Never the requester's contact details; those
+    // still follow the viewer's own Outreach only.
+    const names = await memberService.findNamesByIds([
+      ...new Set([
+        ...responses
+          .filter(
+            response =>
+              response.outreachSentAt !== undefined ||
+              response.offlineResponse !== undefined,
+          )
+          .map(response => response.memberUid),
+        ...responses.flatMap(response =>
+          response.offlineResponse ? [response.offlineResponse.recordedBy] : [],
+        ),
+        ...legacyResponses.map(response => response.recordedBy),
+      ]),
+    ]);
     return {
       ...detail,
-      coordinator: toReferralCoordinatorView(responses, names),
+      coordinator: toReferralCoordinatorView({
+        responses,
+        legacyResponses,
+        names,
+        decodedToken,
+      }),
     };
   } catch (error) {
     if (error instanceof HttpError) {

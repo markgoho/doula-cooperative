@@ -4,6 +4,10 @@ import {
   Timestamp,
 } from "firebase-admin/firestore";
 import {
+  LEGACY_RESPONSES_SUBCOLLECTION,
+  type LegacyResponseDocument,
+} from "../../../collections/legacy-responses.js";
+import {
   MATCH_REQUESTS_COLLECTION,
   type MatchRequestDocument,
 } from "../../../collections/match-requests.js";
@@ -179,10 +183,37 @@ async function listMemberResponses(
   }
 }
 
+async function listLegacyResponses(
+  requestId: string,
+  logger: Logger,
+): Promise<LegacyResponseDocument[]> {
+  try {
+    const snapshot = await getFirestore()
+      .collection(MATCH_REQUESTS_COLLECTION)
+      .doc(requestId)
+      .collection(LEGACY_RESPONSES_SUBCOLLECTION)
+      .get();
+
+    return snapshot.docs.map(response => ({
+      ...(response.data() as LegacyResponseDocument),
+      legacyEmail: response.id,
+    }));
+  } catch (error) {
+    logger.error("Failed to list legacy responses from Firestore", {
+      errorId: ERROR_IDS.API_FIRESTORE_READ_FAILED,
+      error,
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      requestId,
+    });
+    throw error;
+  }
+}
+
 export const ReferralsServiceImpl: ReferralsService = {
   listReferrals,
   listAllReferrals,
   getReferral,
   listReferralsWithMemberResponse,
   listMemberResponses,
+  listLegacyResponses,
 };

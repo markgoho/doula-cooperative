@@ -16,7 +16,7 @@ export function toReferralListItem(
   document: MatchRequestDocument,
   { isOpen, ...summary }: MemberResponsesSummary & { isOpen: boolean },
 ): ReferralListItem {
-  const { responseCount, ownOutreachSentAt } = summary;
+  const { responseCount, ownOutreachSentAt, ownOfflineResponse } = summary;
   const { outcome, hiredBadge } = toOutcomeFields(summary);
   return {
     id,
@@ -28,6 +28,11 @@ export function toReferralListItem(
     isOpen,
     ...(ownOutreachSentAt && {
       outreach: { sentAt: timestampToIso(ownOutreachSentAt) },
+    }),
+    ...(ownOfflineResponse && {
+      offlineResponse: {
+        recordedAt: timestampToIso(ownOfflineResponse.recordedAt),
+      },
     }),
     ...(outcome && { outcome }),
     hiredBadge,

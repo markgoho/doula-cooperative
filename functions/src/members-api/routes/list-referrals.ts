@@ -5,7 +5,7 @@ import type { ReferralPortalSettingsService } from "../../shared-api/services/re
 import type { Logger } from "../../shared-api/types/logger.js";
 import { canViewReferral } from "../access/can-view-referral.js";
 import { isReferralCoordinator } from "../access/is-referral-coordinator.js";
-import { referralOpenCutoff } from "../access/referral-open-cutoff.js";
+import { isReferralOpen } from "../access/is-referral-open.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import { type ListReferralsResponse } from "../schemas/referral-schemas.js";
@@ -57,7 +57,8 @@ export async function listReferralsLogic({
     // sees open Referrals.
     const isListingAll = isReferralCoordinator(decodedToken);
 
-    // Those, plus older ones the viewer responded to (My Outreach).
+    // Those, plus older ones the viewer responded to (Outreach or an Offline
+    // Response naming them; the My Outreach filter).
     // If the older ones can't be read (e.g. the collection-group index is
     // missing), still list open Referrals rather than failing the inbox.
     const listReachedOut = async (): Promise<ReferralItem[]> => {
@@ -93,23 +94,29 @@ export async function listReferralsLogic({
     ];
 
     const now = new Date();
-    const cutoffMs = referralOpenCutoff(now).getTime();
     const listed = await Promise.all(
       candidates.map(async ({ id, document }) => {
+        const [responses, legacyResponses] = await Promise.all([
+          referralsService.listMemberResponses(id, logger),
+          referralsService.listLegacyResponses(id, logger),
+        ]);
         const summary = summarizeMemberResponses(
-          await referralsService.listMemberResponses(id, logger),
+          responses,
           decodedToken.uid,
+          legacyResponses,
         );
         const isVisible = canViewReferral({
           decodedToken,
           document,
-          hasOutreach: summary.ownOutreachSentAt !== undefined,
+          hasOwnResponse:
+            summary.ownOutreachSentAt !== undefined ||
+            summary.ownOfflineResponse !== undefined,
           now,
         });
         if (!isVisible) return;
         return toReferralListItem(id, document, {
           ...summary,
-          isOpen: document.submitted.toMillis() >= cutoffMs,
+          isOpen: isReferralOpen(document, now),
         });
       }),
     );

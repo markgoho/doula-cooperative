@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
+import type { LegacyResponseDocument } from "../../collections/legacy-responses.js";
 import type { MemberResponseDocument } from "../../collections/member-responses.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
@@ -60,6 +61,7 @@ interface ListedReferral {
   responseCount: number;
   isOpen: boolean;
   outreach?: { sentAt: string };
+  offlineResponse?: { recordedAt: string };
   outcome?: string;
   hiredBadge: boolean;
 }
@@ -111,6 +113,8 @@ describe("GET /:memberId/referrals", () => {
     respondedReferrals?: ReferralItem[];
     /** Member response documents by Referral id. */
     responses?: Record<string, MemberResponseDocument[]>;
+    /** Offline Responses for Legacy Memberships by Referral id. */
+    legacyResponses?: Record<string, LegacyResponseDocument[]>;
   }
 
   function setup({
@@ -125,6 +129,7 @@ describe("GET /:memberId/referrals", () => {
     allReferrals = [],
     respondedReferrals = [],
     responses = {},
+    legacyResponses = {},
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
       if (memberNotFound)
@@ -147,6 +152,9 @@ describe("GET /:memberId/referrals", () => {
         listReferralsWithMemberResponse: mockListResponded,
         listMemberResponses: mock((requestId: string) =>
           Promise.resolve(responses[requestId] ?? []),
+        ),
+        listLegacyResponses: mock((requestId: string) =>
+          Promise.resolve(legacyResponses[requestId] ?? []),
         ),
       },
       referralPortalSettingsService: {
@@ -400,6 +408,56 @@ describe("GET /:memberId/referrals", () => {
       expect(text).not.toContain("Smith");
       expect(text).not.toContain("jane@example.com");
       expect(text).not.toContain("555-0100");
+    });
+  });
+
+  describe("Offline Responses", () => {
+    const offlineFor = (memberUid: string): MemberResponseDocument => ({
+      memberUid,
+      offlineResponse: { recordedBy: "coord-uid", recordedAt: daysAgo(30) },
+    });
+
+    it("lists a Referral older than 14 days that an Offline Response names the member on, without contact details", async () => {
+      const { testApp, request } = setup({
+        respondedReferrals: [
+          makeReferral("req-old", { submitted: daysAgo(40) }),
+        ],
+        responses: { "req-old": [offlineFor(MEMBER_ID)] },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.clone().text();
+      const [referral] = await listed(response);
+      expect(referral?.id).toBe("req-old");
+      expect(referral?.isOpen).toBe(false);
+      expect(typeof referral?.offlineResponse?.recordedAt).toBe("string");
+      expect(referral).not.toHaveProperty("outreach");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("coord-uid");
+    });
+
+    it("counts Offline Responses for Members and Legacy Memberships, each doula once", async () => {
+      const legacy: LegacyResponseDocument = {
+        legacyEmail: "lee@example.com",
+        displayName: "Lee Legacy",
+        recordedBy: "coord-uid",
+        recordedAt: daysAgo(1),
+      };
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1")],
+        responses: {
+          "req-1": [
+            outreachBy("member-a"),
+            offlineFor("member-b"),
+            { ...offlineFor("member-c"), outreachSentAt: daysAgo(0) },
+          ],
+        },
+        legacyResponses: { "req-1": [legacy] },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.clone().text();
+      const [referral] = await listed(response);
+      expect(referral?.responseCount).toBe(4);
+      expect(text).not.toContain("lee@example.com");
     });
   });
 

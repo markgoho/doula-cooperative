@@ -1,4 +1,5 @@
 // Re-export all collection names and types
+export * from "./legacy-responses.js";
 export * from "./match-requests.js";
 export * from "./member-responses.js";
 export * from "./members.js";

@@ -6,7 +6,7 @@ import type { ReferralPortalSettingsService } from "../../shared-api/services/re
 import type { Logger } from "../../shared-api/types/logger.js";
 import { sendAdminFailureNotification } from "../../shared-api/utils/send-admin-failure-notification.js";
 import type { MemberDocument } from "../../types/member-document.js";
-import { canViewReferral } from "../access/can-view-referral.js";
+import { isReferralOpen } from "../access/is-referral-open.js";
 import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
 import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import type { SendOutreachResponse } from "../schemas/referral-schemas.js";
@@ -155,8 +155,10 @@ export async function sendOutreachLogic({
       set.status = 409;
       return RESERVATION_CONFLICTS.already_sent;
     }
-    if (!canViewReferral({ decodedToken, document, hasOutreach: false })) {
-      set.status = 404;
+    // Open Referrals only, for everyone: Admins and Referral Coordinators may
+    // view older Referrals, but not reach out on them.
+    if (!isReferralOpen(document, now())) {
+      set.status = 403;
       return OUTREACH_ERRORS.notOpen;
     }
 

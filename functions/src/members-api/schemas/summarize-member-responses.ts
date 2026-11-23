@@ -1,14 +1,22 @@
 import type { Timestamp } from "firebase-admin/firestore";
+import type { LegacyResponseDocument } from "../../collections/legacy-responses.js";
 import type {
   MemberResponseDocument,
+  OfflineResponseRecord,
   ReferralOutcome,
 } from "../../collections/member-responses.js";
 
 export interface MemberResponsesSummary {
-  /** Distinct Members who sent Outreach. Offline Responses join in a later slice. */
+  /**
+   * Distinct doulas who responded: Members who sent Outreach or have an
+   * Offline Response (each counted once), plus Unclaimed Legacy Memberships
+   * with an Offline Response.
+   */
   responseCount: number;
   /** When the viewer sent Outreach, if they did. */
   ownOutreachSentAt: Timestamp | undefined;
+  /** The Offline Response a Referral Coordinator recorded for the viewer, if any. */
+  ownOfflineResponse: OfflineResponseRecord | undefined;
   /** The viewer's own Referral Outcome, if they recorded one. */
   ownOutcome: ReferralOutcome | undefined;
   /** When the viewer's own Referral Outcome was last set. */
@@ -18,24 +26,32 @@ export interface MemberResponsesSummary {
 }
 
 /**
- * Reduce a Referral's member response documents to what Members may see:
- * a count, the hired badge, plus the viewer's own Outreach and Referral
- * Outcome. Other Members' names and non-hired Outcomes never leave here.
- * Only `outreachSentAt` counts as Outreach; an in-flight send or another kind
- * of response does not.
+ * Reduce a Referral's response documents to what Members may see: a count,
+ * the hired badge, plus the viewer's own Outreach, Offline Response and
+ * Referral Outcome. Other doulas' names and non-hired Outcomes never leave
+ * here. Only `outreachSentAt` counts as Outreach; an in-flight send does not.
+ *
+ * @param legacyResponses - The Referral's Offline Responses for Unclaimed
+ *   Legacy Memberships; only their number is used. Omit when the caller
+ *   needs no count.
  */
 export function summarizeMemberResponses(
   responses: MemberResponseDocument[],
   viewerUid: string,
+  legacyResponses: LegacyResponseDocument[] = [],
 ): MemberResponsesSummary {
-  const withOutreach = responses.filter(
-    response => response.outreachSentAt !== undefined,
+  const responded = responses.filter(
+    response =>
+      response.outreachSentAt !== undefined ||
+      response.offlineResponse !== undefined,
   );
   const own = responses.find(response => response.memberUid === viewerUid);
   return {
-    responseCount: new Set(withOutreach.map(response => response.memberUid))
-      .size,
+    responseCount:
+      new Set(responded.map(response => response.memberUid)).size +
+      legacyResponses.length,
     ownOutreachSentAt: own?.outreachSentAt,
+    ownOfflineResponse: own?.offlineResponse,
     ownOutcome: own?.outcome,
     ownOutcomeUpdatedAt: own?.outcome ? own.outcomeUpdatedAt : undefined,
     hiredBadge: responses.some(response => response.outcome === "hired"),

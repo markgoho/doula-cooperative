@@ -234,6 +234,39 @@ describe("PUT /:memberId/referrals/:requestId/outcome", () => {
       const body = (await response.json()) as ErrorBody;
       expect(body.code).toBe("OUTCOME_REQUIRES_OUTREACH");
     });
+
+    it("returns 403 when an Offline Response names another doula", async () => {
+      const { send } = setup({
+        responses: [
+          {
+            memberUid: "member-b",
+            offlineResponse: { recordedBy: "coord-uid", recordedAt: EARLIER },
+          },
+        ],
+      });
+      const response = await send();
+      expect(response.status).toBe(403);
+    });
+  });
+
+  describe("Unlocked by an Offline Response", () => {
+    it("lets a member named by an Offline Response record an Outcome on an old Referral without Outreach", async () => {
+      const { send, mockSetOutcome } = setup({
+        responses: [
+          {
+            memberUid: MEMBER_ID,
+            offlineResponse: { recordedBy: "coord-uid", recordedAt: EARLIER },
+          },
+        ],
+      });
+      const response = await send();
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as OutcomeBody;
+      expect(body.outcome).toBe("hired");
+      expect(body.hiredBadge).toBe(true);
+      expect(body).not.toHaveProperty("contact");
+      expect(mockSetOutcome).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("Recording", () => {
