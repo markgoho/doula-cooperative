@@ -82,7 +82,7 @@ function setup({
   reservation = "reserved",
   profileUrl,
   sendFails = false,
-  recordFails = false,
+  recordFailures = 0,
   unexpectedError = false,
 }: {
   memberId?: string;
@@ -97,7 +97,8 @@ function setup({
   reservation?: OutreachReservation;
   profileUrl?: string;
   sendFails?: boolean;
-  recordFails?: boolean;
+  /** How many record attempts fail before one succeeds. */
+  recordFailures?: number;
   unexpectedError?: boolean;
 } = {}) {
   const mockSendOutreachEmail = mock<
@@ -110,11 +111,13 @@ function setup({
       : Promise.resolve({ mailgunMessageId: "<mailgun-123@example.com>" }),
   );
   const mockReserve = mock(() => Promise.resolve(reservation));
-  const mockRecord = mock<OutreachService["recordOutreach"]>(() =>
-    recordFails
+  let recordCalls = 0;
+  const mockRecord = mock<OutreachService["recordOutreach"]>(() => {
+    recordCalls += 1;
+    return recordCalls <= recordFailures
       ? Promise.reject(new Error("Firestore unavailable"))
-      : Promise.resolve(),
-  );
+      : Promise.resolve();
+  });
   const mockRelease = mock(() => Promise.resolve());
   const mockAdminEmail = mock<
     (parameters: { message: EmailMessage }) => Promise<void>
@@ -324,6 +327,16 @@ describe("POST /:memberId/referrals/:requestId/outreach", () => {
       },
     );
 
+    it("lets a Referral Coordinator send her own Outreach on a Referral older than 14 days", async () => {
+      const { testApp, request, mockSendOutreachEmail } = setup({
+        authToken: "referral-coordinator-token",
+        referral: makeReferral({ submitted: daysAgo(30) }),
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(201);
+      expect(mockSendOutreachEmail).toHaveBeenCalledTimes(1);
+    });
+
     it("lets a member reach out when other members already did", async () => {
       const { testApp, request } = setup({
         responses: [{ memberUid: "member-b", outreachSentAt: daysAgo(1) }],
@@ -455,10 +468,23 @@ describe("POST /:memberId/referrals/:requestId/outreach", () => {
   });
 
   describe("Recording fails after Mailgun accepted", () => {
+    it("retries the write and succeeds when a later attempt works", async () => {
+      const { testApp, request, mockRecord, mockSendOutreachEmail } = setup({
+        recordFailures: 2,
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(201);
+      expect(mockRecord).toHaveBeenCalledTimes(3);
+      expect(mockSendOutreachEmail).toHaveBeenCalledTimes(1);
+    });
+
     it("returns 500 without revealing contact details and notifies the admins", async () => {
-      const { testApp, request, mockAdminEmail } = setup({ recordFails: true });
+      const { testApp, request, mockAdminEmail, mockRecord } = setup({
+        recordFailures: 3,
+      });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(500);
+      expect(mockRecord).toHaveBeenCalledTimes(3);
       const text = await response.text();
       const body = JSON.parse(text) as ErrorBody;
       expect(body.code).toBe("OUTREACH_RECORD_FAILED");

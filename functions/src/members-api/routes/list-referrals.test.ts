@@ -352,6 +352,27 @@ describe("GET /:memberId/referrals", () => {
       expect(referrals).toHaveLength(1);
     });
 
+    it("still lists open Referrals when reached-out ones can't be read", async () => {
+      const testApp = createMembersTestPlugin({
+        memberService: {
+          findById: mock(() => Promise.resolve(makeActiveStripeMember())),
+        },
+        referralsService: {
+          listReferrals: mock(() => Promise.resolve([makeReferral("req-1")])),
+          listReferralsWithMemberResponse: mock(() =>
+            Promise.reject(new Error("FAILED_PRECONDITION: index missing")),
+          ),
+        },
+      });
+      const request = new Request(`http://localhost/${MEMBER_ID}/referrals`, {
+        headers: { Authorization: "Bearer valid-owner-token" },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const referrals = await listed(response);
+      expect(referrals.map(referral => referral.id)).toEqual(["req-1"]);
+    });
+
     it("never reveals contact details on reached-out rows", async () => {
       const { testApp, request } = setup({
         referrals: [makeReferral("req-1")],

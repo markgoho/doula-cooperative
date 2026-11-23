@@ -375,6 +375,8 @@ export const ERROR_IDS = {
 
   // Member Outreach errors
   API_MEMBER_SEND_OUTREACH_FAILED: "api_member_send_outreach_failed",
+  API_MEMBER_LIST_REACHED_OUT_REFERRALS_FAILED:
+    "api_member_list_reached_out_referrals_failed",
   API_MEMBER_OUTREACH_EMAIL_FAILED: "api_member_outreach_email_failed",
   API_MEMBER_OUTREACH_RESERVE_FAILED: "api_member_outreach_reserve_failed",
   API_MEMBER_OUTREACH_RECORD_FAILED: "api_member_outreach_record_failed",

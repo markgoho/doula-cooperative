@@ -11,7 +11,10 @@ import { type ListReferralsResponse } from "../schemas/referral-schemas.js";
 import { summarizeMemberResponses } from "../schemas/summarize-member-responses.js";
 import { toReferralListItem } from "../schemas/to-referral-list-item.js";
 import type { MemberService } from "../services/member/interface.js";
-import type { ReferralsService } from "../services/referrals/interface.js";
+import type {
+  ReferralItem,
+  ReferralsService,
+} from "../services/referrals/interface.js";
 
 export async function listReferralsLogic({
   memberId,
@@ -50,12 +53,31 @@ export async function listReferralsLogic({
     }
 
     // Open Referrals, plus older ones the viewer responded to (My Outreach).
+    // If the older ones can't be read (e.g. the collection-group index is
+    // missing), still list open Referrals rather than failing the inbox.
+    const listReachedOut = async (): Promise<ReferralItem[]> => {
+      try {
+        return await referralsService.listReferralsWithMemberResponse(
+          decodedToken.uid,
+          logger,
+        );
+      } catch (error) {
+        logger.error(
+          "Failed to list reached-out referrals; listing open only",
+          {
+            errorId: ERROR_IDS.API_MEMBER_LIST_REACHED_OUT_REFERRALS_FAILED,
+            error,
+            errorMessage:
+              error instanceof Error ? error.message : "Unknown error",
+            memberId,
+          },
+        );
+        return [];
+      }
+    };
     const [open, responded] = await Promise.all([
       referralsService.listReferrals(logger),
-      referralsService.listReferralsWithMemberResponse(
-        decodedToken.uid,
-        logger,
-      ),
+      listReachedOut(),
     ]);
     const openIds = new Set(open.map(item => item.id));
     const candidates = [

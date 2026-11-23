@@ -63,6 +63,20 @@ const RESERVATION_CONFLICTS: Record<
   },
 };
 
+/** Tries at recording an accepted Outreach before reporting a failure. */
+const RECORD_ATTEMPTS = 3;
+
+async function retry(operation: () => Promise<void>, attempts: number) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await operation();
+      return;
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+    }
+  }
+}
+
 /**
  * Send this Member's one Outreach on a Referral.
  *
@@ -196,14 +210,16 @@ export async function sendOutreachLogic({
     }
 
     const sentAt = now();
+    const record = {
+      ...target,
+      sentAt,
+      ...(mailgunMessageId !== undefined && { mailgunMessageId }),
+    };
     try {
-      await outreachService.recordOutreach(
-        {
-          ...target,
-          sentAt,
-          ...(mailgunMessageId !== undefined && { mailgunMessageId }),
-        },
-        logger,
+      // The email is already out, so retry the idempotent write before giving up.
+      await retry(
+        () => outreachService.recordOutreach(record, logger),
+        RECORD_ATTEMPTS,
       );
     } catch (error) {
       logger.error("Outreach sent but not recorded", {
