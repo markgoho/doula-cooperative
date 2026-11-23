@@ -206,7 +206,7 @@
 
   <!-- Insurance/Payment -->
   @if (matchRequest.insurance && matchRequest.insurance.length > 0) {
-    <section class="info-card">
+    <section class="info-card full-width">
       <h2>[ICON] Insurance/Payment</h2>
       <ul class="insurance-list">
         @for (insurance of matchRequest.insurance; track insurance) {
@@ -215,6 +215,90 @@
       </ul>
     </section>
   }
+
+  <!-- Responses: Outreach, Offline Responses, and Referral Outcomes -->
+  <section class="info-card full-width">
+    <h2 id="responses-heading">Responses</h2>
+    @if (matchRequest.responses.members.length + matchRequest.responses.legacy.length === 0) {
+      <p class="no-info">No responses yet</p>
+    } @else {
+      <div
+        class="responses-table-wrapper"
+        tabindex="0"
+        role="region"
+        aria-labelledby="responses-heading"
+      >
+        <table class="responses-table">
+          <thead>
+            <tr>
+              <th scope="col">Doula</th>
+              <th scope="col">Response</th>
+              <th scope="col">Referral Outcome</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (response of matchRequest.responses.members; track response.memberUid) {
+              <tr>
+                <th scope="row">
+                  <a [routerLink]="['/members', response.memberUid]" class="contact-link">
+                    {{ response.memberName || 'Unknown member' }}
+                  </a>
+                </th>
+                <td data-label="Response">
+                  @if (response.outreachSentAt; as sentAt) {
+                    <span class="response-line">
+                      Outreach
+                      <time [attr.datetime]="sentAt">{{
+                        sentAt | date: 'MMM d, yyyy, h:mm a'
+                      }}</time>
+                    </span>
+                  }
+                  @if (response.offlineResponse; as offline) {
+                    <span class="response-line">
+                      Offline Response recorded by {{ offline.recordedByName || 'Unknown' }}
+                      <time [attr.datetime]="offline.recordedAt">{{
+                        offline.recordedAt | date: 'MMM d, yyyy, h:mm a'
+                      }}</time>
+                    </span>
+                  }
+                </td>
+                <td data-label="Referral Outcome">
+                  <span class="response-line">{{ getOutcomeLabel(response.outcome) }}</span>
+                  @if (response.outcomeUpdatedAt; as updatedAt) {
+                    <span class="response-line secondary">
+                      Updated
+                      <time [attr.datetime]="updatedAt">{{
+                        updatedAt | date: 'MMM d, yyyy, h:mm a'
+                      }}</time>
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
+            @for (response of matchRequest.responses.legacy; track $index) {
+              <tr>
+                <th scope="row">
+                  {{ response.displayName }}
+                  <app-tag label="Not yet migrated" size="small" />
+                </th>
+                <td data-label="Response">
+                  <span class="response-line">
+                    Offline Response recorded by {{ response.recordedByName || 'Unknown' }}
+                    <time [attr.datetime]="response.recordedAt">{{
+                      response.recordedAt | date: 'MMM d, yyyy, h:mm a'
+                    }}</time>
+                  </span>
+                </td>
+                <td data-label="Referral Outcome">
+                  <span class="secondary">Not tracked for Legacy Memberships</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
 }
 
 <app-confirm-dialog

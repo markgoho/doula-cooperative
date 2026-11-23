@@ -8,7 +8,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Tag } from '../../../tag/tag';
+import type { ReferralOutcome } from '../../admin.types';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { AlertBanner } from '../../../shared/alert-banner/alert-banner';
 import { SERVICE_LABELS_LONG } from '../match-request.constants';
@@ -16,6 +18,12 @@ import { isValidDueDate, parseDueDate, type DueDate } from '../match-request.uti
 import { AdminMatchRequestDetailService } from './admin-match-request-detail.service';
 
 type ConfirmAction = 'mark-processed' | 'mark-pending';
+
+const OUTCOME_LABELS: Record<ReferralOutcome, string> = {
+  hired: 'Hired',
+  not_hired: 'Not hired',
+  not_a_fit: 'Not a fit',
+};
 
 interface DialogConfig {
   title: string;
@@ -25,7 +33,7 @@ interface DialogConfig {
 }
 
 @Component({
-  imports: [DatePipe, Tag, ConfirmDialog, AlertBanner],
+  imports: [DatePipe, RouterLink, Tag, ConfirmDialog, AlertBanner],
   templateUrl: './admin-match-request-detail.html',
   styleUrl: './admin-match-request-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,6 +70,10 @@ export class AdminMatchRequestDetail {
       return undefined;
     }
     return parseDueDate(dueDate);
+  }
+
+  protected getOutcomeLabel(outcome: ReferralOutcome | undefined): string {
+    return outcome ? OUTCOME_LABELS[outcome] : 'No outcome yet';
   }
 
   protected getServiceLabel(service: string): string {

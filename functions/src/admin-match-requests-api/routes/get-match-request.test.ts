@@ -1,8 +1,69 @@
 import { describe, expect, it, mock } from "bun:test";
+import { Timestamp } from "firebase-admin/firestore";
+import type { LegacyResponseDocument } from "../../collections/legacy-responses.js";
+import type { MemberResponseDocument } from "../../collections/member-responses.js";
 import { NotFoundError } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
-import type { MatchRequestResponse } from "../schemas/match-request-schemas.js";
+import type {
+  MatchRequestDetailResponse,
+  MatchRequestResponse,
+} from "../schemas/match-request-schemas.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
+
+const at = (iso: string) => Timestamp.fromDate(new Date(iso));
+
+/** A Referral with every kind of response, deliberately out of order. */
+const MIXED_MEMBER_RESPONSES: MemberResponseDocument[] = [
+  {
+    memberUid: "member-offline",
+    offlineResponse: {
+      recordedBy: "coordinator-1",
+      recordedAt: at("2026-03-03T10:00:00.000Z"),
+    },
+    outcome: "not_a_fit",
+    outcomeUpdatedAt: at("2026-03-05T10:00:00.000Z"),
+  },
+  {
+    memberUid: "member-outreach",
+    outreachSentAt: at("2026-03-01T10:00:00.000Z"),
+    outcome: "hired",
+    outcomeUpdatedAt: at("2026-03-04T10:00:00.000Z"),
+  },
+  {
+    memberUid: "member-pending",
+    outreachPendingAt: at("2026-03-02T10:00:00.000Z"),
+  },
+  {
+    memberUid: "member-both",
+    outreachSentAt: at("2026-03-02T12:00:00.000Z"),
+    offlineResponse: {
+      recordedBy: "coordinator-1",
+      recordedAt: at("2026-03-02T09:00:00.000Z"),
+    },
+  },
+];
+
+const MIXED_LEGACY_RESPONSES: LegacyResponseDocument[] = [
+  {
+    legacyEmail: "later@example.com",
+    displayName: "Later Legacy",
+    recordedBy: "coordinator-2",
+    recordedAt: at("2026-03-07T10:00:00.000Z"),
+  },
+  {
+    legacyEmail: "legacy@example.com",
+    displayName: "Legacy Doula",
+    recordedBy: "coordinator-1",
+    recordedAt: at("2026-03-06T10:00:00.000Z"),
+  },
+];
+
+const NAMES = new Map([
+  ["member-offline", "Olive Offline"],
+  ["member-outreach", "Oscar Outreach"],
+  ["member-both", "Bea Both"],
+  ["coordinator-1", "Cora Coordinator"],
+]);
 
 /**
  * Tests for GET /:requestId (get single match request).
@@ -14,6 +75,11 @@ describe("GET /:requestId (get match request)", () => {
     requestId?: string;
     authToken?: string | null;
 
+    // Scenario data
+    memberResponses?: MemberResponseDocument[];
+    legacyResponses?: LegacyResponseDocument[];
+    names?: Map<string, string>;
+
     // Scenario flags
     requestNotFound?: boolean;
   }
@@ -21,6 +87,9 @@ describe("GET /:requestId (get match request)", () => {
   function setup({
     requestId = "request-123",
     authToken = "admin-token",
+    memberResponses = [],
+    legacyResponses = [],
+    names = new Map<string, string>(),
     requestNotFound = false,
   }: SetupOptions = {}) {
     const mockRequest: MatchRequestResponse = {
@@ -45,10 +114,23 @@ describe("GET /:requestId (get match request)", () => {
       }
       return Promise.resolve(mockRequest);
     });
+    const mockFindMemberNamesByIds = mock((memberIds: string[]) =>
+      Promise.resolve(
+        new Map(
+          memberIds.flatMap(memberId => {
+            const name = names.get(memberId);
+            return name ? [[memberId, name] as const] : [];
+          }),
+        ),
+      ),
+    );
 
     const testApp = createAdminTestPlugin({
       matchRequestAdminService: {
         getMatchRequest: mockGetMatchRequest,
+        listMemberResponses: mock(() => Promise.resolve(memberResponses)),
+        listLegacyResponses: mock(() => Promise.resolve(legacyResponses)),
+        findMemberNamesByIds: mockFindMemberNamesByIds,
       },
     });
 
@@ -62,7 +144,7 @@ describe("GET /:requestId (get match request)", () => {
       headers,
     });
 
-    return { testApp, request, mockRequest };
+    return { testApp, request, mockRequest, mockFindMemberNamesByIds };
   }
 
   describe("Authentication", () => {
@@ -88,14 +170,121 @@ describe("GET /:requestId (get match request)", () => {
   });
 
   describe("Success Scenarios", () => {
-    it("should return match request when found", async () => {
+    it("should return match request with no responses when none recorded", async () => {
       const { testApp, request, mockRequest } = setup();
 
       const response = await handleRequest(testApp, request);
 
       expect(response.status).toBe(200);
-      const body = (await response.json()) as MatchRequestResponse;
-      expect(body).toEqual(mockRequest);
+      const body = (await response.json()) as MatchRequestDetailResponse;
+      expect(body).toEqual({
+        ...mockRequest,
+        responses: { members: [], legacy: [] },
+      });
+    });
+
+    it("should list Outreach, Referral Outcomes, and Offline Responses for mixed responses", async () => {
+      const { testApp, request } = setup({
+        memberResponses: MIXED_MEMBER_RESPONSES,
+        legacyResponses: MIXED_LEGACY_RESPONSES,
+        names: NAMES,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as MatchRequestDetailResponse;
+      expect(body.responses).toEqual({
+        members: [
+          {
+            memberUid: "member-outreach",
+            memberName: "Oscar Outreach",
+            outreachSentAt: "2026-03-01T10:00:00.000Z",
+            outcome: "hired",
+            outcomeUpdatedAt: "2026-03-04T10:00:00.000Z",
+          },
+          {
+            memberUid: "member-both",
+            memberName: "Bea Both",
+            outreachSentAt: "2026-03-02T12:00:00.000Z",
+            offlineResponse: {
+              recordedByName: "Cora Coordinator",
+              recordedAt: "2026-03-02T09:00:00.000Z",
+            },
+          },
+          {
+            memberUid: "member-offline",
+            memberName: "Olive Offline",
+            outcome: "not_a_fit",
+            outcomeUpdatedAt: "2026-03-05T10:00:00.000Z",
+            offlineResponse: {
+              recordedByName: "Cora Coordinator",
+              recordedAt: "2026-03-03T10:00:00.000Z",
+            },
+          },
+        ],
+        legacy: [
+          {
+            displayName: "Legacy Doula",
+            recordedByName: "Cora Coordinator",
+            recordedAt: "2026-03-06T10:00:00.000Z",
+          },
+          {
+            displayName: "Later Legacy",
+            recordedByName: "",
+            recordedAt: "2026-03-07T10:00:00.000Z",
+          },
+        ],
+      });
+    });
+
+    it("should leave out a Member whose Outreach is still in flight", async () => {
+      const { testApp, request, mockFindMemberNamesByIds } = setup({
+        memberResponses: [
+          {
+            memberUid: "member-pending",
+            outreachPendingAt: at("2026-03-02T10:00:00.000Z"),
+          },
+        ],
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as MatchRequestDetailResponse;
+      expect(body.responses).toEqual({ members: [], legacy: [] });
+      expect(mockFindMemberNamesByIds).toHaveBeenCalledWith([]);
+    });
+
+    it("should never expose a Legacy Membership's email", async () => {
+      const { testApp, request } = setup({
+        legacyResponses: MIXED_LEGACY_RESPONSES,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(await response.text()).not.toContain("legacy@example.com");
+    });
+
+    it("should return an empty name when a Member can't be found", async () => {
+      const { testApp, request } = setup({
+        memberResponses: [
+          {
+            memberUid: "deleted-member",
+            outreachSentAt: at("2026-03-01T10:00:00.000Z"),
+          },
+        ],
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as MatchRequestDetailResponse;
+      expect(body.responses.members).toEqual([
+        {
+          memberUid: "deleted-member",
+          memberName: "",
+          outreachSentAt: "2026-03-01T10:00:00.000Z",
+        },
+      ]);
     });
   });
 

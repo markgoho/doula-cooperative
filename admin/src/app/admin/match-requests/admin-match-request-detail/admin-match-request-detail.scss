@@ -224,3 +224,82 @@ p.error {
     }
   }
 }
+
+// Responses table: Outreach, Offline Responses, Referral Outcomes
+.responses-table-wrapper {
+  overflow-x: auto;
+  container-type: inline-size;
+}
+
+.responses-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--step-0);
+
+  th,
+  td {
+    padding: var(--space-xs) var(--space-s);
+    text-align: start;
+    vertical-align: top;
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  thead th {
+    background: var(--color-sand);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--step--1);
+    color: var(--color-ink);
+  }
+
+  tbody th {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-ink);
+
+    app-tag {
+      margin-inline-start: var(--space-2xs);
+    }
+  }
+
+  .response-line {
+    display: block;
+  }
+
+  .secondary {
+    color: var(--color-ink-soft);
+    font-size: var(--step--1);
+  }
+}
+
+// Narrow container: each row becomes a card with labelled cells.
+@container (width < 36rem) {
+  .responses-table {
+    thead {
+      display: none;
+    }
+
+    tr,
+    th,
+    td {
+      display: block;
+    }
+
+    tr {
+      border-block-end: 1px solid var(--color-line);
+      padding-block: var(--space-xs);
+    }
+
+    th,
+    td {
+      border: 0;
+      padding-block: var(--space-3xs);
+    }
+
+    td::before {
+      content: attr(data-label);
+      display: block;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--step--1);
+      color: var(--color-ink-soft);
+    }
+  }
+}
