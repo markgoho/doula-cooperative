@@ -172,13 +172,16 @@ export class Membership {
     }
   }
 
-  protected async onUpdateReferralNotifications(isEnabled: boolean) {
+  protected async onUpdateReferralNotifications(toggle: HTMLInputElement) {
     this.referralNotificationsUpdateInProgress.set(true);
     this.referralNotificationsUpdateError.set(undefined);
 
     try {
-      await this.membershipService.updateReferralNotifications(isEnabled);
+      await this.membershipService.updateReferralNotifications(toggle.checked);
     } catch (error) {
+      // [checked] only re-renders when the signal changes, so put the box back
+      // to the saved state by hand.
+      toggle.checked = this.referralNotificationsEnabled();
       this.referralNotificationsUpdateError.set(
         error instanceof Error
           ? error.message

@@ -916,18 +916,20 @@ describe('Membership', () => {
       expect(updateReferralNotificationsMock).toHaveBeenCalledWith(true);
     });
 
-    it('shows an error when saving fails', async () => {
+    it('shows an error and keeps the saved state when saving fails', async () => {
       const { user } = await setup({
         isAuthenticated: true,
         userDocument: availableMember,
         updateReferralNotificationsShouldFail: true,
       });
 
-      await user.click(screen.getByRole('switch', { name: 'Email me new referrals' }));
+      const toggle = screen.getByRole('switch', { name: 'Email me new referrals' });
+      await user.click(toggle);
 
       expect(await screen.findByRole('alert')).toHaveTextContent(
         'Unable to update referral emails. Please try again.',
       );
+      expect(toggle).toBeChecked();
     });
   });
 });

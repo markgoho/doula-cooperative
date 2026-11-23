@@ -234,10 +234,11 @@
             <div class="referral-notifications">
               <label class="toggle-switch">
                 <input
+                  #referralNotificationsToggle
                   type="checkbox"
                   role="switch"
                   [checked]="referralNotificationsEnabled()"
-                  (change)="onUpdateReferralNotifications(!referralNotificationsEnabled())"
+                  (change)="onUpdateReferralNotifications(referralNotificationsToggle)"
                   [disabled]="referralNotificationsUpdateInProgress()"
                 />
                 <span class="toggle-track" aria-hidden="true"></span>
