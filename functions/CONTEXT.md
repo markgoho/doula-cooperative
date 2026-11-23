@@ -133,11 +133,15 @@ An email telling a **Member** that a new **Referral** is waiting in the member p
 _Avoid_: Lead alert, referral blast
 
 **Referral Coordinator**:
-A **Member** who handles **Referrals** for the cooperative and can see their **Outreach** and **Referral Outcomes**, but is not an **Admin**.
+A **Member** who relays **Referrals** to the cooperative's Facebook group, sees every **Referral** with who sent **Outreach** and their **Referral Outcomes**, and records **Offline Responses**. Not an **Admin**; granted and revoked by an **Admin**, independent of **Active Membership**.
 _Avoid_: Coordinator admin, referral admin
 
+**Offline Response**:
+A **Referral Coordinator**'s record that a doula (a **Member** or an **Unclaimed Legacy Membership**) responded to a **Referral** outside the member portal. Records that they responded, not whether they were hired.
+_Avoid_: Connected, claim, manual outreach
+
 **No-Outreach Alert**:
-An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it since its **Referral Notification**. Sent once per **Referral**.
+An email telling **Admins** that a **Referral** has gone unanswered: no **Member** has sent **Outreach** on it and no **Offline Response** has been recorded since its **Referral Notification**. Sent once per **Referral**.
 _Avoid_: No-response alert, stale lead alert
 
 **Match Request Notification**:
@@ -166,9 +170,10 @@ _Avoid_: Sent item
 - A **Referral** may receive **Outreach** from many **Members**; each **Member** sends at most one **Outreach** per **Referral**.
 - Sending **Outreach** reveals the requester's contact details to that **Member**.
 - A **Member** may record one **Referral Outcome** per **Referral**; a hired **Referral Outcome** does not close the **Referral** to other **Members**.
-- A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, and may change it later.
+- A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, or after a **Referral Coordinator** records an **Offline Response** for them, and may change it later. An **Offline Response** does not reveal the requester's contact details.
 - Each new **Match Request** sends one **Referral Notification** to every **Member** with an active membership who has not turned them off.
-- A **Referral** with no **Outreach** for too long triggers one **No-Outreach Alert**; a hire made outside the portal does not prevent it.
+- A **Referral Coordinator** may record **Offline Responses** on any **Referral**, naming a **Member** or an **Unclaimed Legacy Membership**, at most one per doula per **Referral**.
+- A **Referral** with no **Outreach** and no **Offline Response** for too long triggers one **No-Outreach Alert**; an unrecorded hire made outside the portal does not prevent it.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.
 - A **Profile Owner** is the **Member** linked by `ownerUid`.
