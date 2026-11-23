@@ -4,8 +4,8 @@ import {
   computed,
   effect,
   inject,
+  input,
   resource,
-  signal,
   untracked,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -18,7 +18,7 @@ import { ReferralMembershipRequired } from './referral-membership-required/refer
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { ReferralPortalUnavailable } from './referral-portal-unavailable/referral-portal-unavailable';
 import { OUTCOME_LABELS } from './referral.constants';
-import type { ReferralListItem } from './referral.types';
+import type { ReferralFilter, ReferralListItem } from './referral.types';
 import { getRelativeTime } from './referral.utilities';
 import { ReferralsService } from '../services/referrals.service';
 
@@ -26,9 +26,6 @@ import { ReferralsService } from '../services/referrals.service';
 function hasResponded(referral: ReferralListItem): boolean {
   return referral.outreach !== undefined || referral.offlineResponse !== undefined;
 }
-
-/** List filters. `all` is offered only to Referral Coordinators. */
-type ReferralFilter = 'open' | 'mine' | 'needsOutcome' | 'all';
 
 const REFERRAL_FILTERS: Record<
   ReferralFilter,
@@ -45,13 +42,13 @@ const REFERRAL_FILTERS: Record<
   },
   // Every Referral you responded to, at any age: your Outreach, or an
   // Offline Response the Referral Coordinator recorded for you.
-  mine: {
+  'my-outreach': {
     label: 'My Outreach',
     empty: "You haven't sent Outreach yet.",
     select: (referrals) => referrals.filter((referral) => hasResponded(referral)),
   },
   // Referrals you responded to with no Referral Outcome yet.
-  needsOutcome: {
+  'needs-outcome': {
     label: 'Needs outcome',
     empty: 'Nothing to record. After you send Outreach, record how it went here.',
     select: (referrals) =>
@@ -65,7 +62,7 @@ const REFERRAL_FILTERS: Record<
   },
 };
 
-const MEMBER_FILTER_IDS: ReferralFilter[] = ['open', 'mine', 'needsOutcome'];
+const MEMBER_FILTER_IDS: ReferralFilter[] = ['open', 'my-outreach', 'needs-outcome'];
 const COORDINATOR_FILTER_IDS: ReferralFilter[] = [...MEMBER_FILTER_IDS, 'all'];
 
 /** Your own state on a list row, when you reached out. */
@@ -83,8 +80,9 @@ function ownState(
 }
 
 /**
- * Two-pane Referral inbox: the list on the left, the selected Referral
- * (child route `/referrals/:id`) on the right. The panes stack on narrow screens.
+ * Two-pane Referral inbox: the list on the left, filtered by the route
+ * (`/referrals/:filter`), and the selected Referral (child route
+ * `/referrals/:filter/:id`) on the right. The panes stack on narrow screens.
  */
 @Component({
   imports: [
@@ -99,6 +97,9 @@ function ownState(
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Referrals {
+  /** The list filter, bound from the `:filter` route param. */
+  readonly filter = input.required<ReferralFilter>();
+
   private referralsService = inject(ReferralsService);
   private listRefresh = inject(ReferralListRefresh);
 
@@ -124,8 +125,6 @@ export class Referrals {
   protected isMembershipRequired = computed(
     () => this.referralsResource.error() instanceof MembershipRequiredError,
   );
-
-  protected filter = signal<ReferralFilter>('open');
 
   private list = computed(() =>
     this.referralsResource.hasValue()

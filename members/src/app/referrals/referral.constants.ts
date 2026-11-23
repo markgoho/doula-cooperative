@@ -1,4 +1,12 @@
-import type { ReferralOutcome } from './referral.types';
+import type { ReferralFilter, ReferralOutcome } from './referral.types';
+
+/** Every inbox filter slug, the `:filter` in `/referrals/:filter`. */
+export const REFERRAL_FILTER_SLUGS: readonly ReferralFilter[] = [
+  'open',
+  'my-outreach',
+  'needs-outcome',
+  'all',
+];
 
 /** Referral Outcome labels, in the order the pane offers them. */
 export const OUTCOME_LABELS: Record<ReferralOutcome, string> = {

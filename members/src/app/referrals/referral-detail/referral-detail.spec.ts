@@ -905,7 +905,7 @@ describe('ReferralDetail pane', () => {
     ).toBeVisible();
     expect(screen.getByRole('link', { name: 'See open referrals' })).toHaveAttribute(
       'href',
-      '/referrals',
+      '/referrals/open',
     );
     expect(screen.queryByRole('alert')).toBeNull();
   });

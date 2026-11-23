@@ -92,8 +92,10 @@ test.describe('Referral Outcome', () => {
 
     const row = page.getByRole('link', { name: /Rochester, NY/ });
     await expect(row).toContainText('You reached out · Record outcome');
-    await page.getByRole('button', { name: 'Needs outcome (1)' }).click();
-    await expect(row).toBeVisible();
+    await page.getByRole('link', { name: 'Needs outcome (1)' }).click();
+    await expect(page).toHaveURL(/\/referrals\/needs-outcome$/);
+    await row.click();
+    await expect(page).toHaveURL(/\/referrals\/needs-outcome\/req-1$/);
 
     await expect(page.getByRole('group', { name: 'Record outcome' })).toBeVisible();
     await page.getByRole('button', { name: 'Hired', exact: true }).click();
@@ -102,11 +104,15 @@ test.describe('Referral Outcome', () => {
       'aria-pressed',
       'true',
     );
-    await expect(page.getByRole('button', { name: 'Needs outcome (0)' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Needs outcome (0)' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
 
-    await page.getByRole('button', { name: 'My Outreach (1)' }).click();
+    await page.getByRole('link', { name: 'My Outreach (1)' }).click();
     await expect(row).toContainText('You: Hired');
     await expect(row).toContainText('A member was hired');
+    await row.click();
 
     await page.getByRole('button', { name: 'Not a fit' }).click();
     await expect(row).toContainText('You: Not a fit');
