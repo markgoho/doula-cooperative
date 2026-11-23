@@ -56,6 +56,7 @@ export class MembershipService {
       return user?.uid ? { uid: user.uid } : undefined;
     },
     loader: async ({ params }): Promise<Member | undefined> => {
+      await this.refreshRoleClaims();
       try {
         const response = await firstValueFrom(
           this.http.get<ApiMemberResponse>(`/api/members/${params.uid}`),
@@ -69,6 +70,21 @@ export class MembershipService {
       }
     },
   });
+
+  /**
+   * Force an ID token refresh so the server sees role claims granted since
+   * sign-in (e.g. Referral Coordinator, which unlocks `referralPortalAvailable`).
+   * A failed refresh is not fatal: the request proceeds with the cached token.
+   */
+  private async refreshRoleClaims(): Promise<void> {
+    try {
+      await auth.currentUser?.getIdToken(true);
+    } catch (error: unknown) {
+      console.warn('ID token refresh failed; using cached token:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   // Computed signal for easy access to user document value
   userDocument = computed((): Member | undefined => {

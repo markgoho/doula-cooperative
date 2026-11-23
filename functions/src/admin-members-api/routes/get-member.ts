@@ -29,15 +29,18 @@ export async function getMemberLogic({
   try {
     const member = await memberAdminService.verifyMemberExists(memberId);
 
-    // Check if the target member has admin privileges via service
-    const isAdmin = await memberAdminService.isAdmin(memberId, logger);
+    // Role claims for the target member, read from Firebase Auth via service
+    const [isAdmin, isReferralCoordinator] = await Promise.all([
+      memberAdminService.isAdmin(memberId, logger),
+      memberAdminService.isReferralCoordinator(memberId, logger),
+    ]);
 
     logger.info("Admin retrieved member", {
       adminUid,
       targetMemberId: memberId,
     });
 
-    return toMemberResponse(member, isAdmin);
+    return { ...toMemberResponse(member, isAdmin), isReferralCoordinator };
   } catch (error) {
     return handleRouteError({
       error,

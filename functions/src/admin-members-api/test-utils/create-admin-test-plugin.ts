@@ -52,6 +52,7 @@ export function createAdminTestPlugin(overrides?: {
     ),
     verifyMemberExists: mock(() => Promise.resolve({} as MemberDocument)),
     isAdmin: mock(() => Promise.resolve(false)),
+    isReferralCoordinator: mock(() => Promise.resolve(false)),
     refundMembership: mock(() =>
       Promise.resolve({
         member: {} as MemberDocument,

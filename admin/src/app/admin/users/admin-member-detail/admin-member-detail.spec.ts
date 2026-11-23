@@ -26,6 +26,7 @@ interface SetupOptions {
   shouldFailToggleDraft?: boolean;
   shouldFailLinkProfile?: boolean;
   shouldFailChangeSlug?: boolean;
+  shouldFailUpdateClaims?: boolean;
   changeSlugErrorMessage?: string;
   changeSlugImageMoveWarning?: string;
   shouldFailUnlinkedProfilesLoad?: boolean;
@@ -72,6 +73,7 @@ function createMockAdminMembersService({
   unlinkedProfiles,
   shouldFailLinkProfile,
   shouldFailChangeSlug,
+  shouldFailUpdateClaims,
   changeSlugErrorMessage,
   changeSlugImageMoveWarning,
   overrideListUnlinkedProfiles,
@@ -90,6 +92,7 @@ function createMockAdminMembersService({
   unlinkedProfiles: UnlinkedProfileFixture[];
   shouldFailLinkProfile: boolean;
   shouldFailChangeSlug: boolean;
+  shouldFailUpdateClaims: boolean;
   changeSlugErrorMessage: string;
   changeSlugImageMoveWarning?: string;
   overrideListUnlinkedProfiles?: ReturnType<typeof vi.fn<() => Promise<UnlinkedProfileFixture[]>>>;
@@ -104,6 +107,7 @@ function createMockAdminMembersService({
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
     changeSlug: ReturnType<typeof vi.fn>;
+    setReferralCoordinator: ReturnType<typeof vi.fn>;
   };
   resolveMemberPromise: (value: ApiMemberResponse) => void;
 } {
@@ -173,6 +177,9 @@ function createMockAdminMembersService({
             imageMoveWarning: changeSlugImageMoveWarning,
           }),
         }),
+    setReferralCoordinator: shouldFailUpdateClaims
+      ? vi.fn().mockRejectedValue(new Error('Failed'))
+      : vi.fn().mockResolvedValue({ success: true, uid }),
   };
 
   return { mockAdminMembersService, resolveMemberPromise };
@@ -194,6 +201,7 @@ async function renderAdminMemberDetail({
     listUnlinkedProfiles: ReturnType<typeof vi.fn>;
     linkProfile: ReturnType<typeof vi.fn>;
     changeSlug: ReturnType<typeof vi.fn>;
+    setReferralCoordinator: ReturnType<typeof vi.fn>;
   };
   mockRouter: {
     navigate: ReturnType<typeof vi.fn>;
@@ -231,6 +239,7 @@ async function setup({
   shouldFailToggleDraft = false,
   shouldFailLinkProfile = false,
   shouldFailChangeSlug = false,
+  shouldFailUpdateClaims = false,
   changeSlugErrorMessage = 'Failed to change slug.',
   changeSlugImageMoveWarning,
   shouldFailUnlinkedProfilesLoad = false,
@@ -263,6 +272,7 @@ async function setup({
     unlinkedProfiles,
     shouldFailLinkProfile,
     shouldFailChangeSlug,
+    shouldFailUpdateClaims,
     changeSlugErrorMessage,
     ...(changeSlugImageMoveWarning !== undefined && { changeSlugImageMoveWarning }),
     ...(overrideListUnlinkedProfiles !== undefined && { overrideListUnlinkedProfiles }),
@@ -975,6 +985,68 @@ describe('AdminUserDetail', () => {
     await setup({ member });
 
     expect(screen.queryByText('Stripe Customer ID:')).toBeNull();
+  });
+
+  describe('Referral Coordinator', () => {
+    it('shows a member who is not a Referral Coordinator', async () => {
+      await setup({ member: createMockMember({ isReferralCoordinator: false }) });
+
+      expect(await screen.findByLabelText('Referral Coordinator:')).toHaveTextContent('No');
+      expect(screen.getByRole('button', { name: 'Grant Referral Coordinator' })).toBeVisible();
+    });
+
+    it('shows a member who is a Referral Coordinator', async () => {
+      await setup({ member: createMockMember({ isReferralCoordinator: true }) });
+
+      expect(await screen.findByLabelText('Referral Coordinator:')).toHaveTextContent('Yes');
+      expect(screen.getByRole('button', { name: 'Revoke Referral Coordinator' })).toBeVisible();
+    });
+
+    it('grants the role', async () => {
+      const { user, mockAdminMembersService } = await setup({
+        member: createMockMember({ isReferralCoordinator: false }),
+      });
+
+      await user.click(await screen.findByRole('button', { name: 'Grant Referral Coordinator' }));
+
+      expect(await screen.findByText('Referral Coordinator role granted')).toBeVisible();
+      expect(mockAdminMembersService.setReferralCoordinator).toHaveBeenCalledWith(
+        'test-uid-123',
+        true,
+      );
+    });
+
+    it('revokes the role', async () => {
+      const { user, mockAdminMembersService } = await setup({
+        member: createMockMember({ isReferralCoordinator: true }),
+      });
+
+      await user.click(await screen.findByRole('button', { name: 'Revoke Referral Coordinator' }));
+
+      expect(await screen.findByText('Referral Coordinator role revoked')).toBeVisible();
+      expect(mockAdminMembersService.setReferralCoordinator).toHaveBeenCalledWith(
+        'test-uid-123',
+        false,
+      );
+    });
+
+    it('shows an error when the change fails', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty - we're just suppressing console output in tests
+      });
+      const { user } = await setup({
+        member: createMockMember({ isReferralCoordinator: false }),
+        shouldFailUpdateClaims: true,
+      });
+
+      await user.click(await screen.findByRole('button', { name: 'Grant Referral Coordinator' }));
+
+      expect(
+        await screen.findByText('Failed to grant the Referral Coordinator role.'),
+      ).toBeVisible();
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   it('should display Activate button for inactive members', async () => {

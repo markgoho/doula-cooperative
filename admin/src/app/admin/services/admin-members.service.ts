@@ -121,6 +121,19 @@ export class AdminMembersService {
     );
   }
 
+  async setReferralCoordinator(
+    uid: string,
+    isReferralCoordinator: boolean,
+  ): Promise<{ success: boolean; uid: string }> {
+    // Authorization header added automatically by authInterceptor.
+    // Send only this claim: the server merges claims and leaves `admin` untouched.
+    return firstValueFrom(
+      this.httpClient.patch<{ success: boolean; uid: string }>(`/api/admin/members/${uid}/claims`, {
+        referralCoordinator: isReferralCoordinator,
+      }),
+    );
+  }
+
   async activateMembership(
     uid: string,
     subscriptionStart?: string,
