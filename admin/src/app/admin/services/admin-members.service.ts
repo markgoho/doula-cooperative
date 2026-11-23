@@ -40,7 +40,12 @@ interface ApiChangeSlugSuccessResponse extends ApiMemberSuccessResponse {
   imageMoveWarning?: string;
 }
 
-type ApiLinkProfileResponse = ApiMemberSuccessResponse | ApiErrorResponse;
+interface ApiLinkProfileSuccessResponse extends ApiMemberSuccessResponse {
+  offlineResponsesCarried: boolean;
+  warning?: string;
+}
+
+type ApiLinkProfileResponse = ApiLinkProfileSuccessResponse | ApiErrorResponse;
 type ApiChangeSlugResponse = ApiChangeSlugSuccessResponse | ApiErrorResponse;
 type ApiListUnlinkedProfilesResult = ApiListUnlinkedProfilesResponse | ApiErrorResponse;
 
@@ -76,8 +81,12 @@ function toUnlinkedProfiles(response: ApiListUnlinkedProfilesResult): UnlinkedPr
   return assertApiSuccess(response).profiles.map((profile) => toUnlinkedProfile(profile));
 }
 
-function toLinkedMember(response: ApiLinkProfileResponse): ApiMemberResponse {
-  return assertApiSuccess(response).member;
+function toLinkedMember(response: ApiLinkProfileResponse): {
+  member: ApiMemberResponse;
+  warning?: string;
+} {
+  const { member, warning } = assertApiSuccess(response);
+  return { member, ...(warning !== undefined && { warning }) };
 }
 
 function toChangedSlugResult(response: ApiChangeSlugResponse): {
@@ -425,7 +434,10 @@ export class AdminMembersService {
     return toUnlinkedProfiles(response);
   }
 
-  async linkProfile(uid: string, slug: string): Promise<ApiMemberResponse> {
+  async linkProfile(
+    uid: string,
+    slug: string,
+  ): Promise<{ member: ApiMemberResponse; warning?: string }> {
     // Authorization header added automatically by authInterceptor
     const response = await firstValueFrom(
       this.httpClient.post<ApiLinkProfileResponse>(`/api/admin/members/${uid}/profile/link`, {

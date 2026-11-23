@@ -324,8 +324,11 @@ export class AdminMemberDetailService {
     this.actionError.set(undefined);
 
     try {
-      await this.adminMembersService.linkProfile(uid, slug);
-      this.successMessage.set(`Profile "${slug}" linked and approved successfully`);
+      const result = await this.adminMembersService.linkProfile(uid, slug);
+      const message = result.warning
+        ? `Profile "${slug}" linked and approved. Warning: ${result.warning}`
+        : `Profile "${slug}" linked and approved successfully`;
+      this.successMessage.set(message);
       this.memberResource.reload();
       this.membersState.invalidate();
     } catch (error) {
