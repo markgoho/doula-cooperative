@@ -8,7 +8,9 @@
  */
 
 import { getApps, initializeApp } from "firebase-admin/app";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onRequest } from "firebase-functions/v2/https";
+import { MATCH_REQUESTS_COLLECTION } from "./collections/match-requests.js";
 import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
@@ -155,6 +157,25 @@ export const profileWebhookApi = onRequest(
     const { handleProfileWebhookApi } =
       await import("./profile-webhook-api/handler.js");
     await handleProfileWebhookApi(request, response);
+  },
+);
+
+// Referral Notification: email Members when a Match Request is created
+export const referralNotification = onDocumentCreated(
+  {
+    // `{matchRequestId}` is a Firestore path wildcard, not interpolation
+    // eslint-disable-next-line unicorn/no-incorrect-template-string-interpolation
+    document: `${MATCH_REQUESTS_COLLECTION}/{matchRequestId}`,
+    retry: true,
+    secrets: [...MAILGUN_SECRETS],
+  },
+  async event => {
+    const { handleReferralNotification } =
+      await import("./referral-notification/handler.js");
+    await handleReferralNotification({
+      matchRequestId: event.params.matchRequestId,
+      eventTime: event.time,
+    });
   },
 );
 

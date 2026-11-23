@@ -24,4 +24,6 @@ export interface MatchRequestDocument {
   sent: boolean;
   recaptchaScore?: number;
   locale?: MatchRequestLocale;
+  /** Set after Mailgun accepts the Referral Notification; guards trigger retries. */
+  memberNotificationSentAt?: Timestamp;
 }
