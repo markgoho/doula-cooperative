@@ -3,12 +3,14 @@ import { Router, type CanActivateFn, type Routes } from '@angular/router';
 import { wizardStepGuard } from './create-profile-wizard/guards/wizard-step.guard';
 import { auth } from './lib/firebase';
 
-export const requireAuth: CanActivateFn = async () => {
+export const requireAuth: CanActivateFn = async (_route, state) => {
   const router = inject(Router);
   // Wait for Firebase to restore any persisted session before deciding, so a
   // hard refresh on a protected route doesn't bounce an authenticated user.
   await auth.authStateReady();
-  return auth.currentUser ? true : router.parseUrl('/sign-in');
+  if (auth.currentUser) return true;
+  // Keep the requested page so sign-in can return to it (e.g. a Referral link).
+  return router.createUrlTree(['/sign-in'], { queryParams: { returnUrl: state.url } });
 };
 
 export const requireUnauth: CanActivateFn = async () => {
@@ -99,12 +101,20 @@ export const routes: Routes = [
     path: 'referrals',
     loadComponent: () => import('./referrals/referrals').then((m) => m.Referrals),
     canActivate: [requireAuth],
-  },
-  {
-    path: 'referrals/:id',
-    loadComponent: () =>
-      import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
-    canActivate: [requireAuth],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./referrals/referral-pane-empty/referral-pane-empty').then(
+            (m) => m.ReferralPaneEmpty,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./referrals/referral-detail/referral-detail').then((m) => m.ReferralDetail),
+      },
+    ],
   },
 
   // Authentication routes

@@ -1,26 +1,33 @@
-import { DatePipe } from '@angular/common';
 import {
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
   computed,
+  type ElementRef,
   inject,
   input,
   resource,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SERVICE_LABELS_LONG } from '../referral.constants';
-import { isValidDueDate, parseDueDate } from '../referral.utilities';
-import {
-  ReferralsService,
-  type ReferralDetail as ReferralDetailModel,
-} from '../../services/referrals.service';
-import { Tag } from '../../tag/tag';
+import { formatDaysOpen } from '../format-days-open';
+import { formatDueDate } from '../format-due-date';
+import { formatResponseCount } from '../format-response-count';
+import { formatServices } from '../format-services';
+import { MembershipRequiredError } from '../membership-required-error';
+import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
-import { ReferralPortalUnavailable } from '../referral-portal-unavailable/referral-portal-unavailable';
+import { getRelativeTime } from '../referral.utilities';
+import { ReferralsService } from '../../services/referrals.service';
 
+/**
+ * Right pane of the Referral inbox: the selected Referral before Outreach.
+ * Shows request facts and where contact details will appear; never the
+ * requester's full name, email or phone.
+ */
 @Component({
   selector: 'app-referral-detail',
-  imports: [DatePipe, RouterLink, Tag, ReferralPortalUnavailable],
+  imports: [RouterLink],
   templateUrl: './referral-detail.html',
   styleUrl: './referral-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,34 +38,51 @@ export class ReferralDetail {
   // Route parameter binding via withComponentInputBinding
   id = input.required<string>();
 
+  private heading = viewChild<ElementRef<HTMLElement>>('heading');
+
   protected referralResource = resource({
     params: () => ({ id: this.id() }),
     loader: ({ params }) => this.referralsService.getReferral(params.id),
   });
 
-  protected isPortalDisabled = computed(
-    () => this.referralResource.error() instanceof ReferralPortalDisabledError,
+  protected isNotOpen = computed(
+    () => this.referralResource.error() instanceof ReferralNotOpenError,
   );
 
-  protected parsedDueDate = computed(() => {
-    const referral = this.referralResource.value();
-    if (!referral || !isValidDueDate(referral.estimatedDueDate)) return;
-    return parseDueDate(referral.estimatedDueDate);
+  /** The inbox page shows these states in place of both panes. */
+  protected isHandledByPage = computed(() => {
+    const error = this.referralResource.error();
+    return error instanceof ReferralPortalDisabledError || error instanceof MembershipRequiredError;
   });
 
-  protected isDueSoon(referral: ReferralDetailModel): boolean {
-    if (!isValidDueDate(referral.estimatedDueDate) || !referral.services.includes('birth-doula')) {
-      return false;
-    }
+  protected view = computed(() => {
+    if (!this.referralResource.hasValue()) return;
+    const referral = this.referralResource.value();
+    const firstName = referral.firstName || 'The requester';
+    return {
+      referral,
+      title: [referral.firstName, referral.area].filter(Boolean).join(' · ') || 'Referral',
+      submitted: getRelativeTime(referral.submitted),
+      daysOpen: formatDaysOpen(referral.submitted),
+      responses: formatResponseCount(referral.responseCount),
+      dueDate: formatDueDate(referral.estimatedDueDate) ?? 'Not provided',
+      services: formatServices(referral.services) || 'Not provided',
+      area: this.formatArea(referral.area, referral.zipcode),
+      costOffset: referral.insurance.join(', ') || 'Not provided',
+      contactHint: `${firstName}'s full name, email, and phone appear after you send Outreach.`,
+    };
+  });
 
-    const dueDate = parseDueDate(referral.estimatedDueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daysUntilDue = (dueDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000);
-    return daysUntilDue >= 0 && daysUntilDue <= 30;
+  constructor() {
+    // Move focus to the selected Referral so it is announced, and scrolled
+    // into view when the panes stack on narrow screens.
+    afterRenderEffect(() => {
+      this.heading()?.nativeElement.focus();
+    });
   }
 
-  protected getServiceLabel(service: string): string {
-    return SERVICE_LABELS_LONG[service] ?? service;
+  private formatArea(area: string, zipcode: string): string {
+    if (area && zipcode) return `${area} (${zipcode})`;
+    return area || zipcode || 'Not provided';
   }
 }

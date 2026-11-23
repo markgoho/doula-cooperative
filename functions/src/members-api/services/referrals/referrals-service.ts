@@ -6,18 +6,16 @@ import {
 import { ERROR_IDS } from "../../../constants/error-ids.js";
 import { NotFoundError } from "../../../shared-api/errors/http-error.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
+import { referralOpenCutoff } from "../../access/referral-open-cutoff.js";
 import type { ReferralItem, ReferralsService } from "./interface.js";
 
-const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
-
 /**
- * Lists referrals submitted within the last 14 days (inclusive), newest first.
- * Older match requests are stale leads and are excluded from the member portal.
+ * Lists open Referrals (submitted within the last 14 days, inclusive), newest first.
  */
 async function listReferrals(logger: Logger): Promise<ReferralItem[]> {
   try {
     const firestore = getFirestore();
-    const cutoff = Timestamp.fromDate(new Date(Date.now() - FOURTEEN_DAYS_MS));
+    const cutoff = Timestamp.fromDate(referralOpenCutoff());
     const snapshot = await firestore
       .collection(MATCH_REQUESTS_COLLECTION)
       .where("submitted", ">=", cutoff)

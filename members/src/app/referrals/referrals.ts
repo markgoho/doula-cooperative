@@ -1,14 +1,48 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Tag } from '../tag/tag';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  resource,
+  signal,
+} from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { formatDueDate } from './format-due-date';
+import { formatResponseCount } from './format-response-count';
+import { formatServices } from './format-services';
+import { MembershipRequiredError } from './membership-required-error';
+import { ReferralMembershipRequired } from './referral-membership-required/referral-membership-required';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { ReferralPortalUnavailable } from './referral-portal-unavailable/referral-portal-unavailable';
-import { SERVICE_LABELS } from './referral.constants';
-import { getRelativeTime, isValidDueDate, parseDueDate } from './referral.utilities';
-import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
+import type { ReferralListItem } from './referral.types';
+import { getRelativeTime } from './referral.utilities';
+import { ReferralsService } from '../services/referrals.service';
 
+/** List filters. My Outreach and Needs outcome join once Outreach and Referral Outcomes exist. */
+type ReferralFilter = 'open';
+
+const REFERRAL_FILTERS: Record<
+  ReferralFilter,
+  { label: string; select: (referrals: ReferralListItem[]) => ReferralListItem[] }
+> = {
+  // The API lists only open Referrals (last 14 days).
+  open: { label: 'Open', select: (referrals) => referrals },
+};
+
+const FILTER_IDS = Object.keys(REFERRAL_FILTERS) as ReferralFilter[];
+
+/**
+ * Two-pane Referral inbox: the list on the left, the selected Referral
+ * (child route `/referrals/:id`) on the right. The panes stack on narrow screens.
+ */
 @Component({
-  imports: [RouterLink, Tag, ReferralPortalUnavailable],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    ReferralPortalUnavailable,
+    ReferralMembershipRequired,
+  ],
   templateUrl: './referrals.html',
   styleUrl: './referrals.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,42 +58,39 @@ export class Referrals {
     () => this.referralsResource.error() instanceof ReferralPortalDisabledError,
   );
 
-  protected formatDueDate(item: ReferralListItem): string {
-    if (!isValidDueDate(item.estimatedDueDate)) return '';
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(parseDueDate(item.estimatedDueDate));
+  protected isMembershipRequired = computed(
+    () => this.referralsResource.error() instanceof MembershipRequiredError,
+  );
+
+  protected filter = signal<ReferralFilter>('open');
+
+  protected filterOptions = computed(() => {
+    const referrals = this.referralsResource.hasValue() ? this.referralsResource.value() : [];
+    return FILTER_IDS.map((id) => ({
+      id,
+      label: REFERRAL_FILTERS[id].label,
+      count: REFERRAL_FILTERS[id].select(referrals).length,
+    }));
+  });
+
+  protected rows = computed(() => {
+    if (!this.referralsResource.hasValue()) return [];
+    return REFERRAL_FILTERS[this.filter()].select(this.referralsResource.value());
+  });
+
+  protected dueDate(referral: ReferralListItem): string {
+    return formatDueDate(referral.estimatedDueDate) ?? 'not provided';
   }
 
-  protected hasDueDate(item: ReferralListItem): boolean {
-    return isValidDueDate(item.estimatedDueDate);
+  protected services(referral: ReferralListItem): string {
+    return formatServices(referral.services) || 'No services listed';
   }
 
-  protected isDueSoon(item: ReferralListItem): boolean {
-    if (!this.hasDueDate(item) || !item.services.includes('birth-doula')) return false;
-
-    const dueDate = parseDueDate(item.estimatedDueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daysUntilDue = (dueDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000);
-    return daysUntilDue >= 0 && daysUntilDue <= 30;
+  protected submitted(referral: ReferralListItem): string {
+    return getRelativeTime(referral.submitted);
   }
 
-  protected hasServices(item: ReferralListItem): boolean {
-    return item.services.length > 0;
-  }
-
-  protected getFallbackHeading(item: ReferralListItem): string {
-    return item.birthLocation || 'Referral request';
-  }
-
-  protected getRelativeTime(submitted: string): string {
-    return getRelativeTime(submitted);
-  }
-
-  protected getServiceLabel(service: string): string {
-    return SERVICE_LABELS[service] ?? service;
+  protected responses(referral: ReferralListItem): string {
+    return formatResponseCount(referral.responseCount);
   }
 }

@@ -180,12 +180,13 @@ describe("GET /:memberId/referrals", () => {
       });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
-      const body = (await response.json()) as {
+      const text = await response.text();
+      const body = JSON.parse(text) as {
         referrals: {
           id: string;
-          zipcode: string;
+          area: string;
           services: string[];
-          birthLocation: string;
+          responseCount: number;
         }[];
       };
       expect(body.referrals).toHaveLength(2);
@@ -193,8 +194,15 @@ describe("GET /:memberId/referrals", () => {
         "req-newest",
         "req-earlier",
       ]);
-      expect(body.referrals[0]?.zipcode).toBe("14607");
-      // Privacy: contact and admin-only fields must not appear in list
+      expect(body.referrals[0]?.area).toBe("Rochester, NY");
+      expect(body.referrals[0]?.services).toEqual(["birth-doula"]);
+      expect(body.referrals[0]?.responseCount).toBe(0);
+      // Privacy: no requester name or contact details anywhere in the payload
+      expect(text).not.toContain("Jane");
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+      expect(body.referrals[0]).not.toHaveProperty("zipcode");
       expect(body.referrals[0]).not.toHaveProperty("name");
       expect(body.referrals[0]).not.toHaveProperty("email");
       expect(body.referrals[0]).not.toHaveProperty("phone");

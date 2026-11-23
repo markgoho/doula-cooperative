@@ -1,10 +1,12 @@
 import type { MatchRequestDocument } from "../../collections/match-requests.js";
 import { timestampToIso } from "../../shared-api/utils/timestamp-to-iso.js";
 import type { ReferralListItem } from "./referral-schemas.js";
+import { toReferralArea } from "./to-referral-area.js";
 
 /**
  * Convert a Firestore match request document to a referral list item.
- * Omits contact info — detail endpoint provides full data.
+ * Explicit allowlist: no requester name or contact info, and the ZIP code
+ * is reduced to a "City, ST" area.
  */
 export function toReferralListItem(
   id: string,
@@ -15,7 +17,8 @@ export function toReferralListItem(
     submitted: timestampToIso(document.submitted),
     estimatedDueDate: document.estimatedDueDate,
     services: document.services,
-    zipcode: document.zipcode,
-    birthLocation: document.birthLocation,
+    area: toReferralArea(document.zipcode),
+    // No Outreach or Offline Responses are recorded yet.
+    responseCount: 0,
   };
 }

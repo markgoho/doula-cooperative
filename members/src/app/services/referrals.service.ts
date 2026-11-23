@@ -2,41 +2,27 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { auth } from '../lib/firebase';
+import { MembershipRequiredError } from '../referrals/membership-required-error';
+import { ReferralNotOpenError } from '../referrals/referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
-import type { MatchRequest } from '../referrals/referral.types';
+import type { ReferralDetail, ReferralListItem } from '../referrals/referral.types';
 
-export type ReferralDueDate = MatchRequest['estimatedDueDate'];
-
-export type ReferralListItem = Pick<
-  MatchRequest,
-  'id' | 'submitted' | 'estimatedDueDate' | 'services' | 'zipcode' | 'birthLocation'
->;
-
-export type ReferralDetail = Pick<
-  MatchRequest,
-  | 'id'
-  | 'name'
-  | 'email'
-  | 'phone'
-  | 'zipcode'
-  | 'estimatedDueDate'
-  | 'services'
-  | 'birthLocation'
-  | 'otherInfo'
-  | 'insurance'
-  | 'submitted'
->;
+export type { ReferralDetail, ReferralListItem } from '../referrals/referral.types';
 
 const REFERRAL_PORTAL_DISABLED_CODE = 'REFERRAL_PORTAL_DISABLED';
+const REFERRAL_NOT_OPEN_CODE = 'REFERRAL_NOT_OPEN';
 
-function isReferralPortalDisabled(error: HttpErrorResponse): boolean {
+function errorCode(error: HttpErrorResponse): unknown {
   const body: unknown = error.error;
-  return (
-    typeof body === 'object' &&
-    body !== null &&
-    'code' in body &&
-    body.code === REFERRAL_PORTAL_DISABLED_CODE
-  );
+  if (typeof body === 'object' && body !== null && 'code' in body) return body.code;
+  return undefined;
+}
+
+function forbiddenError(error: HttpErrorResponse): Error {
+  if (errorCode(error) === REFERRAL_PORTAL_DISABLED_CODE) {
+    return new ReferralPortalDisabledError({ cause: error });
+  }
+  return new MembershipRequiredError({ cause: error });
 }
 
 @Service()
@@ -66,13 +52,7 @@ export class ReferralsService {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
-            if (isReferralPortalDisabled(error)) {
-              throw new ReferralPortalDisabledError({ cause: error });
-            }
-            throw new Error(
-              'Your membership is not currently active. Renew your membership to view referrals.',
-              { cause: error },
-            );
+            throw forbiddenError(error);
           }
           case 404: {
             throw new Error('Member account not found. Please contact support.', { cause: error });
@@ -106,15 +86,12 @@ export class ReferralsService {
             throw new Error('Your session has expired. Please sign in again.', { cause: error });
           }
           case 403: {
-            if (isReferralPortalDisabled(error)) {
-              throw new ReferralPortalDisabledError({ cause: error });
-            }
-            throw new Error(
-              'Your membership is not currently active. Renew your membership to view referrals.',
-              { cause: error },
-            );
+            throw forbiddenError(error);
           }
           case 404: {
+            if (errorCode(error) === REFERRAL_NOT_OPEN_CODE) {
+              throw new ReferralNotOpenError({ cause: error });
+            }
             throw new Error('Referral not found.', { cause: error });
           }
           case 422: {

@@ -1,5 +1,6 @@
-import { inputBinding } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inputBinding } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -121,6 +122,38 @@ describe('SignIn', () => {
     expect(screen.queryByText('Invalid credentials')).toBeNull();
   });
 
+  describe('after sign-in', () => {
+    it('goes to the membership page by default', async () => {
+      const { signIn, currentUrl } = await setup();
+      await signIn();
+      await waitFor(() => {
+        expect(currentUrl()).toBe('/membership');
+      });
+    });
+
+    it('returns to the page requested before sign-in', async () => {
+      const { signIn, currentUrl } = await setup({ returnUrl: '/referrals/req-abc?from=email' });
+      await signIn();
+      await waitFor(() => {
+        expect(currentUrl()).toBe('/referrals/req-abc?from=email');
+      });
+    });
+
+    it.each([
+      ['another origin', 'https://evil.example/referrals'],
+      ['a protocol-relative URL', '//evil.example/referrals'],
+      ['a backslash protocol-relative URL', String.raw`/\evil.example`],
+      ['a relative path without a leading slash', 'referrals/req-abc'],
+      ['a javascript: URL', 'javascript:alert(1)'],
+    ])('ignores %s and goes to the membership page', async (_name, returnUrl) => {
+      const { signIn, currentUrl } = await setup({ returnUrl });
+      await signIn();
+      await waitFor(() => {
+        expect(currentUrl()).toBe('/membership');
+      });
+    });
+  });
+
   it('should sync member email after sign-in when redirected from email change flow', async () => {
     const { user, syncAuthEmailToMember } = await setup({
       message: 'email-changed',
@@ -155,7 +188,11 @@ interface SetupOptions {
   signInImplementation?: () => Promise<void>;
   message?: string;
   syncEmailError?: Error;
+  returnUrl?: string;
 }
+
+@Component({ template: '', changeDetection: ChangeDetectionStrategy.OnPush })
+class Landing {}
 
 async function setup({
   signInError,
@@ -163,6 +200,7 @@ async function setup({
   signInImplementation,
   message,
   syncEmailError,
+  returnUrl,
 }: SetupOptions = {}) {
   const mockAuthService = {
     signInWithEmail: vi.fn().mockImplementation(
@@ -194,12 +232,19 @@ async function setup({
         provide: MembershipService,
         useValue: { syncAuthEmailToMember },
       },
-      provideRouter([]),
+      provideRouter([{ path: '**', component: Landing }]),
     ],
-    bindings: [inputBinding('message', () => message)],
+    bindings: [inputBinding('message', () => message), inputBinding('returnUrl', () => returnUrl)],
   });
 
+  const router = TestBed.inject(Router);
   const user = userEvent.setup();
 
-  return { user, syncAuthEmailToMember };
+  const signIn = async () => {
+    await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
+    await user.type(screen.getByLabelText('Password'), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+  };
+
+  return { user, syncAuthEmailToMember, signIn, currentUrl: () => router.url };
 }

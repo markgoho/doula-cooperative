@@ -1,163 +1,128 @@
 import { provideRouter } from '@angular/router';
-import type { Routes } from '@angular/router';
 import { render, screen } from '@testing-library/angular/zoneless';
 import { describe, expect, it, vi } from 'vitest';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
+import { MembershipRequiredError } from './membership-required-error';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
 import { Referrals } from './referrals';
-
-const TEST_ROUTES: Routes = [{ path: 'referrals/:id', component: Referrals }];
 
 function makeReferral(overrides: Partial<ReferralListItem> = {}): ReferralListItem {
   return {
     id: 'req-1',
-    submitted: '2025-01-15T10:00:00.000Z',
-    estimatedDueDate: { month: '3', day: '15', year: '2025' },
+    submitted: new Date().toISOString(),
+    estimatedDueDate: { month: '3', day: '15', year: '2027' },
     services: ['birth-doula'],
-    zipcode: '14607',
-    birthLocation: 'Hospital',
+    area: 'Rochester, NY',
+    responseCount: 0,
     ...overrides,
   };
 }
 
 async function setup({
   loading = false,
-  error = false,
-  portalDisabled = false,
+  failure,
   referrals = [] as ReferralListItem[],
+}: {
+  loading?: boolean;
+  failure?: Error;
+  referrals?: ReferralListItem[];
 } = {}) {
-  let listReferralsMock: ReturnType<typeof vi.fn>;
+  let listReferrals: ReturnType<typeof vi.fn>;
   if (loading) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    listReferralsMock = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
-  } else if (portalDisabled) {
-    listReferralsMock = vi.fn().mockRejectedValue(new ReferralPortalDisabledError());
-  } else if (error) {
-    listReferralsMock = vi.fn().mockRejectedValue(new Error('Network error'));
+    listReferrals = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
+  } else if (failure) {
+    listReferrals = vi.fn().mockRejectedValue(failure);
   } else {
-    listReferralsMock = vi.fn().mockResolvedValue(referrals);
+    listReferrals = vi.fn().mockResolvedValue(referrals);
   }
 
-  const mockReferralsService = {
-    listReferrals: listReferralsMock,
-  };
-
   await render(Referrals, {
-    providers: [
-      { provide: ReferralsService, useValue: mockReferralsService },
-      provideRouter(TEST_ROUTES),
-    ],
+    providers: [{ provide: ReferralsService, useValue: { listReferrals } }, provideRouter([])],
   });
 }
 
-describe('Referrals list', () => {
-  describe('loading state', () => {
-    it('shows loading message while fetching', async () => {
-      await setup({ loading: true });
-      expect(await screen.findByRole('status')).toHaveTextContent('Loading referrals...');
-    });
+describe('Referrals inbox', () => {
+  it('shows a loading message while fetching', async () => {
+    await setup({ loading: true });
+    expect(await screen.findByRole('status')).toHaveTextContent('Loading referrals...');
   });
 
-  describe('error state', () => {
-    it('shows error message on failure', async () => {
-      await setup({ error: true });
-      expect(await screen.findByRole('alert')).toHaveTextContent('Network error');
-    });
+  it('shows an error message on failure', async () => {
+    await setup({ failure: new Error('Network error') });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Network error');
   });
 
-  describe('referral portal not available yet', () => {
-    it('shows a friendly not-available state instead of an error', async () => {
-      await setup({ portalDisabled: true });
-      expect(
-        await screen.findByRole('heading', { name: "Referrals aren't available yet" }),
-      ).toBeVisible();
-      expect(screen.queryByRole('alert')).toBeNull();
-      expect(screen.getByRole('link', { name: 'Back to your membership' })).toHaveAttribute(
-        'href',
-        '/membership',
-      );
-    });
+  it('shows a friendly not-available state while the portal is off', async () => {
+    await setup({ failure: new ReferralPortalDisabledError() });
+    expect(
+      await screen.findByRole('heading', { name: "Referrals aren't available yet" }),
+    ).toBeVisible();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Back to your membership' })).toHaveAttribute(
+      'href',
+      '/membership',
+    );
   });
 
-  describe('14-day framing', () => {
-    it('frames the feed as showing requests from the last 14 days', async () => {
-      await setup({ referrals: [] });
-      expect(await screen.findByText(/last 14 days/i)).toBeVisible();
-    });
+  it('asks a lapsed member for an active membership, linking to /membership', async () => {
+    await setup({ failure: new MembershipRequiredError() });
+    expect(
+      await screen.findByRole('heading', { name: 'Active membership required' }),
+    ).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Go to your membership' })).toHaveAttribute(
+      'href',
+      '/membership',
+    );
+    expect(screen.queryByRole('list', { name: 'Referrals' })).toBeNull();
   });
 
-  describe('empty state', () => {
-    it('shows empty state when no referrals in the last 14 days', async () => {
-      await setup({ referrals: [] });
-      expect(
-        await screen.findByText('No referral requests in the last 14 days. Check back soon.'),
-      ).toBeVisible();
-    });
+  it('frames Referrals as open for 14 days', async () => {
+    await setup();
+    expect(await screen.findByText(/open for 14 days/i)).toBeVisible();
   });
 
-  describe('populated state', () => {
-    it('renders referral cards', async () => {
-      await setup({ referrals: [makeReferral(), makeReferral({ id: 'req-2', zipcode: '14608' })] });
-      const items = await screen.findAllByRole('listitem');
-      expect(items.length).toBeGreaterThanOrEqual(2);
-    });
+  it('shows an empty state when no Referrals are open', async () => {
+    await setup();
+    expect(await screen.findByText('No open referrals right now. Check back soon.')).toBeVisible();
+  });
 
-    it('shows service tags with the reusable tag component', async () => {
-      await setup({ referrals: [makeReferral({ services: ['birth-doula', 'postpartum-doula'] })] });
-      expect(await screen.findByText('Birth')).toBeVisible();
-      expect(screen.getByText('Postpartum')).toBeVisible();
-    });
+  it('offers the Open filter with its count, selected', async () => {
+    await setup({ referrals: [makeReferral(), makeReferral({ id: 'req-2' })] });
+    expect(await screen.findByRole('button', { name: 'Open (2)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
 
-    it('shows due date as the primary card content', async () => {
-      await setup({ referrals: [makeReferral()] });
-      expect(await screen.findByText('Mar 15, 2025')).toBeVisible();
+  it('lists each Referral with area, due date, services, submitted and responses', async () => {
+    await setup({
+      referrals: [makeReferral({ services: ['birth-doula', 'postpartum-doula'] })],
     });
+    const row = await screen.findByRole('link', { name: /Rochester, NY/ });
+    expect(row).toHaveTextContent('Due Mar 15, 2027 · Birth, Postpartum');
+    expect(row).toHaveTextContent('Today');
+    expect(row).toHaveTextContent('No one has responded yet');
+  });
 
-    it('shows the birth location without showing ZIP code', async () => {
-      await setup({ referrals: [makeReferral({ zipcode: '14607', birthLocation: 'Hospital' })] });
-      expect(await screen.findByText('Hospital')).toBeVisible();
-      expect(screen.queryByText('14607')).toBeNull();
-    });
+  it('counts members who responded', async () => {
+    await setup({ referrals: [makeReferral({ responseCount: 3 })] });
+    expect(await screen.findByText('3 members responded')).toBeVisible();
+  });
 
-    it('shows services as the primary content without a due date', async () => {
-      await setup({
-        referrals: [makeReferral({ estimatedDueDate: { month: '', day: '', year: '' } })],
-      });
-      expect(await screen.findByText('Birth')).toBeVisible();
-      expect(screen.queryByText('—')).toBeNull();
-    });
+  it('links each row to its Referral', async () => {
+    await setup({ referrals: [makeReferral({ id: 'req-abc' })] });
+    expect(await screen.findByRole('link', { name: /Rochester, NY/ })).toHaveAttribute(
+      'href',
+      '/referrals/req-abc',
+    );
+  });
 
-    it('marks an upcoming birth-doula request as due soon', async () => {
-      const soon = new Date();
-      soon.setDate(soon.getDate() + 14);
-      const estimatedDueDate = {
-        month: String(soon.getMonth() + 1),
-        day: String(soon.getDate()),
-        year: String(soon.getFullYear()),
-      };
-      const referral = makeReferral({ estimatedDueDate });
-      await setup({ referrals: [referral] });
-      expect(await screen.findByText('Due soon')).toBeVisible();
+  it('handles a Referral with no area or due date', async () => {
+    await setup({
+      referrals: [makeReferral({ area: '', estimatedDueDate: { month: '', day: '', year: '' } })],
     });
-
-    it('shows view request link for each referral', async () => {
-      await setup({ referrals: [makeReferral({ id: 'req-abc' })] });
-      expect(await screen.findByRole('link', { name: /View request details/ })).toBeVisible();
-    });
-
-    it('does not show contact info (name, email, phone) in list', async () => {
-      await setup({ referrals: [makeReferral()] });
-      // Wait for loaded state
-      await screen.findByText('Hospital');
-      expect(screen.queryByText(/jane@example\.com/)).toBeNull();
-      expect(screen.queryByText(/555-/)).toBeNull();
-    });
-
-    it('marks decorative icons as hidden from assistive technology', async () => {
-      await setup({ referrals: [makeReferral()] });
-      await screen.findByText('Hospital');
-      const hiddenIcons = document.querySelectorAll('svg[aria-hidden="true"]');
-      expect(hiddenIcons.length).toBeGreaterThan(0);
-    });
+    const row = await screen.findByRole('link', { name: /Area not provided/ });
+    expect(row).toHaveTextContent('Due not provided');
   });
 });
