@@ -65,7 +65,7 @@ export class ReferralResponsesPanel {
   referralId = input.required<string>();
   coordinator = input.required<ReferralCoordinatorView>();
 
-  /** Emits after an Offline Response is added or deleted, so the pane can refresh. */
+  /** Emits after an Offline Response is added or deleted, or a legacy Outcome saved, so the pane can refresh. */
   changed = output();
 
   private offlineHeading = viewChild<ElementRef<HTMLElement>>('offlineHeading');

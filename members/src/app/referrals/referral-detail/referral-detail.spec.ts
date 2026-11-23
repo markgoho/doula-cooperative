@@ -708,7 +708,16 @@ describe('ReferralDetail pane', () => {
           const { user, setLegacyOutcome, getReferral } = await setup({
             referral: makeReferralDetail({ coordinator: coordinatorView() }),
           });
+          getReferral.mockResolvedValue(
+            makeReferralDetail({
+              hiredBadge: true,
+              coordinator: coordinatorView({
+                offlineResponses: [BEA_OFFLINE, { ...LEE_OFFLINE, outcome: 'hired' }],
+              }),
+            }),
+          );
           const group = await leeOutcome();
+          expect(screen.queryByText('A member was hired')).toBeNull();
           await user.click(within(group).getByRole('button', { name: 'Hired' }));
 
           expect(setLegacyOutcome).toHaveBeenCalledWith('req-1', 'legacy-lee', 'hired');
@@ -716,10 +725,8 @@ describe('ReferralDetail pane', () => {
             'aria-pressed',
             'true',
           );
-          // The pane refreshes the count and hired badge.
-          await waitFor(() => {
-            expect(getReferral).toHaveBeenCalledTimes(2);
-          });
+          // The pane picks up the hired badge from the refresh.
+          expect(await screen.findByText('A member was hired')).toBeVisible();
           expect(screen.queryByRole('group', { name: 'Outcome for Bea Doula' })).toBeNull();
           const [bea] = within(offlineList()).getAllByRole('listitem');
           expect(within(bea as HTMLElement).queryByRole('button', { name: 'Hired' })).toBeNull();

@@ -127,7 +127,7 @@ export class ReferralDetail {
     void this.refreshCoordinatorView();
   }
 
-  /** An Offline Response was added or deleted: refresh the panel, the count and the list row. */
+  /** An Offline Response or a legacy Outcome changed: refresh the panel, the count, the badge and the list row. */
   protected onOfflineResponsesChanged(): void {
     this.listRefresh.request();
     void this.refreshCoordinatorView();
@@ -136,16 +136,23 @@ export class ReferralDetail {
   /**
    * A Coordinator's own Outreach, Outcome or Offline Responses also appear in
    * her Responses panel. Re-fetch in the background and swap in only that
-   * block and the count, so the pane is not replaced and focus stays put. On
+   * block, the count and the hired badge (a Coordinator may record a hire for
+   * a doula not yet migrated), so the pane is not replaced and focus stays put. On
    * failure the panel keeps its last state; it refreshes on the next open.
    */
   private async refreshCoordinatorView(): Promise<void> {
     if (!this.referralResource.hasValue() || !this.referralResource.value().coordinator) return;
     const id = this.id();
     try {
-      const { coordinator, responseCount } = await this.referralsService.getReferral(id);
+      const { coordinator, responseCount, hiredBadge } =
+        await this.referralsService.getReferral(id);
       if (!coordinator || this.id() !== id || !this.referralResource.hasValue()) return;
-      this.referralResource.set({ ...this.referralResource.value(), coordinator, responseCount });
+      this.referralResource.set({
+        ...this.referralResource.value(),
+        coordinator,
+        responseCount,
+        hiredBadge,
+      });
     } catch (error: unknown) {
       console.error('Failed to refresh the Responses panel', { id, error });
     }
