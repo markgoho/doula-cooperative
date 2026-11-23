@@ -66,11 +66,13 @@ h4[tabindex='-1']:focus {
   outline: none;
 }
 
+/* Only Legacy Memberships get a pill ("Not yet migrated"); no pill means a Member. */
 .kind {
   background: var(--color-sand);
   border-radius: 999px;
   font-size: var(--step--2);
   padding: 0.15em 0.6em;
+  white-space: nowrap;
 }
 
 /* Delete sits at the row's end, like the Outcome on Outreach rows. */
@@ -105,8 +107,78 @@ h5 {
   }
 }
 
-select.form__input:user-invalid {
-  border-color: var(--color-error);
+/* The autocomplete: input, the chosen doula's pill inside its end, matches below. */
+.combo {
+  position: relative;
+
+  .form__input {
+    inline-size: 100%;
+  }
+
+  /* Room for the pill so a long name doesn't run under it. */
+  &:has(.chosen) .form__input {
+    padding-inline-end: 10em;
+  }
+
+  .form__input[aria-invalid='true'] {
+    border-color: var(--color-error);
+  }
+}
+
+.chosen {
+  inset-block-start: 50%;
+  inset-inline-end: var(--space-xs);
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(-50%);
+}
+
+.listbox {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  gap: 0;
+  inset-inline: 0;
+  margin-block-start: var(--space-3xs);
+  position: absolute;
+  z-index: 10;
+
+  &[hidden] {
+    display: none;
+  }
+
+  li {
+    align-items: center;
+    cursor: pointer;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    padding: var(--space-2xs) var(--space-xs);
+
+    + li {
+      border-block-start: 1px solid var(--color-line);
+    }
+
+    &:hover,
+    &.active {
+      background: var(--color-ground);
+    }
+
+    &.active {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px;
+    }
+  }
+
+  .name {
+    font-weight: 400;
+  }
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: var(--step--1);
+  margin: 0;
 }
 
 .status {

@@ -726,111 +726,189 @@ describe('ReferralDetail pane', () => {
         expect(listRefresh.version()).toBe(1);
       });
 
-      it('picks from doulas who have not responded, grouped as Members and Not yet migrated', async () => {
-        await setup({
-          referral: makeReferralDetail({ coordinator: coordinatorView() }),
-          doulas: DOULAS,
-        });
-        const select = await screen.findByRole('combobox', { name: 'Doula' });
-        const options = within(select)
-          .getAllByRole('option')
-          .map((option) => option.textContent.trim());
-        // Bea has an Offline Response and Cass sent Outreach.
-        expect(options).toEqual(['Choose a doula', 'Ana Doula', 'Mia Legacy']);
-        expect(within(select).getByRole('group', { name: 'Not yet migrated' })).toBeInTheDocument();
-      });
+      describe('the doula autocomplete', () => {
+        const doulaBox = () => screen.findByRole('combobox', { name: 'Find a doula' });
+        const optionNames = () =>
+          screen
+            .getAllByRole('option')
+            .map((option) => option.querySelector('.name')?.textContent.trim());
 
-      it('narrows the picker as you type', async () => {
-        const { user } = await setup({
-          referral: makeReferralDetail({ coordinator: coordinatorView() }),
-          doulas: DOULAS,
+        it('lists nothing until you type', async () => {
+          await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          const box = await doulaBox();
+          expect(box).toHaveAttribute('aria-expanded', 'false');
+          expect(screen.queryAllByRole('option')).toHaveLength(0);
+          expect(within(panel()).getByText('Type a name to find a doula.')).toBeVisible();
         });
-        await user.type(await screen.findByRole('searchbox', { name: 'Find a doula' }), 'mia');
-        const select = screen.getByRole('combobox', { name: 'Doula' });
-        expect(within(select).queryByRole('option', { name: 'Ana Doula' })).toBeNull();
-        expect(within(select).getByRole('option', { name: 'Mia Legacy' })).toBeInTheDocument();
-      });
 
-      it('adds an Offline Response for the doula you pick, then refreshes the panel', async () => {
-        const { user, recordOfflineResponse, getReferral, listReferralDoulas } = await setup({
-          referral: makeReferralDetail({
-            responseCount: 3,
-            coordinator: coordinatorView(),
-          }),
-          doulas: DOULAS,
+        it('matches any part of the name, labelling only doulas not yet migrated', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          const box = await doulaBox();
+          await user.type(box, 'mia');
+          expect(box).toHaveAttribute('aria-expanded', 'true');
+          const option = screen.getByRole('option');
+          expect(option).toHaveTextContent('Mia Legacy');
+          expect(within(option).getByText('Not yet migrated')).toBeVisible();
+
+          await user.clear(box);
+          await user.type(box, 'ana');
+          expect(screen.getByRole('option')).not.toHaveTextContent('Not yet migrated');
         });
-        const mia = { ...LEE_OFFLINE, id: 'legacy-mia', displayName: 'Mia Legacy' };
-        getReferral.mockResolvedValue(
-          makeReferralDetail({
-            responseCount: 4,
-            coordinator: coordinatorView({
-              offlineResponses: [BEA_OFFLINE, LEE_OFFLINE, mia],
+
+        it('leaves out doulas who responded, listing Members first then Not yet migrated', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: [...DOULAS, { kind: 'member', id: 'member-z', displayName: 'Zoe Ali' }],
+          });
+          await user.type(await doulaBox(), 'a');
+          // Bea has an Offline Response and Cass sent Outreach.
+          expect(optionNames()).toEqual(['Ana Doula', 'Zoe Ali', 'Mia Legacy']);
+        });
+
+        it('says when nothing matches', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          await user.type(await doulaBox(), 'xyz');
+          expect(screen.queryAllByRole('option')).toHaveLength(0);
+          expect(within(panel()).getByText('No matching doulas')).toBeVisible();
+        });
+
+        it('shows 8 matches at most and asks you to keep typing', async () => {
+          const many: ReferralDoula[] = Array.from({ length: 12 }, (_, index) => ({
+            kind: 'member',
+            id: `member-${index}`,
+            displayName: `Jo ${String(index).padStart(2, '0')}`,
+          }));
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: many,
+          });
+          await user.type(await doulaBox(), 'jo');
+          expect(screen.getAllByRole('option')).toHaveLength(8);
+          expect(within(panel()).getByText('Keep typing to narrow 12 matches')).toBeVisible();
+        });
+
+        it('chooses with the arrow keys and Enter, filling in the name and its label', async () => {
+          const { user, recordOfflineResponse } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          const box = await doulaBox();
+          await user.type(box, 'a');
+          await user.keyboard('{ArrowDown}{ArrowDown}');
+          expect(box).toHaveAttribute(
+            'aria-activedescendant',
+            screen.getByRole('option', { name: /Mia Legacy/ }).id,
+          );
+          await user.keyboard('{Enter}');
+
+          expect(box).toHaveValue('Mia Legacy');
+          expect(box).toHaveAttribute('aria-expanded', 'false');
+          expect(box).toHaveAccessibleDescription(/Not yet migrated/);
+          expect(recordOfflineResponse).not.toHaveBeenCalled();
+
+          await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+          expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
+        });
+
+        it('closes the list on Escape without choosing', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          const box = await doulaBox();
+          await user.type(box, 'a');
+          await user.keyboard('{Escape}');
+          expect(box).toHaveAttribute('aria-expanded', 'false');
+          expect(box).toHaveValue('a');
+        });
+
+        it('adds an Offline Response for the doula you click, then refreshes the panel', async () => {
+          const { user, recordOfflineResponse, getReferral, listReferralDoulas } = await setup({
+            referral: makeReferralDetail({
+              responseCount: 3,
+              coordinator: coordinatorView(),
             }),
-          }),
-        );
-        await user.selectOptions(
-          await screen.findByRole('combobox', { name: 'Doula' }),
-          'Mia Legacy',
-        );
-        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+            doulas: DOULAS,
+          });
+          const mia = { ...LEE_OFFLINE, id: 'legacy-mia', displayName: 'Mia Legacy' };
+          getReferral.mockResolvedValue(
+            makeReferralDetail({
+              responseCount: 4,
+              coordinator: coordinatorView({
+                offlineResponses: [BEA_OFFLINE, LEE_OFFLINE, mia],
+              }),
+            }),
+          );
+          const box = await doulaBox();
+          await user.type(box, 'mia');
+          await user.click(screen.getByRole('option', { name: /Mia Legacy/ }));
+          await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
 
-        expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
-        await waitFor(() => {
-          expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(3);
+          expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
+          await waitFor(() => {
+            expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(3);
+          });
+          expect(screen.getByText('4 members responded')).toBeVisible();
+          expect(
+            within(panel()).getByText('Recorded an Offline Response for Mia Legacy.'),
+          ).toBeVisible();
+          expect(box).toHaveValue('');
+          // The refresh keeps the autocomplete in place rather than reloading the doulas.
+          expect(listReferralDoulas).toHaveBeenCalledTimes(1);
+          expect(screen.getByRole('button', { name: 'Add Offline Response' })).toHaveFocus();
         });
-        expect(screen.getByText('4 members responded')).toBeVisible();
-        expect(
-          within(panel()).getByText('Recorded an Offline Response for Mia Legacy.'),
-        ).toBeVisible();
-        // The refresh keeps the picker in place rather than reloading the doulas.
-        expect(listReferralDoulas).toHaveBeenCalledTimes(1);
-        expect(screen.getByRole('button', { name: 'Add Offline Response' })).toHaveFocus();
+
+        it('asks you to choose a doula before adding', async () => {
+          const { user, recordOfflineResponse } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          await user.type(await doulaBox(), 'mia');
+          await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+          expect(within(panel()).getByRole('alert')).toHaveTextContent('Choose a doula');
+          expect(recordOfflineResponse).not.toHaveBeenCalled();
+        });
+
+        it('forgets the doula you chose once you edit the name', async () => {
+          const { user, recordOfflineResponse } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+          });
+          const box = await doulaBox();
+          await user.type(box, 'mia');
+          await user.click(screen.getByRole('option', { name: /Mia Legacy/ }));
+          await user.type(box, 'x');
+          expect(box).not.toHaveAccessibleDescription(/Not yet migrated/);
+          await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+          expect(within(panel()).getByRole('alert')).toHaveTextContent('Choose a doula');
+          expect(recordOfflineResponse).not.toHaveBeenCalled();
+        });
+
+        it('explains a failed add', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            doulas: DOULAS,
+            offlineFailure: new Error('This member already sent Outreach on this referral'),
+          });
+          await user.type(await doulaBox(), 'ana');
+          await user.keyboard('{ArrowDown}{Enter}');
+          await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
+          expect(await within(panel()).findByRole('alert')).toHaveTextContent(
+            'This member already sent Outreach on this referral',
+          );
+        });
       });
 
-      it('records the doula the picker shows after you filter', async () => {
-        const { user, recordOfflineResponse } = await setup({
-          referral: makeReferralDetail({ coordinator: coordinatorView() }),
-          doulas: DOULAS,
-        });
-        const select = await screen.findByRole('combobox', { name: 'Doula' });
-        await user.selectOptions(select, 'Ana Doula');
-        const filter = screen.getByRole('searchbox', { name: 'Find a doula' });
-        await user.type(filter, 'mia');
-        await user.clear(filter);
-        const shown = (select as HTMLSelectElement).selectedOptions[0]?.textContent.trim();
-        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
-
-        // Whatever the select ends up showing is what gets recorded, never a stale pick.
-        expect(shown).toBe('Mia Legacy');
-        expect(recordOfflineResponse).toHaveBeenCalledWith('req-1', DOULAS[3]);
-      });
-
-      it('does not add anything until you pick a doula', async () => {
-        const { user, recordOfflineResponse } = await setup({
-          referral: makeReferralDetail({ coordinator: coordinatorView() }),
-          doulas: DOULAS,
-        });
-        await user.click(await screen.findByRole('button', { name: 'Add Offline Response' }));
-        expect(recordOfflineResponse).not.toHaveBeenCalled();
-      });
-
-      it('explains a failed add', async () => {
-        const { user } = await setup({
-          referral: makeReferralDetail({ coordinator: coordinatorView() }),
-          doulas: DOULAS,
-          offlineFailure: new Error('This member already sent Outreach on this referral'),
-        });
-        await user.selectOptions(
-          await screen.findByRole('combobox', { name: 'Doula' }),
-          'Ana Doula',
-        );
-        await user.click(screen.getByRole('button', { name: 'Add Offline Response' }));
-        expect(await within(panel()).findByRole('alert')).toHaveTextContent(
-          'This member already sent Outreach on this referral',
-        );
-      });
-
-      it('shows an Admin the Offline Responses without the picker', async () => {
+      it('shows an Admin the Offline Responses without the doula autocomplete', async () => {
         const { listReferralDoulas } = await setup({
           referral: makeReferralDetail({
             coordinator: coordinatorView({
@@ -841,7 +919,7 @@ describe('ReferralDetail pane', () => {
         });
         await screen.findByRole('heading', { name: 'Offline Responses' });
         expect(within(offlineList()).getAllByRole('listitem')).toHaveLength(1);
-        expect(screen.queryByRole('combobox', { name: 'Doula' })).toBeNull();
+        expect(screen.queryByRole('combobox', { name: 'Find a doula' })).toBeNull();
         expect(within(panel()).queryByRole('button')).toBeNull();
         expect(listReferralDoulas).not.toHaveBeenCalled();
       });

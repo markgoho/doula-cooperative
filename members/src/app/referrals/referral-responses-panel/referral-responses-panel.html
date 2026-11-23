@@ -67,39 +67,66 @@
         <p class="action-error" role="alert">{{ err.message }}</p>
       } @else {
         <div class="field">
-          <label for="offline-doula-filter">Find a doula</label>
-          <input
-            id="offline-doula-filter"
-            class="form__input"
-            type="search"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            aria-controls="offline-doula"
-            (input)="onQuery($event)"
-          />
-        </div>
-        <div class="field">
-          <label for="offline-doula">Doula</label>
-          <select
-            id="offline-doula"
-            class="form__input"
-            #doulaSelect
-            name="doula"
-            required
-            aria-describedby="add-offline-hint"
-          >
-            <option value="" disabled selected>
-              {{ optionCount() === 0 ? 'No matching doulas' : 'Choose a doula' }}
-            </option>
-            @for (group of options(); track group.label) {
-              <optgroup [label]="group.label">
-                @for (option of group.options; track option.key) {
-                  <option [value]="option.key">{{ option.doula.displayName }}</option>
-                }
-              </optgroup>
+          <label for="offline-doula">Find a doula</label>
+          <div class="combo">
+            <input
+              id="offline-doula"
+              class="form__input"
+              type="text"
+              role="combobox"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+              aria-autocomplete="list"
+              aria-controls="offline-doula-options"
+              [attr.aria-expanded]="expanded()"
+              [attr.aria-activedescendant]="activeId()"
+              [attr.aria-invalid]="chooseError() ? 'true' : null"
+              [attr.aria-describedby]="
+                'offline-doula-note add-offline-hint' +
+                (selected()?.kindLabel ? ' offline-doula-kind' : '') +
+                (chooseError() ? ' offline-doula-error' : '')
+              "
+              [value]="query()"
+              (input)="onQuery($event)"
+              (keydown)="onKeydown($event)"
+              (blur)="close()"
+            />
+            @if (selected()?.kindLabel; as kindLabel) {
+              <span id="offline-doula-kind" class="kind chosen">{{ kindLabel }}</span>
             }
-          </select>
+            <ul
+              id="offline-doula-options"
+              class="listbox"
+              role="listbox"
+              aria-label="Matching doulas"
+              [hidden]="!expanded()"
+            >
+              @for (option of options(); track option.key; let i = $index) {
+                <!-- Keyboard users choose from the input (aria-activedescendant), so options take
+                     only pointer events. mousedown keeps focus in the input, so blur does not close
+                     the list first. -->
+                <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                <li
+                  role="option"
+                  [id]="optionId(i)"
+                  [attr.aria-selected]="i === activeIndex()"
+                  [class.active]="i === activeIndex()"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="choose(option)"
+                >
+                  <span class="name">{{ option.doula.displayName }}</span>
+                  @if (option.kindLabel) {
+                    <span class="kind">{{ option.kindLabel }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+          <p id="offline-doula-note" class="hint" aria-live="polite">{{ resultsHint() }}</p>
+          @if (chooseError()) {
+            <p id="offline-doula-error" class="field-error" role="alert">Choose a doula</p>
+          }
         </div>
         <button
           class="button button-small"

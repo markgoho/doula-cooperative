@@ -20,22 +20,35 @@ import type {
   ReferralDoulaKind,
 } from '../referral.types';
 
-const KIND_LABELS: Record<ReferralDoulaKind, string> = {
-  member: 'Member',
+/** Pill text per kind: Members need none; Legacy Memberships say they aren't migrated yet. */
+const KIND_PILLS: Record<ReferralDoulaKind, string> = {
+  member: '',
   legacy: 'Not yet migrated',
 };
+
+/** Members list before Legacy Memberships. */
+const KIND_ORDER: Record<ReferralDoulaKind, number> = { member: 0, legacy: 1 };
+
+/** Options shown at once; past this, keep typing to narrow. */
+const MAX_RESULTS = 8;
 
 /** A doula's key in the picker: kind and id, since a uid and a legacy id could collide. */
 function doulaKey({ kind, id }: Pick<ReferralDoula, 'kind' | 'id'>): string {
   return `${kind}:${id}`;
 }
 
+interface DoulaOption {
+  doula: ReferralDoula;
+  key: string;
+  kindLabel: string;
+}
+
 /**
  * Coordinator-only panel in the Referral pane: each member who sent Outreach,
- * when, and their Referral Outcome; then the Offline Responses, with a picker
- * to add one and a delete button on the ones you may delete. Shown only when
- * the API includes the Coordinator view (Referral Coordinators and Admins);
- * the picker only for Referral Coordinators.
+ * when, and their Referral Outcome; then the Offline Responses, with a doula
+ * autocomplete to add one and a delete button on the ones you may delete.
+ * Shown only when the API includes the Coordinator view (Referral Coordinators
+ * and Admins); the autocomplete only for Referral Coordinators.
  */
 @Component({
   selector: 'app-referral-responses-panel',
@@ -52,7 +65,6 @@ export class ReferralResponsesPanel {
   /** Emits after an Offline Response is added or deleted, so the pane can refresh. */
   changed = output();
 
-  private doulaSelect = viewChild<ElementRef<HTMLSelectElement>>('doulaSelect');
   private offlineHeading = viewChild<ElementRef<HTMLElement>>('offlineHeading');
 
   protected rows = computed(() =>
@@ -71,8 +83,7 @@ export class ReferralResponsesPanel {
       row,
       key: doulaKey(row),
       name: row.displayName || 'Name not set',
-      // Members need no label; Legacy Memberships say they aren't migrated yet.
-      kind: row.kind === 'legacy' ? KIND_LABELS.legacy : '',
+      kind: KIND_PILLS[row.kind],
       recordedAt: row.recordedAt,
       recordedAtLabel: formatSentAt(row.recordedAt),
       recordedBy: row.recordedByName || 'a Referral Coordinator',
@@ -88,61 +99,127 @@ export class ReferralResponsesPanel {
     loader: () => this.referralsService.listReferralDoulas(),
   });
 
+  /** The text in the "Find a doula" box. */
   protected query = signal('');
+  /** Key of the doula you chose; cleared when you edit the text. */
+  private selectedKey = signal('');
+  /** Whether the list of matches is open (it also needs matches to show). */
+  private listOpen = signal(false);
+  /** Index of the option the arrow keys are on, or -1. */
+  protected activeIndex = signal(-1);
+  protected chooseError = signal(false);
   protected saving = signal(false);
   protected status = signal('');
   protected actionError = signal('');
 
   /**
-   * Doulas you can still name, filtered by the search text and grouped by
-   * kind. Leaves out doulas who already have an Offline Response, and Members
+   * Doulas you can still name whose name contains the search text, Members
+   * first then Legacy Memberships, alphabetical within each. Empty until you
+   * type. Leaves out doulas who already have an Offline Response, and Members
    * who sent Outreach (the API refuses both).
    */
-  protected options = computed(() => {
-    if (!this.doulasResource.hasValue()) return [];
+  private matches = computed<DoulaOption[]>(() => {
+    const query = this.query().trim().toLocaleLowerCase();
+    if (!query || !this.doulasResource.hasValue()) return [];
     const taken = new Set([
       ...this.coordinator().offlineResponses.map((row) => doulaKey(row)),
       ...this.coordinator().responses.map((row) => doulaKey({ kind: 'member', id: row.memberUid })),
     ]);
-    const query = this.query().trim().toLocaleLowerCase();
-    const available = this.doulasResource
+    return this.doulasResource
       .value()
       .filter(
         (doula) =>
           !taken.has(doulaKey(doula)) && doula.displayName.toLocaleLowerCase().includes(query),
       )
-      .map((doula) => ({ doula, key: doulaKey(doula) }));
-    return (Object.keys(KIND_LABELS) as ReferralDoulaKind[])
-      .map((kind) => ({
-        label: kind === 'member' ? 'Members' : 'Not yet migrated',
-        options: available.filter(({ doula }) => doula.kind === kind),
-      }))
-      .filter((group) => group.options.length > 0);
+      .toSorted(
+        (a, b) =>
+          KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.displayName.localeCompare(b.displayName),
+      )
+      .map((doula) => ({ doula, key: doulaKey(doula), kindLabel: KIND_PILLS[doula.kind] }));
   });
 
-  protected optionCount = computed(() =>
-    this.options().reduce((count, group) => count + group.options.length, 0),
+  protected options = computed(() => this.matches().slice(0, MAX_RESULTS));
+
+  /** The chosen doula, while it can still be named. */
+  protected selected = computed(() => this.matches().find(({ key }) => key === this.selectedKey()));
+
+  protected expanded = computed(() => this.listOpen() && this.options().length > 0);
+
+  protected activeId = computed(() =>
+    this.expanded() && this.activeIndex() >= 0 ? this.optionId(this.activeIndex()) : undefined,
   );
+
+  /** What the note under the search box says, if anything. */
+  protected resultsHint = computed(() => {
+    if (this.selected()) return '';
+    if (!this.query().trim()) return 'Type a name to find a doula.';
+    const count = this.matches().length;
+    if (count === 0) return 'No matching doulas';
+    if (count > MAX_RESULTS) return `Keep typing to narrow ${count} matches`;
+    return '';
+  });
+
+  private keyActions: Record<string, () => boolean> = {
+    ArrowDown: () => this.moveActive(1),
+    ArrowUp: () => this.moveActive(-1),
+    Enter: () => {
+      const option = this.expanded() ? this.options()[this.activeIndex()] : undefined;
+      if (option) this.choose(option);
+      return option !== undefined;
+    },
+    Escape: () => {
+      const wasOpen = this.expanded();
+      this.close();
+      return wasOpen;
+    },
+  };
+
+  protected optionId(index: number): string {
+    return `offline-doula-option-${index}`;
+  }
 
   protected onQuery(event: Event): void {
     this.query.set((event.target as HTMLInputElement).value);
+    this.selectedKey.set('');
+    this.activeIndex.set(-1);
+    this.listOpen.set(true);
+  }
+
+  /** Handles a key in the search box; a handled key doesn't also do its default. */
+  protected onKeydown(event: KeyboardEvent): void {
+    const action = this.keyActions[event.key];
+    if (action?.()) event.preventDefault();
+  }
+
+  protected choose(option: DoulaOption): void {
+    this.query.set(option.doula.displayName);
+    this.selectedKey.set(option.key);
+    this.chooseError.set(false);
+    this.close();
+  }
+
+  protected close(): void {
+    this.listOpen.set(false);
+    this.activeIndex.set(-1);
   }
 
   protected async add(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     if (this.saving()) return;
-    // Read what the select shows: filtering can change its selection without a change event.
-    const select = this.doulaSelect()?.nativeElement;
-    const choice = this.options()
-      .flatMap((group) => group.options)
-      .find(({ key }) => key === select?.value);
-    if (!select || !choice) return;
+    const choice = this.selected();
+    if (!choice) {
+      this.chooseError.set(true);
+      return;
+    }
 
     await this.run(
       () => this.referralsService.recordOfflineResponse(this.referralId(), choice.doula),
       `Recorded an Offline Response for ${choice.doula.displayName}.`,
     );
-    if (!this.actionError()) select.value = '';
+    if (!this.actionError()) {
+      this.query.set('');
+      this.selectedKey.set('');
+    }
   }
 
   protected async remove(row: OfflineResponseRow): Promise<void> {
@@ -153,6 +230,18 @@ export class ReferralResponsesPanel {
       () => this.referralsService.deleteOfflineResponse(this.referralId(), row),
       `Deleted the Offline Response for ${row.displayName || 'this doula'}.`,
     );
+  }
+
+  /** Moves the active option by one, wrapping; opens the list first if it's closed. */
+  private moveActive(step: number): boolean {
+    this.listOpen.set(true);
+    if (!this.expanded()) return false;
+    const count = this.options().length;
+    const current = this.activeIndex();
+    const start = step > 0 ? -1 : count;
+    const from = current < 0 ? start : current;
+    this.activeIndex.set((from + step + count) % count);
+    return true;
   }
 
   private async run(request: () => Promise<unknown>, done: string): Promise<void> {
