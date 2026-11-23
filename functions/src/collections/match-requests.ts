@@ -26,4 +26,6 @@ export interface MatchRequestDocument {
   locale?: MatchRequestLocale;
   /** Set after Mailgun accepts the Referral Notification; guards trigger retries. */
   memberNotificationSentAt?: Timestamp;
+  /** Set after Mailgun accepts the No-Outreach Alert; the alert is one-shot. */
+  noOutreachAlertSentAt?: Timestamp;
 }
