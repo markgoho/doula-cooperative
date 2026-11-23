@@ -157,6 +157,12 @@ export const MemberResponseSchema = t.Object({
         "Whether the requester can reach the Referral Portal (set on GET /:memberId only)",
     }),
   ),
+  referralNotificationsEnabled: t.Optional(
+    t.Boolean({
+      description:
+        "Whether the member gets Referral Notification emails (missing means on)",
+    }),
+  ),
 });
 
 /**
@@ -241,6 +247,9 @@ export function toMemberResponse(
     }),
     ...(document.refundReason !== undefined && {
       refundReason: document.refundReason,
+    }),
+    ...(document.referralNotificationsEnabled !== undefined && {
+      referralNotificationsEnabled: document.referralNotificationsEnabled,
     }),
   };
 }
@@ -491,4 +500,31 @@ export const CancelMembershipResponseSchema = t.Union([
 
 export type CancelMembershipResponse = Static<
   typeof CancelMembershipResponseSchema
+>;
+
+/**
+ * Request body schema for turning Referral Notifications on or off.
+ */
+export const UpdateReferralNotificationsBodySchema = t.Object({
+  enabled: t.Boolean({
+    description: "Whether to receive Referral Notification emails",
+    error: "enabled must be a boolean",
+  }),
+});
+
+/**
+ * PATCH /members/:memberId/referral-notifications response schema.
+ */
+export const UpdateReferralNotificationsResponseSchema = t.Union([
+  t.Object({
+    success: t.Literal(true),
+    enabled: t.Boolean({
+      description: "Referral Notification preference after the update",
+    }),
+  }),
+  ErrorResponseSchema,
+]);
+
+export type UpdateReferralNotificationsResponse = Static<
+  typeof UpdateReferralNotificationsResponseSchema
 >;

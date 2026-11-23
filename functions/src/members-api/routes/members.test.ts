@@ -32,6 +32,7 @@ describe("GET /:memberId (authenticated)", () => {
     activeStripeMember?: boolean;
     v2Enabled?: boolean;
     settingsReadFails?: boolean;
+    referralNotificationsEnabled?: boolean;
   }
 
   function setup({
@@ -42,6 +43,7 @@ describe("GET /:memberId (authenticated)", () => {
     activeStripeMember = false,
     v2Enabled = true,
     settingsReadFails = false,
+    referralNotificationsEnabled,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario
     const mockFindById = mock((id: string): Promise<MemberDocument> => {
@@ -57,6 +59,9 @@ describe("GET /:memberId (authenticated)", () => {
         createdAt: Timestamp.now(),
         name: "Test Member",
         membershipActive: true,
+        ...(referralNotificationsEnabled !== undefined && {
+          referralNotificationsEnabled,
+        }),
         ...(activeStripeMember && {
           stripeCustomerId: "cus_123",
           stripeSubscriptionId: "sub_123",
@@ -209,6 +214,30 @@ describe("GET /:memberId (authenticated)", () => {
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("Member not found");
+    });
+  });
+
+  describe("Referral Notification preference", () => {
+    it("reports an opt-out stored on the member document", async () => {
+      const { testApp, request } = setup({
+        referralNotificationsEnabled: false,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as {
+        referralNotificationsEnabled?: boolean;
+      };
+      expect(body.referralNotificationsEnabled).toBe(false);
+    });
+
+    it("omits the preference when never set (missing means on)", async () => {
+      const { testApp, request } = setup();
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body).not.toHaveProperty("referralNotificationsEnabled");
     });
   });
 
