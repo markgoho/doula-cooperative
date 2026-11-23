@@ -68,6 +68,12 @@ export class AdminMemberDetail {
     return (resource.value() as ApiMemberResponse).isAdmin;
   });
 
+  protected isTargetUserReferralCoordinator = computed(() => {
+    const resource = this.service.memberResource;
+    if (!resource.hasValue()) return false;
+    return (resource.value() as ApiMemberResponse).isReferralCoordinator === true;
+  });
+
   protected isRefundEligible = computed(() => {
     const resource = this.service.memberResource;
     if (!resource.hasValue()) return false;
@@ -238,6 +244,10 @@ export class AdminMemberDetail {
       variant: 'danger',
     });
     this.confirmDialog()?.showModal();
+  }
+
+  protected async toggleReferralCoordinator(): Promise<void> {
+    await this.service.setReferralCoordinator(this.uid(), !this.isTargetUserReferralCoordinator());
   }
 
   protected onCancelDialog(): void {

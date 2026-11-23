@@ -137,6 +137,34 @@ export class AdminMemberDetailService {
   }
 
   /**
+   * Grant or revoke the Referral Coordinator role for the current member
+   */
+  async setReferralCoordinator(uid: string, isReferralCoordinator: boolean): Promise<void> {
+    this.actionInProgress.set(true);
+    this.successMessage.set(undefined);
+    this.actionError.set(undefined);
+
+    try {
+      await this.adminMembersService.setReferralCoordinator(uid, isReferralCoordinator);
+      this.successMessage.set(
+        isReferralCoordinator
+          ? 'Referral Coordinator role granted'
+          : 'Referral Coordinator role revoked',
+      );
+      this.memberResource.reload();
+    } catch (error) {
+      console.error('Error updating Referral Coordinator role:', error);
+      this.actionError.set(
+        isReferralCoordinator
+          ? 'Failed to grant the Referral Coordinator role.'
+          : 'Failed to revoke the Referral Coordinator role.',
+      );
+    } finally {
+      this.actionInProgress.set(false);
+    }
+  }
+
+  /**
    * Load profile content for the current member
    */
   loadProfile(member: ApiMemberResponse): void {

@@ -199,6 +199,45 @@
     </div>
   </section>
 
+  <section class="subscription-card" aria-labelledby="referral-coordinator-heading">
+    <h2 id="referral-coordinator-heading">Referral Coordinator</h2>
+    <dl class="info-grid">
+      <dt id="referral-coordinator-status-label">Referral Coordinator:</dt>
+      <dd aria-labelledby="referral-coordinator-status-label">
+        <span
+          [class]="'status-badge ' + (isTargetUserReferralCoordinator() ? 'active' : 'inactive')"
+        >
+          {{ isTargetUserReferralCoordinator() ? 'Yes' : 'No' }}
+        </span>
+      </dd>
+    </dl>
+    <p>
+      A Referral Coordinator previews the Referral Portal while it is off and sees every Referral.
+      The change reaches the member the next time they sign in, or within an hour.
+    </p>
+    <div class="action-buttons">
+      @if (isTargetUserReferralCoordinator()) {
+        <button
+          type="button"
+          class="button button--danger"
+          (click)="toggleReferralCoordinator()"
+          [disabled]="service.actionInProgress()"
+        >
+          {{ service.actionInProgress() ? 'Processing...' : 'Revoke Referral Coordinator' }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="button"
+          (click)="toggleReferralCoordinator()"
+          [disabled]="service.actionInProgress()"
+        >
+          {{ service.actionInProgress() ? 'Processing...' : 'Grant Referral Coordinator' }}
+        </button>
+      }
+    </div>
+  </section>
+
   @if (!member.slug) {
     <section class="subscription-card">
       <h2>Link Existing Profile</h2>

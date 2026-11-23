@@ -6,6 +6,8 @@ export interface ApiMemberResponse {
   email: string;
   createdAt: string;
   isAdmin: boolean;
+  /** Only returned by the member detail endpoint (GET /api/admin/members/:uid) */
+  isReferralCoordinator?: boolean;
   name?: string;
   subscriptionStart?: string;
   membershipActive?: boolean;
