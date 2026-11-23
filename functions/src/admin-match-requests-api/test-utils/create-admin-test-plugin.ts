@@ -32,6 +32,11 @@ export function createAdminTestPlugin(overrides?: {
       }),
     ),
     getMatchRequest: mock(() => Promise.resolve({} as MatchRequestResponse)),
+    listMemberResponses: mock(() => Promise.resolve([])),
+    listLegacyResponses: mock(() => Promise.resolve([])),
+    findMemberNamesByIds: mock(() =>
+      Promise.resolve(new Map<string, string>()),
+    ),
     updateMatchRequest: mock(() => Promise.resolve({ success: true as const })),
     ...overrides?.matchRequestAdminService,
   };

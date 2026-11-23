@@ -30,6 +30,65 @@ export const MatchRequestResponseSchema = t.Object({
 
 export type MatchRequestResponse = Static<typeof MatchRequestResponseSchema>;
 
+const ReferralOutcomeSchema = t.Union([
+  t.Literal("hired"),
+  t.Literal("not_hired"),
+  t.Literal("not_a_fit"),
+]);
+
+/** Who recorded a Member's Offline Response, and when. */
+const MemberOfflineResponseSchema = t.Object({
+  recordedByName: t.String(),
+  recordedAt: t.String({ format: "date-time" }),
+});
+
+/**
+ * One Member's response to a Referral: Outreach, an Offline Response recorded
+ * by a Referral Coordinator, or both, plus their current Referral Outcome.
+ * A name that can't be resolved is "".
+ */
+export const MemberReferralResponseSchema = t.Object({
+  memberUid: t.String(),
+  memberName: t.String(),
+  outreachSentAt: t.Optional(t.String({ format: "date-time" })),
+  outcome: t.Optional(ReferralOutcomeSchema),
+  outcomeUpdatedAt: t.Optional(t.String({ format: "date-time" })),
+  offlineResponse: t.Optional(MemberOfflineResponseSchema),
+});
+
+export type MemberReferralResponse = Static<
+  typeof MemberReferralResponseSchema
+>;
+
+/**
+ * An Offline Response recorded for an Unclaimed Legacy Membership. The
+ * Legacy Membership's email is never included.
+ */
+export const LegacyReferralResponseSchema = t.Object({
+  displayName: t.String(),
+  recordedByName: t.String(),
+  recordedAt: t.String({ format: "date-time" }),
+});
+
+export type LegacyReferralResponse = Static<
+  typeof LegacyReferralResponseSchema
+>;
+
+export const MatchRequestResponsesSchema = t.Object({
+  members: t.Array(MemberReferralResponseSchema),
+  legacy: t.Array(LegacyReferralResponseSchema),
+});
+
+export type MatchRequestResponses = Static<typeof MatchRequestResponsesSchema>;
+
+/**
+ * Detail response: the match request plus every Outreach, Referral Outcome,
+ * and Offline Response on it.
+ */
+export type MatchRequestDetailResponse = MatchRequestResponse & {
+  responses: MatchRequestResponses;
+};
+
 /**
  * List response with pagination metadata
  */
