@@ -1,0 +1,24 @@
+<section class="responses" aria-labelledby="responses-heading">
+  <h3 id="responses-heading">Responses</h3>
+  <p class="hint">Only Referral Coordinators and Admins see who responded.</p>
+
+  <h4>Outreach</h4>
+  @if (rows().length === 0) {
+    <p class="empty">No one has responded yet</p>
+  } @else {
+    <!-- role="list": Safari drops list semantics when list-style is none. -->
+    <ul role="list" aria-label="Members who sent Outreach">
+      @for (row of rows(); track row.memberUid) {
+        <li>
+          <span class="name">{{ row.name }}</span>
+          <span class="when">
+            Reached out <time [attr.datetime]="row.sentAt">{{ row.sentAtLabel }}</time>
+          </span>
+          <span class="outcome" [class.none]="!row.hasOutcome">{{ row.outcome }}</span>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Offline Responses (#121): list and add/delete go here, under their own h4. -->
+</section>

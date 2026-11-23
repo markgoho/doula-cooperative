@@ -7,7 +7,7 @@ import { ReferralNotOpenError } from '../referrals/referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referrals/referral-portal-disabled-error';
 import type {
   ReferralDetail,
-  ReferralListItem,
+  ReferralList,
   ReferralOutcome,
   ReferralOutcomeState,
   SentOutreach,
@@ -15,6 +15,7 @@ import type {
 
 export type {
   ReferralDetail,
+  ReferralList,
   ReferralListItem,
   ReferralOutcome,
   ReferralOutcomeState,
@@ -55,16 +56,19 @@ function forbiddenError(error: HttpErrorResponse): Error {
 export class ReferralsService {
   private http = inject(HttpClient);
 
-  async listReferrals(): Promise<ReferralListItem[]> {
+  async listReferrals(): Promise<ReferralList> {
     const uid = auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to view referrals.');
 
     const memberId = encodeURIComponent(uid);
     try {
       const response = await firstValueFrom(
-        this.http.get<{ referrals: ReferralListItem[] }>(`/api/members/${memberId}/referrals`),
+        this.http.get<Partial<ReferralList>>(`/api/members/${memberId}/referrals`),
       );
-      return response.referrals;
+      return {
+        referrals: response.referrals ?? [],
+        showsAllReferrals: response.showsAllReferrals === true,
+      };
     } catch (error: unknown) {
       console.error('Failed to load referrals', { uid, error });
       if (error instanceof HttpErrorResponse) {

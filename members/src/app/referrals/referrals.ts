@@ -22,8 +22,8 @@ import type { ReferralListItem } from './referral.types';
 import { getRelativeTime } from './referral.utilities';
 import { ReferralsService } from '../services/referrals.service';
 
-/** List filters. */
-type ReferralFilter = 'open' | 'mine' | 'needsOutcome';
+/** List filters. `all` is offered only to Referral Coordinators. */
+type ReferralFilter = 'open' | 'mine' | 'needsOutcome' | 'all';
 
 const REFERRAL_FILTERS: Record<
   ReferralFilter,
@@ -51,9 +51,16 @@ const REFERRAL_FILTERS: Record<
     select: (referrals) =>
       referrals.filter((referral) => referral.outreach !== undefined && !referral.outcome),
   },
+  // Every Referral regardless of age, for the Referral Coordinator.
+  all: {
+    label: 'All referrals',
+    empty: 'No referrals yet.',
+    select: (referrals) => referrals,
+  },
 };
 
-const FILTER_IDS = Object.keys(REFERRAL_FILTERS) as ReferralFilter[];
+const MEMBER_FILTER_IDS: ReferralFilter[] = ['open', 'mine', 'needsOutcome'];
+const COORDINATOR_FILTER_IDS: ReferralFilter[] = [...MEMBER_FILTER_IDS, 'all'];
 
 /** Your own state on a list row, when you reached out. */
 function ownState(
@@ -111,19 +118,23 @@ export class Referrals {
 
   protected filter = signal<ReferralFilter>('open');
 
+  private list = computed(() =>
+    this.referralsResource.hasValue()
+      ? this.referralsResource.value()
+      : { referrals: [], showsAllReferrals: false },
+  );
+
   protected filterOptions = computed(() => {
-    const referrals = this.referralsResource.hasValue() ? this.referralsResource.value() : [];
-    return FILTER_IDS.map((id) => ({
+    const { referrals, showsAllReferrals } = this.list();
+    const ids = showsAllReferrals ? COORDINATOR_FILTER_IDS : MEMBER_FILTER_IDS;
+    return ids.map((id) => ({
       id,
       label: REFERRAL_FILTERS[id].label,
       count: REFERRAL_FILTERS[id].select(referrals).length,
     }));
   });
 
-  protected rows = computed(() => {
-    if (!this.referralsResource.hasValue()) return [];
-    return REFERRAL_FILTERS[this.filter()].select(this.referralsResource.value());
-  });
+  protected rows = computed(() => REFERRAL_FILTERS[this.filter()].select(this.list().referrals));
 
   protected dueDate(referral: ReferralListItem): string {
     return formatDueDate(referral.estimatedDueDate) ?? 'not provided';
