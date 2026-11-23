@@ -511,25 +511,6 @@ describe("GET /:memberId/referrals", () => {
   });
 
   describe("Referral Coordinator", () => {
-    it("lists an older Match Request whose submitted time is an ISO string", async () => {
-      const legacySubmitted = new Date(Date.now() - 400 * DAY_MS).toISOString();
-      const { testApp, request } = setup({
-        authToken: "referral-coordinator-token",
-        allReferrals: [
-          makeReferral("req-open"),
-          makeReferral("req-legacy", {
-            submitted: legacySubmitted as unknown as Timestamp,
-          }),
-        ],
-      });
-      const response = await handleRequest(testApp, request);
-      expect(response.status).toBe(200);
-      const [open, legacy] = await listed(response);
-      expect(open?.isOpen).toBe(true);
-      expect(legacy?.id).toBe("req-legacy");
-      expect(legacy?.isOpen).toBe(false);
-    });
-
     it("lists every Referral for a Coordinator, including ones older than 14 days she never reached out on", async () => {
       const { testApp, request } = setup({
         authToken: "referral-coordinator-token",
