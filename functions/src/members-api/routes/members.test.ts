@@ -16,6 +16,10 @@ import { createMembersTestPlugin } from "../test-utils/create-members-test-plugi
  * Uses createMembersTestPlugin() factory with mocked services.
  * Tests only the members plugin in isolation - no full app composition needed.
  */
+const THIRTY_DAYS_FROM_NOW = Timestamp.fromMillis(
+  Date.now() + 30 * 24 * 60 * 60 * 1000,
+);
+
 describe("GET /:memberId (authenticated)", () => {
   interface SetupOptions {
     // Request parameters
@@ -25,6 +29,9 @@ describe("GET /:memberId (authenticated)", () => {
     // Scenario flags
     memberNotFound?: boolean;
     serverError?: boolean;
+    activeStripeMember?: boolean;
+    v2Enabled?: boolean;
+    settingsReadFails?: boolean;
   }
 
   function setup({
@@ -32,6 +39,9 @@ describe("GET /:memberId (authenticated)", () => {
     authToken = "valid-owner-token",
     memberNotFound = false,
     serverError = false,
+    activeStripeMember = false,
+    v2Enabled = true,
+    settingsReadFails = false,
   }: SetupOptions = {}) {
     // Configure mocks based on scenario
     const mockFindById = mock((id: string): Promise<MemberDocument> => {
@@ -47,6 +57,13 @@ describe("GET /:memberId (authenticated)", () => {
         createdAt: Timestamp.now(),
         name: "Test Member",
         membershipActive: true,
+        ...(activeStripeMember && {
+          stripeCustomerId: "cus_123",
+          stripeSubscriptionId: "sub_123",
+          subscriptionStatus: "active" as const,
+          subscriptionStart: Timestamp.now(),
+          membershipExpiresAt: THIRTY_DAYS_FROM_NOW,
+        }),
       });
     });
 
@@ -93,6 +110,13 @@ describe("GET /:memberId (authenticated)", () => {
       },
       authService: {
         verifyOwnerOrAdmin: mockVerifyOwnerOrAdmin,
+      },
+      referralPortalSettingsService: {
+        getReferralPortalSettings: mock(() =>
+          settingsReadFails
+            ? Promise.reject(new Error("Firestore unavailable"))
+            : Promise.resolve({ v2Enabled }),
+        ),
       },
     });
 
@@ -174,6 +198,83 @@ describe("GET /:memberId (authenticated)", () => {
       expect(response.status).toBe(404);
       const body = (await response.json()) as { error?: string };
       expect(body.error).toBe("Member not found");
+    });
+  });
+
+  describe("Referral Portal availability", () => {
+    it("is false for an active member while the switch is off", async () => {
+      const { testApp, request } = setup({
+        activeStripeMember: true,
+        v2Enabled: false,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(false);
+    });
+
+    it("is true for an active member while the switch is on", async () => {
+      const { testApp, request } = setup({
+        activeStripeMember: true,
+        v2Enabled: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(true);
+    });
+
+    it("is false for a member without an active Stripe membership", async () => {
+      const { testApp, request } = setup({
+        activeStripeMember: false,
+        v2Enabled: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(false);
+    });
+
+    it("is true for an Admin while the switch is off", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        v2Enabled: false,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(true);
+    });
+
+    it("is false, without failing the request, when the switch cannot be read", async () => {
+      const { testApp, request } = setup({
+        activeStripeMember: true,
+        settingsReadFails: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        referralPortalAvailable?: boolean;
+      };
+      expect(body.referralPortalAvailable).toBe(false);
     });
   });
 

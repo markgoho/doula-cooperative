@@ -12,8 +12,8 @@ import { onRequest } from "firebase-functions/v2/https";
 import { IMAGEKIT_SECRETS } from "./constants/imagekit.js";
 import { MAILERLITE_SECRETS } from "./constants/mailerlite-secrets.js";
 import { MAILGUN_SECRETS } from "./constants/mailgun-secrets.js";
-import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
 import { PIRSCH_SECRETS } from "./constants/pirsch.js";
+import { PROFILE_SECRETS } from "./constants/profile-secrets.js";
 import { STRIPE_SECRETS } from "./constants/stripe.js";
 
 // Initialize only if not already initialized
@@ -70,6 +70,16 @@ export const adminMatchRequestsApi = onRequest(
     const { handleAdminMatchRequestsApi } =
       await import("./admin-match-requests-api/handler.js");
     await handleAdminMatchRequestsApi(request, response);
+  },
+);
+
+// Admin Settings API (admin.doulacooperative.com)
+export const adminSettingsApi = onRequest(
+  { invoker: "public" },
+  async (request, response) => {
+    const { handleAdminSettingsApi } =
+      await import("./admin-settings-api/handler.js");
+    await handleAdminSettingsApi(request, response);
   },
 );
 

@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from '../tag/tag';
+import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
+import { ReferralPortalUnavailable } from './referral-portal-unavailable/referral-portal-unavailable';
 import { SERVICE_LABELS } from './referral.constants';
 import { getRelativeTime, isValidDueDate, parseDueDate } from './referral.utilities';
 import { ReferralsService, type ReferralListItem } from '../services/referrals.service';
 
 @Component({
-  imports: [RouterLink, Tag],
+  imports: [RouterLink, Tag, ReferralPortalUnavailable],
   templateUrl: './referrals.html',
   styleUrl: './referrals.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,6 +19,10 @@ export class Referrals {
   protected referralsResource = resource({
     loader: () => this.referralsService.listReferrals(),
   });
+
+  protected isPortalDisabled = computed(
+    () => this.referralsResource.error() instanceof ReferralPortalDisabledError,
+  );
 
   protected formatDueDate(item: ReferralListItem): string {
     if (!isValidDueDate(item.estimatedDueDate)) return '';

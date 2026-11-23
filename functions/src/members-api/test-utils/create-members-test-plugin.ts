@@ -4,6 +4,7 @@ import type { DocumentSnapshot } from "firebase-admin/firestore";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { MemberFirestoreService } from "../../shared-api/services/member-firestore/interface.js";
+import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import {
   createMockVerifyAdmin,
@@ -31,6 +32,7 @@ export function createMembersTestPlugin(overrides?: {
   verifyEmailService?: Partial<VerifyEmailService>;
   memberFirestoreService?: Partial<MemberFirestoreService>;
   referralsService?: Partial<ReferralsService>;
+  referralPortalSettingsService?: Partial<ReferralPortalSettingsService>;
   logger?: Logger;
 }) {
   const defaultMemberService: MemberService = {
@@ -86,6 +88,24 @@ export function createMembersTestPlugin(overrides?: {
     ...overrides?.referralsService,
   };
 
+  // Default: Referral Portal v2 switch on, so tests exercise membership rules.
+  // Gate-off scenarios override getReferralPortalSettings explicitly.
+  const defaultReferralPortalSettingsService: ReferralPortalSettingsService = {
+    getReferralPortalSettings: mock(() =>
+      Promise.resolve({
+        v2Enabled: true,
+        updatedAt: "2026-11-22T12:00:00.000Z",
+        updatedBy: "admin-user",
+      }),
+    ),
+    updateReferralPortalSettings: mock(() =>
+      Promise.reject(
+        new Error("updateReferralPortalSettings not used by members-api"),
+      ),
+    ),
+    ...overrides?.referralPortalSettingsService,
+  };
+
   return createMembersPlugin({
     memberService: defaultMemberService,
     newsletterService: defaultNewsletterService,
@@ -94,6 +114,7 @@ export function createMembersTestPlugin(overrides?: {
     verifyEmailService: defaultVerifyEmailService,
     memberFirestoreService: defaultMemberFirestoreService,
     referralsService: defaultReferralsService,
+    referralPortalSettingsService: defaultReferralPortalSettingsService,
     ...(overrides?.logger !== undefined && { logger: overrides.logger }),
   });
 }

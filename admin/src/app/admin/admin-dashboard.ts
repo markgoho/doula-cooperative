@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ReferralPortalSwitch } from './referral-portal-switch/referral-portal-switch';
 import { AdminMatchRequestsStateService } from './state/admin-match-requests-state.service';
 import { AdminMembersStateService } from './state/admin-members-state.service';
 import { AdminMessagesStateService } from './state/admin-messages-state.service';
 import { AdminUnclaimedStateService } from './state/admin-unclaimed-state.service';
 
 @Component({
-  imports: [RouterLink],
+  imports: [RouterLink, ReferralPortalSwitch],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

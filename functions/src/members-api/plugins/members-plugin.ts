@@ -3,6 +3,7 @@ import { logger as firebaseLogger } from "firebase-functions/v2";
 import { AuthService } from "../../shared-api/services/auth/index.js";
 import { EmailService } from "../../shared-api/services/email/index.js";
 import { MemberFirestoreService } from "../../shared-api/services/member-firestore/index.js";
+import { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/index.js";
 import { cancelMembershipLogic } from "../routes/cancel-membership.js";
 import { getReferralLogic } from "../routes/get-referral.js";
 import { listReferralsLogic } from "../routes/list-referrals.js";
@@ -72,14 +73,28 @@ export function createMembersPlugin(services?: PartialServices) {
         SERVICE_KEYS.REFERRALS_SERVICE,
         services?.referralsService ?? ReferralsServiceImpl,
       )
+      .decorate(
+        SERVICE_KEYS.REFERRAL_PORTAL_SETTINGS_SERVICE,
+        services?.referralPortalSettingsService ??
+          ReferralPortalSettingsService,
+      )
       // GET /:memberId - Get member by ID (owner or admin) - Served at /api/members/:memberId
       .get(
         "/:memberId",
-        async ({ params, memberService, authService, logger, request, set }) =>
+        async ({
+          params,
+          memberService,
+          authService,
+          referralPortalSettingsService,
+          logger,
+          request,
+          set,
+        }) =>
           getMemberLogic({
             memberId: params.memberId,
             memberService,
             authService,
+            referralPortalSettingsService,
             logger,
             authorizationHeader:
               request.headers.get("authorization") ?? undefined,
@@ -224,6 +239,7 @@ export function createMembersPlugin(services?: PartialServices) {
           params,
           memberService,
           referralsService,
+          referralPortalSettingsService,
           authService,
           logger,
           request,
@@ -233,6 +249,7 @@ export function createMembersPlugin(services?: PartialServices) {
             memberId: params.memberId,
             memberService,
             referralsService,
+            referralPortalSettingsService,
             authService,
             logger,
             authorizationHeader:
@@ -251,6 +268,7 @@ export function createMembersPlugin(services?: PartialServices) {
           params,
           memberService,
           referralsService,
+          referralPortalSettingsService,
           authService,
           logger,
           request,
@@ -261,6 +279,7 @@ export function createMembersPlugin(services?: PartialServices) {
             requestId: params.requestId,
             memberService,
             referralsService,
+            referralPortalSettingsService,
             authService,
             logger,
             authorizationHeader:

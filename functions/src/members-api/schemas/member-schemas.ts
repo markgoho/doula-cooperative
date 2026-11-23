@@ -151,6 +151,12 @@ export const MemberResponseSchema = t.Object({
       description: "Reason for the membership refund",
     }),
   ),
+  referralPortalAvailable: t.Optional(
+    t.Boolean({
+      description:
+        "Whether the requester can reach the Referral Portal (set on GET /:memberId only)",
+    }),
+  ),
 });
 
 /**
@@ -362,6 +368,12 @@ export const ErrorResponseSchema = t.Object({
   error: t.String({
     description: "Error message describing what went wrong",
   }),
+  code: t.Optional(
+    t.String({
+      description:
+        "Machine-readable error code (e.g. REFERRAL_PORTAL_DISABLED)",
+    }),
+  ),
 });
 
 export type ErrorResponse = Static<typeof ErrorResponseSchema>;

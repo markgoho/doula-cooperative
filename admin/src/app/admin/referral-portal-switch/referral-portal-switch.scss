@@ -1,0 +1,109 @@
+:host {
+  display: block;
+}
+
+.switch-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  height: 100%;
+  padding: var(--space-s);
+}
+
+.switch-header {
+  align-items: center;
+  display: flex;
+  gap: var(--space-xs);
+  justify-content: space-between;
+
+  h2 {
+    color: var(--color-ink);
+    font-size: var(--step-1);
+    margin: 0;
+  }
+}
+
+.card-description {
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.switch {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-2xs);
+  padding: 0;
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  &:focus-visible .switch-track {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.switch-track {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+  display: inline-block;
+  height: 1.5rem;
+  position: relative;
+  transition: background-color 0.2s;
+  width: 2.75rem;
+}
+
+.switch-thumb {
+  background: var(--color-surface);
+  border-radius: 50%;
+  height: 1.125rem;
+  inset-block-start: 0.1875rem;
+  inset-inline-start: 0.1875rem;
+  position: absolute;
+  transition: transform 0.2s;
+  width: 1.125rem;
+}
+
+.switch[aria-checked='true'] {
+  .switch-track {
+    background: var(--color-primary);
+  }
+
+  .switch-thumb {
+    transform: translateX(1.25rem);
+  }
+}
+
+.switch-meta {
+  border-top: 1px solid var(--color-line);
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  margin: auto 0 0;
+  padding-block-start: var(--space-xs);
+}
+
+.switch-error {
+  color: var(--color-error);
+  font-size: var(--step--1);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-track,
+  .switch-thumb {
+    transition: none;
+  }
+}

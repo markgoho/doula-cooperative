@@ -123,16 +123,11 @@ export class Membership {
     );
   });
 
-  protected canViewReferrals = computed(() => {
-    const userDocument = this.userDocument();
-    return (
-      userDocument?.membershipActive === true &&
-      userDocument.stripeCustomerId !== undefined &&
-      userDocument.stripeSubscriptionId !== undefined &&
-      (userDocument.subscriptionStatus === 'active' ||
-        userDocument.subscriptionStatus === 'trialing')
-    );
-  });
+  // Server decides (Referral Portal v2 switch, Admin preview, active membership);
+  // the app never reads the switch itself.
+  protected canViewReferrals = computed(
+    () => this.userDocument()?.referralPortalAvailable === true,
+  );
 
   protected cancelInProgress = signal(false);
   protected cancelError = signal<string | undefined>(undefined);

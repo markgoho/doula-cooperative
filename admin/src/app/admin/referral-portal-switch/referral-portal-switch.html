@@ -1,0 +1,37 @@
+<section class="switch-card" aria-labelledby="referral-portal-switch-heading">
+  <div class="switch-header">
+    <h2 id="referral-portal-switch-heading">Referral Portal v2</h2>
+    @if (settingsResource.hasValue()) {
+      <button
+        type="button"
+        role="switch"
+        class="switch"
+        [attr.aria-checked]="isEnabled()"
+        aria-labelledby="referral-portal-switch-heading"
+        [disabled]="isSaving()"
+        (click)="onToggle()"
+      >
+        <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+        <span class="switch-state">{{ isEnabled() ? 'On' : 'Off' }}</span>
+      </button>
+    }
+  </div>
+
+  <p class="card-description">
+    While off, only Admins can open the member referral portal. Members see no referrals link.
+  </p>
+
+  @if (settingsResource.isLoading()) {
+    <p class="switch-meta" role="status">Loading switch...</p>
+  } @else if (settingsResource.error()) {
+    <p class="switch-error" role="alert">Could not load the switch. Refresh to try again.</p>
+  } @else if (updatedAt(); as lastUpdated) {
+    <p class="switch-meta">Last updated {{ lastUpdated | date: 'medium' }}</p>
+  } @else {
+    <p class="switch-meta">Never changed (off by default)</p>
+  }
+
+  @if (saveError(); as message) {
+    <p class="switch-error" role="alert">{{ message }}</p>
+  }
+</section>

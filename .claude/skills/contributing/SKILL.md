@@ -41,6 +41,7 @@ Choose the scope based on which folder the changes primarily affect:
 | `admin-messages-api`           | `functions/src/admin-messages-api/`           |
 | `admin-match-requests-api`     | `functions/src/admin-match-requests-api/`     |
 | `admin-unclaimed-profiles-api` | `functions/src/admin-unclaimed-profiles-api/` |
+| `admin-settings-api`           | `functions/src/admin-settings-api/`           |
 | `stripe-webhook-api`           | `functions/src/stripe-webhook-api/`           |
 | `profile-webhook-api`          | `functions/src/profile-webhook-api/`          |
 | `shared-api`                   | `functions/src/shared-api/`                   |

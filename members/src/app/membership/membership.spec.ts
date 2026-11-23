@@ -808,99 +808,53 @@ describe('Membership', () => {
       subscriptionStatus: 'active',
     };
 
-    it('shows referrals link for active Stripe member', async () => {
+    it('shows referrals link when the API says the Referral Portal is available', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: { ...activeStripeMember, referralPortalAvailable: true },
+      });
+
+      expect(screen.getByRole('link', { name: 'View Referrals' })).toHaveAttribute(
+        'href',
+        '/referrals',
+      );
+    });
+
+    it('hides referrals link for an active member while the Referral Portal is unavailable', async () => {
+      await setup({
+        isAuthenticated: true,
+        hasUserDocument: true,
+        userDocument: { ...activeStripeMember, referralPortalAvailable: false },
+      });
+
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
+    });
+
+    it('hides referrals link when the API omits availability', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: activeStripeMember,
       });
 
-      expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
+      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
     });
 
-    it('does not show referrals link for member without Stripe subscription', async () => {
+    it('shows referrals link for an Admin without a Stripe membership when available', async () => {
       await setup({
         isAuthenticated: true,
         hasUserDocument: true,
         userDocument: {
           createdAt: new Date(),
-          email: 'jane@example.com',
-          uid: 'user123',
-          membershipActive: true,
-        },
-      });
-
-      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
-    });
-
-    it('does not show referrals link for inactive member', async () => {
-      await setup({
-        isAuthenticated: true,
-        hasUserDocument: true,
-        userDocument: {
-          createdAt: new Date(),
-          email: 'jane@example.com',
-          uid: 'user123',
-          membershipActive: false,
-          stripeCustomerId: 'cus_123',
-          stripeSubscriptionId: 'sub_123',
-          subscriptionStatus: 'canceled',
-        },
-      });
-
-      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
-    });
-
-    it('shows referrals link for trialing member', async () => {
-      await setup({
-        isAuthenticated: true,
-        hasUserDocument: true,
-        userDocument: {
-          ...activeStripeMember,
-          subscriptionStatus: 'trialing',
+          email: 'webmaster@example.com',
+          uid: 'admin123',
+          isAdmin: true,
+          referralPortalAvailable: true,
         },
       });
 
       expect(screen.getByRole('link', { name: 'View Referrals' })).toBeVisible();
-    });
-
-    it('does not show referrals link for past_due member', async () => {
-      await setup({
-        isAuthenticated: true,
-        hasUserDocument: true,
-        userDocument: {
-          ...activeStripeMember,
-          subscriptionStatus: 'past_due',
-        },
-      });
-
-      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
-    });
-
-    it('does not show referrals link for incomplete member', async () => {
-      await setup({
-        isAuthenticated: true,
-        hasUserDocument: true,
-        userDocument: {
-          ...activeStripeMember,
-          subscriptionStatus: 'incomplete',
-        },
-      });
-
-      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
-    });
-
-    it('does not show referrals link for unpaid member', async () => {
-      await setup({
-        isAuthenticated: true,
-        hasUserDocument: true,
-        userDocument: {
-          ...activeStripeMember,
-          subscriptionStatus: 'unpaid',
-        },
-      });
-
-      expect(screen.queryByRole('link', { name: 'View Referrals' })).toBeNull();
     });
   });
 });
