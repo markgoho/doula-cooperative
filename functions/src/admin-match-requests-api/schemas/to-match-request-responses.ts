@@ -19,7 +19,8 @@ function earliestActivity({
  * - each Member who sent Outreach or has an Offline Response (an in-flight
  *   Outreach alone does not count), earliest activity first, with their
  *   current Referral Outcome;
- * - each Unclaimed Legacy Membership's Offline Response, earliest first.
+ * - each Unclaimed Legacy Membership's Offline Response, earliest first, with
+ *   the Referral Outcome a Referral Coordinator recorded for it.
  *
  * @param names - Member name by uid (doulas and recorders); a missing name becomes ""
  */
@@ -67,11 +68,18 @@ export function toMatchRequestResponses({
 
   const legacy = legacyResponses
     .toSorted((a, b) => a.recordedAt.toMillis() - b.recordedAt.toMillis())
-    .map(({ displayName, recordedBy, recordedAt }) => ({
-      displayName,
-      recordedByName: names.get(recordedBy) ?? "",
-      recordedAt: timestampToIso(recordedAt),
-    }));
+    .map(
+      ({ displayName, recordedBy, recordedAt, outcome, outcomeUpdatedAt }) => ({
+        displayName,
+        recordedByName: names.get(recordedBy) ?? "",
+        recordedAt: timestampToIso(recordedAt),
+        ...(outcome && { outcome }),
+        ...(outcome &&
+          outcomeUpdatedAt && {
+            outcomeUpdatedAt: timestampToIso(outcomeUpdatedAt),
+          }),
+      }),
+    );
 
   return { members, legacy };
 }

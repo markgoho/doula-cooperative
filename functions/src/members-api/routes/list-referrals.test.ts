@@ -488,6 +488,29 @@ describe("GET /:memberId/referrals", () => {
       expect(byId.get("req-2")?.hiredBadge).toBe(false);
     });
 
+    it("shows the hired badge when a Coordinator recorded a hire for a doula not yet migrated, without naming them", async () => {
+      const { testApp, request } = setup({
+        referrals: [makeReferral("req-1")],
+        legacyResponses: {
+          "req-1": [
+            {
+              legacyEmail: "lee@example.com",
+              displayName: "Lee Legacy",
+              recordedBy: "coord-uid",
+              recordedAt: daysAgo(1),
+              outcome: "hired",
+            },
+          ],
+        },
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.clone().text();
+      const [referral] = await listed(response);
+      expect(referral?.hiredBadge).toBe(true);
+      expect(referral?.responseCount).toBe(1);
+      expect(text).not.toContain("Lee Legacy");
+    });
+
     it("never shows other members' names or non-hired Outcomes", async () => {
       const { testApp, request } = setup({
         referrals: [makeReferral("req-1")],

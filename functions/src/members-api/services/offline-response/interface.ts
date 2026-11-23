@@ -1,3 +1,4 @@
+import type { ReferralOutcome } from "../../../collections/member-responses.js";
 import type { Logger } from "../../../shared-api/types/logger.js";
 
 /** A Member as the doula picker needs it. `name` is "" when unset; `email` stays on the server. */
@@ -21,6 +22,19 @@ export interface LegacyDoula {
  */
 export type OfflineResponseRecording =
   "recorded" | "has_outreach" | "already_recorded";
+
+/**
+ * Result of setting or clearing a Legacy Membership's Referral Outcome.
+ * - `updated`: stored.
+ * - `not_found`: the Offline Response is gone (deleted, or carried over by a link).
+ */
+export type LegacyOutcomeWrite = "updated" | "not_found";
+
+/** An Unclaimed Legacy Membership's Offline Response on a Referral. */
+export interface LegacyResponseTarget {
+  requestId: string;
+  legacyEmail: string;
+}
 
 export interface OfflineResponseService {
   /** Every Member, in any membership state. */
@@ -65,4 +79,22 @@ export interface OfflineResponseService {
     target: { requestId: string; legacyEmail: string },
     logger: Logger,
   ): Promise<void>;
+  /**
+   * Store the Referral Outcome a Referral Coordinator recorded for an
+   * Unclaimed Legacy Membership, with when and by whom. No history. Never
+   * creates the Offline Response.
+   */
+  setLegacyOutcome(
+    record: LegacyResponseTarget & {
+      outcome: ReferralOutcome;
+      updatedAt: Date;
+      recordedBy: string;
+    },
+    logger: Logger,
+  ): Promise<LegacyOutcomeWrite>;
+  /** Remove a Legacy Membership's Referral Outcome. Succeeds when none is set. */
+  clearLegacyOutcome(
+    target: LegacyResponseTarget,
+    logger: Logger,
+  ): Promise<LegacyOutcomeWrite>;
 }

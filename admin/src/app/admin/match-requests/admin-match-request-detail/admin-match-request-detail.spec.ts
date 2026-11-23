@@ -137,6 +137,31 @@ describe('AdminMatchRequestDetail responses', () => {
     expect(
       within(legacyRow).getByText(/Offline Response recorded by Cora Coordinator/),
     ).toBeVisible();
+    expect(within(legacyRow).getByText('No outcome yet')).toBeVisible();
+  });
+
+  it('shows the Referral Outcome a Referral Coordinator recorded for a Legacy Membership', async () => {
+    await setup({
+      matchRequest: {
+        ...baseMatchRequest,
+        responses: {
+          members: [],
+          legacy: [
+            {
+              displayName: 'Lena Legacy',
+              recordedByName: 'Cora Coordinator',
+              recordedAt: '2026-03-06T10:00:00.000Z',
+              outcome: 'hired',
+              outcomeUpdatedAt: '2026-03-08T10:00:00.000Z',
+            },
+          ],
+        },
+      },
+    });
+
+    const legacyRow = rowFor('Lena Legacy');
+    expect(within(legacyRow).getByText('Hired')).toBeVisible();
+    expect(within(legacyRow).getByText(/Recorded by a Referral Coordinator/)).toBeVisible();
   });
 
   it('marks each response time with a machine-readable datetime', async () => {

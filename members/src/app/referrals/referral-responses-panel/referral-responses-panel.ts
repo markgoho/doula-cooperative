@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { ReferralsService } from '../../services/referrals.service';
 import { formatSentAt } from '../format-sent-at';
+import { ReferralOutcomeControl } from '../referral-outcome-control/referral-outcome-control';
 import { OUTCOME_LABELS } from '../referral.constants';
 import type {
   OfflineResponseRow,
@@ -48,10 +49,12 @@ interface DoulaOption {
  * when, and their Referral Outcome; then the Offline Responses, with a doula
  * autocomplete to add one and a delete button on the ones you may delete.
  * Shown only when the API includes the Coordinator view (Referral Coordinators
- * and Admins); the autocomplete only for Referral Coordinators.
+ * and Admins); the autocomplete, and the Outcome control on doulas not yet
+ * migrated, only for Referral Coordinators. Members' Outcomes stay read-only.
  */
 @Component({
   selector: 'app-referral-responses-panel',
+  imports: [ReferralOutcomeControl],
   templateUrl: './referral-responses-panel.html',
   styleUrl: './referral-responses-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,6 +87,11 @@ export class ReferralResponsesPanel {
       key: doulaKey(row),
       name: row.displayName || 'Name not set',
       kind: KIND_PILLS[row.kind],
+      // A doula not yet migrated has no portal account, so the Coordinator records their Outcome.
+      legacyDoula:
+        row.kind === 'legacy' && this.canRecord()
+          ? { id: row.id, name: row.displayName || 'this doula' }
+          : undefined,
       recordedAt: row.recordedAt,
       recordedAtLabel: formatSentAt(row.recordedAt),
       recordedBy: row.recordedByName || 'a Referral Coordinator',
@@ -263,7 +271,6 @@ export class ReferralResponsesPanel {
   }
 
   private offlineOutcome(row: OfflineResponseRow): string {
-    if (row.kind === 'legacy') return '';
     return row.outcome ? OUTCOME_LABELS[row.outcome] : 'No outcome yet';
   }
 }

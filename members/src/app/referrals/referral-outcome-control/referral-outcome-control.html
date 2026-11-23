@@ -1,7 +1,7 @@
 <fieldset
   class="outcome"
   [attr.aria-busy]="saving() ? 'true' : null"
-  aria-describedby="outcome-hint"
+  [attr.aria-describedby]="hintId"
 >
   <legend [class.prompt]="!selected()">{{ legend() }}</legend>
 
@@ -28,8 +28,13 @@
     <p class="save-error" role="alert">{{ error }}</p>
   }
 
-  <p id="outcome-hint" class="hint">
-    Admins and the Referral Coordinator see your outcome. Other members only see "A member was
-    hired", never who.
+  <p [id]="hintId" class="hint">
+    @if (legacyDoula()) {
+      They aren't migrated yet, so you record it for them. It moves to them when they're linked.
+      Other members only see "A member was hired", never who.
+    } @else {
+      Admins and the Referral Coordinator see your outcome. Other members only see "A member was
+      hired", never who.
+    }
   </p>
 </fieldset>

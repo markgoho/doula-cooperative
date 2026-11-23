@@ -125,7 +125,7 @@ A **Member**'s first message to a **Referral**'s requester, sent through the coo
 _Avoid_: Response, claim, contact
 
 **Referral Outcome**:
-One **Member**'s own result for a **Referral**: hired, not hired, or not a fit. Never exclusive to one **Member**.
+One doula's result for a **Referral**: hired, not hired, or not a fit. Recorded by the doula (a **Member**), or by a **Referral Coordinator** for an **Unclaimed Legacy Membership**, which has no portal account. Never exclusive to one doula.
 _Avoid_: Claim, taken, status
 
 **Referral Notification**:
@@ -137,7 +137,7 @@ A **Member** who relays **Referrals** to the cooperative's Facebook group, sees 
 _Avoid_: Coordinator admin, referral admin
 
 **Offline Response**:
-A **Referral Coordinator**'s record that a doula (a **Member** or an **Unclaimed Legacy Membership**) responded to a **Referral** outside the member portal. Records that they responded, not whether they were hired.
+A **Referral Coordinator**'s record that a doula (a **Member** or an **Unclaimed Legacy Membership**) responded to a **Referral** outside the member portal. By itself it records that they responded, not whether they were hired.
 _Avoid_: Connected, claim, manual outreach
 
 **No-Outreach Alert**:
@@ -173,6 +173,8 @@ _Avoid_: Sent item
 - A **Member** may record a **Referral Outcome** only after sending **Outreach** on that **Referral**, or after a **Referral Coordinator** records an **Offline Response** for them, and may change it later. An **Offline Response** does not reveal the requester's contact details.
 - Each new **Match Request** sends one **Referral Notification** to every **Member** with an active membership who has not turned them off.
 - A **Referral Coordinator** may record **Offline Responses** on any **Referral**, naming a **Member** or an **Unclaimed Legacy Membership**, at most one per doula per **Referral**.
+- A **Referral Coordinator** may record, change or clear the **Referral Outcome** of an **Unclaimed Legacy Membership** that has an **Offline Response** on that **Referral**; never a **Member**'s. A hired one counts toward "A member was hired" like a **Member**'s.
+- Linking an **Unclaimed Legacy Membership** to a **Member** moves its **Offline Responses** and **Referral Outcomes** to that **Member**, but never replaces a **Referral Outcome** the **Member** already recorded.
 - A **Referral** with no **Outreach** and no **Offline Response** for too long triggers one **No-Outreach Alert**; an unrecorded hire made outside the portal does not prevent it.
 - A **Member** may have zero or one **Profile**.
 - A **Profile** may be linked to zero or one **Member**.

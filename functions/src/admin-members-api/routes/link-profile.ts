@@ -62,7 +62,7 @@ async function completeLegacyMembershipLink({
 
   if (legacyLookupFailed === true) {
     return reportFailure(
-      `Find this profile's Legacy Membership in migrated_users_import (slug "${slug}"), move its matchRequests/*/legacyResponses documents to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt), then delete the import record`,
+      `Find this profile's Legacy Membership in migrated_users_import (slug "${slug}"), move its matchRequests/*/legacyResponses documents to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt; copy any outcome and outcomeUpdatedAt to the Member's outcome unless they already have one), then delete the import record`,
     );
   }
 
@@ -105,7 +105,7 @@ async function completeLegacyMembershipLink({
 
   if (didCarryOverFail) {
     return reportFailure(
-      `Move every matchRequests/*/legacyResponses/${legacyEmail} document to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt; skip Referrals where the Member already has outreachSentAt or offlineResponse), then delete the legacy document`,
+      `Move every matchRequests/*/legacyResponses/${legacyEmail} document to matchRequests/*/memberResponses/${memberId}.offlineResponse (keep recordedBy and recordedAt; skip Referrals where the Member already has outreachSentAt or offlineResponse; on every Referral copy any outcome and outcomeUpdatedAt to the Member's outcome unless they already have one), then delete the legacy document`,
     );
   }
 

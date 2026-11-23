@@ -22,7 +22,10 @@ export interface CarryOverOfflineResponsesResult {
  * who recorded it and when.
  *
  * Where the Member already sent Outreach or already has an Offline Response
- * on that Referral, the legacy record is only deleted. Each move is its own
+ * on that Referral, the legacy Offline Response is dropped. A Referral
+ * Outcome a Referral Coordinator recorded for the Legacy Membership becomes
+ * the Member's `outcome` (with `outcomeUpdatedAt`) either way, but never
+ * replaces an Outcome the Member already has. Each move is its own
  * transaction that re-reads both documents, so a retry is a no-op for moves
  * already done.
  *
@@ -72,15 +75,29 @@ export async function carryOverOfflineResponses({
           memberResponse?.offlineResponse !== undefined ||
           memberResponse?.outreachSentAt !== undefined;
 
-        if (!hasAlreadyResponded) {
+        // Decided apart from the Offline Response: a Member who already sent
+        // Outreach still gets the hire a Coordinator recorded, unless they
+        // recorded an Outcome of their own.
+        const shouldCarryOutcome =
+          legacy.outcome !== undefined && memberResponse?.outcome === undefined;
+
+        if (!hasAlreadyResponded || shouldCarryOutcome) {
           transaction.set(
             memberResponseReference,
             {
               memberUid,
-              offlineResponse: {
-                recordedBy: legacy.recordedBy,
-                recordedAt: legacy.recordedAt,
-              },
+              ...(!hasAlreadyResponded && {
+                offlineResponse: {
+                  recordedBy: legacy.recordedBy,
+                  recordedAt: legacy.recordedAt,
+                },
+              }),
+              ...(shouldCarryOutcome && {
+                outcome: legacy.outcome,
+                ...(legacy.outcomeUpdatedAt && {
+                  outcomeUpdatedAt: legacy.outcomeUpdatedAt,
+                }),
+              }),
             },
             { merge: true },
           );

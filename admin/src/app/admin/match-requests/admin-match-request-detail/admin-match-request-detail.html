@@ -290,7 +290,15 @@
                   </span>
                 </td>
                 <td data-label="Referral Outcome">
-                  <span class="secondary">Not tracked for Legacy Memberships</span>
+                  <span class="response-line">{{ getOutcomeLabel(response.outcome) }}</span>
+                  @if (response.outcomeUpdatedAt; as updatedAt) {
+                    <span class="response-line secondary">
+                      Recorded by a Referral Coordinator
+                      <time [attr.datetime]="updatedAt">{{
+                        updatedAt | date: 'MMM d, yyyy, h:mm a'
+                      }}</time>
+                    </span>
+                  }
                 </td>
               </tr>
             }

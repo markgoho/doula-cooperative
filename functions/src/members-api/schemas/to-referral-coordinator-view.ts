@@ -12,7 +12,8 @@ import { toOfflineResponseRow } from "./to-offline-response-row.js";
  * - each Member who sent Outreach (an in-flight send does not count), earliest
  *   first, with their name and Referral Outcome;
  * - each Offline Response (Members and Unclaimed Legacy Memberships), earliest
- *   first, with who recorded it and whether the viewer may delete it.
+ *   first, with who recorded it, the doula's Referral Outcome, and whether the
+ *   viewer may delete it.
  *
  * Only for Referral Coordinators and Admins; ordinary Members get
  * `summarizeMemberResponses` instead, which never names anyone. A Legacy
@@ -46,12 +47,13 @@ export function toReferralCoordinatorView({
         : [],
   );
   const legacyOffline = legacyResponses.map(
-    ({ legacyEmail, displayName, recordedBy, recordedAt }) => ({
+    ({ legacyEmail, displayName, recordedBy, recordedAt, outcome }) => ({
       kind: "legacy" as const,
       id: toLegacyDoulaId(legacyEmail),
       displayName,
       recordedBy,
       recordedAt,
+      ...(outcome && { outcome }),
     }),
   );
 

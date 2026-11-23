@@ -145,7 +145,10 @@ export interface OfflineResponseRow {
   recordedByName: string;
   /** Whether you may delete it. */
   canDelete: boolean;
-  /** The member's Referral Outcome, if they recorded one. */
+  /**
+   * The doula's Referral Outcome, if any: a Member's own, or for a doula not
+   * yet migrated, the one a Referral Coordinator recorded.
+   */
   outcome?: ReferralOutcome;
 }
 

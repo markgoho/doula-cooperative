@@ -95,10 +95,12 @@ export async function recordReferralOutcomeLogic({
     // (own Outreach or an Offline Response) already keeps the Referral
     // visible to this Member.
     await referralsService.getReferral(requestId, logger);
-    const responses = await referralsService.listMemberResponses(
-      requestId,
-      logger,
-    );
+    // Legacy Responses only feed the hired badge: a Referral Coordinator may
+    // have recorded a hire for a doula not yet migrated.
+    const [responses, legacyResponses] = await Promise.all([
+      referralsService.listMemberResponses(requestId, logger),
+      referralsService.listLegacyResponses(requestId, logger),
+    ]);
     const ownResponse = responses.find(
       response => response.memberUid === memberId,
     );
@@ -132,6 +134,7 @@ export async function recordReferralOutcomeLogic({
         updated,
       ],
       memberId,
+      legacyResponses,
     );
     return toOutcomeFields(summary);
   } catch (error) {

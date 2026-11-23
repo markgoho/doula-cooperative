@@ -308,7 +308,10 @@ export type ReferralOutcomeResponse = Static<
 >;
 
 /**
- * Route response schema for PUT and DELETE /:memberId/referrals/:requestId/outcome.
+ * Route response schema for PUT and DELETE /:memberId/referrals/:requestId/outcome,
+ * and for a Legacy Membership's Outcome at
+ * /:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome (where
+ * `outcome` is the doula's, not the viewer's).
  */
 export const ReferralOutcomeRouteResponseSchema = t.Union([
   ReferralOutcomeResponseSchema,
@@ -389,6 +392,16 @@ export const DeleteOfflineResponseRouteResponseSchema = t.Union([
   DeleteOfflineResponseResponseSchema,
   ErrorResponseSchema,
 ]);
+
+/**
+ * PUT and DELETE /:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome
+ * params. Legacy only: a Member records their own Outcome.
+ */
+export const LegacyOutcomeParameterSchema = t.Object({
+  memberId: MemberIdParameterSchema.properties.memberId,
+  requestId: ReferralRequestIdParameterSchema.properties.requestId,
+  id: ReferralDoulaIdSchema,
+});
 
 /**
  * Route response schema for GET /:memberId/referrals.

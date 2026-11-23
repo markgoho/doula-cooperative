@@ -130,6 +130,8 @@ export function createMembersTestPlugin(overrides?: {
     ),
     deleteMemberOfflineResponse: mock(() => Promise.resolve()),
     deleteLegacyOfflineResponse: mock(() => Promise.resolve()),
+    setLegacyOutcome: mock(() => Promise.resolve("updated" as const)),
+    clearLegacyOutcome: mock(() => Promise.resolve("updated" as const)),
     ...overrides?.offlineResponseService,
   };
 

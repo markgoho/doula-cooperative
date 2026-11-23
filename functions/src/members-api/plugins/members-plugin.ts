@@ -10,6 +10,7 @@ import { getReferralLogic } from "../routes/get-referral.js";
 import { listReferralDoulasLogic } from "../routes/list-referral-doulas.js";
 import { listReferralsLogic } from "../routes/list-referrals.js";
 import { getMemberLogic } from "../routes/members.js";
+import { recordLegacyOutcomeLogic } from "../routes/record-legacy-outcome.js";
 import { recordOfflineResponseLogic } from "../routes/record-offline-response.js";
 import { recordReferralOutcomeLogic } from "../routes/record-referral-outcome.js";
 import { sendOutreachLogic } from "../routes/send-outreach.js";
@@ -32,6 +33,7 @@ import {
 } from "../schemas/member-schemas.js";
 import {
   DeleteOfflineResponseRouteResponseSchema,
+  LegacyOutcomeParameterSchema,
   ListReferralDoulasRouteResponseSchema,
   ListReferralsRouteResponseSchema,
   OfflineResponseParameterSchema,
@@ -560,6 +562,68 @@ export function createMembersPlugin(services?: PartialServices) {
         {
           params: OfflineResponseParameterSchema,
           response: DeleteOfflineResponseRouteResponseSchema,
+        },
+      )
+      // PUT /:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome - Set a not-yet-migrated doula's Referral Outcome (Referral Coordinator only) - Served at /api/members/:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome
+      .put(
+        "/:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome",
+        async ({
+          params,
+          body,
+          referralsService,
+          offlineResponseService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          recordLegacyOutcomeLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            id: params.id,
+            outcome: body.outcome,
+            referralsService,
+            offlineResponseService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: LegacyOutcomeParameterSchema,
+          body: SetReferralOutcomeBodySchema,
+          response: ReferralOutcomeRouteResponseSchema,
+        },
+      )
+      // DELETE /:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome - Clear a not-yet-migrated doula's Referral Outcome (Referral Coordinator only) - Served at /api/members/:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome
+      .delete(
+        "/:memberId/referrals/:requestId/offline-responses/legacy/:id/outcome",
+        async ({
+          params,
+          referralsService,
+          offlineResponseService,
+          authService,
+          logger,
+          request,
+          set,
+        }) =>
+          recordLegacyOutcomeLogic({
+            memberId: params.memberId,
+            requestId: params.requestId,
+            id: params.id,
+            outcome: undefined,
+            referralsService,
+            offlineResponseService,
+            authService,
+            logger,
+            authorizationHeader:
+              request.headers.get("authorization") ?? undefined,
+            set,
+          }),
+        {
+          params: LegacyOutcomeParameterSchema,
+          response: ReferralOutcomeRouteResponseSchema,
         },
       )
   );

@@ -85,9 +85,19 @@ async function setup({
     }),
   );
   const clearOutcome = vi.fn(() => Promise.resolve({ hiredBadge: hiredBadgeAfterSave }));
+  const setLegacyOutcome = vi.fn((_id: string, _legacyId: string, outcome: ReferralOutcome) =>
+    Promise.resolve({
+      outcome,
+      outcomeUpdatedAt: '2026-11-22T10:00:00.000Z',
+      hiredBadge: outcome === 'hired',
+    }),
+  );
+  const clearLegacyOutcome = vi.fn(() => Promise.resolve({ hiredBadge: false }));
   if (outcomeFailure) {
     setOutcome.mockRejectedValueOnce(outcomeFailure);
     clearOutcome.mockRejectedValueOnce(outcomeFailure);
+    setLegacyOutcome.mockRejectedValueOnce(outcomeFailure);
+    clearLegacyOutcome.mockRejectedValueOnce(outcomeFailure);
   }
 
   const listReferralDoulas = vi.fn().mockResolvedValue(doulas);
@@ -108,6 +118,8 @@ async function setup({
           sendOutreach,
           setOutcome,
           clearOutcome,
+          setLegacyOutcome,
+          clearLegacyOutcome,
           listReferralDoulas,
           recordOfflineResponse,
           deleteOfflineResponse,
@@ -123,6 +135,8 @@ async function setup({
     sendOutreach,
     setOutcome,
     clearOutcome,
+    setLegacyOutcome,
+    clearLegacyOutcome,
     listReferralDoulas,
     recordOfflineResponse,
     deleteOfflineResponse,
@@ -685,6 +699,78 @@ describe('ReferralDetail pane', () => {
         expect(items[1]).toHaveTextContent('Lee Legacy');
         expect(items[1]).toHaveTextContent('Not yet migrated');
         expect(items[1]).toHaveTextContent('by Olive Coordinator');
+      });
+
+      describe('Outcome for a doula not yet migrated', () => {
+        const leeOutcome = () => screen.findByRole('group', { name: 'Outcome for Lee Legacy' });
+
+        it('lets the Coordinator record it, leaving Members to record their own', async () => {
+          const { user, setLegacyOutcome, getReferral } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+          });
+          const group = await leeOutcome();
+          await user.click(within(group).getByRole('button', { name: 'Hired' }));
+
+          expect(setLegacyOutcome).toHaveBeenCalledWith('req-1', 'legacy-lee', 'hired');
+          expect(within(group).getByRole('button', { name: 'Hired' })).toHaveAttribute(
+            'aria-pressed',
+            'true',
+          );
+          // The pane refreshes the count and hired badge.
+          await waitFor(() => {
+            expect(getReferral).toHaveBeenCalledTimes(2);
+          });
+          expect(screen.queryByRole('group', { name: 'Outcome for Bea Doula' })).toBeNull();
+          const [bea] = within(offlineList()).getAllByRole('listitem');
+          expect(within(bea as HTMLElement).queryByRole('button', { name: 'Hired' })).toBeNull();
+        });
+
+        it('clears it', async () => {
+          const { user, clearLegacyOutcome } = await setup({
+            referral: makeReferralDetail({
+              coordinator: coordinatorView({
+                offlineResponses: [BEA_OFFLINE, { ...LEE_OFFLINE, outcome: 'not_a_fit' }],
+              }),
+            }),
+          });
+          const group = await leeOutcome();
+          expect(within(group).getByRole('button', { name: 'Not a fit' })).toHaveAttribute(
+            'aria-pressed',
+            'true',
+          );
+          await user.click(within(group).getByRole('button', { name: 'Clear outcome' }));
+          expect(clearLegacyOutcome).toHaveBeenCalledWith('req-1', 'legacy-lee');
+        });
+
+        it('explains a failed save and keeps the last saved Outcome', async () => {
+          const { user } = await setup({
+            referral: makeReferralDetail({ coordinator: coordinatorView() }),
+            outcomeFailure: new Error('Only the Referral Coordinator can record an outcome'),
+          });
+          const group = await leeOutcome();
+          await user.click(within(group).getByRole('button', { name: 'Hired' }));
+          expect(await within(group).findByRole('alert')).toHaveTextContent(
+            'Only the Referral Coordinator can record an outcome',
+          );
+          expect(within(group).getByRole('button', { name: 'Hired' })).toHaveAttribute(
+            'aria-pressed',
+            'false',
+          );
+        });
+
+        it('shows an Admin the Outcome without the control', async () => {
+          await setup({
+            referral: makeReferralDetail({
+              coordinator: coordinatorView({
+                canRecordOfflineResponses: false,
+                offlineResponses: [{ ...LEE_OFFLINE, outcome: 'hired' }],
+              }),
+            }),
+          });
+          await screen.findByRole('heading', { name: 'Offline Responses' });
+          expect(screen.queryByRole('group', { name: 'Outcome for Lee Legacy' })).toBeNull();
+          expect(within(offlineList()).getByRole('listitem')).toHaveTextContent('Hired');
+        });
       });
 
       it('offers Delete only on the ones you may delete', async () => {

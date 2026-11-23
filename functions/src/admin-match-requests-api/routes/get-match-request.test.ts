@@ -255,6 +255,32 @@ describe("GET /:requestId (get match request)", () => {
       expect(mockFindMemberNamesByIds).toHaveBeenCalledWith([]);
     });
 
+    it("should show the Referral Outcome a Coordinator recorded for a Legacy Membership", async () => {
+      const { testApp, request } = setup({
+        legacyResponses: [
+          {
+            legacyEmail: "legacy@example.com",
+            displayName: "Legacy Doula",
+            recordedBy: "coordinator-1",
+            recordedAt: at("2026-03-06T10:00:00.000Z"),
+            outcome: "hired",
+            outcomeUpdatedAt: at("2026-03-08T10:00:00.000Z"),
+            outcomeRecordedBy: "coordinator-1",
+          },
+        ],
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      const body = (await response.json()) as MatchRequestDetailResponse;
+      expect(body.responses.legacy).toHaveLength(1);
+      expect(body.responses.legacy[0]).toMatchObject({
+        displayName: "Legacy Doula",
+        outcome: "hired",
+        outcomeUpdatedAt: "2026-03-08T10:00:00.000Z",
+      });
+    });
+
     it("should never expose a Legacy Membership's email", async () => {
       const { testApp, request } = setup({
         legacyResponses: MIXED_LEGACY_RESPONSES,

@@ -72,12 +72,17 @@ export interface MemberReferralResponse {
   };
 }
 
-/** An Offline Response recorded for an Unclaimed Legacy Membership. */
+/**
+ * An Offline Response recorded for an Unclaimed Legacy Membership, with the
+ * Referral Outcome a Referral Coordinator recorded for it.
+ */
 export interface LegacyReferralResponse {
   displayName: string;
   /** "" when the recorder can't be found. */
   recordedByName: string;
   recordedAt: string;
+  outcome?: ReferralOutcome;
+  outcomeUpdatedAt?: string;
 }
 
 export interface MatchRequestDetail extends MatchRequest {

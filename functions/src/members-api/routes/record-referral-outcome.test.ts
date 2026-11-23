@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Timestamp } from "firebase-admin/firestore";
+import type { LegacyResponseDocument } from "../../collections/legacy-responses.js";
 import type {
   MemberResponseDocument,
   ReferralOutcome,
@@ -80,6 +81,7 @@ function setup({
   v2Enabled = true,
   referralNotFound = false,
   responses = [outreachBy(MEMBER_ID)],
+  legacyResponses = [],
   writeFails = false,
 }: {
   method?: "PUT" | "DELETE";
@@ -91,6 +93,7 @@ function setup({
   v2Enabled?: boolean;
   referralNotFound?: boolean;
   responses?: MemberResponseDocument[];
+  legacyResponses?: LegacyResponseDocument[];
   writeFails?: boolean;
 } = {}) {
   const write = () =>
@@ -109,6 +112,7 @@ function setup({
           : Promise.resolve(makeReferral()),
       ),
       listMemberResponses: mock(() => Promise.resolve(responses)),
+      listLegacyResponses: mock(() => Promise.resolve(legacyResponses)),
     },
     referralPortalSettingsService: {
       getReferralPortalSettings: mock(() => Promise.resolve({ v2Enabled })),
@@ -409,6 +413,28 @@ describe("DELETE /:memberId/referrals/:requestId/outcome", () => {
       responses: [
         outreachBy(MEMBER_ID, { outcome: "hired", outcomeUpdatedAt: EARLIER }),
         outreachBy("member-b", { outcome: "hired", outcomeUpdatedAt: EARLIER }),
+      ],
+    });
+    const response = await send();
+    expect(await response.json()).toEqual({ hiredBadge: true });
+  });
+
+  it("keeps the hired badge when a Coordinator recorded a hire for a doula not yet migrated", async () => {
+    const { send } = setup({
+      method: "DELETE",
+      responses: [
+        outreachBy(MEMBER_ID, { outcome: "hired", outcomeUpdatedAt: EARLIER }),
+      ],
+      legacyResponses: [
+        {
+          legacyEmail: "lee@example.com",
+          displayName: "Lee Legacy",
+          recordedBy: "coord-uid",
+          recordedAt: EARLIER,
+          outcome: "hired",
+          outcomeUpdatedAt: EARLIER,
+          outcomeRecordedBy: "coord-uid",
+        },
       ],
     });
     const response = await send();

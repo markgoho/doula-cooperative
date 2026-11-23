@@ -21,7 +21,11 @@ export interface MemberResponsesSummary {
   ownOutcome: ReferralOutcome | undefined;
   /** When the viewer's own Referral Outcome was last set. */
   ownOutcomeUpdatedAt: Timestamp | undefined;
-  /** Whether any Member recorded a hired Referral Outcome. Never says who. */
+  /**
+   * Whether any doula has a hired Referral Outcome: a Member's own, or one a
+   * Referral Coordinator recorded for an Unclaimed Legacy Membership. Never
+   * says who.
+   */
   hiredBadge: boolean;
 }
 
@@ -32,8 +36,8 @@ export interface MemberResponsesSummary {
  * here. Only `outreachSentAt` counts as Outreach; an in-flight send does not.
  *
  * @param legacyResponses - The Referral's Offline Responses for Unclaimed
- *   Legacy Memberships; only their number is used. Omit when the caller
- *   needs no count.
+ *   Legacy Memberships; only their number and any hired Outcome are used.
+ *   Omit only when the caller needs neither the count nor the hired badge.
  */
 export function summarizeMemberResponses(
   responses: MemberResponseDocument[],
@@ -54,6 +58,8 @@ export function summarizeMemberResponses(
     ownOfflineResponse: own?.offlineResponse,
     ownOutcome: own?.outcome,
     ownOutcomeUpdatedAt: own?.outcome ? own.outcomeUpdatedAt : undefined,
-    hiredBadge: responses.some(response => response.outcome === "hired"),
+    hiredBadge: [...responses, ...legacyResponses].some(
+      response => response.outcome === "hired",
+    ),
   };
 }

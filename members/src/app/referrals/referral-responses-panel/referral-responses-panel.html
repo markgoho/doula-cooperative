@@ -35,7 +35,7 @@
             Recorded <time [attr.datetime]="item.recordedAt">{{ item.recordedAtLabel }}</time> by
             {{ item.recordedBy }}
           </span>
-          @if (item.outcome) {
+          @if (!item.legacyDoula) {
             <span class="outcome">{{ item.outcome }}</span>
           }
           @if (item.row.canDelete) {
@@ -47,6 +47,15 @@
             >
               Delete
             </button>
+          }
+          @if (item.legacyDoula; as doula) {
+            <app-referral-outcome-control
+              class="row-outcome"
+              [referralId]="referralId()"
+              [outcome]="item.row.outcome"
+              [legacyDoula]="doula"
+              (saved)="changed.emit()"
+            />
           }
         </li>
       }

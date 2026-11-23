@@ -296,6 +296,20 @@ describe("POST /:memberId/profile/link", () => {
       expect(mockDeleteLegacyMembership).toHaveBeenCalledTimes(1);
     });
 
+    it("tells admins to carry a Coordinator-recorded Outcome over by hand, without overwriting the Member's own", async () => {
+      const { testApp, request, mockSendEmail } = setup({
+        carryOverFails: true,
+      });
+
+      await handleRequest(testApp, request);
+
+      const email = JSON.stringify(mockSendEmail.mock.calls[0]);
+      expect(email).toContain("unless they already have one");
+      expect(email).toContain(
+        "copy any outcome and outcomeUpdatedAt to the Member",
+      );
+    });
+
     it("still links, warns, and emails admins when the Legacy Membership lookup fails", async () => {
       const { testApp, request, mockCarryOverOfflineResponses, mockSendEmail } =
         setup({ legacyEmail: null, legacyLookupFailed: true });

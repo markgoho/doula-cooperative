@@ -68,6 +68,9 @@ export const LegacyReferralResponseSchema = t.Object({
   displayName: t.String(),
   recordedByName: t.String(),
   recordedAt: t.String({ format: "date-time" }),
+  /** The Referral Outcome a Referral Coordinator recorded for this doula, if any. */
+  outcome: t.Optional(ReferralOutcomeSchema),
+  outcomeUpdatedAt: t.Optional(t.String({ format: "date-time" })),
 });
 
 export type LegacyReferralResponse = Static<

@@ -657,6 +657,47 @@ describe("GET /:memberId/referrals/:requestId", () => {
       ]);
     });
 
+    it("lists the Outcome a Coordinator recorded for a Legacy Membership, and shows the hired badge, without changing the count", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        legacyResponses: LEGACY.map(legacy => ({
+          ...legacy,
+          outcome: "hired" as const,
+          outcomeUpdatedAt: LATER,
+          outcomeRecordedBy: MEMBER_ID,
+        })),
+        names: NAMES,
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        hiredBadge: boolean;
+        responseCount: number;
+        coordinator: { offlineResponses: { kind: string; outcome?: string }[] };
+      };
+      expect(body.coordinator.offlineResponses).toHaveLength(1);
+      expect(body.coordinator.offlineResponses[0]).toMatchObject({
+        kind: "legacy",
+        outcome: "hired",
+      });
+      expect(body.hiredBadge).toBe(true);
+      expect(body.responseCount).toBe(1);
+    });
+
+    it("shows any Member the hired badge for a Legacy Membership's hire, never who", async () => {
+      const { testApp, request } = setup({
+        legacyResponses: LEGACY.map(legacy => ({
+          ...legacy,
+          outcome: "hired" as const,
+        })),
+      });
+      const response = await handleRequest(testApp, request);
+      const text = await response.text();
+      const body = JSON.parse(text) as Record<string, unknown>;
+      expect(body["hiredBadge"]).toBe(true);
+      expect(body).not.toHaveProperty("coordinator");
+      expect(text).not.toContain("Lee Legacy");
+    });
+
     it("never sends a Legacy Membership's email", async () => {
       const { testApp, request } = setup({
         authToken: "referral-coordinator-token",

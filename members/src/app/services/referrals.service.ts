@@ -187,6 +187,28 @@ export class ReferralsService {
     return this.saveOutcome(id, (url) => this.http.delete<ReferralOutcomeState>(url));
   }
 
+  /**
+   * Set or change the Referral Outcome of a doula not yet migrated, on their
+   * Offline Response (Referral Coordinator only). Resolves with their saved
+   * Outcome and the current hired badge.
+   */
+  async setLegacyOutcome(
+    id: string,
+    legacyId: string,
+    outcome: ReferralOutcome,
+  ): Promise<ReferralOutcomeState> {
+    return this.saveOutcome(
+      id,
+      (url) => this.http.put<ReferralOutcomeState>(url, { outcome }),
+      legacyId,
+    );
+  }
+
+  /** Clear a not-yet-migrated doula's Referral Outcome. Resolves with the current hired badge. */
+  async clearLegacyOutcome(id: string, legacyId: string): Promise<ReferralOutcomeState> {
+    return this.saveOutcome(id, (url) => this.http.delete<ReferralOutcomeState>(url), legacyId);
+  }
+
   /** Members and Unclaimed Legacy Memberships to name in an Offline Response (Referral Coordinator only). */
   async listReferralDoulas(): Promise<ReferralDoula[]> {
     const uid = auth.currentUser?.uid;
@@ -271,19 +293,22 @@ export class ReferralsService {
     return new Error(fallback, { cause: error });
   }
 
+  /** Save your own Outcome, or with `legacyId` a not-yet-migrated doula's. */
   private async saveOutcome(
     id: string,
     request: (url: string) => Observable<ReferralOutcomeState>,
+    legacyId?: string,
   ): Promise<ReferralOutcomeState> {
     const uid = auth.currentUser?.uid;
     if (!uid) throw new Error('You must be signed in to record an outcome.');
 
-    const memberId = encodeURIComponent(uid);
-    const referralId = encodeURIComponent(id);
+    const referralUrl = `/api/members/${encodeURIComponent(uid)}/referrals/${encodeURIComponent(id)}`;
+    const url =
+      legacyId === undefined
+        ? `${referralUrl}/outcome`
+        : `${referralUrl}/offline-responses/legacy/${encodeURIComponent(legacyId)}/outcome`;
     try {
-      return await firstValueFrom(
-        request(`/api/members/${memberId}/referrals/${referralId}/outcome`),
-      );
+      return await firstValueFrom(request(url));
     } catch (error: unknown) {
       console.error('Failed to save Referral Outcome', { uid, id, error });
       if (error instanceof HttpErrorResponse) {

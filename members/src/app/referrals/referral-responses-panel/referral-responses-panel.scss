@@ -75,6 +75,12 @@ h4[tabindex='-1']:focus {
   white-space: nowrap;
 }
 
+/* A not-yet-migrated doula's Outcome control takes its own line under the row. */
+.row-outcome {
+  flex-basis: 100%;
+  margin-block: var(--space-3xs) var(--space-xs);
+}
+
 /* Delete sits at the row's end, like the Outcome on Outreach rows. */
 .when + .delete {
   margin-inline-start: auto;

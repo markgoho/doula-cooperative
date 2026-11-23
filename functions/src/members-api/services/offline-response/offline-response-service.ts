@@ -7,6 +7,7 @@ import { MATCH_REQUESTS_COLLECTION } from "../../../collections/match-requests.j
 import {
   MEMBER_RESPONSES_SUBCOLLECTION,
   type MemberResponseDocument,
+  type ReferralOutcome,
 } from "../../../collections/member-responses.js";
 import { MEMBERS_COLLECTION } from "../../../collections/members.js";
 import {
@@ -19,6 +20,8 @@ import type { MemberDocument } from "../../../types/member-document.js";
 import { canRecordReferralOutcome } from "../../access/can-record-referral-outcome.js";
 import type {
   LegacyDoula,
+  LegacyOutcomeWrite,
+  LegacyResponseTarget,
   MemberDoula,
   OfflineResponseRecording,
   OfflineResponseService,
@@ -232,6 +235,76 @@ async function deleteLegacyOfflineResponse(
   }
 }
 
+/**
+ * Apply an update to a Legacy Membership's Offline Response only while it
+ * exists, so a write racing a delete or a link never recreates a partial one.
+ */
+async function updateLegacyResponse(
+  { requestId, legacyEmail }: LegacyResponseTarget,
+  fields: Record<string, unknown>,
+  logger: Logger,
+): Promise<LegacyOutcomeWrite> {
+  const reference = referralReference(requestId)
+    .collection(LEGACY_RESPONSES_SUBCOLLECTION)
+    .doc(legacyEmail);
+  try {
+    return await getFirestore().runTransaction(async transaction => {
+      const snapshot = await transaction.get(reference);
+      if (!snapshot.exists) return "not_found";
+      transaction.update(reference, fields);
+      return "updated";
+    });
+  } catch (error) {
+    // The email is never logged; the Referral is enough to find the record.
+    logFailure(
+      logger,
+      "Failed to write a Legacy Membership's Referral Outcome",
+      error,
+      { requestId },
+    );
+    throw error;
+  }
+}
+
+async function setLegacyOutcome(
+  {
+    outcome,
+    updatedAt,
+    recordedBy,
+    ...target
+  }: LegacyResponseTarget & {
+    outcome: ReferralOutcome;
+    updatedAt: Date;
+    recordedBy: string;
+  },
+  logger: Logger,
+): Promise<LegacyOutcomeWrite> {
+  return updateLegacyResponse(
+    target,
+    {
+      outcome,
+      outcomeUpdatedAt: Timestamp.fromDate(updatedAt),
+      outcomeRecordedBy: recordedBy,
+    },
+    logger,
+  );
+}
+
+async function clearLegacyOutcome(
+  target: LegacyResponseTarget,
+  logger: Logger,
+): Promise<LegacyOutcomeWrite> {
+  return updateLegacyResponse(
+    target,
+    {
+      outcome: FieldValue.delete(),
+      outcomeUpdatedAt: FieldValue.delete(),
+      outcomeRecordedBy: FieldValue.delete(),
+    },
+    logger,
+  );
+}
+
 export const OfflineResponseServiceImpl: OfflineResponseService = {
   listMemberDoulas,
   listUnclaimedLegacyMemberships,
@@ -239,4 +312,6 @@ export const OfflineResponseServiceImpl: OfflineResponseService = {
   recordLegacyOfflineResponse,
   deleteMemberOfflineResponse,
   deleteLegacyOfflineResponse,
+  setLegacyOutcome,
+  clearLegacyOutcome,
 };

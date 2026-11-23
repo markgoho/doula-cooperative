@@ -401,6 +401,8 @@ export const ERROR_IDS = {
     "api_member_delete_offline_response_failed",
   API_MEMBER_OFFLINE_RESPONSE_WRITE_FAILED:
     "api_member_offline_response_write_failed",
+  API_MEMBER_RECORD_LEGACY_OUTCOME_FAILED:
+    "api_member_record_legacy_outcome_failed",
 
   // Admin settings errors
   API_ADMIN_GET_REFERRAL_PORTAL_SETTINGS_FAILED:
