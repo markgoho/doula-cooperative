@@ -6,6 +6,7 @@ import {
 } from "../../shared-api/errors/http-error.js";
 import { handleRequest } from "../../test-utils/handle-request.js";
 import type { MemberDocument } from "../../types/member-document.js";
+import type { MemberAdminService } from "../services/interface.js";
 import type { LinkProfileResult } from "../services/link-profile.js";
 import { createAdminTestPlugin } from "../test-utils/create-admin-test-plugin.js";
 
@@ -29,6 +30,10 @@ describe("POST /:memberId/profile/link", () => {
     profileAlreadyLinked?: boolean;
     serverError?: boolean;
     isAdminLookupFails?: boolean;
+    legacyEmail?: string | null;
+    legacyLookupFailed?: boolean;
+    carryOverFails?: boolean;
+    shouldFailDeleteLegacyMembership?: boolean;
   }
 
   function setup({
@@ -41,6 +46,10 @@ describe("POST /:memberId/profile/link", () => {
     profileAlreadyLinked = false,
     serverError = false,
     isAdminLookupFails = false,
+    legacyEmail = "Legacy.Doula@example.com",
+    legacyLookupFailed = false,
+    carryOverFails = false,
+    shouldFailDeleteLegacyMembership = false,
   }: SetupOptions = {}) {
     const defaultMember: MemberDocument = {
       uid: memberId,
@@ -88,13 +97,33 @@ describe("POST /:memberId/profile/link", () => {
         }
         return Promise.resolve({
           member: { ...defaultMember, uid: options.memberId },
+          ...(legacyEmail !== null && { legacyEmail }),
+          ...(legacyLookupFailed && { legacyLookupFailed: true as const }),
         });
       },
     );
 
+    const mockCarryOverOfflineResponses = mock<
+      MemberAdminService["carryOverOfflineResponses"]
+    >(() =>
+      carryOverFails
+        ? Promise.reject(new Error("Firestore unavailable"))
+        : Promise.resolve({ carried: 2 }),
+    );
+    const mockDeleteLegacyMembership = mock<
+      MemberAdminService["deleteLegacyMembership"]
+    >(() =>
+      shouldFailDeleteLegacyMembership
+        ? Promise.reject(new Error("Firestore unavailable"))
+        : Promise.resolve(),
+    );
+    const mockSendEmail = mock(() => Promise.resolve());
+
     const testApp = createAdminTestPlugin({
       memberAdminService: {
         linkProfile: mockLinkProfile,
+        carryOverOfflineResponses: mockCarryOverOfflineResponses,
+        deleteLegacyMembership: mockDeleteLegacyMembership,
         isAdmin: mock((): Promise<boolean> => {
           if (isAdminLookupFails) {
             return Promise.reject(new Error("Auth lookup unavailable"));
@@ -102,6 +131,7 @@ describe("POST /:memberId/profile/link", () => {
           return Promise.resolve(false);
         }),
       },
+      emailService: { sendEmail: mockSendEmail },
     });
 
     // Build request from parameters
@@ -118,7 +148,20 @@ describe("POST /:memberId/profile/link", () => {
       body: JSON.stringify(body),
     });
 
-    return { testApp, request };
+    return {
+      testApp,
+      request,
+      mockCarryOverOfflineResponses,
+      mockDeleteLegacyMembership,
+      mockSendEmail,
+    };
+  }
+
+  interface LinkBody {
+    success?: boolean;
+    member?: { uid?: string; slug?: string };
+    offlineResponsesCarried?: boolean;
+    warning?: string;
   }
 
   describe("Authentication", () => {
@@ -187,6 +230,110 @@ describe("POST /:memberId/profile/link", () => {
       expect(body.member?.uid).toBe("test-member-id");
       expect(body.member?.slug).toBe("unlinked-doula-profile");
       expect(body.member?.isAdmin).toBe(false);
+    });
+  });
+
+  describe("Offline Responses carry-over", () => {
+    it("carries the Legacy Membership's Offline Responses over to the Member, then deletes its import record", async () => {
+      const {
+        testApp,
+        request,
+        mockCarryOverOfflineResponses,
+        mockDeleteLegacyMembership,
+        mockSendEmail,
+      } = setup({ legacyEmail: "Legacy.Doula@example.com" });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as LinkBody;
+      expect(body.success).toBe(true);
+      expect(body.offlineResponsesCarried).toBe(true);
+      expect(body.warning).toBeUndefined();
+      expect(mockCarryOverOfflineResponses).toHaveBeenCalledTimes(1);
+      expect(mockCarryOverOfflineResponses.mock.calls[0]?.[0]).toMatchObject({
+        memberUid: "test-member-id",
+        legacyEmail: "Legacy.Doula@example.com",
+      });
+      expect(mockDeleteLegacyMembership).toHaveBeenCalledWith({
+        legacyEmail: "Legacy.Doula@example.com",
+      });
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it("reports nothing to carry over when no Legacy Membership matches the profile", async () => {
+      const {
+        testApp,
+        request,
+        mockCarryOverOfflineResponses,
+        mockDeleteLegacyMembership,
+      } = setup({ legacyEmail: null });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as LinkBody;
+      expect(body.offlineResponsesCarried).toBe(true);
+      expect(mockCarryOverOfflineResponses).not.toHaveBeenCalled();
+      expect(mockDeleteLegacyMembership).not.toHaveBeenCalled();
+    });
+
+    it("still links, warns, emails admins, and keeps the import record when the carry-over fails", async () => {
+      const { testApp, request, mockDeleteLegacyMembership, mockSendEmail } =
+        setup({ carryOverFails: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as LinkBody;
+      expect(body.success).toBe(true);
+      expect(body.member?.slug).toBe("unlinked-doula-profile");
+      expect(body.offlineResponsesCarried).toBe(false);
+      expect(body.warning).toContain(
+        "Offline Responses could not be carried over",
+      );
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+      expect(mockDeleteLegacyMembership).not.toHaveBeenCalled();
+    });
+
+    it("still links, warns, and emails admins when the Legacy Membership lookup fails", async () => {
+      const { testApp, request, mockCarryOverOfflineResponses, mockSendEmail } =
+        setup({ legacyEmail: null, legacyLookupFailed: true });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as LinkBody;
+      expect(body.success).toBe(true);
+      expect(body.offlineResponsesCarried).toBe(false);
+      expect(body.warning).toBeDefined();
+      expect(mockCarryOverOfflineResponses).not.toHaveBeenCalled();
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it("still reports the carry-over when deleting the import record fails", async () => {
+      const { testApp, request, mockSendEmail } = setup({
+        shouldFailDeleteLegacyMembership: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as LinkBody;
+      expect(body.offlineResponsesCarried).toBe(true);
+      expect(body.warning).toBeUndefined();
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it("does not carry anything over when the link fails", async () => {
+      const { testApp, request, mockCarryOverOfflineResponses } = setup({
+        profileAlreadyLinked: true,
+      });
+
+      const response = await handleRequest(testApp, request);
+
+      expect(response.status).toBe(400);
+      expect(mockCarryOverOfflineResponses).not.toHaveBeenCalled();
     });
   });
 

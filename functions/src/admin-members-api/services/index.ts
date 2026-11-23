@@ -1,9 +1,11 @@
 import { activateMembership } from "./activate-membership.js";
 import { approveProfile } from "./approve-profile.js";
 import { cancelMembership } from "./cancel-membership.js";
+import { carryOverOfflineResponses } from "./carry-over-offline-responses.js";
 import { changeSlug } from "./change-slug.js";
 import { cleanSlateDelete } from "./clean-slate-delete.js";
 import { deleteDraftProfile } from "./delete-draft-profile.js";
+import { deleteLegacyMembership } from "./delete-legacy-membership.js";
 import { extendMembership } from "./extend-membership.js";
 import { isAdmin } from "./is-admin.js";
 import { isReferralCoordinator } from "./is-referral-coordinator.js";
@@ -41,6 +43,8 @@ export const MemberAdminService = {
   listUnlinkedProfiles,
   approveProfile,
   linkProfile,
+  carryOverOfflineResponses,
+  deleteLegacyMembership,
   changeSlug,
 };
 
@@ -48,9 +52,11 @@ export const MemberAdminService = {
 export { activateMembership } from "./activate-membership.js";
 export { approveProfile } from "./approve-profile.js";
 export { cancelMembership } from "./cancel-membership.js";
+export { carryOverOfflineResponses } from "./carry-over-offline-responses.js";
 export { changeSlug } from "./change-slug.js";
 export { cleanSlateDelete } from "./clean-slate-delete.js";
 export { deleteDraftProfile } from "./delete-draft-profile.js";
+export { deleteLegacyMembership } from "./delete-legacy-membership.js";
 export { extendMembership } from "./extend-membership.js";
 export { isAdmin } from "./is-admin.js";
 export { isReferralCoordinator } from "./is-referral-coordinator.js";

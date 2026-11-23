@@ -125,6 +125,8 @@ export function createAdminTestPlugin(overrides?: {
         member: {} as MemberDocument,
       }),
     ),
+    carryOverOfflineResponses: mock(() => Promise.resolve({ carried: 0 })),
+    deleteLegacyMembership: mock(() => Promise.resolve()),
     changeSlug: mock(() =>
       Promise.resolve({
         member: {} as MemberDocument,

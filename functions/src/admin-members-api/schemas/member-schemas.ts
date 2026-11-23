@@ -813,10 +813,30 @@ export const LinkProfileBodySchema = t.Object({
 export type LinkProfileBody = Static<typeof LinkProfileBodySchema>;
 
 /**
+ * Success response for linking a profile (and its Legacy Membership) to a member.
+ */
+export const LinkProfileResponseSchema = t.Object({
+  success: t.Literal(true),
+  member: MemberResponseSchema,
+  offlineResponsesCarried: t.Boolean({
+    description:
+      "Whether the Legacy Membership's Offline Responses are now on the Member (true when there were none)",
+  }),
+  warning: t.Optional(
+    t.String({
+      description:
+        "Warning message if the Offline Responses could not be carried over",
+    }),
+  ),
+});
+
+export type LinkProfileResponse = Static<typeof LinkProfileResponseSchema>;
+
+/**
  * POST /api/admin/members/:memberId/link-profile response - union of success and error.
  */
 export const LinkProfileApiResponseSchema = t.Union([
-  MemberSuccessResponseSchema,
+  LinkProfileResponseSchema,
   ErrorResponseSchema,
 ]);
 
