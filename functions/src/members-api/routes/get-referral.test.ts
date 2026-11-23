@@ -532,6 +532,29 @@ describe("GET /:memberId/referrals/:requestId", () => {
       expect(body.coordinator?.responses).toHaveLength(2);
     });
 
+    it("returns 500 when Member names can't be read", async () => {
+      const testApp = createMembersTestPlugin({
+        memberService: {
+          findById: mock(() => Promise.resolve(makeActiveStripeMember())),
+          findNamesByIds: mock(() =>
+            Promise.reject(new Error("Firestore unavailable")),
+          ),
+        },
+        referralsService: {
+          getReferral: mock(() => Promise.resolve(makeReferralItem())),
+          listMemberResponses: mock(() => Promise.resolve(OTHERS_RESPONSES)),
+        },
+      });
+      const request = new Request(
+        `http://localhost/${MEMBER_ID}/referrals/${REQUEST_ID}`,
+        { headers: { Authorization: "Bearer referral-coordinator-token" } },
+      );
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Failed to retrieve referral");
+    });
+
     it("never gives the panel or other Members' names to an ordinary Member", async () => {
       const { testApp, request } = setup({
         responses: OTHERS_RESPONSES,

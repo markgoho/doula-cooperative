@@ -507,6 +507,42 @@ describe("GET /:memberId/referrals", () => {
       expect(text).not.toContain("other-member");
     });
 
+    it("keeps an Admin's list to open Referrals (Admins get the panel, not All referrals)", async () => {
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        referrals: [makeReferral("req-open")],
+        allReferrals: [
+          makeReferral("req-open"),
+          makeReferral("req-old", { submitted: daysAgo(30) }),
+        ],
+      });
+      const response = await handleRequest(testApp, request);
+      const body = (await response.json()) as {
+        referrals: ListedReferral[];
+        showsAllReferrals: boolean;
+      };
+      expect(body.showsAllReferrals).toBe(false);
+      expect(body.referrals.map(referral => referral.id)).toEqual(["req-open"]);
+    });
+
+    it("returns 500 when every Referral can't be listed for a Coordinator", async () => {
+      const testApp = createMembersTestPlugin({
+        memberService: {
+          findById: mock(() => Promise.resolve(makeActiveStripeMember())),
+        },
+        referralsService: {
+          listAllReferrals: mock(() => Promise.reject(new Error("DB error"))),
+        },
+      });
+      const request = new Request(`http://localhost/${MEMBER_ID}/referrals`, {
+        headers: { Authorization: "Bearer referral-coordinator-token" },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
+      const body = (await response.json()) as { error?: string };
+      expect(body.error).toBe("Failed to retrieve referrals");
+    });
+
     it("keeps an ordinary member's list to open Referrals", async () => {
       const { testApp, request } = setup({
         referrals: [makeReferral("req-open")],
