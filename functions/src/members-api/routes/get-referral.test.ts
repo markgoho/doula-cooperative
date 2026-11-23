@@ -261,6 +261,19 @@ describe("GET /:memberId/referrals/:requestId", () => {
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
     });
+
+    it("lets a Referral Coordinator open a Referral older than 14 days, still pre-Outreach", async () => {
+      const { testApp, request } = setup({
+        authToken: "referral-coordinator-token",
+        referral: { submitted: daysAgo(30) },
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      expect(text).not.toContain("Smith");
+      expect(text).not.toContain("jane@example.com");
+      expect(text).not.toContain("555-0100");
+    });
   });
 
   describe("Validation", () => {
