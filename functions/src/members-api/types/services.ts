@@ -1,6 +1,7 @@
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
 import type { EmailServiceInterface } from "../../shared-api/services/email/index.js";
 import type { MemberFirestoreService } from "../../shared-api/services/member-firestore/interface.js";
+import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
 import type { MemberService } from "../services/member/interface.js";
 import type { NewsletterService } from "../services/newsletter/interface.js";
@@ -20,6 +21,7 @@ export const SERVICE_KEYS = {
   VERIFY_EMAIL_SERVICE: "verifyEmailService",
   MEMBER_FIRESTORE_SERVICE: "memberFirestoreService",
   REFERRALS_SERVICE: "referralsService",
+  REFERRAL_PORTAL_SETTINGS_SERVICE: "referralPortalSettingsService",
 } as const;
 
 /**
@@ -36,6 +38,7 @@ export interface Services {
   [SERVICE_KEYS.VERIFY_EMAIL_SERVICE]: VerifyEmailService;
   [SERVICE_KEYS.MEMBER_FIRESTORE_SERVICE]: MemberFirestoreService;
   [SERVICE_KEYS.REFERRALS_SERVICE]: ReferralsService;
+  [SERVICE_KEYS.REFERRAL_PORTAL_SETTINGS_SERVICE]: ReferralPortalSettingsService;
 }
 
 /**

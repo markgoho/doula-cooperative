@@ -60,6 +60,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
     requestId?: string;
     authToken?: string | null;
     memberIsInactive?: boolean;
+    v2Enabled?: boolean;
+    settingsReadFails?: boolean;
     referralNotFound?: boolean;
   }
 
@@ -68,6 +70,8 @@ describe("GET /:memberId/referrals/:requestId", () => {
     requestId = REQUEST_ID,
     authToken = "valid-owner-token",
     memberIsInactive = false,
+    v2Enabled = true,
+    settingsReadFails = false,
     referralNotFound = false,
   }: SetupOptions = {}) {
     const mockFindById = mock((): Promise<MemberDocument> => {
@@ -85,6 +89,13 @@ describe("GET /:memberId/referrals/:requestId", () => {
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
       referralsService: { getReferral: mockGetReferral },
+      referralPortalSettingsService: {
+        getReferralPortalSettings: mock(() =>
+          settingsReadFails
+            ? Promise.reject(new Error("Firestore unavailable"))
+            : Promise.resolve({ v2Enabled }),
+        ),
+      },
     });
 
     const headers: Record<string, string> = {};
@@ -96,7 +107,7 @@ describe("GET /:memberId/referrals/:requestId", () => {
       `http://localhost/${memberId}/referrals/${requestId}`,
       { headers },
     );
-    return { testApp, request };
+    return { testApp, request, mockGet: mockGetReferral };
   }
 
   describe("Authentication", () => {
@@ -155,7 +166,10 @@ describe("GET /:memberId/referrals/:requestId", () => {
     });
 
     it("returns 200 for admin access even when membership is inactive", async () => {
-      const { testApp, request } = setup({ authToken: "admin-token", memberIsInactive: true });
+      const { testApp, request } = setup({
+        authToken: "admin-token",
+        memberIsInactive: true,
+      });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
     });
@@ -177,12 +191,55 @@ describe("GET /:memberId/referrals/:requestId", () => {
     });
   });
 
+  describe("Referral Portal v2 switch", () => {
+    it("returns 403 REFERRAL_PORTAL_DISABLED to an active member while the switch is off", async () => {
+      const { testApp, request, mockGet } = setup({ v2Enabled: false });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(403);
+      const body = (await response.json()) as { error?: string; code?: string };
+      expect(body.code).toBe("REFERRAL_PORTAL_DISABLED");
+      expect(body.error).toBe("The referral portal is not available yet");
+      expect(mockGet).not.toHaveBeenCalled();
+    });
+
+    it("lets an Admin through while the switch is off", async () => {
+      const { testApp, request } = setup({
+        v2Enabled: false,
+        authToken: "admin-token",
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
+    it("lets an active member through while the switch is on", async () => {
+      const { testApp, request } = setup({ v2Enabled: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
+    it("keeps the membership code for a lapsed member while the switch is on", async () => {
+      const { testApp, request } = setup({ memberIsInactive: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(403);
+      const body = (await response.json()) as { code?: string };
+      expect(body.code).toBe("ACTIVE_MEMBERSHIP_REQUIRED");
+    });
+
+    it("returns 500 when the switch cannot be read", async () => {
+      const { testApp, request } = setup({ settingsReadFails: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
+    });
+  });
+
   describe("Error handling", () => {
     it("returns 500 when getReferral throws a non-NotFoundError", async () => {
       const mockFindById = mock((): Promise<MemberDocument> =>
         Promise.resolve(makeActiveStripeMember()),
       );
-      const mockGetReferral = mock(() => Promise.reject(new Error("Unexpected DB error")));
+      const mockGetReferral = mock(() =>
+        Promise.reject(new Error("Unexpected DB error")),
+      );
       const testApp = createMembersTestPlugin({
         memberService: { findById: mockFindById },
         referralsService: { getReferral: mockGetReferral },

@@ -1,7 +1,9 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
+import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import {
   toMemberResponse,
   type MemberResponse,
@@ -11,6 +13,7 @@ import type { MemberService } from "../services/member/interface.js";
 /**
  * Get a member by ID logic (authenticated).
  * Requires authentication - users can access their own data, or admins can access any member.
+ * Includes `referralPortalAvailable` so the members app never reads the Referral Portal switch itself.
  *
  * @returns Member data or error object
  */
@@ -18,6 +21,7 @@ export async function getMemberLogic({
   memberId,
   memberService,
   authService,
+  referralPortalSettingsService,
   logger,
   authorizationHeader,
   set,
@@ -25,6 +29,7 @@ export async function getMemberLogic({
   memberId: string;
   memberService: MemberService;
   authService: AuthService;
+  referralPortalSettingsService: ReferralPortalSettingsService;
   logger: Logger;
   authorizationHeader: string | undefined;
   set: { status?: number | string };
@@ -46,7 +51,26 @@ export async function getMemberLogic({
 
     // Fetch member data using injected service
     const member = await memberService.findById(memberId);
-    return toMemberResponse(member, isAdmin);
+
+    // A settings read failure must not break the membership page; the
+    // resolver logs it, and the portal link is simply hidden.
+    let isReferralPortalAvailable = false;
+    try {
+      const access = await resolveReferralPortalAccess({
+        decodedToken,
+        loadMember: () => Promise.resolve(member),
+        referralPortalSettingsService,
+        logger,
+      });
+      isReferralPortalAvailable = access === "allowed";
+    } catch {
+      // Already logged with API_MEMBER_REFERRAL_PORTAL_SETTINGS_READ_FAILED
+    }
+
+    return {
+      ...toMemberResponse(member, isAdmin),
+      referralPortalAvailable: isReferralPortalAvailable,
+    };
   } catch (error) {
     // Handle our custom HTTP errors
     if (error instanceof HttpError) {

@@ -38,6 +38,8 @@ describe("GET /:memberId/referrals", () => {
     authToken?: string | null;
     memberNotFound?: boolean;
     memberIsInactive?: boolean;
+    v2Enabled?: boolean;
+    settingsReadFails?: boolean;
     serverError?: boolean;
     referrals?: {
       id: string;
@@ -62,6 +64,8 @@ describe("GET /:memberId/referrals", () => {
     authToken = "valid-owner-token",
     memberNotFound = false,
     memberIsInactive = false,
+    v2Enabled = true,
+    settingsReadFails = false,
     serverError = false,
     referrals = [],
   }: SetupOptions = {}) {
@@ -73,10 +77,19 @@ describe("GET /:memberId/referrals", () => {
       return Promise.resolve(makeActiveStripeMember());
     });
 
+    const mockListReferrals = mock(() => Promise.resolve(referrals));
+
     const testApp = createMembersTestPlugin({
       memberService: { findById: mockFindById },
       referralsService: {
-        listReferrals: mock(() => Promise.resolve(referrals)),
+        listReferrals: mockListReferrals,
+      },
+      referralPortalSettingsService: {
+        getReferralPortalSettings: mock(() =>
+          settingsReadFails
+            ? Promise.reject(new Error("Firestore unavailable"))
+            : Promise.resolve({ v2Enabled }),
+        ),
       },
     });
 
@@ -88,7 +101,7 @@ describe("GET /:memberId/referrals", () => {
     const request = new Request(`http://localhost/${memberId}/referrals`, {
       headers,
     });
-    return { testApp, request };
+    return { testApp, request, mockGet: mockListReferrals };
   }
 
   describe("Authentication", () => {
@@ -198,6 +211,47 @@ describe("GET /:memberId/referrals", () => {
       });
       const response = await handleRequest(testApp, request);
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("Referral Portal v2 switch", () => {
+    it("returns 403 REFERRAL_PORTAL_DISABLED to an active member while the switch is off", async () => {
+      const { testApp, request, mockGet } = setup({ v2Enabled: false });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(403);
+      const body = (await response.json()) as { error?: string; code?: string };
+      expect(body.code).toBe("REFERRAL_PORTAL_DISABLED");
+      expect(body.error).toBe("The referral portal is not available yet");
+      expect(mockGet).not.toHaveBeenCalled();
+    });
+
+    it("lets an Admin through while the switch is off", async () => {
+      const { testApp, request } = setup({
+        v2Enabled: false,
+        authToken: "admin-token",
+      });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
+    it("lets an active member through while the switch is on", async () => {
+      const { testApp, request } = setup({ v2Enabled: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(200);
+    });
+
+    it("keeps the membership code for a lapsed member while the switch is on", async () => {
+      const { testApp, request } = setup({ memberIsInactive: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(403);
+      const body = (await response.json()) as { code?: string };
+      expect(body.code).toBe("ACTIVE_MEMBERSHIP_REQUIRED");
+    });
+
+    it("returns 500 when the switch cannot be read", async () => {
+      const { testApp, request } = setup({ settingsReadFails: true });
+      const response = await handleRequest(testApp, request);
+      expect(response.status).toBe(500);
     });
   });
 

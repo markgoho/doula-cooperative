@@ -1,8 +1,10 @@
 import { ERROR_IDS } from "../../constants/error-ids.js";
 import { HttpError } from "../../shared-api/errors/http-error.js";
 import type { AuthService } from "../../shared-api/services/auth/interface.js";
+import type { ReferralPortalSettingsService } from "../../shared-api/services/referral-portal-settings/interface.js";
 import type { Logger } from "../../shared-api/types/logger.js";
-import { isActiveStripeMember } from "../../types/member-document.js";
+import { REFERRAL_PORTAL_DENIAL } from "../access/referral-portal-denial.js";
+import { resolveReferralPortalAccess } from "../access/resolve-referral-portal-access.js";
 import { type ReferralDetail } from "../schemas/referral-schemas.js";
 import { toReferralDetail } from "../schemas/to-referral-detail.js";
 import type { MemberService } from "../services/member/interface.js";
@@ -13,6 +15,7 @@ export async function getReferralLogic({
   requestId,
   memberService,
   referralsService,
+  referralPortalSettingsService,
   authService,
   logger,
   authorizationHeader,
@@ -22,24 +25,33 @@ export async function getReferralLogic({
   requestId: string;
   memberService: MemberService;
   referralsService: ReferralsService;
+  referralPortalSettingsService: ReferralPortalSettingsService;
   authService: AuthService;
   logger: Logger;
   authorizationHeader: string | undefined;
   set: { status?: number | string };
-}): Promise<ReferralDetail | { error: string }> {
+}): Promise<ReferralDetail | { error: string; code?: string }> {
   try {
-    const decodedToken = await authService.verifyOwnerOrAdmin(authorizationHeader, memberId);
-    const isAdmin = decodedToken["admin"] === true;
+    const decodedToken = await authService.verifyOwnerOrAdmin(
+      authorizationHeader,
+      memberId,
+    );
+    const access = await resolveReferralPortalAccess({
+      decodedToken,
+      loadMember: () => memberService.findById(memberId),
+      referralPortalSettingsService,
+      logger,
+    });
 
-    if (!isAdmin) {
-      const member = await memberService.findById(memberId);
-      if (!isActiveStripeMember(member)) {
-        set.status = 403;
-        return { error: "Active membership required to view referrals" };
-      }
+    if (access !== "allowed") {
+      set.status = 403;
+      return REFERRAL_PORTAL_DENIAL[access];
     }
 
-    const { id, document } = await referralsService.getReferral(requestId, logger);
+    const { id, document } = await referralsService.getReferral(
+      requestId,
+      logger,
+    );
     return toReferralDetail(id, document);
   } catch (error) {
     if (error instanceof HttpError) {
