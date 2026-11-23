@@ -15,6 +15,14 @@ export interface MemberService {
   findById(memberId: string): Promise<MemberDocument>;
 
   /**
+   * Look up several members' names in one batch read.
+   *
+   * @param memberIds - Firestore document IDs
+   * @returns Name by member ID; a missing member or unset name is absent
+   */
+  findNamesByIds(memberIds: string[]): Promise<Map<string, string>>;
+
+  /**
    * Update a member's name.
    *
    * @param memberId - The Firestore document ID

@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { formatDaysOpen } from '../format-days-open';
 import { formatDueDate } from '../format-due-date';
 import { formatResponseCount } from '../format-response-count';
+import { formatSentAt } from '../format-sent-at';
 import { formatServices } from '../format-services';
 import { MembershipRequiredError } from '../membership-required-error';
 import { ReferralNotOpenError } from '../referral-not-open-error';
@@ -22,16 +23,10 @@ import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
 import { ReferralListRefresh } from '../referral-list-refresh';
 import { ReferralOutcomeControl } from '../referral-outcome-control/referral-outcome-control';
 import { ReferralOutreachComposer } from '../referral-outreach-composer/referral-outreach-composer';
+import { ReferralResponsesPanel } from '../referral-responses-panel/referral-responses-panel';
 import type { ReferralOutcomeState, SentOutreach } from '../referral.types';
 import { getRelativeTime } from '../referral.utilities';
 import { ReferralsService } from '../../services/referrals.service';
-
-const SENT_AT_FORMAT = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-});
 
 /**
  * Right pane of the Referral inbox: the selected Referral.
@@ -43,7 +38,7 @@ const SENT_AT_FORMAT = new Intl.DateTimeFormat('en-US', {
  */
 @Component({
   selector: 'app-referral-detail',
-  imports: [RouterLink, ReferralOutreachComposer, ReferralOutcomeControl],
+  imports: [RouterLink, ReferralOutreachComposer, ReferralOutcomeControl, ReferralResponsesPanel],
   templateUrl: './referral-detail.html',
   styleUrl: './referral-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,7 +84,7 @@ export class ReferralDetail {
       area: this.formatArea(referral.area, referral.zipcode),
       costOffset: referral.insurance.join(', ') || 'Not provided',
       contactHint: `${firstName}'s full name, email, and phone appear after you send Outreach.`,
-      sentAt: referral.outreach ? SENT_AT_FORMAT.format(new Date(referral.outreach.sentAt)) : '',
+      sentAt: referral.outreach ? formatSentAt(referral.outreach.sentAt) : '',
     };
   });
 
@@ -107,6 +102,7 @@ export class ReferralDetail {
     delete updated.outreachSender;
     this.referralResource.set(updated);
     this.listRefresh.request();
+    void this.refreshCoordinatorView();
     // The composer is gone; move focus to the revealed contact details.
     afterNextRender(() => this.contactHeading()?.nativeElement.focus(), {
       injector: this.injector,
@@ -125,6 +121,25 @@ export class ReferralDetail {
     delete updated.outcomeUpdatedAt;
     this.referralResource.set({ ...updated, ...state });
     this.listRefresh.request();
+    void this.refreshCoordinatorView();
+  }
+
+  /**
+   * A Coordinator's own Outreach or Outcome also appears in her Responses
+   * panel. Re-fetch in the background and swap in only that block, so the
+   * pane is not replaced and focus stays put. On failure the panel keeps its
+   * last state; it refreshes on the next open.
+   */
+  private async refreshCoordinatorView(): Promise<void> {
+    if (!this.referralResource.hasValue() || !this.referralResource.value().coordinator) return;
+    const id = this.id();
+    try {
+      const { coordinator } = await this.referralsService.getReferral(id);
+      if (!coordinator || this.id() !== id || !this.referralResource.hasValue()) return;
+      this.referralResource.set({ ...this.referralResource.value(), coordinator });
+    } catch (error: unknown) {
+      console.error('Failed to refresh the Responses panel', { id, error });
+    }
   }
 
   constructor() {

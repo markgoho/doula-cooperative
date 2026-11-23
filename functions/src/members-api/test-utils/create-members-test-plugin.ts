@@ -41,6 +41,7 @@ export function createMembersTestPlugin(overrides?: {
 }) {
   const defaultMemberService: MemberService = {
     findById: mock(() => Promise.resolve({} as MemberDocument)),
+    findNamesByIds: mock(() => Promise.resolve(new Map<string, string>())),
     updateName: mock(() => Promise.resolve({} as MemberDocument)),
     updateReferralNotifications: mock(() =>
       Promise.resolve({} as MemberDocument),
@@ -89,6 +90,7 @@ export function createMembersTestPlugin(overrides?: {
 
   const defaultReferralsService: ReferralsService = {
     listReferrals: mock(() => Promise.resolve([])),
+    listAllReferrals: mock(() => Promise.resolve([])),
     getReferral: mock(() =>
       Promise.reject(new Error("getReferral not configured in test")),
     ),

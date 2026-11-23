@@ -83,7 +83,9 @@ const DETAILS: Record<string, ReferralDetailModel> = {
 };
 
 async function setup({ url = '/referrals' }: { url?: string } = {}) {
-  const listReferrals = vi.fn().mockResolvedValue(REFERRALS);
+  const listReferrals = vi
+    .fn()
+    .mockResolvedValue({ referrals: REFERRALS, showsAllReferrals: false });
   const getReferral = vi.fn((id: string) => Promise.resolve(DETAILS[id]));
   const sendOutreach = vi.fn();
 
@@ -137,10 +139,10 @@ describe('Referral inbox routing', () => {
       outreach: { sentAt },
       contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
     });
-    listReferrals.mockResolvedValue([
-      { ...ROCHESTER, responseCount: 1, outreach: { sentAt } },
-      BUFFALO,
-    ]);
+    listReferrals.mockResolvedValue({
+      referrals: [{ ...ROCHESTER, responseCount: 1, outreach: { sentAt } }, BUFFALO],
+      showsAllReferrals: false,
+    });
 
     await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
 

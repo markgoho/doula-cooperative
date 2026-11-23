@@ -27,10 +27,13 @@ async function setup({
   loading = false,
   failure,
   referrals = [] as ReferralListItem[],
+  showsAllReferrals = false,
 }: {
   loading?: boolean;
   failure?: Error;
   referrals?: ReferralListItem[];
+  /** True for a Referral Coordinator. */
+  showsAllReferrals?: boolean;
 } = {}) {
   let listReferrals: ReturnType<typeof vi.fn>;
   if (loading) {
@@ -39,7 +42,7 @@ async function setup({
   } else if (failure) {
     listReferrals = vi.fn().mockRejectedValue(failure);
   } else {
-    listReferrals = vi.fn().mockResolvedValue(referrals);
+    listReferrals = vi.fn().mockResolvedValue({ referrals, showsAllReferrals });
   }
 
   await render(Referrals, {
@@ -181,9 +184,12 @@ describe('Referrals inbox', () => {
   it('reloads the list when the pane reports sent Outreach', async () => {
     const { listReferrals, listRefresh } = await setup({ referrals: [makeReferral()] });
     await screen.findByRole('link', { name: /Rochester, NY/ });
-    listReferrals.mockResolvedValue([
-      makeReferral({ responseCount: 1, outreach: { sentAt: new Date().toISOString() } }),
-    ]);
+    listReferrals.mockResolvedValue({
+      referrals: [
+        makeReferral({ responseCount: 1, outreach: { sentAt: new Date().toISOString() } }),
+      ],
+      showsAllReferrals: false,
+    });
 
     listRefresh.request();
 
@@ -262,6 +268,41 @@ describe('Referrals inbox', () => {
       expect(
         screen.getByText('Nothing to record. After you send Outreach, record how it went here.'),
       ).toBeVisible();
+    });
+  });
+
+  describe('Referral Coordinator', () => {
+    const OLD = makeReferral({
+      id: 'req-old',
+      area: 'Buffalo, NY',
+      isOpen: false,
+      submitted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    it('offers All referrals, listing Referrals older than 14 days', async () => {
+      await setup({ referrals: [makeReferral(), OLD], showsAllReferrals: true });
+      const user = userEvent.setup();
+      expect(await screen.findByRole('button', { name: 'Open (1)' })).toBeVisible();
+      await user.click(screen.getByRole('button', { name: 'All referrals (2)' }));
+
+      expect(screen.getByRole('link', { name: /Rochester, NY/ })).toBeVisible();
+      expect(screen.getByRole('link', { name: /Buffalo, NY/ })).toBeVisible();
+    });
+
+    it('keeps Open, My Outreach and Needs outcome for a Coordinator', async () => {
+      await setup({ referrals: [makeReferral(), OLD], showsAllReferrals: true });
+      expect(await screen.findByRole('button', { name: 'Open (1)' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'My Outreach (0)' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Needs outcome (0)' })).toBeVisible();
+    });
+
+    it('never offers All referrals to an ordinary member', async () => {
+      await setup({ referrals: [makeReferral()] });
+      await screen.findByRole('button', { name: 'Open (1)' });
+      expect(screen.queryByRole('button', { name: /All referrals/ })).toBeNull();
     });
   });
 

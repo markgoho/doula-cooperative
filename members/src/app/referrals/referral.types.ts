@@ -24,6 +24,13 @@ export interface ReferralListItem {
   hiredBadge: boolean;
 }
 
+/** The inbox list, and whether it holds every Referral regardless of age. */
+export interface ReferralList {
+  referrals: ReferralListItem[];
+  /** True for a Referral Coordinator: the list holds every Referral (newest 200). */
+  showsAllReferrals: boolean;
+}
+
 /** One member's own result for a Referral. Never exclusive to one member. */
 export type ReferralOutcome = 'hired' | 'not_hired' | 'not_a_fit';
 
@@ -83,4 +90,26 @@ export interface ReferralDetail extends ReferralOutcomeState {
   contact?: ReferralContact;
   /** Present before your Outreach when you can send it. */
   outreachSender?: OutreachSender;
+  /** Present only for Referral Coordinators and Admins. */
+  coordinator?: ReferralCoordinatorView;
+}
+
+/** One member who sent Outreach on a Referral, as the Coordinator panel lists it. */
+export interface ReferralResponse {
+  memberUid: string;
+  /** Empty when the member has no name set. */
+  memberName: string;
+  /** ISO 8601 time Mailgun accepted their Outreach. */
+  outreachSentAt: string;
+  outcome?: ReferralOutcome;
+  outcomeUpdatedAt?: string;
+}
+
+/**
+ * The Coordinator-only part of a Referral: who sent Outreach and each
+ * member's Referral Outcome. Never the requester's contact details.
+ */
+export interface ReferralCoordinatorView {
+  /** Members who sent Outreach, earliest first. */
+  responses: ReferralResponse[];
 }

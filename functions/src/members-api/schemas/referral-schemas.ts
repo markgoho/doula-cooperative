@@ -58,6 +58,42 @@ export const OutreachSenderSchema = t.Object({
 });
 
 /**
+ * One Member who sent Outreach on a Referral, as the Coordinator panel lists it.
+ */
+export const ReferralResponseSchema = t.Object({
+  memberUid: t.String(),
+  memberName: t.String({ description: "The Member's name; empty when unset" }),
+  outreachSentAt: t.String({
+    format: "date-time",
+    description: "When Mailgun accepted the Outreach (ISO 8601)",
+  }),
+  outcome: t.Optional(ReferralOutcomeSchema),
+  outcomeUpdatedAt: t.Optional(
+    t.String({
+      format: "date-time",
+      description: "When the Referral Outcome was last set (ISO 8601)",
+    }),
+  ),
+});
+
+export type ReferralResponse = Static<typeof ReferralResponseSchema>;
+
+/**
+ * Coordinator-only part of a Referral detail: who sent Outreach and each
+ * Member's Referral Outcome. Present only for Referral Coordinators and Admins.
+ * Never carries the requester's contact details.
+ */
+export const ReferralCoordinatorViewSchema = t.Object({
+  responses: t.Array(ReferralResponseSchema, {
+    description: "Members who sent Outreach, earliest first",
+  }),
+});
+
+export type ReferralCoordinatorView = Static<
+  typeof ReferralCoordinatorViewSchema
+>;
+
+/**
  * Referral list item schema - minimal fields for list display.
  * No requester name or contact info; the ZIP code is reduced to a "City, ST" area.
  */
@@ -127,6 +163,7 @@ export const ReferralDetailSchema = t.Object({
   outreach: t.Optional(OwnOutreachSchema),
   contact: t.Optional(ReferralContactSchema),
   outreachSender: t.Optional(OutreachSenderSchema),
+  coordinator: t.Optional(ReferralCoordinatorViewSchema),
   ...OutcomeFields,
 });
 
@@ -137,6 +174,10 @@ export type ReferralDetail = Static<typeof ReferralDetailSchema>;
  */
 export const ListReferralsResponseSchema = t.Object({
   referrals: t.Array(ReferralListItemSchema),
+  showsAllReferrals: t.Boolean({
+    description:
+      "Whether the list holds every Referral regardless of age (newest 200), as Referral Coordinators see it",
+  }),
 });
 
 export type ListReferralsResponse = Static<typeof ListReferralsResponseSchema>;

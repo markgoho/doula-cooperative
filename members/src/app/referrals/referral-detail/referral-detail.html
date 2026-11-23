@@ -97,5 +97,9 @@
         />
       }
     }
+
+    @if (v.referral.coordinator; as coordinator) {
+      <app-referral-responses-panel [responses]="coordinator.responses" />
+    }
   </article>
 }

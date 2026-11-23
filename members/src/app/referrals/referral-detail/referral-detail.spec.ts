@@ -1,7 +1,7 @@
 import { inputBinding } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { render, screen, waitFor } from '@testing-library/angular/zoneless';
+import { render, screen, waitFor, within } from '@testing-library/angular/zoneless';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -114,6 +114,11 @@ const SENT = {
   outreach: { sentAt: '2026-11-20T15:30:00.000Z' },
   contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
 };
+
+/** The Coordinator-only Responses panel. */
+function panel() {
+  return screen.getByRole('region', { name: 'Responses' });
+}
 
 describe('ReferralDetail pane', () => {
   it('shows a loading message while fetching', async () => {
@@ -391,6 +396,138 @@ describe('ReferralDetail pane', () => {
       await user.click(screen.getByRole('button', { name: 'Hired' }));
       expect(await screen.findByText('Saved')).toBeVisible();
       expect(screen.queryByRole('alert')).toBeNull();
+    });
+  });
+
+  describe('Responses panel', () => {
+    const BEA = {
+      memberUid: 'member-b',
+      memberName: 'Bea Doula',
+      outreachSentAt: '2026-11-19T15:00:00.000Z',
+    };
+    const CASS = {
+      memberUid: 'member-c',
+      memberName: 'Cass Doula',
+      outreachSentAt: '2026-11-20T15:30:00.000Z',
+      outcome: 'hired' as const,
+      outcomeUpdatedAt: '2026-11-21T09:00:00.000Z',
+    };
+
+    it('lists each member who sent Outreach with the time and their Outcome', async () => {
+      await setup({
+        referral: makeReferralDetail({
+          responseCount: 2,
+          coordinator: {
+            responses: [BEA, CASS, { ...BEA, memberUid: 'member-d', outcome: 'not_a_fit' }],
+          },
+        }),
+      });
+      await screen.findByRole('heading', { name: 'Responses' });
+      const items = within(panel()).getAllByRole('listitem');
+      expect(items).toHaveLength(3);
+      expect(items[0]).toHaveTextContent('Bea Doula');
+      expect(items[0]).toHaveTextContent('Reached out Nov 19');
+      expect(items[0]).toHaveTextContent('No outcome yet');
+      expect(items[1]).toHaveTextContent('Cass Doula');
+      expect(items[1]).toHaveTextContent('Hired');
+      expect(items[2]).toHaveTextContent('Not a fit');
+    });
+
+    it('says when no one has responded yet', async () => {
+      await setup({ referral: makeReferralDetail({ coordinator: { responses: [] } }) });
+      await screen.findByRole('heading', { name: 'Responses' });
+      expect(within(panel()).getByText('No one has responded yet')).toBeVisible();
+      expect(within(panel()).queryByRole('list')).toBeNull();
+    });
+
+    it('names a member without a name as such', async () => {
+      await setup({
+        referral: makeReferralDetail({
+          coordinator: { responses: [{ ...BEA, memberName: '' }] },
+        }),
+      });
+      await screen.findByRole('heading', { name: 'Responses' });
+      expect(within(panel()).getByRole('listitem')).toHaveTextContent('Name not set');
+    });
+
+    it('shows alongside the composer and keeps contact details hidden before your Outreach', async () => {
+      await setup({
+        referral: makeReferralDetail({
+          outreachSender: SENDER,
+          responseCount: 1,
+          coordinator: { responses: [CASS] },
+        }),
+      });
+      expect(await screen.findByRole('button', { name: 'Send Outreach' })).toBeVisible();
+      expect(within(panel()).getByText('Cass Doula')).toBeVisible();
+      expect(screen.queryByText('maya@example.com')).toBeNull();
+    });
+
+    it('is not shown to an ordinary member', async () => {
+      await setup({ referral: makeReferralDetail({ responseCount: 2 }) });
+      await screen.findByRole('heading', { name: /Maya/ });
+      expect(screen.queryByRole('heading', { name: 'Responses' })).toBeNull();
+      expect(screen.queryByRole('region', { name: 'Responses' })).toBeNull();
+    });
+
+    it('adds your own Outreach to the panel after you send it, without reloading the pane', async () => {
+      const { user, getReferral } = await setup({
+        referral: makeReferralDetail({
+          outreachSender: SENDER,
+          coordinator: { responses: [] },
+        }),
+      });
+      await user.type(await screen.findByRole('textbox', { name: 'Message to Maya' }), '!');
+      getReferral.mockResolvedValue(
+        makeReferralDetail({
+          ...SENT,
+          responseCount: 1,
+          coordinator: {
+            responses: [
+              {
+                memberUid: 'me',
+                memberName: 'Dana Doula',
+                outreachSentAt: SENT.outreach.sentAt,
+              },
+            ],
+          },
+        }),
+      );
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+
+      expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toHaveFocus();
+      await waitFor(() => {
+        expect(within(panel()).getByText('Dana Doula')).toBeVisible();
+      });
+      expect(screen.getByRole('heading', { name: 'Maya Lopez' })).toHaveFocus();
+    });
+
+    it('updates your Outcome in the panel after you save it, keeping focus on the control', async () => {
+      const mine = {
+        memberUid: 'me',
+        memberName: 'Dana Doula',
+        outreachSentAt: SENT.outreach.sentAt,
+      };
+      const { user, getReferral } = await setup({
+        referral: makeReferralDetail({
+          ...SENT,
+          responseCount: 1,
+          coordinator: { responses: [mine] },
+        }),
+      });
+      getReferral.mockResolvedValue(
+        makeReferralDetail({
+          ...SENT,
+          responseCount: 1,
+          coordinator: { responses: [{ ...mine, outcome: 'not_hired' }] },
+        }),
+      );
+      await user.click(await screen.findByRole('button', { name: 'Not hired' }));
+
+      await waitFor(() => {
+        expect(within(panel()).getByRole('listitem')).toHaveTextContent('Not hired');
+      });
+      expect(screen.getByRole('button', { name: 'Not hired' })).toHaveFocus();
     });
   });
 
