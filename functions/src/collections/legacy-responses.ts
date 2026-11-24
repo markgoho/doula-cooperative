@@ -12,6 +12,7 @@ import type { ReferralOutcome } from "./member-responses.js";
  * Outcome to that Member's `outcome` unless they already have one.
  * When an Admin changes the Legacy Membership's email, the document moves to
  * the new email's ID along with the import document.
+ * Deleting the Legacy Membership leaves these documents in place as history.
  */
 export const LEGACY_RESPONSES_SUBCOLLECTION = "legacyResponses";
 
