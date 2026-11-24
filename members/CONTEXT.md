@@ -123,6 +123,7 @@ _Avoid_: Traffic stats, Pirsch data
 - A **Referral Coordinator** may record **Offline Responses** on any **Referral**, naming a **Member** or an **Unclaimed Legacy Membership**, at most one per doula per **Referral**.
 - A **Referral Coordinator** may record, change or clear the **Referral Outcome** of an **Unclaimed Legacy Membership** that has an **Offline Response** on that **Referral**; never a **Member**'s. A hired one counts toward "A member was hired" like a **Member**'s.
 - Linking an **Unclaimed Legacy Membership** to a **Member** moves its **Offline Responses** and **Referral Outcomes** to that **Member**, but never replaces a **Referral Outcome** the **Member** already recorded.
+- Changing an **Unclaimed Legacy Membership**'s email keeps its **Offline Responses** and **Referral Outcomes** with it.
 - A **Referral** with no **Outreach** and no **Offline Response** for too long triggers one **No-Outreach Alert**; an unrecorded hire made outside the portal does not prevent it.
 - A **Member** may have zero or one **Doula Profile**.
 - An **Admin** may manage **Members**, **Doula Profiles**, **Contact Messages**, **Match Requests**, and **Legacy Memberships**.

@@ -10,6 +10,8 @@ import type { ReferralOutcome } from "./member-responses.js";
  * When an Admin links the Legacy Membership to a Member, the document moves
  * to that Member's `memberResponses/{uid}.offlineResponse`, and its Referral
  * Outcome to that Member's `outcome` unless they already have one.
+ * When an Admin changes the Legacy Membership's email, the document moves to
+ * the new email's ID along with the import document.
  */
 export const LEGACY_RESPONSES_SUBCOLLECTION = "legacyResponses";
 
