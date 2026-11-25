@@ -16,7 +16,8 @@
     "test-webhook": "bun run src/scripts/test-stripe-webhook.ts",
     "sync-profile-timestamps": "bun run src/scripts/sync-profile-timestamps.ts",
     "seed-claim-test": "bun run src/scripts/seed-claim-test.ts",
-    "convert-match-request-submitted": "bun run src/scripts/convert-match-request-submitted.ts"
+    "convert-match-request-submitted": "bun run src/scripts/convert-match-request-submitted.ts",
+    "resend-match-request-notification": "bun run src/scripts/resend-match-request-notification.ts"
   },
   "engines": {
     "node": "24"
