@@ -145,7 +145,7 @@ An email telling **Admins** that a **Referral** has gone unanswered: no **Member
 _Avoid_: No-response alert, stale lead alert
 
 **Match Request Notification**:
-An email telling **Admins** that a new **Match Request** has arrived. Carries the same limited details as a **Referral Notification** plus a link to the **Match Request** in the admin app; never the requester's name, contact, or health details.
+An email to the admin and referral inboxes telling **Admins** and the **Referral Coordinator** that a new **Match Request** has arrived. Carries the full request (name, contact, due date, services, insurance, birth location, language, notes) so the **Referral Coordinator** can relay it to the FB group, Reply-To the requester, plus a link to the **Match Request** in the admin app. The only email that carries the requester's details; member-facing emails never do.
 _Avoid_: Doula match email, admin match email
 
 **Public Form Intake**:

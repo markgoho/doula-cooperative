@@ -377,27 +377,56 @@ describe("POST /doula-match", () => {
       };
     }
 
-    it("should send to the unchanged admin recipients with no Reply-To", async () => {
+    it("should send to the admin and referral inboxes with Reply-To the requester", async () => {
       const { plugin, request, sentMessage } = setup({ body: bodyWith() });
 
       await handleRequest(plugin, request);
 
       const message = sentMessage();
       expect(message.to).toEqual([MARK_EMAIL, REFERRAL_EMAIL]);
-      expect(message).not.toHaveProperty("h:Reply-To");
+      expect(message["h:Reply-To"]).toBe("jane@example.com");
     });
 
-    it("should use a subject with due month and area but no requester name", async () => {
+    it("should name the requester in the subject", async () => {
       const { plugin, request, sentMessage } = setup({ body: bodyWith() });
 
       await handleRequest(plugin, request);
 
       expect(sentMessage().subject).toBe(
-        "New match request: due Mar 2027 · Rochester, NY",
+        "New Doula Match Request from Jane Smith",
       );
     });
 
-    it("should include due month/year, services, area and admin link", async () => {
+    it("should include the full request for the Referral Coordinator to relay", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
+
+      await handleRequest(plugin, request);
+
+      const { html } = sentMessage();
+      expect(html).toContain("<strong>Name:</strong> Jane Smith");
+      expect(html).toContain("<strong>Email:</strong> jane@example.com");
+      expect(html).toContain("<strong>Phone:</strong> 555-1234");
+      expect(html).toContain("<strong>ZIP Code:</strong> 14620");
+      expect(html).toContain("<strong>Estimated Due Date:</strong> 3/25/2027");
+      expect(html).toContain(
+        "<strong>Services:</strong> Birth Support, Postpartum Care",
+      );
+      expect(html).toContain("<strong>Insurance/Cost offset:</strong> Aetna");
+      expect(html).toContain("<strong>Birth Location:</strong> Hospital ABC");
+      expect(html).toContain("First time parent");
+    });
+
+    it("should omit the insurance line when none was chosen", async () => {
+      const { plugin, request, sentMessage } = setup({
+        body: bodyWith({ insurance: [] }),
+      });
+
+      await handleRequest(plugin, request);
+
+      expect(sentMessage().html).not.toContain("Insurance/Cost offset");
+    });
+
+    it("should link to the admin match-request detail", async () => {
       const { plugin, request, sentMessage } = setup({
         body: bodyWith(),
         matchRequestId: "abc123",
@@ -405,107 +434,50 @@ describe("POST /doula-match", () => {
 
       await handleRequest(plugin, request);
 
-      const { html } = sentMessage();
-      expect(html).toContain("Mar 2027");
-      expect(html).toContain("Birth Support, Postpartum Care");
-      expect(html).toContain("Rochester, NY");
-      expect(html).toContain(
+      expect(sentMessage().html).toContain(
         "https://admin.doulacooperative.com/match-requests/abc123",
       );
-      expect(html).not.toContain("Spanish");
     });
 
-    it("should leave out every requester detail outside the allowed fields", async () => {
-      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
-
-      await handleRequest(plugin, request);
-
-      const { subject, html } = sentMessage();
-      const content = `${subject}\n${html}`;
-      expect(content).not.toContain("Jane");
-      expect(content).not.toContain("Smith");
-      expect(content).not.toContain("jane@example.com");
-      expect(content).not.toContain("555-1234");
-      expect(content).not.toContain("Hospital ABC");
-      expect(content).not.toContain("First time parent");
-      expect(content).not.toContain("Aetna");
-      expect(content).not.toContain("14620");
-      expect(content).not.toMatch(/\b25\b/);
-    });
-
-    it("should flag Spanish in the subject and body when locale is es", async () => {
+    it("should show the language when a locale was submitted", async () => {
       const { plugin, request, sentMessage } = setup({
         body: bodyWith({ locale: "es" }),
       });
 
       await handleRequest(plugin, request);
 
-      const { subject, html } = sentMessage();
-      expect(subject).toBe(
-        "New match request: due Mar 2027 · Rochester, NY · Spanish",
-      );
-      expect(html).toContain("Requester prefers Spanish");
-    });
-
-    it("should not flag Spanish when locale is en", async () => {
-      const { plugin, request, sentMessage } = setup({
-        body: bodyWith({ locale: "en" }),
-      });
-
-      await handleRequest(plugin, request);
-
-      const { subject, html } = sentMessage();
-      expect(subject).not.toContain("Spanish");
-      expect(html).not.toContain("Spanish");
-    });
-
-    it("should fall back to the raw ZIP when the area lookup fails", async () => {
-      const { plugin, request, sentMessage } = setup({
-        body: bodyWith({ zipcode: "00000" }),
-      });
-
-      await handleRequest(plugin, request);
-
-      const { subject, html } = sentMessage();
-      expect(subject).toBe("New match request: due Mar 2027 · ZIP 00000");
-      expect(html).toContain("ZIP 00000");
-    });
-
-    it("should resolve the area from a ZIP+4 code", async () => {
-      const { plugin, request, sentMessage } = setup({
-        body: bodyWith({ zipcode: "14620-1234" }),
-      });
-
-      await handleRequest(plugin, request);
-
-      expect(sentMessage().subject).toBe(
-        "New match request: due Mar 2027 · Rochester, NY",
+      expect(sentMessage().html).toContain(
+        "<strong>Language:</strong> Spanish (es)",
       );
     });
 
-    it("should fall back to the year alone for an unrecognized month", async () => {
+    it("should leave out the language line when no locale was submitted", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
+
+      await handleRequest(plugin, request);
+
+      expect(sentMessage().html).not.toContain("Language:");
+    });
+
+    it("should HTML-escape every requester-supplied field", async () => {
       const { plugin, request, sentMessage } = setup({
         body: bodyWith({
-          estimatedDueDate: { month: "13", day: "1", year: "2027" },
+          name: "<b>Jane</b>",
+          services: ["<script>alert(1)</script>"],
+          birthLocation: "<i>Hospital</i>",
+          otherInfo: "<img src=x onerror=alert(1)>",
+          insurance: ["<u>Aetna</u>"],
         }),
-      });
-
-      await handleRequest(plugin, request);
-
-      expect(sentMessage().subject).toBe(
-        "New match request: due 2027 · Rochester, NY",
-      );
-    });
-
-    it("should HTML-escape requester-supplied services", async () => {
-      const { plugin, request, sentMessage } = setup({
-        body: bodyWith({ services: ["<script>alert(1)</script>"] }),
       });
 
       await handleRequest(plugin, request);
 
       const { html } = sentMessage();
       expect(html).not.toContain("<script>");
+      expect(html).not.toContain("<b>Jane</b>");
+      expect(html).not.toContain("<i>Hospital</i>");
+      expect(html).not.toContain("<img");
+      expect(html).not.toContain("<u>Aetna</u>");
       expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     });
   });
