@@ -13,6 +13,7 @@ import { formatDueDate } from './format-due-date';
 import { formatResponseCount } from './format-response-count';
 import { formatServices } from './format-services';
 import { MembershipRequiredError } from './membership-required-error';
+import { ReferralDetailCache } from './referral-detail-cache';
 import { ReferralListRefresh } from './referral-list-refresh';
 import { ReferralMembershipRequired } from './referral-membership-required/referral-membership-required';
 import { ReferralPortalDisabledError } from './referral-portal-disabled-error';
@@ -92,6 +93,8 @@ function ownState(
     ReferralPortalUnavailable,
     ReferralMembershipRequired,
   ],
+  // Scoped to this page: cached details hold revealed contact details.
+  providers: [ReferralDetailCache],
   templateUrl: './referrals.html',
   styleUrl: './referrals.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,6 +105,7 @@ export class Referrals {
 
   private referralsService = inject(ReferralsService);
   private listRefresh = inject(ReferralListRefresh);
+  private detailCache = inject(ReferralDetailCache);
 
   protected referralsResource = resource({
     loader: () => this.referralsService.listReferrals(),
@@ -113,6 +117,15 @@ export class Referrals {
     effect(() => {
       if (this.listRefresh.version() === 0) return;
       untracked(() => this.referralsResource.reload());
+    });
+
+    // Fetch open Referrals' details up front so choosing one shows it at
+    // once. Only open ones: a Coordinator's list holds up to 200, and each
+    // detail costs several reads. Rows also prefetch on hover and focus.
+    effect(() => {
+      for (const referral of this.list().referrals) {
+        if (referral.isOpen) untracked(() => void this.detailCache.prefetch(referral.id));
+      }
     });
   }
 
@@ -161,4 +174,9 @@ export class Referrals {
   }
 
   protected ownState = ownState;
+
+  /** Warm a Referral's detail on hover or focus, ahead of the click. */
+  protected prefetch(id: string): void {
+    void this.detailCache.prefetch(id);
+  }
 }

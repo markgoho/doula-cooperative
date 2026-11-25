@@ -71,9 +71,13 @@ async function setup({
     listReferrals = vi.fn().mockResolvedValue({ referrals, showsAllReferrals });
   }
 
+  // The inbox prefetches open Referrals' details; the pane isn't under test here.
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  const getReferral = vi.fn().mockReturnValue(new Promise(() => {}));
+
   await render(TestApp, {
     providers: [
-      { provide: ReferralsService, useValue: { listReferrals } },
+      { provide: ReferralsService, useValue: { listReferrals, getReferral } },
       provideRouter(ROUTES, withComponentInputBinding()),
     ],
   });

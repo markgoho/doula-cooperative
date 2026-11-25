@@ -40,7 +40,9 @@ export class ReferralOutreachComposer {
   private textarea = viewChild<ElementRef<HTMLTextAreaElement>>('textarea');
 
   protected readonly maxLength = MESSAGE_MAX_LENGTH;
-  protected message = linkedSignal(() => buildOutreachTemplate(this.referral(), this.sender()));
+  /** A string, so a refreshed copy of the same Referral doesn't reset a draft. */
+  private template = computed(() => buildOutreachTemplate(this.referral(), this.sender()));
+  protected message = linkedSignal(() => this.template());
   protected sending = signal(false);
   protected isMessageMissing = signal(false);
   protected sendError = signal('');

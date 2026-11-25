@@ -115,7 +115,13 @@ async function setup({ url = '/referrals' }: { url?: string } = {}) {
   const user = userEvent.setup();
   const location = TestBed.inject(Location);
 
-  return { user, router, location, listReferrals, sendOutreach };
+  return { user, router, location, listReferrals, getReferral, sendOutreach };
+}
+
+/** From here on, detail requests never answer: only cached details can show. */
+function stallDetailRequests(getReferral: ReturnType<typeof vi.fn>) {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  getReferral.mockReturnValue(new Promise(() => {}));
 }
 
 describe('Referral inbox routing', () => {
@@ -206,5 +212,59 @@ describe('Referral inbox routing', () => {
       expect(row).toHaveTextContent('You reached out');
     });
     expect(listReferrals).toHaveBeenCalledTimes(2);
+  });
+
+  describe('switching between Referrals', () => {
+    it('shows open Referrals at once, never a loading message', async () => {
+      const { user, getReferral } = await setup({ url: '/referrals/open/req-1' });
+      await screen.findByRole('heading', { name: 'Maya · Rochester, NY' });
+      await vi.waitFor(() => {
+        expect(getReferral).toHaveBeenCalledWith('req-2');
+      });
+      stallDetailRequests(getReferral);
+
+      await user.click(screen.getByRole('link', { name: /Buffalo, NY/ }));
+      expect(await screen.findByRole('heading', { name: 'Ana · Buffalo, NY' })).toBeVisible();
+      expect(screen.queryByText('Loading referral...')).toBeNull();
+
+      await user.click(screen.getByRole('link', { name: /Rochester, NY/ }));
+      expect(await screen.findByRole('heading', { name: 'Maya · Rochester, NY' })).toBeVisible();
+      expect(screen.queryByText('Loading referral...')).toBeNull();
+    });
+
+    it('moves focus to the chosen Referral and starts its composer fresh', async () => {
+      const { user } = await setup({ url: '/referrals/open/req-1' });
+      await screen.findByRole('heading', { name: 'Maya · Rochester, NY' });
+      const message = screen.getByRole('textbox', { name: /message/i });
+      await user.clear(message);
+      await user.type(message, 'A draft for Maya');
+
+      await user.click(screen.getByRole('link', { name: /Buffalo, NY/ }));
+
+      const heading = await screen.findByRole('heading', { name: 'Ana · Buffalo, NY' });
+      await vi.waitFor(() => {
+        expect(heading).toHaveFocus();
+      });
+      expect(screen.getByRole('textbox', { name: /message/i })).not.toHaveValue('A draft for Maya');
+    });
+
+    it('keeps sent Outreach when returning to a Referral', async () => {
+      const { user, getReferral, sendOutreach } = await setup({ url: '/referrals/open/req-1' });
+      await screen.findByRole('heading', { name: 'Maya · Rochester, NY' });
+      sendOutreach.mockResolvedValue({
+        outreach: { sentAt: new Date().toISOString() },
+        contact: { fullName: 'Maya Lopez', email: 'maya@example.com', phone: '555-0100' },
+      });
+      await user.click(screen.getByRole('button', { name: 'Send Outreach' }));
+      await screen.findByRole('heading', { name: 'Maya Lopez' });
+      stallDetailRequests(getReferral);
+
+      await user.click(screen.getByRole('link', { name: /Buffalo, NY/ }));
+      await screen.findByRole('heading', { name: 'Ana · Buffalo, NY' });
+      await user.click(screen.getByRole('link', { name: /Rochester, NY/ }));
+
+      expect(await screen.findByRole('heading', { name: 'Maya Lopez' })).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Send Outreach' })).toBeNull();
+    });
   });
 });

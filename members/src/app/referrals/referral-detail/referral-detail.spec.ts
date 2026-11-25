@@ -11,6 +11,7 @@ import {
 } from '../../services/referrals.service';
 import type { OfflineResponseRow, ReferralDoula } from '../referral.types';
 import { MembershipRequiredError } from '../membership-required-error';
+import { ReferralDetailCache } from '../referral-detail-cache';
 import { ReferralListRefresh } from '../referral-list-refresh';
 import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
@@ -125,6 +126,7 @@ async function setup({
           deleteOfflineResponse,
         },
       },
+      ReferralDetailCache,
       provideRouter([]),
     ],
   });

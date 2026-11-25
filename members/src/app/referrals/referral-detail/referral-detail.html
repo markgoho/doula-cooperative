@@ -1,6 +1,4 @@
-@if (referralResource.isLoading()) {
-  <p class="pane loading" role="status">Loading referral...</p>
-} @else if (isNotOpen()) {
+@if (isNotOpen()) {
   <section class="pane closed" aria-labelledby="referral-closed-heading">
     <h2 id="referral-closed-heading">This referral is no longer open</h2>
     <p>Referrals are open for 14 days.</p>
@@ -10,111 +8,115 @@
   <!-- The inbox page shows the portal-unavailable or membership state. -->
 } @else if (referralResource.error(); as err) {
   <p class="pane error" role="alert">{{ err.message }}</p>
-} @else if (view(); as v) {
-  <article class="pane" aria-labelledby="referral-heading">
-    <header>
-      <p class="eyebrow">{{ v.submitted }} · {{ v.daysOpen }}</p>
-      <h2 id="referral-heading" #heading tabindex="-1">{{ v.title }}</h2>
-      <p class="meta">
-        {{ v.responses }}
-        @if (v.referral.hiredBadge) {
-          · <span class="pill hired">A member was hired</span>
-          @if (!v.referral.outreach) {
-            <span>You can still reach out.</span>
+} @else {
+  @for (v of views(); track v.referral.id) {
+    <article class="pane" aria-labelledby="referral-heading">
+      <header>
+        <p class="eyebrow">{{ v.submitted }} · {{ v.daysOpen }}</p>
+        <h2 id="referral-heading" #heading tabindex="-1">{{ v.title }}</h2>
+        <p class="meta">
+          {{ v.responses }}
+          @if (v.referral.hiredBadge) {
+            · <span class="pill hired">A member was hired</span>
+            @if (!v.referral.outreach) {
+              <span>You can still reach out.</span>
+            }
           }
-        }
-      </p>
-    </header>
+        </p>
+      </header>
 
-    <dl class="facts">
-      <div>
-        <dt>Due</dt>
-        <dd>{{ v.dueDate }}</dd>
-      </div>
-      <div>
-        <dt>Services</dt>
-        <dd>{{ v.services }}</dd>
-      </div>
-      <div>
-        <dt>Area</dt>
-        <dd>{{ v.area }}</dd>
-      </div>
-      <div>
-        <dt>Birth location</dt>
-        <dd>{{ v.referral.birthLocation || 'Not provided' }}</dd>
-      </div>
-      <div>
-        <dt>Cost offset</dt>
-        <dd>{{ v.costOffset }}</dd>
-      </div>
-      @if (v.referral.prefersSpanish) {
+      <dl class="facts">
         <div>
-          <dt>Language</dt>
-          <dd>Requester prefers Spanish</dd>
+          <dt>Due</dt>
+          <dd>{{ v.dueDate }}</dd>
         </div>
-      }
-      @if (v.referral.otherInfo) {
-        <div class="wide">
-          <dt>Notes</dt>
-          <dd>{{ v.referral.otherInfo }}</dd>
+        <div>
+          <dt>Services</dt>
+          <dd>{{ v.services }}</dd>
         </div>
-      }
-    </dl>
-
-    @if (v.referral.contact; as contact) {
-      <section class="contact revealed" aria-labelledby="contact-heading">
-        <h3 id="contact-heading" #contactHeading tabindex="-1">
-          {{ contact.fullName || 'Contact details' }}
-        </h3>
-        <p class="contact-links">
-          @if (contact.email) {
-            <a [href]="'mailto:' + contact.email">{{ contact.email }}</a>
-          }
-          @if (contact.phone) {
-            <a [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
-          }
-        </p>
-        @if (v.sentAt) {
-          <p class="sent" role="status">You reached out {{ v.sentAt }}.</p>
+        <div>
+          <dt>Area</dt>
+          <dd>{{ v.area }}</dd>
+        </div>
+        <div>
+          <dt>Birth location</dt>
+          <dd>{{ v.referral.birthLocation || 'Not provided' }}</dd>
+        </div>
+        <div>
+          <dt>Cost offset</dt>
+          <dd>{{ v.costOffset }}</dd>
+        </div>
+        @if (v.referral.prefersSpanish) {
+          <div>
+            <dt>Language</dt>
+            <dd>Requester prefers Spanish</dd>
+          </div>
         }
-      </section>
-      <app-referral-outcome-control
-        [referralId]="v.referral.id"
-        [outcome]="v.referral.outcome"
-        (saved)="onOutcomeSaved($event)"
-      />
-    } @else {
-      <section class="contact" aria-labelledby="contact-heading">
-        <h3 id="contact-heading">Contact details</h3>
-        <p>{{ v.contactHint }}</p>
-      </section>
+        @if (v.referral.otherInfo) {
+          <div class="wide">
+            <dt>Notes</dt>
+            <dd>{{ v.referral.otherInfo }}</dd>
+          </div>
+        }
+      </dl>
 
-      @if (v.referral.offlineResponse) {
-        <p class="offline-note">
-          The Referral Coordinator recorded that you responded outside the portal.
-        </p>
+      @if (v.referral.contact; as contact) {
+        <section class="contact revealed" aria-labelledby="contact-heading">
+          <h3 id="contact-heading" #contactHeading tabindex="-1">
+            {{ contact.fullName || 'Contact details' }}
+          </h3>
+          <p class="contact-links">
+            @if (contact.email) {
+              <a [href]="'mailto:' + contact.email">{{ contact.email }}</a>
+            }
+            @if (contact.phone) {
+              <a [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
+            }
+          </p>
+          @if (v.sentAt) {
+            <p class="sent" role="status">You reached out {{ v.sentAt }}.</p>
+          }
+        </section>
         <app-referral-outcome-control
           [referralId]="v.referral.id"
           [outcome]="v.referral.outcome"
           (saved)="onOutcomeSaved($event)"
         />
+      } @else {
+        <section class="contact" aria-labelledby="contact-heading">
+          <h3 id="contact-heading">Contact details</h3>
+          <p>{{ v.contactHint }}</p>
+        </section>
+
+        @if (v.referral.offlineResponse) {
+          <p class="offline-note">
+            The Referral Coordinator recorded that you responded outside the portal.
+          </p>
+          <app-referral-outcome-control
+            [referralId]="v.referral.id"
+            [outcome]="v.referral.outcome"
+            (saved)="onOutcomeSaved($event)"
+          />
+        }
+
+        @if (v.referral.outreachSender; as sender) {
+          <app-referral-outreach-composer
+            [referral]="v.referral"
+            [sender]="sender"
+            (sent)="onOutreachSent($event)"
+          />
+        }
       }
 
-      @if (v.referral.outreachSender; as sender) {
-        <app-referral-outreach-composer
-          [referral]="v.referral"
-          [sender]="sender"
-          (sent)="onOutreachSent($event)"
+      @if (v.referral.coordinator; as coordinator) {
+        <app-referral-responses-panel
+          [referralId]="v.referral.id"
+          [coordinator]="coordinator"
+          (changed)="onOfflineResponsesChanged()"
         />
       }
-    }
-
-    @if (v.referral.coordinator; as coordinator) {
-      <app-referral-responses-panel
-        [referralId]="v.referral.id"
-        [coordinator]="coordinator"
-        (changed)="onOfflineResponsesChanged()"
-      />
-    }
-  </article>
+    </article>
+  } @empty {
+    <p class="pane loading" role="status">Loading referral...</p>
+  }
 }

@@ -20,6 +20,7 @@ import { formatServices } from '../format-services';
 import { MembershipRequiredError } from '../membership-required-error';
 import { ReferralNotOpenError } from '../referral-not-open-error';
 import { ReferralPortalDisabledError } from '../referral-portal-disabled-error';
+import { ReferralDetailCache } from '../referral-detail-cache';
 import { ReferralListRefresh } from '../referral-list-refresh';
 import { ReferralOutcomeControl } from '../referral-outcome-control/referral-outcome-control';
 import { ReferralOutreachComposer } from '../referral-outreach-composer/referral-outreach-composer';
@@ -46,6 +47,7 @@ import { ReferralsService } from '../../services/referrals.service';
 export class ReferralDetail {
   private referralsService = inject(ReferralsService);
   private listRefresh = inject(ReferralListRefresh);
+  private cache = inject(ReferralDetailCache);
 
   // Route parameter binding via withComponentInputBinding
   id = input.required<string>();
@@ -54,10 +56,14 @@ export class ReferralDetail {
   private contactHeading = viewChild<ElementRef<HTMLElement>>('contactHeading');
   private injector = inject(Injector);
 
+  /** Fetches a fresh copy into the cache; the pane renders from the cache. */
   protected referralResource = resource({
     params: () => ({ id: this.id() }),
-    loader: ({ params }) => this.referralsService.getReferral(params.id),
+    loader: ({ params }) => this.cache.load(params.id),
   });
+
+  /** The selected Referral, shown at once when cached while a fresh copy loads. */
+  private referral = computed(() => this.cache.get(this.id()));
 
   protected isNotOpen = computed(
     () => this.referralResource.error() instanceof ReferralNotOpenError,
@@ -69,11 +75,16 @@ export class ReferralDetail {
     return error instanceof ReferralPortalDisabledError || error instanceof MembershipRequiredError;
   });
 
-  protected view = computed(() => {
-    if (!this.referralResource.hasValue()) return;
-    const referral = this.referralResource.value();
+  /**
+   * Zero or one view, rendered with `@for` tracked by id: choosing another
+   * Referral recreates the pane (fresh composer and controls, heading focus);
+   * an update to the same Referral keeps it, and focus with it.
+   */
+  protected views = computed(() => {
+    const referral = this.referral();
+    if (!referral) return [];
     const firstName = referral.firstName || 'The requester';
-    return {
+    const view = {
       referral,
       title: [referral.firstName, referral.area].filter(Boolean).join(' · ') || 'Referral',
       submitted: getRelativeTime(referral.submitted),
@@ -88,12 +99,13 @@ export class ReferralDetail {
         : 'This referral is past its 14 days, so Outreach is closed.',
       sentAt: referral.outreach ? formatSentAt(referral.outreach.sentAt) : '',
     };
+    return [view];
   });
 
   /** Reveal the contact details in place and refresh the list row. */
   protected onOutreachSent({ outreach, contact }: SentOutreach): void {
-    if (!this.referralResource.hasValue()) return;
-    const referral = this.referralResource.value();
+    const referral = this.referral();
+    if (!referral) return;
     const updated = {
       ...referral,
       outreach,
@@ -103,7 +115,7 @@ export class ReferralDetail {
     };
     // The composer's sender no longer applies once Outreach is sent.
     delete updated.outreachSender;
-    this.referralResource.set(updated);
+    this.cache.set(this.id(), updated);
     this.listRefresh.request();
     void this.refreshCoordinatorView();
     // The composer is gone; move focus to the revealed contact details.
@@ -117,12 +129,13 @@ export class ReferralDetail {
    * (a reload would replace the control and drop focus), and refresh the list row.
    */
   protected onOutcomeSaved(state: ReferralOutcomeState): void {
-    if (!this.referralResource.hasValue()) return;
-    const updated = { ...this.referralResource.value() };
+    const referral = this.referral();
+    if (!referral) return;
+    const updated = { ...referral };
     // The saved state replaces your Outcome entirely; a cleared one has neither field.
     delete updated.outcome;
     delete updated.outcomeUpdatedAt;
-    this.referralResource.set({ ...updated, ...state });
+    this.cache.set(this.id(), { ...updated, ...state });
     this.listRefresh.request();
     void this.refreshCoordinatorView();
   }
@@ -141,14 +154,15 @@ export class ReferralDetail {
    * failure the panel keeps its last state; it refreshes on the next open.
    */
   private async refreshCoordinatorView(): Promise<void> {
-    if (!this.referralResource.hasValue() || !this.referralResource.value().coordinator) return;
+    if (!this.referral()?.coordinator) return;
     const id = this.id();
     try {
       const { coordinator, responseCount, hiredBadge } =
         await this.referralsService.getReferral(id);
-      if (!coordinator || this.id() !== id || !this.referralResource.hasValue()) return;
-      this.referralResource.set({
-        ...this.referralResource.value(),
+      const current = this.cache.get(id);
+      if (!coordinator || !current) return;
+      this.cache.set(id, {
+        ...current,
         coordinator,
         responseCount,
         hiredBadge,

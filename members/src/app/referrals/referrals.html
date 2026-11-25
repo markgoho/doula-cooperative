@@ -39,6 +39,8 @@
                       [routerLink]="['/referrals', filter(), referral.id]"
                       routerLinkActive="active"
                       ariaCurrentWhenActive="page"
+                      (pointerenter)="prefetch(referral.id)"
+                      (focus)="prefetch(referral.id)"
                     >
                       <span class="row-main">
                         <strong>{{ referral.area || 'Area not provided' }}</strong>
