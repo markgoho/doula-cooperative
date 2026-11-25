@@ -53,6 +53,24 @@
   background: var(--color-sand);
 }
 
+/* Set on one card at a time by profile-card-morph.ts, so that card alone
+   morphs into the profile header. Names match doulas/single.html. */
+[data-morph] .headshot {
+  view-transition-name: doula-headshot;
+}
+
+[data-morph] .profile-card__link {
+  view-transition-name: doula-name;
+}
+
+[data-morph] .credentials {
+  view-transition-name: doula-credentials;
+}
+
+[data-morph] .tag {
+  view-transition-name: var(--morph-name, none);
+}
+
 .profile-card__body {
   grid-area: body;
   display: grid;

@@ -1,0 +1,3 @@
+{{- /* Inline and render-blocking on purpose: see profile-card-morph.ts. */ -}}
+{{ $morph := resources.Get "ts/profile-card-morph.ts" | js.Build (dict "targetPath" "profile-card-morph.js" "minify" true) }}
+<script>{{ $morph.Content | safeJS }}</script>
