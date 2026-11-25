@@ -80,10 +80,7 @@ async function resendMatchRequestNotification() {
       `  ${id}: submitted ${document.submitted.toDate().toISOString()}, ZIP ${document.zipcode}`,
     );
     if (!SHOULD_APPLY) continue;
-    const message = buildDoulaMatchNotification({
-      data: document,
-      matchRequestId: id,
-    });
+    const message = buildDoulaMatchNotification({ data: document });
     await sendEmail({ message }, logger);
     console.log("    ✅ sent");
   }

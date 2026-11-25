@@ -4,7 +4,6 @@ import {
   NO_REPLY_EMAIL,
   REFERRAL_EMAIL,
 } from "../../constants/email-addresses.js";
-import { ADMIN_APP_URL } from "../../constants/urls.js";
 import type { EmailMessage } from "../../shared-api/services/email/index.js";
 import { escapeHtml } from "../../shared-api/utils/html-escape.js";
 import type { DoulaMatchData } from "./form-storage/types.js";
@@ -21,12 +20,14 @@ const LOCALE_LABELS: Record<MatchRequestLocale, string> = {
  * Carries the full request, because the Referral Coordinator relays it to the
  * FB group from this email. Only `MARK_EMAIL` and `REFERRAL_EMAIL` receive it;
  * member-facing emails (Referral Notification, No-Outreach Alert) stay PHI-free.
- * Reply-To is the requester so either inbox can answer directly.
+ * Reply-To is the requester so either inbox can answer directly. No admin-app
+ * link: the Referral Coordinator can't open the admin app, and she pastes the
+ * whole email into the FB group.
  *
  * SECURITY NOTE: every field is requester-supplied, so every value interpolated
  * into the HTML is escaped. The subject is plain text and is not HTML-escaped.
  *
- * @param parameters - Doula match form data and the pre-allocated Match Request id
+ * @param parameters - Doula match form data
  * @returns Email message ready to send via EmailService
  */
 export function buildDoulaMatchNotification({
@@ -42,14 +43,11 @@ export function buildDoulaMatchNotification({
     insurance,
     locale,
   },
-  matchRequestId,
 }: {
   data: DoulaMatchData;
-  matchRequestId: string;
 }): EmailMessage {
   const localeLabel = locale ? LOCALE_LABELS[locale] : undefined;
   const dueDate = `${estimatedDueDate.month}/${estimatedDueDate.day}/${estimatedDueDate.year}`;
-  const detailUrl = `${ADMIN_APP_URL}/match-requests/${encodeURIComponent(matchRequestId)}`;
   const insuranceLine =
     insurance.length > 0
       ? `<p><strong>Insurance/Cost offset:</strong> ${escapeHtml(insurance.join(", "))}</p>`
@@ -74,8 +72,6 @@ export function buildDoulaMatchNotification({
       ${languageLine}
       <p><strong>Other Info:</strong></p>
       <p>${escapeHtml(otherInfo)}</p>
-      <hr>
-      <p><a href="${escapeHtml(detailUrl)}">View match request in the admin app</a></p>
     `,
     "h:Reply-To": email,
   };

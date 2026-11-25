@@ -292,8 +292,8 @@ describe("POST /doula-match", () => {
       expect(body.emailSent).toBe(true);
     });
 
-    it("should save the Match Request under the id linked from the notification", async () => {
-      const { plugin, request, mockSaveMatchRequest, sentMessage } = setup({
+    it("should save the Match Request under the pre-allocated id", async () => {
+      const { plugin, request, mockSaveMatchRequest } = setup({
         matchRequestId: "match-42",
       });
 
@@ -301,9 +301,6 @@ describe("POST /doula-match", () => {
 
       expect(mockSaveMatchRequest).toHaveBeenCalledTimes(1);
       expect(mockSaveMatchRequest.mock.calls[0]?.[0].id).toBe("match-42");
-      expect(sentMessage().html).toContain(
-        'href="https://admin.doulacooperative.com/match-requests/match-42"',
-      );
     });
 
     it("should accept Spanish locale submission and save the locale", async () => {
@@ -426,17 +423,14 @@ describe("POST /doula-match", () => {
       expect(sentMessage().html).not.toContain("Insurance/Cost offset");
     });
 
-    it("should link to the admin match-request detail", async () => {
-      const { plugin, request, sentMessage } = setup({
-        body: bodyWith(),
-        matchRequestId: "abc123",
-      });
+    it("should not link to the admin app", async () => {
+      const { plugin, request, sentMessage } = setup({ body: bodyWith() });
 
       await handleRequest(plugin, request);
 
-      expect(sentMessage().html).toContain(
-        "https://admin.doulacooperative.com/match-requests/abc123",
-      );
+      const { html } = sentMessage();
+      expect(html).not.toContain("admin.doulacooperative.com");
+      expect(html).not.toContain("<a ");
     });
 
     it("should show the language when a locale was submitted", async () => {

@@ -48,8 +48,7 @@ export async function handleMatchFormLogic({
     getSpamPolicy: recaptchaScore => ({
       recaptcha: { score: recaptchaScore },
     }),
-    buildEmail: () =>
-      buildDoulaMatchNotification({ data: formData, matchRequestId }),
+    buildEmail: () => buildDoulaMatchNotification({ data: formData }),
     persist: ({ emailSent, recaptchaScore }) =>
       formStorageService.saveMatchRequest({
         id: matchRequestId,
