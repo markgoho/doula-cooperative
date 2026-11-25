@@ -1,0 +1,14 @@
+{{- /*
+  Fetch a same-site page while the visitor hovers or presses its link, so the
+  HTML is already there on click. Prefetch, not prerender: a prerendered page
+  runs its scripts, which would count analytics hits for pages never seen.
+
+  Printed as one safeHTML string: Go templates HTML-escape the body of a script
+  type they do not know, and the minifier empties a hand-written JSON body.
+  */
+-}}
+{{- $sameSite := dict "href_matches" "/*" -}}
+{{- $notApi := dict "not" (dict "href_matches" "/api/*") -}}
+{{- $rule := dict "where" (dict "and" (slice $sameSite $notApi)) "eagerness" "moderate" -}}
+{{- $rules := dict "prefetch" (slice $rule) | jsonify -}}
+{{ printf `<script type="speculationrules">%s</script>` $rules | safeHTML }}
