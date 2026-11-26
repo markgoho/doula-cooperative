@@ -156,7 +156,7 @@ Served at `admin.doulacooperative.com` (port 4201 locally). Contains cooperative
 
 ### Hugo Static Site (`/hugo/`)
 
-- Hugo extended v0.129.0+
+- Hugo extended, latest release; local install must match `HUGO_VERSION` in `Dockerfile` (`scripts/check-hugo-version.ts` enforces it)
 - Content in `/hugo/content/`
 - Doula profiles managed via GitHub App integration
 - Pagefind search index built with `bun run index`

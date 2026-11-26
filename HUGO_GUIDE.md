@@ -225,7 +225,7 @@ resources.Get $pageCSS | css.Sass $options }}
 ### Build Errors
 
 ```bash
-# Check Hugo version (requires 0.129.0+ extended)
+# Check Hugo version (must match HUGO_VERSION in Dockerfile)
 hugo version
 
 # Build locally to see errors
