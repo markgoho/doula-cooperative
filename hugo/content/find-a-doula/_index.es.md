@@ -1,5 +1,7 @@
 ---
 title: Encuentra la doula adecuada para ti
+layout: landing
+outputs: [html]
 description: Busca, explora o solicita ayuda para encontrar una doula en Rochester que se adapte a tus necesidades.
 ---
 
